@@ -39,6 +39,7 @@
     "node-pty": "^1.1.0-beta35",
     "perfect-scrollbar": "^1.5.6",
     "python-shell": "^5.0.0",
+    "remove": "^0.1.5",
     "typed-rpc": "^6.1.2",
     "vscode-languageserver": "^9.0.1",
     "vscode-ws-jsonrpc": "^3.5.0",
@@ -52,6 +53,8 @@
     "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20.19.19",
     "@types/ws": "^8.18.1",
+    "bash-language-server": "^5.6.0",
+    "clangd": "^0.0.0",
     "concurrently": "^9.2.1",
     "electron": "^38.1.2",
     "electron-builder": "^26.0.12",
@@ -63,6 +66,8 @@
     "gulp": "^5.0.1",
     "pyright": "^1.1.405",
     "rimraf": "^6.0.1",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "typescript-language-server": "^5.0.1",
+    "vscode-langservers-extracted": "^4.10.0"
   }
 }

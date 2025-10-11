@@ -11,16 +11,18 @@ const common = {
   bundle: true,
   sourcemap: false,
   minify: prod,
-  outbase: "src",
-  outdir: "build",
   logLevel: "error",
 };
 
 async function buildAll() {
+  // Entry globs
   const rendererEntries = await fg([
     "src/code/workbench/**/*.ts",
     "src/code/platform/**/*.ts",
   ]);
+
+  // Separate extensions entries outside src/
+  const extensionEntries = await fg(["extensions/**/*.ts"]);
 
   const electronEntries = [
     "src/main.ts",
@@ -53,10 +55,12 @@ async function buildAll() {
   const rendererOpts = {
     ...common,
     entryPoints: rendererEntries,
+    outbase: "src",
+    outdir: "build",
     platform: "browser",
     format: "esm",
     splitting: true,
-    target: ["chrome114", "firefox115"],
+    target: ["chrome114"],
     define: { "process.env.NODE_ENV": JSON.stringify(env) },
     assetNames: "assets/[name]",
     chunkNames: "chunks/[name]-[hash]",
@@ -66,15 +70,28 @@ async function buildAll() {
       "monaco-languages": "monaco-languages/release/esm/monaco.contribution",
       vscode: "monaco-languageclient/lib/vscode-compatibility",
     },
-
     external: [],
+  };
+
+  // Build extensions separately with proper outbase and folder structure
+  const extensionsOpts = {
+    ...common,
+    entryPoints: extensionEntries,
+    outbase: ".", // important: preserve extensions folder relative to project root
+    outdir: "build",
+    platform: "browser",
+    format: "esm",
+    splitting: true,
+    target: ["chrome114"],
+    define: { "process.env.NODE_ENV": JSON.stringify(env) },
+    loader: Loaders,
   };
 
   const workersOpts = {
     bundle: true,
     format: "esm",
     platform: "browser",
-    target: ["chrome114", "firefox115"],
+    target: ["chrome114"],
     entryPoints: workerEntries,
     outdir: "build/workers",
     entryNames: "[name]",
@@ -113,17 +130,20 @@ async function buildAll() {
 
   if (watch) {
     const rendererCtx = await esbuild.context(rendererOpts);
+    const extensionsCtx = await esbuild.context(extensionsOpts);
     const workersCtx = await esbuild.context(workersOpts);
     const electronCtx = await esbuild.context(electronOpts);
 
     await Promise.all([
-      workersCtx.watch(),
       rendererCtx.watch(),
+      extensionsCtx.watch(),
+      workersCtx.watch(),
       electronCtx.watch(),
     ]);
   } else {
     await Promise.all([
       esbuild.build(rendererOpts),
+      esbuild.build(extensionsOpts),
       esbuild.build(workersOpts),
       esbuild.build(electronOpts),
     ]);

@@ -6,7 +6,7 @@ const SOURCE_GLOBS = [
   "src/code/base/native/cpp/**/*",
 ];
 
-const MODELS_GLOBS = ["src/code/base/models/**/*", "!src/**/tsconfig.*"];
+const EXTENSION_GLOBS = ["extensions/**/*", "!extensions/**/*.{ts,js}"];
 
 function copyFiles() {
   return src(SOURCE_GLOBS, {
@@ -21,17 +21,47 @@ function copyPyright() {
     base: "node_modules/pyright/",
     allowEmpty: true,
     encoding: false,
-  }).pipe(dest("build/pyright"));
+  }).pipe(dest("build/language/python"));
 }
 
-const build = series(parallel(copyFiles, copyPyright));
+function copyTypescript() {
+  return src("node_modules/typescript-language-server/**/*", {
+    base: "node_modules/typescript-language-server/",
+    allowEmpty: true,
+    encoding: false,
+  }).pipe(dest("build/language/typescript"));
+}
+
+function copyBash() {
+  return src("node_modules/bash-language-server/**/*", {
+    base: "node_modules/bash-language-server/",
+    allowEmpty: true,
+    encoding: false,
+  }).pipe(dest("build/language/bash"));
+}
+
+function copyExtensions() {
+  return src(EXTENSION_GLOBS, {
+    base: "extensions",
+    allowEmpty: true,
+    encoding: false,
+  }).pipe(dest("build/extensions"));
+}
+
+const build = series(
+  parallel(copyFiles, copyTypescript, copyPyright, copyBash, copyExtensions)
+);
 
 function watchSourceFiles() {
   return watch(SOURCE_GLOBS, { ignoreInitial: false }, copyFiles);
 }
 
+function watchExtensionFiles() {
+  return watch(EXTENSION_GLOBS, { ignoreInitial: false }, copyExtensions);
+}
+
 function watchAll() {
-  return parallel(watchSourceFiles);
+  return parallel(watchSourceFiles, watchExtensionFiles);
 }
 
 module.exports = {

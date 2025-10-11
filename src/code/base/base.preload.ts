@@ -1,13 +1,38 @@
 import fs from "fs";
 import path from "path";
-import { spawn, SpawnOptionsWithoutStdio } from "child_process";
+import os from "os";
+import { spawn, SpawnOptions, SpawnOptionsWithoutStdio } from "child_process";
 import { PythonShell } from "python-shell";
 import { contextBridge, ipcRenderer } from "electron";
+import {
+  createServerProcess,
+  forward,
+  IConnection,
+} from "vscode-ws-jsonrpc/server";
+import { createWebSocketConnection } from "vscode-ws-jsonrpc/server";
+import { WebSocketServer, ServerOptions } from "ws";
 import { Storage } from "./services/storage.service.js";
 import { FetchCompletionItemParams } from "../platform/mira/mira.suggestions/types/internal.js";
 import { _xtermManager } from "../workbench/common/workbench.dev.panel/workbench.dev.panel.spawn.xterm.js";
+import { IWebSocket } from "@codingame/monaco-jsonrpc";
 
 const storage = Storage;
+
+function readDirRecursive(dirPath: string): string[] {
+  let results: string[] = [];
+  if (!fs.existsSync(dirPath)) return results;
+
+  const list = fs.readdirSync(dirPath, { withFileTypes: true });
+  for (const dirent of list) {
+    const fullPath = path.join(dirPath, dirent.name);
+    if (dirent.isDirectory()) {
+      results = results.concat(readDirRecursive(fullPath));
+    } else if (dirent.isFile()) {
+      results.push(fullPath);
+    }
+  }
+  return results;
+}
 
 export const storageBridge = {
   store: (_name: string, _value: any) => {
@@ -143,12 +168,8 @@ export const fsBridge = {
     }
   },
 
-  readDir: (_path: string): string[] => {
-    try {
-      return fs.readdirSync(_path);
-    } catch {
-      return [];
-    }
+  readDir: (_path: string) => {
+    return readDirRecursive(_path);
   },
 
   getExtension: (_path: string): string => {
@@ -188,6 +209,9 @@ export const pathBridge = {
   },
   normalize: (_path: string) => {
     return path.normalize(_path);
+  },
+  extname: (_path: string) => {
+    return path.extname(_path);
   },
 };
 
@@ -325,6 +349,68 @@ export const editorBridge = {
   },
 };
 
+export const nodeBridge = {
+  createWebSocketConnection: (_socket: IWebSocket) => {
+    return createWebSocketConnection(_socket);
+  },
+  createWebSocketServer: (options?: ServerOptions) => {
+    return new WebSocketServer(options);
+  },
+  createServerProcess: (
+    _name: string,
+    _command: string,
+    _args: string[],
+    _options: SpawnOptions
+  ) => {
+    return createServerProcess(_name, _command, _args, _options);
+  },
+  forward: (_client: IConnection, _server: IConnection) => {
+    return forward(_client, _server);
+  },
+  createLanguageServer: (
+    _port: number,
+    _nodeCliPath: string,
+    _websocketOptions: ServerOptions,
+    _arg: string,
+    _type: "node" | "cli",
+    _cliPath?: string
+  ) => {
+    let _process: IConnection | undefined;
+    const _websocket = new WebSocketServer(_websocketOptions);
+    _websocket.on("connection", (webSocket) => {
+      const socket = {
+        send: (content: any) => webSocket.send(content),
+        onMessage: (cb: any) => webSocket.on("message", cb),
+        onError: (cb: any) => webSocket.on("error", cb),
+        onClose: (cb: any) => webSocket.on("close", cb),
+        dispose: () => webSocket.close(),
+      };
+
+      const connection = createWebSocketConnection(socket);
+
+      _process = createServerProcess(
+        "Language Server",
+        _type === "node" ? process.execPath : _cliPath!,
+        [_nodeCliPath, _arg],
+        {
+          stdio: ["pipe", "pipe", "pipe"],
+          env: {
+            ...process.env,
+            ELECTRON_RUN_AS_NODE: "1",
+          },
+        }
+      );
+
+      forward(connection, _process!);
+
+      webSocket.on("close", () => {});
+    });
+
+    return _process;
+  },
+  platform: os.platform(),
+};
+
 window.addEventListener("beforeunload", () => {
   activeWatchers.forEach((watcher, path) => {
     try {
@@ -352,3 +438,4 @@ contextBridge.exposeInMainWorld("python", pythonBridge);
 contextBridge.exposeInMainWorld("childprocess", childprocessBridge);
 contextBridge.exposeInMainWorld("spawn", spawnBridge);
 contextBridge.exposeInMainWorld("editor", editorBridge);
+contextBridge.exposeInMainWorld("node", nodeBridge);

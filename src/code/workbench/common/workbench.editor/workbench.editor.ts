@@ -14,10 +14,12 @@ import { registerStandalone } from "../workbench.standalone.js";
 import { dispatch } from "../workbench.store/workbench.store.js";
 import { update_editor_tabs } from "../workbench.store/workbench.store.slice.js";
 import { select } from "../workbench.store/workbench.store.selector.js";
-import { getLanguage } from "../workbench.utils.js";
 import { registerTheme } from "./workbench.editor.theme.js";
 import { registerFsSuggestion } from "./workbench.editor.utils.js";
-import { asyncDebounce } from "../../../platform/mira/mira.suggestions/common/utils/async-debounce.js";
+import {
+  getLanguageServer,
+  languages,
+} from "../../../platform/editor/editor.languages.js";
 
 const fs = window.fs;
 const path = window.path;
@@ -47,7 +49,8 @@ export class Editor {
   private _tabs: IEditorTab[] = [];
   public _editor!: monaco.editor.IStandaloneCodeEditor;
   private _layout = document.querySelector(".editor-area") as HTMLElement;
-  private _client?: MonacoLanguageClient;
+
+  private _clients = new Map<number, MonacoLanguageClient>();
   private _models = new Map<string, monaco.editor.ITextModel>();
   private _watchers = new Map<string, any>();
   private _updating = false;
@@ -58,12 +61,64 @@ export class Editor {
 
   constructor() {
     registerTheme(monaco);
+
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+      noLib: true,
+      allowNonTsExtensions: true,
+    });
+
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      noLib: true,
+      allowNonTsExtensions: true,
+    });
+
+    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: true,
+      noSyntaxValidation: true,
+    });
+
+    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: true,
+      noSyntaxValidation: true,
+    });
+
     this._registerProviders();
     this._hoverProvider();
   }
 
   private _normalizePath(p: string) {
     return p.toLowerCase().replace(/\//g, "\\");
+  }
+
+  private _getMonacoLanguageId(extension: string): string {
+    const languageMap: { [key: string]: string } = {
+      py: "python",
+      js: "javascript",
+      ts: "typescript",
+      json: "json",
+      html: "html",
+      css: "css",
+      scss: "scss",
+      less: "less",
+      xml: "xml",
+      yaml: "yaml",
+      yml: "yaml",
+      md: "markdown",
+      txt: "plaintext",
+      java: "java",
+      cpp: "cpp",
+      c: "c",
+      h: "c",
+      hpp: "cpp",
+      rs: "rust",
+      go: "go",
+      php: "php",
+      rb: "ruby",
+      sh: "shell",
+      bat: "bat",
+      ps1: "powershell",
+    };
+    return languageMap[extension] || "plaintext";
   }
 
   private _registerProviders() {
@@ -124,9 +179,6 @@ export class Editor {
       cleanPath = _path.replace("file://", "");
     } else if (_path.startsWith("file:")) {
       cleanPath = _path.replace("file:", "");
-    }
-
-    if (position) {
     }
 
     const stateValue = select((s) => s.main.editor_tabs);
@@ -211,8 +263,13 @@ export class Editor {
       const position = e.target.position;
 
       try {
-        if (this._client) {
-          const definitions = (await this._client.sendRequest(
+        const ext = model.uri.path.split(".").pop() || "";
+        const port = getLanguageServer(ext);
+
+        if (port && this._clients.has(port)) {
+          const client = this._clients.get(port)!;
+
+          const definitions = (await client.sendRequest(
             "textDocument/definition",
             {
               textDocument: { uri: model.uri.toString() },
@@ -233,7 +290,6 @@ export class Editor {
             await this._openFile(def.uri, defPosition);
             return;
           }
-        } else {
         }
 
         const word = model.getWordAtPosition(position);
@@ -243,9 +299,7 @@ export class Editor {
           const resolvedPath = path.resolve([word.word, model.uri.fsPath]);
           if (resolvedPath) {
             await this._openFile(`file://${resolvedPath}`);
-          } else {
           }
-        } else {
         }
       } catch (error) {}
     });
@@ -294,17 +348,13 @@ export class Editor {
       minimap: { enabled: false },
       renderWhitespace: "selection",
       fixedOverflowWidgets: true,
-
       links: true,
     });
 
     this._mounted = true;
     this._visiblity(false);
 
-    if (!this._client) this._setupCLient();
-
     this._setupMouse();
-
     this._setupCursorTracking();
     this._saveAction();
   }
@@ -350,35 +400,43 @@ export class Editor {
     });
   }
 
-  private _setupCLient() {
-    try {
-      const port = window.storage.get("language-server-port");
+  private async _setupClientForLanguage(extension: string) {
+    const port = getLanguageServer(extension);
 
+    if (!port) {
+      return;
+    }
+    if (this._clients.has(port)) {
+      return;
+    }
+
+    try {
       const webSocket = new WebSocket(`ws://localhost:${port}`);
 
       listen({
         webSocket,
         onConnection: (connection) => {
-          this._client = new MonacoLanguageClient({
-            name: "Pyright Language Client",
+          const monacoLanguageId = this._getMonacoLanguageId(extension);
+
+          const workspaceRoot =
+            select((s) => s.main.folder_structure).uri ?? "/";
+
+          const client = new MonacoLanguageClient({
+            name: `Language Client for ${extension} (port ${port})`,
             clientOptions: {
-              documentSelector: ["python"],
+              documentSelector: [{ language: monacoLanguageId }],
               errorHandler: {
                 error: () => ErrorAction.Continue,
                 closed: () => CloseAction.DoNotRestart,
               },
-              initializationOptions: {
-                settings: {
-                  python: {
-                    pythonPath: "/usr/bin/python",
-                    analysis: {
-                      autoSearchPaths: true,
-                      useLibraryCodeForTypes: true,
-                      diagnosticMode: "openFilesOnly",
-                    },
-                  },
-                },
+              workspaceFolder: {
+                uri: workspaceRoot,
+                name: path.basename(workspaceRoot) || "workspace",
               },
+              initializationOptions: this._getInitializationOptions(
+                extension,
+                workspaceRoot
+              ),
             },
             connectionProvider: {
               get: (errorHandler, closeHandler) =>
@@ -388,7 +446,7 @@ export class Editor {
             },
           });
 
-          this._client
+          client
             .onReady()
             .then(() => {
               this._editor.updateOptions({ readOnly: false });
@@ -398,14 +456,95 @@ export class Editor {
             });
 
           try {
-            const disposable = this._client.start();
-            connection.onClose(() => disposable.dispose());
+            const disposable = client.start();
+            connection.onClose(() => {
+              disposable.dispose();
+              this._clients.delete(port);
+            });
+            this._clients.set(port, client);
           } catch (error) {}
         },
       });
     } catch (error) {
       this._editor.updateOptions({ readOnly: false });
-      console.error(error);
+    }
+  }
+
+  private _getInitializationOptions(extension: string, workspaceRoot: string) {
+    switch (extension) {
+      case "py":
+        return {
+          settings: {
+            python: {
+              analysis: {
+                autoSearchPaths: true,
+                useLibraryCodeForTypes: true,
+                diagnosticMode: "workspace",
+                typeCheckingMode: "basic",
+              },
+            },
+          },
+        };
+      case "ts":
+      case "js":
+        return {
+          preferences: {
+            includeCompletionsForModuleExports: true,
+            includeCompletionsWithInsertText: true,
+          },
+        };
+      case "rs":
+        return {
+          linkedProjects: [path.join([workspaceRoot, "Cargo.toml"])],
+          cargo: {
+            buildScripts: {
+              enable: true,
+            },
+            allTargets: true,
+            autoreload: true,
+          },
+          procMacro: {
+            enable: true,
+            attributes: {
+              enable: true,
+            },
+          },
+          checkOnSave: true,
+          check: {
+            command: "check",
+            allTargets: true,
+          },
+          completion: {
+            autoimport: {
+              enable: true,
+            },
+            callable: {
+              snippets: "fill_arguments",
+            },
+          },
+          inlayHints: {
+            chainingHints: {
+              enable: true,
+            },
+            parameterHints: {
+              enable: true,
+            },
+            typeHints: {
+              enable: true,
+            },
+          },
+          lens: {
+            enable: true,
+            run: {
+              enable: true,
+            },
+            debug: {
+              enable: true,
+            },
+          },
+        };
+      default:
+        return {};
     }
   }
 
@@ -413,18 +552,22 @@ export class Editor {
     model: monaco.editor.ITextModel,
     lineNumber: number
   ) {
-    if (!this._client) return null;
+    if (model.isDisposed()) {
+      return null;
+    }
+
+    const ext = model.uri.path.split(".").pop() || "";
+    const port = getLanguageServer(ext);
+    if (!port || !this._clients.has(port)) return null;
+    const client = this._clients.get(port)!;
 
     try {
-      const symbols = (await this._client.sendRequest(
-        "textDocument/documentSymbol",
-        {
-          textDocument: { uri: model.uri.toString() },
-        }
-      )) as any[];
+      const symbols = (await client.sendRequest("textDocument/documentSymbol", {
+        textDocument: { uri: model.uri.toString() },
+      })) as any[];
 
       return symbols?.length ? this._findSymbol(symbols, lineNumber) : null;
-    } catch {
+    } catch (error) {
       return null;
     }
   }
@@ -432,15 +575,19 @@ export class Editor {
   private async _getDocumentStructure(
     model: monaco.editor.ITextModel
   ): Promise<any[] | null> {
-    if (!this._client) return null;
+    if (model.isDisposed()) {
+      return null;
+    }
+
+    const ext = model.uri.path.split(".").pop() || "";
+    const port = getLanguageServer(ext);
+    if (!port || !this._clients.has(port)) return null;
+    const client = this._clients.get(port)!;
 
     try {
-      const symbols = (await this._client.sendRequest(
-        "textDocument/documentSymbol",
-        {
-          textDocument: { uri: model.uri.toString() },
-        }
-      )) as any[];
+      const symbols = (await client.sendRequest("textDocument/documentSymbol", {
+        textDocument: { uri: model.uri.toString() },
+      })) as any[];
 
       return symbols.length ? symbols : null;
     } catch (error) {
@@ -476,16 +623,26 @@ export class Editor {
     const key = this._normalizePath(tab.uri);
     let model = this._models.get(key);
 
-    if (!model) {
-      const uri = monaco.Uri.file(tab.uri);
+    if (!model || model.isDisposed()) {
+      if (model && model.isDisposed()) {
+        this._models.delete(key);
+        model = undefined;
+      }
 
-      model =
-        monaco.editor.getModel(uri) ||
-        monaco.editor.createModel(
+      const uri = monaco.Uri.file(tab.uri);
+      const extension = path.extname(tab.uri).substring(1);
+      const monacoLanguageId = this._getMonacoLanguageId(extension);
+
+      const existingModel = monaco.editor.getModel(uri);
+      if (existingModel && !existingModel.isDisposed()) {
+        model = existingModel;
+      } else {
+        model = monaco.editor.createModel(
           await fs.readFile(tab.uri),
-          getLanguage(tab.uri),
+          monacoLanguageId,
           uri
         );
+      }
 
       this._models.set(key, model);
       if (!this._tabs.find((t) => this._normalizePath(t.uri) === key))
@@ -496,26 +653,17 @@ export class Editor {
       });
 
       this._watch(tab.uri);
+
+      setTimeout(async () => {
+        await this._setupClientForLanguage(extension);
+      }, 1000);
     }
 
-    // const debouncedUpdateStructure = asyncDebounce(
-    //   async (model: monaco.editor.ITextModel, uri: string) => {
-    //     if (this._client) {
-    //       const structure = await this._getDocumentStructure(model);
-    //       if (structure) {
-    //         document.dispatchEvent(
-    //           new CustomEvent("editor.structure.update", {
-    //             detail: { uri, symbols: structure },
-    //           })
-    //         );
-    //       }
-    //     }
-    //   },
-    //   600
-    // );
-
-    this._editor.setModel(model);
-    this._editor.focus();
+    if (!model.isDisposed()) {
+      this._editor.setModel(model);
+      this._editor.focus();
+    } else {
+    }
   }
 
   private _watch(uriString: string) {
@@ -536,7 +684,8 @@ export class Editor {
   private async _external(uriString: string) {
     const key = this._normalizePath(uriString);
     const model = this._models.get(key);
-    if (!model) return;
+    if (!model || model.isDisposed()) return;
+
     try {
       const newContent = await fs.readFile(uriString);
       const currentContent = model.getValue();
@@ -575,7 +724,7 @@ export class Editor {
   async _save(uriString: string) {
     const key = this._normalizePath(uriString);
     const model = this._models.get(key);
-    if (!model) {
+    if (!model || model.isDisposed()) {
       return;
     }
 
@@ -604,7 +753,12 @@ export class Editor {
       this._watchers.delete(key);
     }
 
-    model.dispose();
+    if (!model.isDisposed()) {
+      model.dispose();
+    }
+
+    this._models.delete(key);
+
     this._tabs = this._tabs.filter(
       (tab) => this._normalizePath(tab.uri) !== key
     );
@@ -634,7 +788,11 @@ export class Editor {
     this._registeredProviders.clear();
     this._isProvidersRegistered = false;
 
-    this._models.forEach((model) => model.dispose());
+    this._models.forEach((model) => {
+      if (!model.isDisposed()) {
+        model.dispose();
+      }
+    });
     this._models.clear();
 
     this._watchers.forEach((_, uri) => {
@@ -645,6 +803,13 @@ export class Editor {
     this._watchers.clear();
 
     this._saveActionDisposable?.dispose();
+
+    this._clients.forEach((client) => {
+      try {
+        client.stop();
+      } catch {}
+    });
+    this._clients.clear();
 
     if (this._editor) {
       try {

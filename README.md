@@ -2,7 +2,9 @@
 
 ![Meridia Screenshot](./resources/whole.png)
 
-Meridia is a modern IDE designed specifically for Python. It combines a clean, minimal design with powerful tools for coding, data workflows, and visualization—all in one place.
+Meridia is a modern IDE designed for developers. While its core focus is Python, it now **supports multiple programming languages** including JavaScript, TypeScript, Rust, Bash, Java, C, C++, Lua, Swift, SQL, and more. This means you can **write, run, and manage projects in different languages without leaving the IDE**.
+
+It combines a clean, minimal design with powerful tools for coding, data workflows, and visualization—all in one place.
 
 ## Getting Started
 
@@ -24,7 +26,7 @@ npm run dev
 
 Create a `.env` file in the root directory and add:
 
-```
+```bash
 NODE_ENV=development
 ```
 
@@ -34,6 +36,7 @@ NODE_ENV=development
 - **AI Assistance** — Context-aware code suggestions and inline completions powered by AI.
 - **Mira, the Voice Assistant** — Perform file actions, describe code, write snippets, run commands, and control the IDE hands-free.
 - **Integrated Terminal** — Run commands and manage your environment without leaving the IDE.
+- **Multi-Language Support** — Write and manage projects in Python, JavaScript, TypeScript, Rust, Bash, Java, C, C++, Lua, Swift, SQL, and more—all within the same IDE.
 - **File Explorer** — Browse, create, rename, and organize files with a clean interface.
 - **Tabs and Window Management** — Manage multiple files with a modern tab system and resizable panels.
 - **Data-Centric Tools** — Import, clean, and preview datasets directly inside the IDE.
@@ -42,9 +45,3 @@ NODE_ENV=development
 - **Theme System** — Switch between predefined themes or create your own with full customization.
 - **Plugin Architecture (Planned)** — Extend Meridia with plugins for additional tools, panels, and integrations.
 - **Cross-Platform** — Available for Windows and Linux.
-
-## Installation
-
-Under development
-
-<!-- ![Logo](https://dev-to-uploads.s3.amazonaws.com/uploads/articles/th5xamgrr6se0x5ro4g6.png) -->

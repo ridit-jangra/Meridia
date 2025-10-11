@@ -7,7 +7,7 @@ import { Storage } from "../../base/services/storage.service.js";
 export class Language {
   _port!: number;
   _websocket!: WebSocketServer;
-  _serverCli = "";
+  _serverCli!: string;
   _process!: IConnection | undefined;
 
   constructor() {

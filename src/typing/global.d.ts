@@ -12,6 +12,7 @@ import {
   spawnBridge,
   editorBridge,
   extensionBridge,
+  nodeBridge,
 } from "../code/base/base.preload.js";
 
 declare global {
@@ -26,5 +27,6 @@ declare global {
     childprocess: typeof childprocessBridge;
     spawn: typeof spawnBridge;
     editor: typeof editorBridge;
+    node: typeof nodeBridge;
   }
 }

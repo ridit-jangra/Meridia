@@ -10,27 +10,21 @@ export class Extension {
   private _extensions: IExtensionModule[] = [];
 
   constructor() {
-    this._folder = path.join([
-      path.__dirname,
-      "..",
-      "platform",
-      "extension",
-      "extensions",
-    ]);
+    this._folder = path.join([path.__dirname, "..", "..", "extensions"]);
   }
 
   async _load() {
     const files = fs.readDir(this._folder);
-    for (const file of files) {
+    files.forEach(async (file) => {
       if (file.endsWith(".js")) {
-        const _path = path.join(["file:///", this._folder, file]);
+        const _path = path.join(["file:///", file]);
         try {
           const _module: IExtensionModule = await import(_path);
           this._extensions.push(_module);
           this._activate();
         } catch (error) {}
       }
-    }
+    });
   }
 
   _activate() {
@@ -53,3 +47,5 @@ export const _extensions = new Extension();
 _extensions._load();
 
 export { context };
+
+console.log(path.join([path.__dirname, "..", "..", "extensions"]));

@@ -2,6 +2,7 @@ import { WebSocketServer } from "ws";
 import { Storage } from "../../../base/services/storage.service.js";
 import path from "path";
 import { Language } from "../editor.language.js";
+import { _context } from "../../../platform/extension/common/extension.context.js";
 
 export class Python extends Language {
   constructor() {
