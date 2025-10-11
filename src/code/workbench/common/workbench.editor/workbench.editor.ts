@@ -346,7 +346,7 @@ export class Editor {
       cursorBlinking: "smooth",
       cursorSmoothCaretAnimation: true,
       minimap: { enabled: false },
-      renderWhitespace: "selection",
+      renderWhitespace: "none",
       fixedOverflowWidgets: true,
       links: true,
     });

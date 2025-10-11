@@ -4,6 +4,8 @@ export function activate(context: context) {
   try {
     const _port = 9712;
 
+    console.log("running");
+
     const _serverCli = context.workbench.workspace.utils.path.join(
       context.workbench.workspace.utils.path.__dirname,
       "language",

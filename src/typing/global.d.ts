@@ -13,6 +13,7 @@ import {
   editorBridge,
   extensionBridge,
   nodeBridge,
+  urlBridge,
 } from "../code/base/base.preload.js";
 
 declare global {
@@ -28,5 +29,6 @@ declare global {
     spawn: typeof spawnBridge;
     editor: typeof editorBridge;
     node: typeof nodeBridge;
+    url: typeof urlBridge;
   }
 }

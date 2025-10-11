@@ -14,25 +14,32 @@ export class Extension {
   }
 
   async _load() {
-    const files = fs.readDir(this._folder);
-    files.forEach(async (file) => {
-      if (file.endsWith(".js")) {
-        const _path = path.join(["file:///", file]);
-        try {
-          const _module: IExtensionModule = await import(_path);
-          this._extensions.push(_module);
-          this._activate();
-        } catch (error) {}
+    try {
+      const files = await fs.readDir(this._folder);
+      for (const file of files) {
+        // If files are inside subfolders (like /bash/main.js), handle that separately
+        const fullPath = file;
+        if (file.endsWith(".js")) {
+          const fileUrl = window.url.pathToFileURL(fullPath);
+
+          try {
+            const module: IExtensionModule = await import(fileUrl);
+            this._extensions.push(module);
+            this._activate(module);
+          } catch (error) {
+            console.error("Error importing", fileUrl, error);
+          }
+        }
       }
-    });
+    } catch (err) {
+      console.error("Error reading extensions folder:", err);
+    }
   }
 
-  _activate() {
-    this._extensions.forEach((ext) => {
-      if (ext.activate) {
-        ext.activate(_context);
-      }
-    });
+  _activate(ext: IExtensionModule) {
+    if (ext.activate) {
+      ext.activate(_context);
+    }
   }
 
   _execute(name: string) {

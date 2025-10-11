@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import os from "os";
+import url from "url";
 import { spawn, SpawnOptions, SpawnOptionsWithoutStdio } from "child_process";
 import { PythonShell } from "python-shell";
 import { contextBridge, ipcRenderer } from "electron";
@@ -411,6 +412,13 @@ export const nodeBridge = {
   platform: os.platform(),
 };
 
+export const urlBridge = {
+  pathToFileURL: (_path: string) => {
+    const _url = url.pathToFileURL(_path);
+    return _url.href;
+  },
+};
+
 window.addEventListener("beforeunload", () => {
   activeWatchers.forEach((watcher, path) => {
     try {
@@ -439,3 +447,4 @@ contextBridge.exposeInMainWorld("childprocess", childprocessBridge);
 contextBridge.exposeInMainWorld("spawn", spawnBridge);
 contextBridge.exposeInMainWorld("editor", editorBridge);
 contextBridge.exposeInMainWorld("node", nodeBridge);
+contextBridge.exposeInMainWorld("url", urlBridge);
