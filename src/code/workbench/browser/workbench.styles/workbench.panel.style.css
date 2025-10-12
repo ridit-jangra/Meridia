@@ -51,8 +51,7 @@
 }
 
 .code .panel.command-panel span.active {
-  background: var(--workbench-panel-options-active-background);
-  outline: 2px solid var(--workbench-panel-options-active-border-foreground);
+  font-weight: 600;
 }
 
 .code .panel.command-panel span:not(.active):hover,

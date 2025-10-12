@@ -110,9 +110,10 @@ setTimeout(() => {
         }
 
         try {
-          term.write("\x1b[2J\x1b[H");
           term.write(`cd "${cwd}"\r`);
           setTimeout(() => {
+            mainWindow.webContents.send("pty-clear", id);
+            term.write("clear\r");
             term.write(command + "\r");
           }, 100);
 

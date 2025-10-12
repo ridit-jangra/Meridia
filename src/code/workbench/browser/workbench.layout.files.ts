@@ -430,7 +430,10 @@ export class Files extends CoreEl {
       return null;
     }
 
-    if (node.uri === targetUri) {
+    // Normalize URIs by replacing all backslashes with forward slashes
+    const normalize = (uri: string) => uri.replace(/\\/g, "/");
+
+    if (normalize(node.uri) === normalize(targetUri)) {
       return node;
     }
 
@@ -688,7 +691,11 @@ export class Files extends CoreEl {
   ): boolean {
     if (!node.children) return false;
 
-    const index = node.children.findIndex((child) => child.uri === targetUri);
+    const normalize = (uri: string) => uri.replace(/\\/g, "/");
+
+    const index = node.children.findIndex(
+      (child) => normalize(child.uri) === normalize(targetUri)
+    );
 
     if (index >= 0) {
       node.children.splice(index, 1);

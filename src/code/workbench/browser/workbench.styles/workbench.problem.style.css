@@ -7,7 +7,7 @@
 }
 
 .problems-header {
-  padding: 8px 12px;
+  padding: 16px;
   flex-shrink: 0;
   border-bottom: 1px solid var(--workbench-border-foreground);
 }
@@ -62,7 +62,9 @@
 }
 
 .problem-file-problems {
-  transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+  transition:
+    max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.2s ease;
   overflow: hidden;
 }
 
@@ -78,7 +80,9 @@
   padding: 8px 32px 8px 40px;
   border-bottom: 1px solid var(--workbench-border-foreground);
   cursor: pointer;
-  transition: background-color 0.15s ease, transform 0.1s ease;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
 }
 
 .problem-item:hover {

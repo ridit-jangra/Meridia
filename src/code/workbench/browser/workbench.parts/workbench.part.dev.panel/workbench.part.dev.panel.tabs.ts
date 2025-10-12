@@ -1,7 +1,6 @@
 import PerfectScrollbar from "perfect-scrollbar";
 import { IDevTab } from "../../../workbench.types.js";
 import {
-  consoleIcon,
   eillipsisIcon,
   problemIcon,
   runIcon,
@@ -11,8 +10,8 @@ import { CoreEl } from "../workbench.part.el.js";
 import { Panel } from "../workbench.part.panel.js";
 import { _terminal } from "./workbench.part.terminal.js";
 import { _run } from "./workbench.part.dev.run.js";
-import { _console } from "./workbench.part.console.js";
 import { _problem } from "./workbench.part.problem.js";
+import { _xtermManager } from "../../../common/workbench.dev.panel/workbench.dev.panel.spawn.xterm.js";
 
 const storage = window.storage;
 
@@ -30,12 +29,7 @@ export class DevPanelTabs extends CoreEl {
       active: false,
       icon: runIcon,
     },
-    {
-      id: `console`,
-      name: "Console",
-      active: false,
-      icon: consoleIcon,
-    },
+
     {
       id: `problem`,
       name: "Problems",
@@ -139,8 +133,6 @@ export class DevPanelTabs extends CoreEl {
         panel = _terminal;
       } else if (tab.id === "run") {
         panel = _run;
-      } else if (tab.id === "console") {
-        panel = _console;
       } else if (tab.id === "problem") {
         panel = _problem;
       }

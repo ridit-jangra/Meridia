@@ -34,7 +34,7 @@ export class Terminal extends CoreEl {
 
     setTimeout(() => {
       this._render();
-    }, 100)
+    }, 100);
   }
 
   private _createEl() {
@@ -220,6 +220,12 @@ export class Terminal extends CoreEl {
       active: t.id === tabId,
     }));
     this._render();
+  }
+
+  public getDomElement() {
+    const _active = this._getActive();
+    _xtermManager._terminals.get(_active?.id!)?.term.focus();
+    return this._el!;
   }
 }
 

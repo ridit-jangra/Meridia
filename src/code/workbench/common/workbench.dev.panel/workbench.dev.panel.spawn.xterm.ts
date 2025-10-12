@@ -240,6 +240,10 @@ class XtermManager {
         return false;
       }
 
+      ipcRenderer.on("pty-clear", (_: any, _id: string) => {
+        if (_id === id) instance.term.clear();
+      });
+
       instance.term.clear();
 
       instance.term.options.disableStdin = false;
