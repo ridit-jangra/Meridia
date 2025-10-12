@@ -16,10 +16,7 @@ import { update_editor_tabs } from "../workbench.store/workbench.store.slice.js"
 import { select } from "../workbench.store/workbench.store.selector.js";
 import { registerTheme } from "./workbench.editor.theme.js";
 import { registerFsSuggestion } from "./workbench.editor.utils.js";
-import {
-  getLanguageServer,
-  languages,
-} from "../../../platform/editor/editor.languages.js";
+import { getLanguageServer } from "../../../platform/editor/editor.languages.js";
 
 const fs = window.fs;
 const path = window.path;
@@ -58,6 +55,9 @@ export class Editor {
   private _mounted = false;
   private _registeredProviders = new Map<string, monaco.IDisposable>();
   private _isProvidersRegistered = false;
+  private _markerChangeListener?: monaco.IDisposable;
+
+  private _previousMarkers = new Map<string, monaco.editor.IMarker[]>();
 
   constructor() {
     registerTheme(monaco);
@@ -82,8 +82,12 @@ export class Editor {
       noSyntaxValidation: true,
     });
 
-    this._registerProviders();
+    setTimeout(() => {
+      this._registerProviders();
+    }, 1000);
+
     this._hoverProvider();
+    this._setupMarkerListener();
   }
 
   private _normalizePath(p: string) {
@@ -126,10 +130,6 @@ export class Editor {
 
     try {
       const fsProvider = registerFsSuggestion(monaco);
-      if (fsProvider) {
-        this._registeredProviders.set("fs-suggestion", fsProvider);
-      }
-
       this._isProvidersRegistered = true;
     } catch (error) {}
   }
@@ -170,6 +170,191 @@ export class Editor {
     }
   }
 
+  private _setupMarkerListener() {
+    this._markerChangeListener = monaco.editor.onDidChangeMarkers((uris) => {
+      uris.forEach((uri) => {
+        this._handleMarkerChanges(uri);
+      });
+    });
+  }
+
+  private _handleMarkerChanges(uri: monaco.Uri) {
+    const currentMarkers = monaco.editor.getModelMarkers({ resource: uri });
+    const uriString = uri.fsPath || uri.path;
+    const previousMarkers = this._previousMarkers.get(uriString) || [];
+
+    const createMarkerKey = (marker: monaco.editor.IMarker) =>
+      `${marker.startLineNumber}:${marker.startColumn}-${marker.endLineNumber}:${marker.endColumn}:${marker.message}:${marker.severity}`;
+
+    const currentMarkerKeys = new Set(currentMarkers.map(createMarkerKey));
+    const previousMarkerKeys = new Set(previousMarkers.map(createMarkerKey));
+
+    const filePath = uriString;
+    const extension = path.extname(filePath).substring(1);
+    const languageName = this._getMonacoLanguageId(extension);
+    const serverPort = getLanguageServer(extension);
+    const serverName = this._getServerName(serverPort, extension);
+
+    currentMarkers.forEach((marker) => {
+      const eventType = this._getMarkerEventType(marker.severity);
+
+      if (eventType === "error" || eventType === "warning") {
+        this._emitDiagnosticEvent(
+          eventType,
+          path.basename(filePath),
+          filePath,
+          marker.startLineNumber,
+          marker.startColumn,
+          marker.endLineNumber,
+          marker.endColumn,
+          marker.message,
+          languageName,
+          serverName,
+          marker.code?.toString(),
+          marker.source
+        );
+      }
+    });
+
+    previousMarkers.forEach((marker) => {
+      const markerKey = createMarkerKey(marker);
+
+      if (!currentMarkerKeys.has(markerKey)) {
+        const eventType = this._getMarkerEventType(marker.severity);
+
+        if (eventType === "error" || eventType === "warning") {
+          this._emitDiagnosticRemovalEvent(
+            eventType,
+            path.basename(filePath),
+            filePath,
+            marker.startLineNumber,
+            marker.startColumn,
+            marker.endLineNumber,
+            marker.endColumn,
+            marker.message,
+            languageName,
+            serverName,
+            marker.code?.toString(),
+            marker.source
+          );
+        }
+      }
+    });
+
+    this._previousMarkers.set(uriString, [...currentMarkers]);
+  }
+
+  private _getMarkerEventType(severity: monaco.MarkerSeverity): string {
+    switch (severity) {
+      case monaco.MarkerSeverity.Error:
+        return "error";
+      case monaco.MarkerSeverity.Warning:
+        return "warning";
+      case monaco.MarkerSeverity.Info:
+        return "info";
+      case monaco.MarkerSeverity.Hint:
+        return "hint";
+      default:
+        return "error";
+    }
+  }
+
+  private _getServerName(port?: number, extension?: string): string {
+    const serverNames: { [key: string]: string } = {
+      py: "Pyright",
+      ts: "TypeScript Language Server",
+      js: "TypeScript Language Server",
+      rs: "rust-analyzer",
+      json: "JSON Language Server",
+    };
+
+    if (extension && serverNames[extension]) {
+      return serverNames[extension];
+    }
+
+    return port ? `Language Server (port ${port})` : "Language Server";
+  }
+
+  private _emitDiagnosticEvent(
+    eventType: "error" | "warning",
+    fileName: string,
+    filePath: string,
+    line: number,
+    column: number,
+    endLine: number,
+    endColumn: number,
+    message: string,
+    languageName: string,
+    serverName: string,
+    code?: string,
+    source?: string
+  ) {
+    const eventName =
+      eventType === "error"
+        ? "workbench.editor.detect.error"
+        : "workbench.editor.detect.warning";
+
+    document.dispatchEvent(
+      new CustomEvent(eventName, {
+        detail: {
+          fileName,
+          filePath,
+          line,
+          column,
+          endLine,
+          endColumn,
+          message,
+          code,
+          source: source || serverName,
+          severity: eventType,
+          languageName,
+          serverName,
+          timestamp: Date.now(),
+        },
+      })
+    );
+  }
+
+  private _emitDiagnosticRemovalEvent(
+    eventType: "error" | "warning",
+    fileName: string,
+    filePath: string,
+    line: number,
+    column: number,
+    endLine: number,
+    endColumn: number,
+    message: string,
+    languageName: string,
+    serverName: string,
+    code?: string,
+    source?: string
+  ) {
+    const eventName =
+      eventType === "error"
+        ? "workbench.editor.remove.error"
+        : "workbench.editor.remove.warning";
+
+    document.dispatchEvent(
+      new CustomEvent(eventName, {
+        detail: {
+          fileName,
+          filePath,
+          line,
+          column,
+          endLine,
+          endColumn,
+          message,
+          code,
+          source: source || serverName,
+          severity: eventType,
+          languageName,
+          serverName,
+          timestamp: Date.now(),
+        },
+      })
+    );
+  }
+
   private async _openFile(
     _path: string,
     position?: { line: number; column: number }
@@ -201,7 +386,6 @@ export class Editor {
       }));
 
       dispatch(update_editor_tabs(updatedTabs));
-
       await this._open(updatedTabs[existingTabIndex]!);
 
       if (position && this._editor) {
@@ -228,7 +412,6 @@ export class Editor {
       ];
 
       dispatch(update_editor_tabs(updatedTabs));
-
       await this._open(newTab);
 
       if (position && this._editor) {
@@ -417,7 +600,6 @@ export class Editor {
         webSocket,
         onConnection: (connection) => {
           const monacoLanguageId = this._getMonacoLanguageId(extension);
-
           const workspaceRoot =
             select((s) => s.main.folder_structure).uri ?? "/";
 
@@ -446,6 +628,35 @@ export class Editor {
             },
           });
 
+          connection.onNotification(
+            "textDocument/publishDiagnostics",
+            (params: any) => {
+              const { uri, diagnostics } = params;
+              const model = monaco.editor.getModel(monaco.Uri.parse(uri));
+
+              if (model) {
+                const markers = diagnostics.map((diagnostic: any) => ({
+                  severity: this._convertLSPSeverityToMonaco(
+                    diagnostic.severity
+                  ),
+                  startLineNumber: diagnostic.range.start.line + 1,
+                  startColumn: diagnostic.range.start.character + 1,
+                  endLineNumber: diagnostic.range.end.line + 1,
+                  endColumn: diagnostic.range.end.character + 1,
+                  message: diagnostic.message,
+                  code: diagnostic.code,
+                  source: diagnostic.source,
+                }));
+
+                monaco.editor.setModelMarkers(
+                  model,
+                  `lsp-${extension}`,
+                  markers
+                );
+              }
+            }
+          );
+
           client
             .onReady()
             .then(() => {
@@ -467,6 +678,23 @@ export class Editor {
       });
     } catch (error) {
       this._editor.updateOptions({ readOnly: false });
+    }
+  }
+
+  private _convertLSPSeverityToMonaco(
+    lspSeverity: number
+  ): monaco.MarkerSeverity {
+    switch (lspSeverity) {
+      case 1:
+        return monaco.MarkerSeverity.Error;
+      case 2:
+        return monaco.MarkerSeverity.Warning;
+      case 3:
+        return monaco.MarkerSeverity.Info;
+      case 4:
+        return monaco.MarkerSeverity.Hint;
+      default:
+        return monaco.MarkerSeverity.Error;
     }
   }
 
@@ -497,17 +725,13 @@ export class Editor {
         return {
           linkedProjects: [path.join([workspaceRoot, "Cargo.toml"])],
           cargo: {
-            buildScripts: {
-              enable: true,
-            },
+            buildScripts: { enable: true },
             allTargets: true,
             autoreload: true,
           },
           procMacro: {
             enable: true,
-            attributes: {
-              enable: true,
-            },
+            attributes: { enable: true },
           },
           checkOnSave: true,
           check: {
@@ -515,32 +739,18 @@ export class Editor {
             allTargets: true,
           },
           completion: {
-            autoimport: {
-              enable: true,
-            },
-            callable: {
-              snippets: "fill_arguments",
-            },
+            autoimport: { enable: true },
+            callable: { snippets: "fill_arguments" },
           },
           inlayHints: {
-            chainingHints: {
-              enable: true,
-            },
-            parameterHints: {
-              enable: true,
-            },
-            typeHints: {
-              enable: true,
-            },
+            chainingHints: { enable: true },
+            parameterHints: { enable: true },
+            typeHints: { enable: true },
           },
           lens: {
             enable: true,
-            run: {
-              enable: true,
-            },
-            debug: {
-              enable: true,
-            },
+            run: { enable: true },
+            debug: { enable: true },
           },
         };
       default:
@@ -552,9 +762,7 @@ export class Editor {
     model: monaco.editor.ITextModel,
     lineNumber: number
   ) {
-    if (model.isDisposed()) {
-      return null;
-    }
+    if (model.isDisposed()) return null;
 
     const ext = model.uri.path.split(".").pop() || "";
     const port = getLanguageServer(ext);
@@ -567,29 +775,6 @@ export class Editor {
       })) as any[];
 
       return symbols?.length ? this._findSymbol(symbols, lineNumber) : null;
-    } catch (error) {
-      return null;
-    }
-  }
-
-  private async _getDocumentStructure(
-    model: monaco.editor.ITextModel
-  ): Promise<any[] | null> {
-    if (model.isDisposed()) {
-      return null;
-    }
-
-    const ext = model.uri.path.split(".").pop() || "";
-    const port = getLanguageServer(ext);
-    if (!port || !this._clients.has(port)) return null;
-    const client = this._clients.get(port)!;
-
-    try {
-      const symbols = (await client.sendRequest("textDocument/documentSymbol", {
-        textDocument: { uri: model.uri.toString() },
-      })) as any[];
-
-      return symbols.length ? symbols : null;
     } catch (error) {
       return null;
     }
@@ -662,7 +847,6 @@ export class Editor {
     if (!model.isDisposed()) {
       this._editor.setModel(model);
       this._editor.focus();
-    } else {
     }
   }
 
@@ -690,6 +874,7 @@ export class Editor {
       const newContent = await fs.readFile(uriString);
       const currentContent = model.getValue();
       if (currentContent === newContent) return;
+
       this._updating = true;
       const fullRange = model.getFullModelRange();
       const editOperation = {
@@ -697,9 +882,7 @@ export class Editor {
         text: newContent,
         forceMoveMarkers: true,
       };
-      model.pushEditOperations([], [editOperation], () => {
-        return null;
-      });
+      model.pushEditOperations([], [editOperation], () => null);
       this._updating = false;
       this._update(uriString, false);
     } catch (error) {}
@@ -721,12 +904,49 @@ export class Editor {
     dispatch(update_editor_tabs(_updated));
   }
 
+  private _clearProblemsForFile(uriString: string) {
+    const previousMarkers = this._previousMarkers.get(uriString) || [];
+
+    if (previousMarkers.length === 0) return;
+
+    const filePath = uriString;
+    const extension = path.extname(filePath).substring(1);
+    const languageName = this._getMonacoLanguageId(extension);
+    const serverPort = getLanguageServer(extension);
+    const serverName = this._getServerName(serverPort, extension);
+
+    previousMarkers.forEach((marker) => {
+      const eventType = this._getMarkerEventType(marker.severity);
+
+      if (eventType === "error" || eventType === "warning") {
+        this._emitDiagnosticRemovalEvent(
+          eventType,
+          path.basename(filePath),
+          filePath,
+          marker.startLineNumber,
+          marker.startColumn,
+          marker.endLineNumber,
+          marker.endColumn,
+          marker.message,
+          languageName,
+          serverName,
+          marker.code?.toString(),
+          marker.source
+        );
+      }
+    });
+
+    const uri = monaco.Uri.file(uriString);
+    const model = monaco.editor.getModel(uri);
+    if (model && !model.isDisposed()) {
+      monaco.editor.setModelMarkers(model, "", []);
+    }
+  }
+
   async _save(uriString: string) {
     const key = this._normalizePath(uriString);
     const model = this._models.get(key);
-    if (!model || model.isDisposed()) {
-      return;
-    }
+    if (!model || model.isDisposed()) return;
 
     try {
       fs.createFile(uriString, model.getValue());
@@ -753,11 +973,15 @@ export class Editor {
       this._watchers.delete(key);
     }
 
+    this._clearProblemsForFile(uriString);
+
     if (!model.isDisposed()) {
       model.dispose();
     }
 
     this._models.delete(key);
+
+    this._previousMarkers.delete(uriString);
 
     this._tabs = this._tabs.filter(
       (tab) => this._normalizePath(tab.uri) !== key
@@ -803,6 +1027,7 @@ export class Editor {
     this._watchers.clear();
 
     this._saveActionDisposable?.dispose();
+    this._markerChangeListener?.dispose();
 
     this._clients.forEach((client) => {
       try {
@@ -810,6 +1035,8 @@ export class Editor {
       } catch {}
     });
     this._clients.clear();
+
+    this._previousMarkers.clear();
 
     if (this._editor) {
       try {

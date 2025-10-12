@@ -1,5 +1,6 @@
 import * as monaco from "monaco-editor";
 import { select } from "../workbench.store/workbench.store.selector";
+import { languages } from "../../../platform/editor/editor.languages";
 
 const path = window.path;
 
@@ -169,69 +170,84 @@ export async function getPathCompletions(basePath: string, partial: string) {
       return aName.localeCompare(bName);
     });
   } catch (error) {
-    console.error("Path completion error:", error);
     return [];
   }
 }
 
+export function extensionToLanguage(_ext: string) {
+  const languageMap: Record<string, string> = {
+    py: "python",
+    js: "javascript",
+    ts: "typescript",
+    rs: "rust",
+    sh: "bash",
+  };
+
+  return languageMap[_ext.toLowerCase()];
+}
+
 export function registerFsSuggestion(_monaco: any) {
-  return _monaco.languages.registerCompletionItemProvider("python", {
-    triggerCharacters: ["/", "\\", "."],
+  const _extensions = languages.keys();
+  _extensions.forEach((_ext) => {
+    const _language = extensionToLanguage(_ext);
 
-    provideCompletionItems: async function (
-      model: monaco.editor.ITextModel,
-      position: monaco.Position
-    ) {
-      const textUntilPosition = model.getValueInRange({
-        startLineNumber: position.lineNumber,
-        startColumn: 1,
-        endLineNumber: position.lineNumber,
-        endColumn: position.column,
-      });
+    return _monaco.languages.registerCompletionItemProvider(_language, {
+      triggerCharacters: ["/", "\\", "."],
 
-      const pathInfo = extractPathFromString(
-        textUntilPosition,
-        position.column
-      );
+      provideCompletionItems: async function (
+        model: monaco.editor.ITextModel,
+        position: monaco.Position
+      ) {
+        const textUntilPosition = model.getValueInRange({
+          startLineNumber: position.lineNumber,
+          startColumn: 1,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column,
+        });
 
-      if (!pathInfo) {
-        return { suggestions: [] };
-      }
-
-      try {
-        const suggestions = await getPathCompletions(
-          pathInfo.basePath,
-          pathInfo.partial
+        const pathInfo = extractPathFromString(
+          textUntilPosition,
+          position.column
         );
 
-        return {
-          suggestions: suggestions.map((item) => ({
-            label: item.name,
-            kind: item.isDirectory
-              ? monaco.languages.CompletionItemKind.Folder
-              : monaco.languages.CompletionItemKind.File,
-            insertText: item.name + (item.isDirectory ? "/" : ""),
-            detail: item.isDirectory ? "Directory" : "File",
-            sortText: item.isDirectory ? "0" + item.name : "1" + item.name,
+        if (!pathInfo) {
+          return { suggestions: [] };
+        }
 
-            command: item.isDirectory
-              ? {
-                  id: "editor.action.triggerSuggest",
-                  title: "Trigger Suggest",
-                }
-              : undefined,
-            range: {
-              startLineNumber: position.lineNumber,
-              endLineNumber: position.lineNumber,
-              startColumn: pathInfo.replaceStart,
-              endColumn: pathInfo.replaceEnd,
-            },
-          })),
-        };
-      } catch (error) {
-        console.error("Path completion error:", error);
-        return { suggestions: [] };
-      }
-    },
+        try {
+          const suggestions = await getPathCompletions(
+            pathInfo.basePath,
+            pathInfo.partial
+          );
+
+          return {
+            suggestions: suggestions.map((item) => ({
+              label: item.name,
+              kind: item.isDirectory
+                ? monaco.languages.CompletionItemKind.Folder
+                : monaco.languages.CompletionItemKind.File,
+              insertText: item.name + (item.isDirectory ? "/" : ""),
+              detail: item.isDirectory ? "Directory" : "File",
+              sortText: item.isDirectory ? "0" + item.name : "1" + item.name,
+
+              command: item.isDirectory
+                ? {
+                    id: "editor.action.triggerSuggest",
+                    title: "Trigger Suggest",
+                  }
+                : undefined,
+              range: {
+                startLineNumber: position.lineNumber,
+                endLineNumber: position.lineNumber,
+                startColumn: pathInfo.replaceStart,
+                endColumn: pathInfo.replaceEnd,
+              },
+            })),
+          };
+        } catch (error) {
+          return { suggestions: [] };
+        }
+      },
+    });
   });
 }

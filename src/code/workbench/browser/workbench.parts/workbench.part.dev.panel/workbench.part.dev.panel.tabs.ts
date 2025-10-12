@@ -3,6 +3,7 @@ import { IDevTab } from "../../../workbench.types.js";
 import {
   consoleIcon,
   eillipsisIcon,
+  problemIcon,
   runIcon,
   terminalIcon,
 } from "../../workbench.media/workbench.icons.js";
@@ -11,6 +12,7 @@ import { Panel } from "../workbench.part.panel.js";
 import { _terminal } from "./workbench.part.terminal.js";
 import { _run } from "./workbench.part.dev.run.js";
 import { _console } from "./workbench.part.console.js";
+import { _problem } from "./workbench.part.problem.js";
 
 const storage = window.storage;
 
@@ -19,7 +21,7 @@ export class DevPanelTabs extends CoreEl {
     {
       id: `terminal`,
       name: "Terminal",
-      active: true,
+      active: false,
       icon: terminalIcon,
     },
     {
@@ -33,6 +35,12 @@ export class DevPanelTabs extends CoreEl {
       name: "Console",
       active: false,
       icon: consoleIcon,
+    },
+    {
+      id: `problem`,
+      name: "Problems",
+      active: true,
+      icon: problemIcon,
     },
   ];
   private _contentEl: HTMLElement;
@@ -54,6 +62,10 @@ export class DevPanelTabs extends CoreEl {
     this._el.style.width = "fit-content";
 
     this._render();
+
+    const _active = storage.get("dev-panel-active");
+
+    if (_active) this._set(_active);
   }
 
   private _render() {
@@ -93,6 +105,8 @@ export class DevPanelTabs extends CoreEl {
         }));
 
         this._render();
+
+        storage.store("dev-panel-active", tab.active);
       };
 
       const icon = document.createElement("span");
@@ -127,6 +141,8 @@ export class DevPanelTabs extends CoreEl {
         panel = _run;
       } else if (tab.id === "console") {
         panel = _console;
+      } else if (tab.id === "problem") {
+        panel = _problem;
       }
 
       this._panels.set(tab.id, panel);
@@ -135,7 +151,6 @@ export class DevPanelTabs extends CoreEl {
     this._contentEl.appendChild(panel.getDomElement()!);
   }
 
-  // Event system for better integration
   private _emit(event: string, data?: any): void {
     const listeners = this._eventListeners.get(event) || [];
     listeners.forEach((callback) => {
@@ -172,7 +187,6 @@ export class DevPanelTabs extends CoreEl {
     }
   }
 
-  // Enhanced async set method
   public async _set(tabId: string): Promise<boolean> {
     return new Promise((resolve) => {
       const targetTab = this._tabs.find((tab) => tab.id === tabId);
@@ -189,24 +203,19 @@ export class DevPanelTabs extends CoreEl {
 
       this._isTransitioning = true;
 
-      // Update tabs state
       this._tabs = this._tabs.map((tab) => ({
         ...tab,
         active: tab.id === tabId,
       }));
 
-      // Start transition
       this._emit("tabChanging", { from: this.getActiveTab()?.id, to: tabId });
 
-      // Render with transition handling
       this._render();
 
-      // Use requestAnimationFrame to ensure DOM updates are complete
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           this._isTransitioning = false;
 
-          // Emit completion event
           this._emit("tabChanged", {
             activeTab: tabId,
             tabInstance: this._panels.get(tabId),
@@ -218,7 +227,6 @@ export class DevPanelTabs extends CoreEl {
     });
   }
 
-  // Synchronous version for backward compatibility
   public _setSync(tabId: string): boolean {
     const targetTab = this._tabs.find((tab) => tab.id === tabId);
 
@@ -239,12 +247,10 @@ export class DevPanelTabs extends CoreEl {
     return true;
   }
 
-  // Utility methods
   public getActiveTab(): IDevTab | undefined {
     return this._tabs.find((tab) => tab.active);
   }
 
-  // Wait for tab to be ready (useful for commands)
   public async waitForTab(
     tabId: string,
     timeout: number = 5000

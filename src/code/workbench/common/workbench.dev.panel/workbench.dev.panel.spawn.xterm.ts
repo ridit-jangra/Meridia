@@ -45,8 +45,6 @@ class XtermManager {
 
     const cwd = structure ? structure.uri : "";
 
-    console.log("pty-spawn", id, term.cols, term.rows, cwd, shell);
-
     await ipcRenderer.invoke("pty-spawn", id, term.cols, term.rows, cwd, shell);
 
     const onPtyData = (_event: any, data: string) => {

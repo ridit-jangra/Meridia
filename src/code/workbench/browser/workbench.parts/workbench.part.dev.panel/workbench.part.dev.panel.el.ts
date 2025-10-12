@@ -4,15 +4,9 @@ import { Panel } from "../workbench.part.panel.js";
 import { DevPanelTabs } from "./workbench.part.dev.panel.tabs.js";
 
 export class DevPanel extends CoreEl {
-  public _isCollapsed: boolean;
-
   constructor() {
     super();
-    const _collapsed = window.storage.get("dev-panel-tabs-is-collapsed");
-    if (_collapsed) this._isCollapsed = _collapsed;
-    else this._isCollapsed = false;
-
-    this._createEl();    
+    this._createEl();
   }
 
   private _createEl() {
