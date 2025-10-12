@@ -32,16 +32,56 @@ NODE_ENV=development
 
 ## Features
 
-- **Intelligent Code Editor** — Autocompletion, inline documentation, linting, and real-time code suggestions.
-- **AI Assistance** — Context-aware code suggestions and inline completions powered by AI.
-- **Mira, the Voice Assistant** — Perform file actions, describe code, write snippets, run commands, and control the IDE hands-free.
-- **Integrated Terminal** — Run commands and manage your environment without leaving the IDE.
-- **Multi-Language Support** — Write and manage projects in Python, JavaScript, TypeScript, Rust, Bash, Java, C, C++, Lua, Swift, SQL, and more—all within the same IDE.
-- **File Explorer** — Browse, create, rename, and organize files with a clean interface.
-- **Tabs and Window Management** — Manage multiple files with a modern tab system and resizable panels.
-- **Data-Centric Tools** — Import, clean, and preview datasets directly inside the IDE.
-- **Built-in Visualization** — Generate charts and quick data insights without leaving your workflow.
-- **Customizable Layout** — Tailor panels, themes, and settings to your workflow.
-- **Theme System** — Switch between predefined themes or create your own with full customization.
-- **Plugin Architecture (Planned)** — Extend Meridia with plugins for additional tools, panels, and integrations.
-- **Cross-Platform** — Available for Windows and Linux.
+### Intelligent Editor Core
+
+At the heart of Meridia lies the Monaco Editor. Each file you open is managed as a model, representing its text, language, and edit history. Meridia extends Monaco’s capabilities to handle multiple languages, syntax-aware tooling, and live code analysis—all through a unified editor interface.
+
+### File Models
+
+Meridia uses Monaco’s URI-based model system to simulate a virtual file system. Every open file, whether it exists locally or in memory, has its own unique URI (`file:///`), ensuring accurate language features and file tracking across tabs and sessions.
+
+### Editors & Views
+
+Each editor window is a visual view of a model, synchronized with your workspace state. You can open multiple views of the same file, manage them in tabs, or split the layout to view different parts of your project simultaneously—all with persistent view states.
+
+### Smart Providers
+
+Meridia integrates language providers for completion, hover information, and diagnostics. It supports multiple languages through both built-in and external Language Server Protocol (LSP) bridges, enabling accurate IntelliSense, go-to-definition, and error checking for each file type.
+
+### Advanced Coding Tools
+
+- Autocomplete and Inline Documentation — Smart suggestions powered by AI and LSP servers
+- Inline Results — View variable outputs and data previews right next to your code
+- Quick Fixes and Refactors — Contextual fixes for syntax and logic issues
+
+### Mira, the Voice Assistant
+
+Perform actions hands-free: open files, describe code, insert snippets, or run commands—all through voice control powered by Mira.
+
+### Integrated Environment
+
+- Built-in Terminal — Run commands without leaving the IDE
+- Project Runner — Execute scripts and visualize output directly
+- Problems — Visualize errors in files
+- Data Studio — Import, clean, and visualize datasets interactively
+
+### Customizable Experience
+
+- Dynamic Themes — Full color customization with syntax highlighting control
+- Flexible Layouts — Resize, drag, or detach panels
+- Persistent State — Meridia remembers your open files, positions, and layout preferences
+
+### Plugin System
+
+Meridia include a plugin architecture allowing developers to add:
+
+- Command palette actions
+- Third-party integrations and tools
+
+### Cross-Platform Support
+
+Meridia runs seamlessly on Windows and Linux, offering consistent performance and design across devices.
+
+# Installation
+
+For now you can use the local guide to use Meridia.
