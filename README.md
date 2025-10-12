@@ -1,8 +1,12 @@
 # Meridia
 
+[![Versions](https://img.shields.io/npm/v/monaco-editor)](https://www.npmjs.com/package/monaco-editor)
+[![Versions](https://img.shields.io/npm/v/monaco-editor/next)](https://www.npmjs.com/package/monaco-editor)
+[![Bugs](https://img.shields.io/github/issues/MeridiaByMNovus/Meridia/bug.svg)](https://github.com/MeridiaByMNovus/Meridia/issues?utf8=✓&q=is%3Aissue+is%3Aopen+label%3Abug)
+
 ![Meridia Screenshot](./resources/whole.png)
 
-Meridia is a modern IDE designed for developers. While its core focus is Python, it now **supports multiple programming languages** including JavaScript, TypeScript, Rust, Bash, Java, C, C++, Lua, Swift, SQL, and more. This means you can **write, run, and manage projects in different languages without leaving the IDE**.
+Meridia is a modern IDE designed for developers. While its core focus is Python, it now **supports multiple programming languages** including JavaScript, TypeScript, Rust, Bash, Java, Python and more. This means you can **write, run, and manage projects in different languages without leaving the IDE**.
 
 It combines a clean, minimal design with powerful tools for coding, data workflows, and visualization—all in one place.
 
