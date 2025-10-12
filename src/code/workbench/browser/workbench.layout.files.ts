@@ -26,7 +26,7 @@ export class Files extends CoreEl {
     dispatch(update_folder_structure(_structure));
 
     if (_structure) {
-      this._structure = _structure;
+      this._structure = this._deepClone(_structure);
     }
 
     if (_expanded && Array.isArray(_expanded)) {
@@ -44,16 +44,46 @@ export class Files extends CoreEl {
 
     this._createEl();
     this._restore();
+    this._setupListener();
+  }
 
-    setTimeout(() => {
-      this._addNode(window.path.join([this._structure.uri]), {
-        name: "newFile.txt",
-        uri: "/path/to/newFile.txt",
-        type: "file",
-        children: [],
-        isRoot: false,
-      });
-    }, 100);
+  private _setupListener() {
+    const ipcRender = window.ipc;
+
+    ipcRender.on(
+      "files-node-added",
+      (
+        _: any,
+        data: {
+          parentUri: string;
+          nodeName: string;
+          nodeType: "file" | "folder";
+        }
+      ) => {
+        const _node: IFolderStructure = {
+          name: data.nodeName,
+          isRoot: false,
+          type: data.nodeType,
+          children: [],
+          uri: path.join([data.parentUri, data.nodeName]),
+        };
+
+        this._addNode(data.parentUri, _node);
+      }
+    );
+
+    ipcRender.on(
+      "files-node-removed",
+      (
+        _: any,
+        data: {
+          nodeUri: string;
+        }
+      ) => {
+        console.log("removing", data);
+        this._removeNode(data.nodeUri);
+      }
+    );
   }
 
   private async _restore() {
@@ -436,5 +466,277 @@ export class Files extends CoreEl {
     dispatch(update_folder_structure(this._structure));
   }
 
-  private _addNode(parentUri: string, newNode: IFolderStructure) {}
+  private _deepClone<T>(obj: T): T {
+    if (obj === null || typeof obj !== "object") {
+      return obj;
+    }
+
+    if (obj instanceof Date) {
+      return new Date(obj.getTime()) as unknown as T;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map((item) => this._deepClone(item)) as unknown as T;
+    }
+
+    const cloned = {} as T;
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        cloned[key] = this._deepClone(obj[key]);
+      }
+    }
+    return cloned;
+  }
+
+  private _addNode(parentUri: string, newNode: IFolderStructure): boolean {
+    try {
+      this._structure = this._deepClone(this._structure);
+
+      const parentNode = this._findNodeByUri(this._structure, parentUri);
+
+      if (!parentNode) {
+        console.error(`Parent node not found: ${parentUri}`);
+
+        this._forceFullRefresh();
+        return false;
+      }
+
+      if (parentNode.type !== "folder") {
+        console.error(`Parent is not a folder: ${parentUri}`);
+        return false;
+      }
+
+      if (!parentNode.children) {
+        parentNode.children = [];
+      }
+
+      const existingNode = parentNode.children.find(
+        (child) => child.name === newNode.name || child.uri === newNode.uri
+      );
+
+      if (existingNode) {
+        console.warn(
+          `Node with name "${newNode.name}" or URI "${newNode.uri}" already exists in ${parentUri}`
+        );
+
+        if (this._shouldUpdateExistingNode(existingNode, newNode)) {
+          Object.assign(existingNode, {
+            ...newNode,
+            uri: newNode.uri || path.join([parentUri, newNode.name]),
+            type: newNode.type || "file",
+            children: newNode.type === "folder" ? newNode.children || [] : [],
+            isRoot: false,
+          });
+
+          this._sortChildren(parentNode);
+          this._persistAndUpdate();
+          return true;
+        }
+
+        return false;
+      }
+
+      const nodeToAdd: IFolderStructure = {
+        name: newNode.name,
+        uri: newNode.uri || this._createSafeUri(parentUri, newNode.name),
+        type: newNode.type || "file",
+        children: newNode.type === "folder" ? newNode.children || [] : [],
+        isRoot: false,
+      };
+
+      if (this._isUriDuplicate(this._structure, nodeToAdd.uri)) {
+        console.error(`URI already exists in tree: ${nodeToAdd.uri}`);
+        return false;
+      }
+
+      parentNode.children.push(nodeToAdd);
+      this._sortChildren(parentNode);
+
+      this._persistAndUpdate();
+
+      console.log(`Successfully added node: ${nodeToAdd.name} to ${parentUri}`);
+      return true;
+    } catch (error) {
+      console.error("Error adding node:", error);
+
+      this._forceFullRefresh();
+      return false;
+    }
+  }
+
+  private _shouldUpdateExistingNode(
+    existing: IFolderStructure,
+    newNode: IFolderStructure
+  ): boolean {
+    return (
+      existing.type !== newNode.type ||
+      (newNode.type === "folder" &&
+        JSON.stringify(existing.children) !== JSON.stringify(newNode.children))
+    );
+  }
+
+  private _createSafeUri(parentUri: string, nodeName: string): string {
+    try {
+      const normalizedParent = path.normalize(parentUri);
+      const normalizedName = path.normalize(nodeName);
+
+      if (
+        normalizedName.includes("..") ||
+        normalizedName.includes("/") ||
+        normalizedName.includes("\\")
+      ) {
+        throw new Error(`Invalid node name: ${nodeName}`);
+      }
+
+      return path.join([normalizedParent, normalizedName]).replace(/\\/g, "/");
+    } catch (error) {
+      console.error(`Error creating safe URI for ${nodeName}:`, error);
+      return path.join([parentUri, nodeName]).replace(/\\/g, "/");
+    }
+  }
+
+  private _isUriDuplicate(node: IFolderStructure, targetUri: string): boolean {
+    if (node.uri === targetUri) {
+      return true;
+    }
+
+    if (node.children) {
+      return node.children.some((child) =>
+        this._isUriDuplicate(child, targetUri)
+      );
+    }
+
+    return false;
+  }
+
+  private _sortChildren(parentNode: IFolderStructure): void {
+    if (!parentNode.children) return;
+
+    parentNode.children.sort((a, b) => {
+      if (a.type === "folder" && b.type === "file") return -1;
+      if (a.type === "file" && b.type === "folder") return 1;
+
+      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    });
+  }
+
+  private _persistAndUpdate(): void {
+    try {
+      if (this._refreshTimeout) {
+        clearTimeout(this._refreshTimeout);
+      }
+
+      window.storage.store("files-structure", this._structure);
+
+      dispatch(update_folder_structure(this._structure));
+
+      this._refreshTimeout = setTimeout(() => {
+        this._refreshTree();
+        this._refreshTimeout = null;
+      }, 50);
+    } catch (error) {
+      console.error("Error in persist and update:", error);
+      this._forceFullRefresh();
+    }
+  }
+
+  private _forceFullRefresh(): void {
+    try {
+      console.log("Forcing full tree refresh due to inconsistency");
+
+      if (this._refreshTimeout) {
+        clearTimeout(this._refreshTimeout);
+        this._refreshTimeout = null;
+      }
+
+      const storedStructure = window.storage.get("files-structure");
+      if (storedStructure) {
+        this._structure = this._deepClone(storedStructure);
+        dispatch(update_folder_structure(this._structure));
+      }
+
+      this._refreshTree();
+    } catch (error) {
+      console.error("Error during forced refresh:", error);
+    }
+  }
+
+  private _removeNode(nodeUri: string): boolean {
+    try {
+      this._structure = this._deepClone(this._structure);
+
+      const result = this._removeNodeRecursively(this._structure, nodeUri);
+
+      if (result) {
+        this._persistAndUpdate();
+        console.log(`Successfully removed node: ${nodeUri}`);
+      } else {
+        console.warn(`Node not found for removal: ${nodeUri}`);
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error removing node:", error);
+      this._forceFullRefresh();
+      return false;
+    }
+  }
+
+  private _removeNodeRecursively(
+    node: IFolderStructure,
+    targetUri: string
+  ): boolean {
+    if (!node.children) return false;
+
+    const index = node.children.findIndex((child) => child.uri === targetUri);
+
+    if (index >= 0) {
+      node.children.splice(index, 1);
+      return true;
+    }
+
+    return node.children.some((child) =>
+      this._removeNodeRecursively(child, targetUri)
+    );
+  }
+
+  private _refreshTimeout: NodeJS.Timeout | null = null;
+
+  private _findParentNode(
+    node: IFolderStructure,
+    targetUri: string
+  ): IFolderStructure | null {
+    if (!node.children || node.children.length === 0) {
+      return null;
+    }
+
+    const hasChild = node.children.some((child) => child.uri === targetUri);
+    if (hasChild) {
+      return node;
+    }
+
+    for (const child of node.children) {
+      const found = this._findParentNode(child, targetUri);
+      if (found) {
+        return found;
+      }
+    }
+
+    return null;
+  }
+
+  private _cleanupNestedFolders(node: IFolderStructure): void {
+    if (!node.children) {
+      return;
+    }
+
+    node.children.forEach((child) => {
+      if (child.type === "folder") {
+        this._expandedFolders.delete(child.uri);
+        this._loadedFolders.delete(child.uri);
+
+        this._cleanupNestedFolders(child);
+      }
+    });
+  }
 }

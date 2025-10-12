@@ -48,8 +48,32 @@ function copyExtensions() {
   }).pipe(dest("build/extensions"));
 }
 
+function copyPrettier() {
+  return src("node_modules/prettier/**/*", {
+    base: "node_modules/prettier/",
+    allowEmpty: true,
+    encoding: false,
+  }).pipe(dest("build/formatter/prettier"));
+}
+
+function copyPrettierRust() {
+  return src("node_modules/prettier-plugin-rust/**/*", {
+    base: "node_modules/prettier-plugin-rust/",
+    allowEmpty: true,
+    encoding: false,
+  }).pipe(dest("build/formatter/prettier-rust"));
+}
+
 const build = series(
-  parallel(copyFiles, copyTypescript, copyPyright, copyBash, copyExtensions)
+  parallel(
+    copyFiles,
+    copyTypescript,
+    copyPyright,
+    copyBash,
+    copyPrettier,
+    copyPrettierRust,
+    copyExtensions
+  )
 );
 
 function watchSourceFiles() {

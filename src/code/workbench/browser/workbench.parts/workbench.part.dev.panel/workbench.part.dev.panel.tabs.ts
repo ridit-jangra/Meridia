@@ -21,7 +21,7 @@ export class DevPanelTabs extends CoreEl {
     {
       id: `terminal`,
       name: "Terminal",
-      active: false,
+      active: true,
       icon: terminalIcon,
     },
     {
@@ -39,7 +39,7 @@ export class DevPanelTabs extends CoreEl {
     {
       id: `problem`,
       name: "Problems",
-      active: true,
+      active: false,
       icon: problemIcon,
     },
   ];

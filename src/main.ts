@@ -5,6 +5,7 @@ import { HttpServer } from "./server.js";
 import { Theme } from "./code/workbench/common/workbench.theme.js";
 import "./code/base/common/base.file.create.js";
 import "./code/base/node/files.node.js";
+import "./code/base/node/format.node.js";
 import "./code/base/node/mira.node.js";
 import "./code/base/node/init.node.js";
 import "./code/base/node/pty.node.js";
@@ -12,7 +13,6 @@ import "./code/editor/editor.main.js";
 
 dotenv.config();
 
-let BASE_TITLEBAR_HEIGHT = 40;
 let httpServer: HttpServer;
 let PORT: number = 0;
 

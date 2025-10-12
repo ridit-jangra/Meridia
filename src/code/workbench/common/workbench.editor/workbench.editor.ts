@@ -875,6 +875,14 @@ export class Editor {
       const currentContent = model.getValue();
       if (currentContent === newContent) return;
 
+      let savedPosition: monaco.Position | null = null;
+      let savedSelection: monaco.Selection | null = null;
+
+      if (this._editor && this._editor.getModel() === model) {
+        savedPosition = this._editor.getPosition();
+        savedSelection = this._editor.getSelection();
+      }
+
       this._updating = true;
       const fullRange = model.getFullModelRange();
       const editOperation = {
@@ -882,7 +890,26 @@ export class Editor {
         text: newContent,
         forceMoveMarkers: true,
       };
-      model.pushEditOperations([], [editOperation], () => null);
+
+      model.pushEditOperations(
+        savedSelection ? [savedSelection] : [],
+        [editOperation],
+        (inverseEditOperations) => {
+          return savedSelection ? [savedSelection] : null;
+        }
+      );
+
+      if (this._editor && this._editor.getModel() === model && savedPosition) {
+        setTimeout(() => {
+          if (this._editor && savedPosition) {
+            this._editor.setPosition(savedPosition);
+            if (savedSelection) {
+              this._editor.setSelection(savedSelection);
+            }
+          }
+        }, 0);
+      }
+
       this._updating = false;
       this._update(uriString, false);
     } catch (error) {}
@@ -950,11 +977,16 @@ export class Editor {
 
     try {
       fs.createFile(uriString, model.getValue());
-      if (uriString.endsWith(".py"))
+      if (uriString.endsWith(".py")) {
         await python.executeScript(
           path.join([path.__dirname, "scripts", "format.py"]),
           [uriString]
         );
+      } else if (uriString.endsWith(".rs")) {
+        window.ipc.send("workbench.editor.format.file.rust", uriString);
+      } else {
+        window.ipc.send("workbench.editor.format.file", uriString);
+      }
 
       this._update(uriString, false);
     } catch {}

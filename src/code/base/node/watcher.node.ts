@@ -7,9 +7,38 @@ let fileWatcher: FSWatcher | null = null;
 let watchRootPath: string = "";
 let isWatching: boolean = false;
 
-// Debounce mechanism to prevent rapid-fire events
 const eventQueue = new Map<string, NodeJS.Timeout>();
-const DEBOUNCE_DELAY = 150; // milliseconds
+const DEBOUNCE_DELAY = 150;
+
+const nodeModulesBatch = new Map<string, Set<string>>();
+const NODE_MODULES_BATCH_DELAY = 3000;
+const NODE_MODULES_BATCH_SIZE_THRESHOLD = 10;
+
+function getDebounceDelay(filePath: string, eventType: string): number {
+  const normalizedPath = path.normalize(filePath).toLowerCase();
+
+  if (normalizedPath.includes("node_modules")) {
+    switch (eventType) {
+      case "unlink":
+      case "unlinkDir":
+        return 2000;
+      case "add":
+      case "addDir":
+        return 1500;
+      case "change":
+        return 1000;
+      default:
+        return 1000;
+    }
+  }
+
+  switch (eventType) {
+    case "change":
+      return 500;
+    default:
+      return DEBOUNCE_DELAY;
+  }
+}
 
 function debounceEvent(
   key: string,
@@ -26,6 +55,79 @@ function debounceEvent(
   }, delay);
 
   eventQueue.set(key, timeoutId);
+}
+
+function batchNodeModulesEvent(
+  eventType: string,
+  filePath: string,
+  callback: () => void
+): boolean {
+  const normalizedPath = path.normalize(filePath).toLowerCase();
+
+  if (normalizedPath.includes("node_modules")) {
+    if (!nodeModulesBatch.has(eventType)) {
+      nodeModulesBatch.set(eventType, new Set());
+    }
+
+    nodeModulesBatch.get(eventType)!.add(filePath);
+
+    const batchKey = `batch:${eventType}:node_modules`;
+
+    debounceEvent(
+      batchKey,
+      () => {
+        const paths = nodeModulesBatch.get(eventType);
+        if (paths && paths.size > 0) {
+          console.log(
+            `Processing batch of ${paths.size} ${eventType} events in node_modules`
+          );
+
+          if (paths.size > NODE_MODULES_BATCH_SIZE_THRESHOLD) {
+            safeIpcSend("files-bulk-operation", {
+              eventType,
+              count: paths.size,
+              location: "node_modules",
+              sample: Array.from(paths).slice(0, 3),
+              watchRootPath,
+            });
+          } else {
+            let processedCount = 0;
+            paths.forEach((batchedPath) => {
+              if (processedCount < 5) {
+                try {
+                  const tempFilePath = batchedPath;
+                  callback();
+                  processedCount++;
+                } catch (error) {
+                  console.error(
+                    `Error processing batched event for ${batchedPath}:`,
+                    error
+                  );
+                }
+              }
+            });
+
+            if (paths.size > 5) {
+              safeIpcSend("files-bulk-operation", {
+                eventType,
+                count: paths.size - 5,
+                location: "node_modules",
+                message: `${paths.size - 5} additional ${eventType} events in node_modules (not shown)`,
+                watchRootPath,
+              });
+            }
+          }
+
+          nodeModulesBatch.delete(eventType);
+        }
+      },
+      NODE_MODULES_BATCH_DELAY
+    );
+
+    return true;
+  }
+
+  return false;
 }
 
 async function validatePath(filePath: string): Promise<boolean> {
@@ -93,8 +195,7 @@ export function _watch(rootPath: string) {
 
     fileWatcher = chokidar.watch(rootPath, {
       ignored: [
-        /node_modules/,
-        /\.git/,
+        /\/node_modules/,
         /\.DS_Store/,
         /Thumbs\.db/,
         /\/\.wine/,
@@ -102,6 +203,9 @@ export function _watch(rootPath: string) {
         /\/\.vscode/,
         /\/\.idea/,
         /\.(tmp|temp|log)$/i,
+
+        "**/node_modules/**/*",
+        "**/node_modules",
         (filePath) => {
           const normalizedPath = path.normalize(filePath).toLowerCase();
           return (
@@ -111,7 +215,9 @@ export function _watch(rootPath: string) {
             normalizedPath.includes(".ds_store") ||
             normalizedPath.endsWith(".tmp") ||
             normalizedPath.endsWith(".temp") ||
-            normalizedPath.endsWith(".log")
+            normalizedPath.endsWith(".log") ||
+            (normalizedPath.includes("node_modules") &&
+              normalizedPath.split("node_modules").length > 2)
           );
         },
       ],
@@ -120,9 +226,10 @@ export function _watch(rootPath: string) {
       depth: 99,
       ignorePermissionErrors: true,
       usePolling: false,
+
       awaitWriteFinish: {
-        stabilityThreshold: 200,
-        pollInterval: 100,
+        stabilityThreshold: 500,
+        pollInterval: 200,
       },
     });
 
@@ -145,7 +252,7 @@ export function _watch(rootPath: string) {
     fileWatcher.on("add", async (filePath) => {
       const eventKey = `add:${filePath}`;
 
-      debounceEvent(eventKey, async () => {
+      const callback = async () => {
         try {
           const normalizedPath = path.normalize(filePath);
 
@@ -180,13 +287,17 @@ export function _watch(rootPath: string) {
         } catch (error) {
           console.error(`Error processing add event for ${filePath}:`, error);
         }
-      });
+      };
+
+      if (!batchNodeModulesEvent("add", filePath, callback)) {
+        debounceEvent(eventKey, callback, getDebounceDelay(filePath, "add"));
+      }
     });
 
     fileWatcher.on("addDir", async (dirPath) => {
       const eventKey = `addDir:${dirPath}`;
 
-      debounceEvent(eventKey, async () => {
+      const callback = async () => {
         try {
           const normalizedPath = path.normalize(dirPath);
 
@@ -221,13 +332,17 @@ export function _watch(rootPath: string) {
         } catch (error) {
           console.error(`Error processing addDir event for ${dirPath}:`, error);
         }
-      });
+      };
+
+      if (!batchNodeModulesEvent("addDir", dirPath, callback)) {
+        debounceEvent(eventKey, callback, getDebounceDelay(dirPath, "addDir"));
+      }
     });
 
     fileWatcher.on("unlink", async (filePath) => {
       const eventKey = `unlink:${filePath}`;
 
-      debounceEvent(eventKey, () => {
+      const callback = () => {
         try {
           const normalizedPath = path.normalize(filePath);
           const relativePath = path.relative(watchRootPath, normalizedPath);
@@ -248,13 +363,17 @@ export function _watch(rootPath: string) {
             error
           );
         }
-      });
+      };
+
+      if (!batchNodeModulesEvent("unlink", filePath, callback)) {
+        debounceEvent(eventKey, callback, getDebounceDelay(filePath, "unlink"));
+      }
     });
 
     fileWatcher.on("unlinkDir", async (dirPath) => {
       const eventKey = `unlinkDir:${dirPath}`;
 
-      debounceEvent(eventKey, () => {
+      const callback = () => {
         try {
           const normalizedPath = path.normalize(dirPath);
           const relativePath = path.relative(watchRootPath, normalizedPath);
@@ -275,44 +394,52 @@ export function _watch(rootPath: string) {
             error
           );
         }
-      });
+      };
+
+      if (!batchNodeModulesEvent("unlinkDir", dirPath, callback)) {
+        debounceEvent(
+          eventKey,
+          callback,
+          getDebounceDelay(dirPath, "unlinkDir")
+        );
+      }
     });
 
     fileWatcher.on("change", async (filePath) => {
       const eventKey = `change:${filePath}`;
 
-      debounceEvent(
-        eventKey,
-        async () => {
-          try {
-            const normalizedPath = path.normalize(filePath);
+      const callback = async () => {
+        try {
+          const normalizedPath = path.normalize(filePath);
 
-            if (!(await validatePath(normalizedPath))) {
-              console.warn(`Changed file no longer exists: ${normalizedPath}`);
-              return;
-            }
-
-            const relativePath = path.relative(watchRootPath, normalizedPath);
-            const nodeUri = path.join(watchRootPath, relativePath);
-
-            const safeNodeUri = createSafeUri(watchRootPath, nodeUri);
-            if (!safeNodeUri) {
-              console.warn(`Invalid node URI for changed file: ${filePath}`);
-              return;
-            }
-
-            safeIpcSend("files-node-changed", {
-              nodeUri: safeNodeUri,
-            });
-          } catch (error) {
-            console.error(
-              `Error processing change event for ${filePath}:`,
-              error
-            );
+          if (!(await validatePath(normalizedPath))) {
+            console.warn(`Changed file no longer exists: ${normalizedPath}`);
+            return;
           }
-        },
-        500
-      );
+
+          const relativePath = path.relative(watchRootPath, normalizedPath);
+          const nodeUri = path.join(watchRootPath, relativePath);
+
+          const safeNodeUri = createSafeUri(watchRootPath, nodeUri);
+          if (!safeNodeUri) {
+            console.warn(`Invalid node URI for changed file: ${filePath}`);
+            return;
+          }
+
+          safeIpcSend("files-node-changed", {
+            nodeUri: safeNodeUri,
+          });
+        } catch (error) {
+          console.error(
+            `Error processing change event for ${filePath}:`,
+            error
+          );
+        }
+      };
+
+      if (!batchNodeModulesEvent("change", filePath, callback)) {
+        debounceEvent(eventKey, callback, getDebounceDelay(filePath, "change"));
+      }
     });
   } catch (error) {
     console.error("Error setting up file watcher:", error);
@@ -336,6 +463,8 @@ export function _stop() {
       eventQueue.delete(key);
     }
 
+    nodeModulesBatch.clear();
+
     isWatching = false;
     watchRootPath = "";
 
@@ -350,6 +479,11 @@ export function getWatcherStatus() {
     isWatching,
     watchRootPath,
     hasActiveWatcher: fileWatcher !== null,
+    batchedEventCount: Array.from(nodeModulesBatch.values()).reduce(
+      (sum, set) => sum + set.size,
+      0
+    ),
+    pendingEventCount: eventQueue.size,
   };
 }
 
@@ -361,4 +495,9 @@ export function _restart() {
       _watch(currentPath);
     }, 100);
   }
+}
+
+export function clearBatchedEvents() {
+  nodeModulesBatch.clear();
+  console.log("Cleared all batched node_modules events");
 }
