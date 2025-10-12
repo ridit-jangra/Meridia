@@ -21,7 +21,7 @@ export function activate(context: context) {
       {
         port: _port,
       },
-      "start"
+      ["start"]
     );
 
     context.workbench.workspace.language.registerLanguageServer(_server);

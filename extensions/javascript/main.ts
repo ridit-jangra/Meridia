@@ -12,6 +12,14 @@ export function activate(context: context) {
       "cli.mjs"
     );
 
+    const _tsServerPath = context.workbench.workspace.utils.path.join(
+      context.workbench.workspace.utils.path.__dirname,
+      "..",
+      "node_modules",
+      "typescript",
+      "lib"
+    );
+
     const _server = context.workbench.workspace.language.createLanguageServer(
       "javascript",
       "js",
@@ -21,7 +29,7 @@ export function activate(context: context) {
       {
         port: _port,
       },
-      "--stdio"
+      ["--stdio"]
     );
 
     context.workbench.workspace.language.registerLanguageServer(_server);

@@ -230,60 +230,30 @@ class XtermManager {
   }
 
   async _run(id: string, command: string, _path: string): Promise<boolean> {
-    try {
-      this._completionDetected.set(id, false);
-      this._runningCommands.set(id, { isRunning: true });
+    const instance = this._terminals.get(id);
+    if (!instance?.term) return false;
 
-      const instance = this._terminals.get(id);
-      if (!instance?.term) {
-        this._runningCommands.delete(id);
-        return false;
-      }
+    this._completionDetected.set(id, false);
+    this._runningCommands.set(id, { isRunning: true });
 
-      ipcRenderer.on("pty-clear", (_: any, _id: string) => {
-        if (_id === id) instance.term.clear();
-      });
+    instance.term.clear();
+    instance.term.options.disableStdin = false;
 
-      instance.term.clear();
+    ipcRenderer.invoke("pty-write", id, `cd "${_path}"\r`);
+    await new Promise((r) => setTimeout(r, 200));
+    ipcRenderer.invoke("pty-write", id, `clear\r`);
+    await new Promise((r) => setTimeout(r, 200));
+    ipcRenderer.invoke("pty-write", id, `${command}\r`);
 
-      instance.term.options.disableStdin = false;
+    const commandCompleted = this._wait(id);
 
-      const commandCompleted = this._wait(id);
-      const result = await ipcRenderer.invoke(
-        "pty-run-command",
-        id,
-        command,
-        _path
-      );
+    const wasSuccessful = await commandCompleted;
 
-      if (!result.success) {
-        this._runningCommands.delete(id);
-        this._completionDetected.delete(id);
-        instance.term.write(`\r\nError: ${result.error}\r\n`);
-        instance.term.options.disableStdin = true;
-        return false;
-      }
+    instance.term.options.disableStdin = true;
+    this._runningCommands.delete(id);
+    instance.term.write(`\r\nExit code 1\r\n`);
 
-      const wasSuccessful = await commandCompleted;
-
-      instance.term.options.disableStdin = true;
-      this._runningCommands.delete(id);
-
-      instance.term.write("\r\nExit code 1\r\n");
-
-      return wasSuccessful;
-    } catch (error) {
-      this._runningCommands.delete(id);
-      this._completionDetected.delete(id);
-
-      const instance = this._terminals.get(id);
-      if (instance?.term) {
-        instance.term.write(`\r\nError: ${error}\r\n`);
-        instance.term.options.disableStdin = true;
-      }
-
-      return false;
-    }
+    return wasSuccessful;
   }
 
   private _wait(id: string): Promise<boolean> {

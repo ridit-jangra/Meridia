@@ -720,7 +720,10 @@ export class Editor {
             includeCompletionsForModuleExports: true,
             includeCompletionsWithInsertText: true,
           },
+          workspaceFolder: workspaceRoot,
+          rootUri: workspaceRoot,
         };
+
       case "rs":
         return {
           linkedProjects: [path.join([workspaceRoot, "Cargo.toml"])],

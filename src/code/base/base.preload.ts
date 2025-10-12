@@ -372,7 +372,7 @@ export const nodeBridge = {
     _port: number,
     _nodeCliPath: string,
     _websocketOptions: ServerOptions,
-    _arg: string,
+    _args: string[],
     _type: "node" | "cli",
     _cliPath?: string
   ) => {
@@ -392,7 +392,7 @@ export const nodeBridge = {
       _process = createServerProcess(
         "Language Server",
         _type === "node" ? process.execPath : _cliPath!,
-        [_nodeCliPath, _arg],
+        [_nodeCliPath, ..._args],
         {
           stdio: ["pipe", "pipe", "pipe"],
           env: {

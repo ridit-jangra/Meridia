@@ -19,14 +19,14 @@ export const api = {
           _serverCli: string,
           _type: "node" | "cli",
           _websocketOptions?: ServerOptions,
-          _arg?: string,
+          _args?: string[],
           _cliPath?: string
         ) => {
           const _process = window.node.createLanguageServer(
             _port,
             _serverCli,
             _websocketOptions!,
-            _arg!,
+            _args!,
             _type,
             _cliPath
           );
