@@ -170,27 +170,36 @@ export class Run extends CoreEl {
 
   public async _run(_path: string) {
     const norm = _path.replace(/\\/g, "/");
-    const tabId = `run:${norm}`;
-    const existing = this._tabs.find((t) => t.id === tabId);
+    const existing = this._tabs.find((t) => t.uri === _path);
+    let tabId: string;
 
     if (!existing) {
+      tabId = crypto.randomUUID();
       const tab: IDevPanelTab = {
         id: tabId,
         name: `${window.path.basename(norm)}`,
-        active: false,
-        meta: { _path: norm, status: "stopped" },
-      } as any;
+        active: true,
+        uri: _path,
+      };
       this._tabs.push(tab);
+    } else {
+      tabId = existing.id;
+
+      if ((existing as any).meta?.status === "stopped") {
+        tabId = crypto.randomUUID();
+        existing.id = tabId;
+      }
     }
 
-    this._tabs = this._tabs.map((t) => ({ ...t, active: t.id === tabId }));
+    this._tabs = this._tabs.map((t) => ({ ...t, active: t.uri === _path }));
     this._render();
 
     const runArea = this._el?.querySelector(".run-area") as HTMLElement | null;
     if (!runArea) return;
+
     runArea.innerHTML = "";
-    const container =
-      _xtermManager._get(tabId) || (await _xtermManager._spawn(tabId));
+
+    const container = await _xtermManager._spawn(tabId);
     runArea.appendChild(container!);
 
     const command = `python "${path.join([
@@ -201,17 +210,19 @@ export class Run extends CoreEl {
 
     await _xtermManager._run(tabId, command, path.dirname(_path));
     this._set(tabId, "running");
+
+    return tabId;
   }
 
-  public async _stop(_path: string) {
-    const norm = _path.replace(/\\/g, "/");
-    const tabId = `run:${norm}`;
-    const tab = this._tabs.find((t) => t.id === tabId);
+  public async _stop(_path: string, id: string) {
+    const tabId = id;
+    const tab = this._tabs.find((t) => t.id === id);
     if (!tab) return;
 
     const termInstance = _xtermManager._terminals.get(tabId);
 
-    await _xtermManager._stop(tabId);
+    await _xtermManager._stop(id);
+    this._set(id, "stopped");
     termInstance?.term?.write(`Exit code 1.\r\n`);
     this._set(tabId, "stopped");
   }

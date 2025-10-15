@@ -174,6 +174,7 @@ export interface IDevPanelTab {
   id: string;
   name: string;
   active: boolean;
+  uri: string;
 }
 
 export interface IXTermInstance {

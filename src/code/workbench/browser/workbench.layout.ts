@@ -9,7 +9,7 @@ import { Splitter } from "./workbench.parts/workbench.part.splitter.js";
 import { Statusbar } from "./workbench.parts/workbench.part.status.js";
 import { DevPanel } from "./workbench.parts/workbench.part.dev.panel/workbench.part.dev.panel.el.js";
 import { Titlebar } from "./workbench.parts/workbench.part.titlebar.js";
-import { runIcon } from "./workbench.media/workbench.icons.js";
+import { runIcon, stopIcon } from "./workbench.media/workbench.icons.js";
 import { Mira } from "../../platform/mira/mira.workbench/browser/workbench.mira.layout.js";
 import { _xtermManager } from "../common/workbench.dev.panel/workbench.dev.panel.spawn.xterm.js";
 import { runCommand } from "../common/workbench.command.js";
@@ -62,21 +62,34 @@ export class Layout {
 
     const structureOption = new PanelOption("Structure").getDomElement()!;
 
-    const editorOption = new PanelOption(
+    const runOption = new PanelOption(
       null as any,
       () => {},
       runIcon
     ).getDomElement()!;
 
-    editorOption.onclick = () => {
+    runOption.onclick = () => {
       const _tabs = select((s) => s.main.editor_tabs);
       const _active = _tabs.find((t) => t.active);
 
       if (_active) runCommand("workbench.editor.run", [_active.uri]);
     };
 
+    const stopOption = new PanelOption(
+      null as any,
+      () => {},
+      stopIcon
+    ).getDomElement()!;
+
+    stopOption.onclick = () => {
+      const _tabs = select((s) => s.main.editor_tabs);
+      const _active = _tabs.find((t) => t.active);
+
+      if (_active) runCommand("workbench.editor.stop", [_active.uri]);
+    };
+
     const middlePanelOptions = new PanelOptions(
-      [editorOption],
+      [runOption, stopOption],
       null as any,
       "middle-panel-options"
     );

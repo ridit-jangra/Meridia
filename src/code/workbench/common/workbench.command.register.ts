@@ -7,6 +7,8 @@ import { dispatch } from "./workbench.store/workbench.store.js";
 import { select } from "./workbench.store/workbench.store.selector.js";
 import { update_panel_state } from "./workbench.store/workbench.store.slice.js";
 
+let _currentRunId = "";
+
 addCommand("workbench.editor.run", async (_path: string) => {
   const _state = select((s) => s.main.panel_state);
   dispatch(update_panel_state({ ..._state, bottom: true }));
@@ -15,7 +17,8 @@ addCommand("workbench.editor.run", async (_path: string) => {
   _editor._save(_path);
   const _tabs = getStandalone("dev-panel-tabs") as DevPanelTabs;
   await _tabs._set("run");
-  _run._run(_path);
+  const _id = await _run._run(_path);
+  _currentRunId = _id!;
 });
 
 addCommand("workbench.editor.stop", async (_path: string) => {
@@ -24,5 +27,5 @@ addCommand("workbench.editor.stop", async (_path: string) => {
   const _run = getStandalone("run") as Run;
   const _tabs = getStandalone("dev-panel-tabs") as DevPanelTabs;
   await _tabs._set("run");
-  _run._stop(_path);
+  _run._stop(_path, _currentRunId);
 });

@@ -14,10 +14,21 @@ class XtermManager {
     { pid?: number; isRunning: boolean }
   >();
   private _completionDetected = new Map<string, boolean>();
+  private _completionCallbacks = new Map<
+    string,
+    (status: "success" | "error" | "interrupted") => void
+  >();
 
-  async _spawn(id: string, shell?: string): Promise<HTMLElement> {
+  _setCompletionCallback(
+    id: string,
+    callback: (status: "success" | "error" | "interrupted") => void
+  ) {
+    this._completionCallbacks.set(id, callback);
+  }
+
+  async _spawn(id: string, shell?: string, cwd?: string): Promise<HTMLElement> {
     if (this._terminals.has(id)) {
-      return this._terminals.get(id)!._container;
+      this._dispose(id);
     }
 
     const _container = document.createElement("div");
@@ -38,14 +49,19 @@ class XtermManager {
 
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
-
     fitAddon.fit();
 
     const structure = select((s) => s.main.folder_structure);
+    const _cwd = structure ? structure.uri : cwd ? cwd : "";
 
-    const cwd = structure ? structure.uri : "";
-
-    await ipcRenderer.invoke("pty-spawn", id, term.cols, term.rows, cwd, shell);
+    await ipcRenderer.invoke(
+      "workbench.terminal.spawn",
+      id,
+      term.cols,
+      term.rows,
+      _cwd,
+      shell
+    );
 
     const onPtyData = (_event: any, data: string) => {
       let filteredData = this._filter(id, data);
@@ -59,14 +75,14 @@ class XtermManager {
         term.write(filteredData);
       }
     };
-    ipcRenderer.on(`pty-data-${id}`, onPtyData);
+    ipcRenderer.on(`workbench.terminal.data.pty-${id}`, onPtyData);
 
     term.onData((data) => {
-      ipcRenderer.invoke("pty-write", id, data);
+      ipcRenderer.invoke("workbench.terminal.data.user", id, data);
     });
 
     term.onResize(({ cols, rows }) => {
-      ipcRenderer.invoke("pty-resize", id, cols, rows);
+      ipcRenderer.invoke("workbench.terminal.resize", id, cols, rows);
       this._update();
     });
 
@@ -96,7 +112,6 @@ class XtermManager {
         brightCyan: _theme.getColor("workbench.terminal.bright.cyan"),
         brightWhite: _theme.getColor("workbench.terminal.bright.white"),
       };
-      this._update();
       this._update();
     }, 100);
 
@@ -142,22 +157,41 @@ class XtermManager {
   }
 
   private _filter(id: string, data: string): string {
-    if (this._completionDetected.get(id)) {
-      return "";
-    }
-
     const executionMarkerRegex =
-      /__EXECUTION_COMPLETE_[a-f0-9]{8}__[A-Z_]+(_\d+)?/;
-    const hasMarker =
-      executionMarkerRegex.test(data) ||
-      data.includes("__EXECUTION_COMPLETE_") ||
-      data.includes("__SUCCESS") ||
-      data.includes("__ERROR") ||
-      data.includes("__INTERRUPTED") ||
-      data.includes("__EXCEPTION");
+      /__EXECUTION_COMPLETE_[a-f0-9]{8}__([A-Z_]+)(_\d+)?/;
 
-    if (hasMarker) {
+    const markerMatch = data.match(executionMarkerRegex);
+    const hasSuccessMarker = data.includes("__SUCCESS");
+    const hasErrorMarker = data.includes("__ERROR");
+    const hasInterruptedMarker = data.includes("__INTERRUPTED");
+    const hasExceptionMarker = data.includes("__EXCEPTION");
+
+    if (
+      markerMatch ||
+      hasSuccessMarker ||
+      hasErrorMarker ||
+      hasInterruptedMarker ||
+      hasExceptionMarker
+    ) {
       this._completionDetected.set(id, true);
+
+      const commandInfo = this._runningCommands.get(id);
+      if (commandInfo) {
+        this._runningCommands.set(id, { ...commandInfo, isRunning: false });
+      }
+
+      let status: "success" | "error" | "interrupted" = "success";
+      if (hasErrorMarker || hasExceptionMarker) {
+        status = "error";
+      } else if (hasInterruptedMarker) {
+        status = "interrupted";
+      }
+
+      const callback = this._completionCallbacks.get(id);
+      if (callback) {
+        callback(status);
+        this._completionCallbacks.delete(id);
+      }
 
       const lines = data.split("\n");
       const filteredLines = [];
@@ -179,24 +213,15 @@ class XtermManager {
       return filteredLines.join("\n");
     }
 
+    if (this._completionDetected.get(id)) {
+      return "";
+    }
+
     return data;
   }
 
   _get(id: string): HTMLElement | null {
     return this._terminals.get(id)?._container || null;
-  }
-
-  _dispose(id: string) {
-    const _instance = this._terminals.get(id);
-    if (!_instance) return;
-
-    ipcRenderer.removeListener(`pty-data-${id}`, _instance._ptyDataListener);
-    _instance.term.dispose();
-    _instance._container.remove();
-    this._terminals.delete(id);
-    this._completionDetected.delete(id);
-
-    ipcRenderer.invoke("pty-kill", id);
   }
 
   _disposeAll() {
@@ -229,7 +254,29 @@ class XtermManager {
     }, 10);
   }
 
-  async _run(id: string, command: string, _path: string): Promise<boolean> {
+  _dispose(id: string) {
+    const _instance = this._terminals.get(id);
+    if (!_instance) return;
+
+    ipcRenderer.removeListener(
+      `workbench.terminal.data.pty-${id}`,
+      _instance._ptyDataListener
+    );
+
+    _instance.term.dispose();
+    _instance._container.remove();
+
+    this._terminals.delete(id);
+    this._completionDetected.delete(id);
+    this._runningCommands.delete(id);
+    this._completionCallbacks.delete(id);
+
+    ipcRenderer.invoke("workbench.terminal.kill", id);
+  }
+
+  async _run(id: string, command: string, _path: string) {
+    await this._spawn(id, "", _path);
+
     const instance = this._terminals.get(id);
     if (!instance?.term) return false;
 
@@ -239,98 +286,9 @@ class XtermManager {
     instance.term.clear();
     instance.term.options.disableStdin = false;
 
-    ipcRenderer.invoke("pty-write", id, `cd "${_path}"\r`);
-    await new Promise((r) => setTimeout(r, 200));
-    ipcRenderer.invoke("pty-write", id, `clear\r`);
-    await new Promise((r) => setTimeout(r, 200));
-    ipcRenderer.invoke("pty-write", id, `${command}\r`);
+    ipcRenderer.invoke("workbench.terminal.data.user", id, `${command}\r`);
 
-    const commandCompleted = this._wait(id);
-
-    const wasSuccessful = await commandCompleted;
-
-    instance.term.options.disableStdin = true;
-    this._runningCommands.delete(id);
-    instance.term.write(`\r\nExit code 1\r\n`);
-
-    return wasSuccessful;
-  }
-
-  private _wait(id: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      const instance = this._terminals.get(id);
-      if (!instance?.term) {
-        resolve(false);
-        return;
-      }
-
-      let dataBuffer = "";
-      let timeoutId: NodeJS.Timeout;
-      let resolved = false;
-
-      const ptyDataListener = (event: any, data: string) => {
-        if (resolved) return;
-
-        dataBuffer += data;
-
-        const hasCompletionMarker = dataBuffer.includes(
-          "__EXECUTION_COMPLETE_"
-        );
-
-        if (hasCompletionMarker) {
-          const lines = dataBuffer.split("\n");
-          const completionLine = lines.find((line) =>
-            line.includes("__EXECUTION_COMPLETE_")
-          );
-
-          if (completionLine) {
-            cleanup();
-            const wasSuccessful = completionLine.includes("SUCCESS");
-            resolved = true;
-            resolve(wasSuccessful);
-            return;
-          }
-        }
-
-        if (
-          dataBuffer.includes("__SUCCESS") ||
-          dataBuffer.includes("SUCCESS")
-        ) {
-          cleanup();
-          resolved = true;
-          resolve(true);
-          return;
-        }
-
-        if (
-          dataBuffer.includes("__ERROR") ||
-          dataBuffer.includes("__INTERRUPTED") ||
-          dataBuffer.includes("__EXCEPTION")
-        ) {
-          cleanup();
-          resolved = true;
-          resolve(false);
-          return;
-        }
-      };
-
-      const cleanup = () => {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        ipcRenderer.removeListener(`pty-data-${id}`, ptyDataListener);
-      };
-
-      ipcRenderer.on(`pty-data-${id}`, ptyDataListener);
-
-      timeoutId = setTimeout(() => {
-        if (!resolved) {
-          cleanup();
-          resolved = true;
-          resolve(false);
-        }
-      }, 60000);
-    });
+    return id;
   }
 
   async _stop(id: string): Promise<boolean> {
@@ -343,18 +301,37 @@ class XtermManager {
 
     if (term) {
       try {
+        await ipcRenderer.invoke("workbench.terminal.kill", id);
+
         this._runningCommands.set(id, { ...commandInfo, isRunning: false });
-        this._completionDetected.delete(id);
+        this._completionDetected.set(id, true);
 
         term.options.disableStdin = true;
+        term.write(`\r\nProcess terminated.\r\n`);
+
+        const callback = this._completionCallbacks.get(id);
+        if (callback) {
+          callback("interrupted");
+          this._completionCallbacks.delete(id);
+        }
 
         return true;
       } catch (error) {
+        console.error("Stop error:", error);
         return false;
       }
-    } else {
-      return false;
     }
+
+    return false;
+  }
+
+  _isRunning(id: string): boolean {
+    const commandInfo = this._runningCommands.get(id);
+    return commandInfo?.isRunning ?? false;
+  }
+
+  _isCompleted(id: string): boolean {
+    return this._completionDetected.get(id) ?? false;
   }
 }
 

@@ -14,7 +14,7 @@ function getShell(): string {
 
 setTimeout(() => {
   ipcMain.handle(
-    "pty-spawn",
+    "workbench.terminal.spawn",
     (
       event,
       id: string,
@@ -39,7 +39,7 @@ setTimeout(() => {
       });
 
       ptyProcess.onData((data) => {
-        mainWindow.webContents.send(`pty-data-${id}`, data);
+        mainWindow.webContents.send(`workbench.terminal.data.pty-${id}`, data);
       });
 
       terminals.set(id, ptyProcess);
@@ -48,7 +48,7 @@ setTimeout(() => {
   );
 
   ipcMain.handle(
-    "pty-resize",
+    "workbench.terminal.resize",
     (event, id: string, cols: number, rows: number) => {
       const term = terminals.get(id);
       if (term) {
@@ -60,36 +60,39 @@ setTimeout(() => {
     }
   );
 
-  ipcMain.handle("pty-write", (event, id: string, data: string) => {
-    return new Promise<boolean>((resolve) => {
-      const term = terminals.get(id);
-      if (!term) {
-        resolve(false);
-        return;
-      }
-
-      const onData = (output: string) => {
-        if (
-          output.includes("$") ||
-          output.includes(">") ||
-          output.includes("#")
-        ) {
-          resolve(true);
+  ipcMain.handle(
+    "workbench.terminal.data.user",
+    (event, id: string, data: string) => {
+      return new Promise<boolean>((resolve) => {
+        const term = terminals.get(id);
+        if (!term) {
+          resolve(false);
+          return;
         }
-      };
 
-      const disposable = term.onData(onData);
+        const onData = (output: string) => {
+          if (
+            output.includes("$") ||
+            output.includes(">") ||
+            output.includes("#")
+          ) {
+            resolve(true);
+          }
+        };
 
-      term.write(data);
+        const disposable = term.onData(onData);
 
-      setTimeout(() => {
-        disposable.dispose();
-        resolve(true);
-      }, 5000);
-    });
-  });
+        term.write(data);
 
-  ipcMain.handle("pty-kill", (event, id: string) => {
+        setTimeout(() => {
+          disposable.dispose();
+          resolve(true);
+        }, 5000);
+      });
+    }
+  );
+
+  ipcMain.handle("workbench.terminal.kill", (event, id: string) => {
     const term = terminals.get(id);
     if (term) {
       term.kill();
@@ -98,33 +101,4 @@ setTimeout(() => {
     }
     return false;
   });
-
-  ipcMain.handle(
-    "pty-run-command",
-    (event, id: string, command: string, cwd: string) => {
-      return new Promise<{ success: boolean; error?: string }>((resolve) => {
-        const term = terminals.get(id);
-        if (!term) {
-          resolve({ success: false, error: "Terminal not found" });
-          return;
-        }
-
-        try {
-          term.write(`cd "${cwd}"\r`);
-          setTimeout(() => {
-            mainWindow.webContents.send("pty-clear", id);
-            term.write("clear\r");
-            term.write(command + "\r");
-          }, 100);
-
-          resolve({ success: true });
-        } catch (error) {
-          resolve({
-            success: false,
-            error: error instanceof Error ? error.message : String(error),
-          });
-        }
-      });
-    }
-  );
 }, 100);
