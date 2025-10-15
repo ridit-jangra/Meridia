@@ -65,7 +65,7 @@ export class Titlebar extends CoreEl {
     this.hamburgerContainer.innerHTML = hamburgerIcon;
     this.hamburgerContainer.onclick = (e) => {
       e.stopPropagation();
-      this._toggleMenu();
+      this._toggle();
     };
 
     this.menuElement = this._createMenuMenu();
@@ -118,11 +118,11 @@ export class Titlebar extends CoreEl {
     const menu = document.createElement("div");
     menu.className = "hamburger-menu";
 
-    this._buildMenuitemss(menu, menuItems, 0);
+    this._build(menu, menuItems, 0);
     return menu;
   }
 
-  private _buildMenuitemss(
+  private _build(
     container: HTMLElement,
     items: Menuitems[],
     level: number
@@ -152,7 +152,7 @@ export class Titlebar extends CoreEl {
 
           const submenu = document.createElement("div");
           submenu.className = `hamburger-menu submenu level-${level + 1}`;
-          this._buildMenuitemss(submenu, item.submenu, level + 1);
+          this._build(submenu, item.submenu, level + 1);
           menuItem.appendChild(submenu);
 
           menuItem.addEventListener("mouseenter", () => {
@@ -162,12 +162,12 @@ export class Titlebar extends CoreEl {
 
               const prevSubmenu = currentActive.querySelector(".submenu");
               if (prevSubmenu) {
-                this._hideSubmenu(prevSubmenu as HTMLElement);
+                this._hide(prevSubmenu as HTMLElement);
               }
             }
 
-            this._setActiveItem(menuItem, container);
-            this._showSubmenu(submenu);
+            this._set(menuItem, container);
+            this._show(submenu);
           });
 
           menuItem.addEventListener("mouseleave", (e) => {
@@ -186,16 +186,16 @@ export class Titlebar extends CoreEl {
               mouseY > rect.bottom
             ) {
               if (!submenu.matches(":hover") && !menuItem.matches(":hover")) {
-                this._hideSubmenu(submenu);
+                this._hide(submenu);
               }
             }
           });
 
           menuItem.addEventListener("click", (e) => {
             e.stopPropagation();
-            this._setActiveItem(menuItem, container);
+            this._set(menuItem, container);
 
-            this._showSubmenu(submenu);
+            this._show(submenu);
           });
         } else {
           menuItem.addEventListener("mouseenter", () => {
@@ -205,7 +205,7 @@ export class Titlebar extends CoreEl {
 
               const prevSubmenu = currentActive.querySelector(".submenu");
               if (prevSubmenu) {
-                this._hideSubmenu(prevSubmenu as HTMLElement);
+                this._hide(prevSubmenu as HTMLElement);
               }
 
               this.activeItems.delete(container);
@@ -215,9 +215,9 @@ export class Titlebar extends CoreEl {
           if (item.action && !item.disabled) {
             menuItem.onclick = (e) => {
               e.stopPropagation();
-              this._setActiveItem(menuItem, container);
-              this._handleMenuAction(item.action!);
-              this._closeMenu();
+              this._set(menuItem, container);
+              this._action(item.action!);
+              this._close();
             };
           }
         }
@@ -228,17 +228,14 @@ export class Titlebar extends CoreEl {
     });
   }
 
-  private _setActiveItem(
-    selectedItem: HTMLElement,
-    container: HTMLElement
-  ): void {
+  private _set(selectedItem: HTMLElement, container: HTMLElement): void {
     const currentActive = this.activeItems.get(container);
     if (currentActive && currentActive !== selectedItem) {
       currentActive.classList.remove("active");
 
       const prevSubmenu = currentActive.querySelector(".submenu");
       if (prevSubmenu) {
-        this._hideSubmenu(prevSubmenu as HTMLElement);
+        this._hide(prevSubmenu as HTMLElement);
       }
     }
 
@@ -247,48 +244,30 @@ export class Titlebar extends CoreEl {
 
     const newSubmenu = selectedItem.querySelector(".submenu");
     if (newSubmenu) {
-      this._showSubmenu(newSubmenu as HTMLElement);
+      this._show(newSubmenu as HTMLElement);
     }
   }
 
-  private _clearAllActiveStates(): void {
+  private _clearAll(): void {
     this.activeItems.forEach((activeItem) => {
       activeItem.classList.remove("active");
     });
     this.activeItems.clear();
   }
 
-  private _handleMenuAction(action: string): void {
-    if (action === "toggle_left_panel") {
-      const _state = select((s) => s.main.panel_state);
-      dispatch(update_panel_state({ ..._state, left: !_state.left }));
-      return;
-    }
-
-    if (action === "toggle_right_panel") {
-      const _state = select((s) => s.main.panel_state);
-      dispatch(update_panel_state({ ..._state, right: !_state.right }));
-      return;
-    }
-
-    if (action === "toggle_bottom_panel") {
-      const _state = select((s) => s.main.panel_state);
-      dispatch(update_panel_state({ ..._state, bottom: !_state.bottom }));
-      return;
-    }
-
-    const menuEvent = new CustomEvent("meridia-menu-action", {
+  private _action(action: string): void {
+    const menuEvent = new CustomEvent("workbench.workspace.toggle.action", {
       detail: { action },
     });
     document.dispatchEvent(menuEvent);
   }
 
-  private _showSubmenu(submenu: HTMLElement): void {
+  private _show(submenu: HTMLElement): void {
     submenu.classList.add("show");
     this.activeSubmenus.add(submenu);
   }
 
-  private _hideSubmenu(submenu: HTMLElement): void {
+  private _hide(submenu: HTMLElement): void {
     submenu.classList.remove("show");
     this.activeSubmenus.delete(submenu);
 
@@ -299,22 +278,22 @@ export class Titlebar extends CoreEl {
     });
   }
 
-  private _toggleMenu(): void {
+  private _toggle(): void {
     if (this.menuVisible) {
-      this._closeMenu();
+      this._close();
     } else {
-      this._openMenu();
+      this._open();
     }
   }
 
-  private _openMenu(): void {
+  private _open(): void {
     if (this.menuElement) {
       this.menuElement.classList.add("show");
       this.menuVisible = true;
     }
   }
 
-  private _closeMenu(): void {
+  private _close(): void {
     if (this.menuElement) {
       this.menuElement.classList.remove("show");
       this.menuVisible = false;
@@ -324,7 +303,7 @@ export class Titlebar extends CoreEl {
       });
       this.activeSubmenus.clear();
 
-      this._clearAllActiveStates();
+      this._clearAll();
     }
   }
 
@@ -335,13 +314,13 @@ export class Titlebar extends CoreEl {
         this.hamburgerContainer &&
         !this.hamburgerContainer.contains(e.target as Node)
       ) {
-        this._closeMenu();
+        this._close();
       }
     });
 
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && this.menuVisible) {
-        this._closeMenu();
+        this._close();
       }
     });
   }

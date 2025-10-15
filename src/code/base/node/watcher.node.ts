@@ -10,31 +10,16 @@ let isWatching: boolean = false;
 const eventQueue = new Map<string, NodeJS.Timeout>();
 const DEBOUNCE_DELAY = 150;
 
-const nodeModulesBatch = new Map<string, Set<string>>();
-const NODE_MODULES_BATCH_DELAY = 3000;
-const NODE_MODULES_BATCH_SIZE_THRESHOLD = 10;
-
 function getDebounceDelay(filePath: string, eventType: string): number {
-  const normalizedPath = path.normalize(filePath).toLowerCase();
-
-  if (normalizedPath.includes("node_modules")) {
-    switch (eventType) {
-      case "unlink":
-      case "unlinkDir":
-        return 2000;
-      case "add":
-      case "addDir":
-        return 1500;
-      case "change":
-        return 1000;
-      default:
-        return 1000;
-    }
-  }
-
   switch (eventType) {
     case "change":
       return 500;
+    case "unlink":
+    case "unlinkDir":
+      return 300;
+    case "add":
+    case "addDir":
+      return 200;
     default:
       return DEBOUNCE_DELAY;
   }
@@ -55,79 +40,6 @@ function debounceEvent(
   }, delay);
 
   eventQueue.set(key, timeoutId);
-}
-
-function batchNodeModulesEvent(
-  eventType: string,
-  filePath: string,
-  callback: () => void
-): boolean {
-  const normalizedPath = path.normalize(filePath).toLowerCase();
-
-  if (normalizedPath.includes("node_modules")) {
-    if (!nodeModulesBatch.has(eventType)) {
-      nodeModulesBatch.set(eventType, new Set());
-    }
-
-    nodeModulesBatch.get(eventType)!.add(filePath);
-
-    const batchKey = `batch:${eventType}:node_modules`;
-
-    debounceEvent(
-      batchKey,
-      () => {
-        const paths = nodeModulesBatch.get(eventType);
-        if (paths && paths.size > 0) {
-          console.log(
-            `Processing batch of ${paths.size} ${eventType} events in node_modules`
-          );
-
-          if (paths.size > NODE_MODULES_BATCH_SIZE_THRESHOLD) {
-            safeIpcSend("files-bulk-operation", {
-              eventType,
-              count: paths.size,
-              location: "node_modules",
-              sample: Array.from(paths).slice(0, 3),
-              watchRootPath,
-            });
-          } else {
-            let processedCount = 0;
-            paths.forEach((batchedPath) => {
-              if (processedCount < 5) {
-                try {
-                  const tempFilePath = batchedPath;
-                  callback();
-                  processedCount++;
-                } catch (error) {
-                  console.error(
-                    `Error processing batched event for ${batchedPath}:`,
-                    error
-                  );
-                }
-              }
-            });
-
-            if (paths.size > 5) {
-              safeIpcSend("files-bulk-operation", {
-                eventType,
-                count: paths.size - 5,
-                location: "node_modules",
-                message: `${paths.size - 5} additional ${eventType} events in node_modules (not shown)`,
-                watchRootPath,
-              });
-            }
-          }
-
-          nodeModulesBatch.delete(eventType);
-        }
-      },
-      NODE_MODULES_BATCH_DELAY
-    );
-
-    return true;
-  }
-
-  return false;
 }
 
 async function validatePath(filePath: string): Promise<boolean> {
@@ -195,29 +107,29 @@ export function _watch(rootPath: string) {
 
     fileWatcher = chokidar.watch(rootPath, {
       ignored: [
-        /\/node_modules/,
         /\.DS_Store/,
         /Thumbs\.db/,
-        /\/\.wine/,
-        /\/proc/,
-        /\/\.vscode/,
-        /\/\.idea/,
+
+        /\/\.vscode\//,
+        /\/\.idea\//,
+
         /\.(tmp|temp|log)$/i,
 
-        "**/node_modules/**/*",
-        "**/node_modules",
+        /\/proc\//,
+        /\/\.wine\//,
+
         (filePath) => {
           const normalizedPath = path.normalize(filePath).toLowerCase();
           return (
-            normalizedPath.includes("/proc") ||
-            normalizedPath.includes(".wine/dosdevices") ||
+            normalizedPath.includes("/proc/") ||
+            normalizedPath.includes("/.wine/dosdevices/") ||
             normalizedPath.includes("thumbs.db") ||
             normalizedPath.includes(".ds_store") ||
             normalizedPath.endsWith(".tmp") ||
             normalizedPath.endsWith(".temp") ||
             normalizedPath.endsWith(".log") ||
-            (normalizedPath.includes("node_modules") &&
-              normalizedPath.split("node_modules").length > 2)
+            normalizedPath.endsWith(".swp") ||
+            normalizedPath.endsWith("~")
           );
         },
       ],
@@ -226,10 +138,9 @@ export function _watch(rootPath: string) {
       depth: 99,
       ignorePermissionErrors: true,
       usePolling: false,
-
       awaitWriteFinish: {
-        stabilityThreshold: 500,
-        pollInterval: 200,
+        stabilityThreshold: 300,
+        pollInterval: 100,
       },
     });
 
@@ -289,9 +200,7 @@ export function _watch(rootPath: string) {
         }
       };
 
-      if (!batchNodeModulesEvent("add", filePath, callback)) {
-        debounceEvent(eventKey, callback, getDebounceDelay(filePath, "add"));
-      }
+      debounceEvent(eventKey, callback, getDebounceDelay(filePath, "add"));
     });
 
     fileWatcher.on("addDir", async (dirPath) => {
@@ -334,9 +243,7 @@ export function _watch(rootPath: string) {
         }
       };
 
-      if (!batchNodeModulesEvent("addDir", dirPath, callback)) {
-        debounceEvent(eventKey, callback, getDebounceDelay(dirPath, "addDir"));
-      }
+      debounceEvent(eventKey, callback, getDebounceDelay(dirPath, "addDir"));
     });
 
     fileWatcher.on("unlink", async (filePath) => {
@@ -365,9 +272,7 @@ export function _watch(rootPath: string) {
         }
       };
 
-      if (!batchNodeModulesEvent("unlink", filePath, callback)) {
-        debounceEvent(eventKey, callback, getDebounceDelay(filePath, "unlink"));
-      }
+      debounceEvent(eventKey, callback, getDebounceDelay(filePath, "unlink"));
     });
 
     fileWatcher.on("unlinkDir", async (dirPath) => {
@@ -396,13 +301,7 @@ export function _watch(rootPath: string) {
         }
       };
 
-      if (!batchNodeModulesEvent("unlinkDir", dirPath, callback)) {
-        debounceEvent(
-          eventKey,
-          callback,
-          getDebounceDelay(dirPath, "unlinkDir")
-        );
-      }
+      debounceEvent(eventKey, callback, getDebounceDelay(dirPath, "unlinkDir"));
     });
 
     fileWatcher.on("change", async (filePath) => {
@@ -437,9 +336,7 @@ export function _watch(rootPath: string) {
         }
       };
 
-      if (!batchNodeModulesEvent("change", filePath, callback)) {
-        debounceEvent(eventKey, callback, getDebounceDelay(filePath, "change"));
-      }
+      debounceEvent(eventKey, callback, getDebounceDelay(filePath, "change"));
     });
   } catch (error) {
     console.error("Error setting up file watcher:", error);
@@ -463,8 +360,6 @@ export function _stop() {
       eventQueue.delete(key);
     }
 
-    nodeModulesBatch.clear();
-
     isWatching = false;
     watchRootPath = "";
 
@@ -479,10 +374,6 @@ export function getWatcherStatus() {
     isWatching,
     watchRootPath,
     hasActiveWatcher: fileWatcher !== null,
-    batchedEventCount: Array.from(nodeModulesBatch.values()).reduce(
-      (sum, set) => sum + set.size,
-      0
-    ),
     pendingEventCount: eventQueue.size,
   };
 }
@@ -495,9 +386,4 @@ export function _restart() {
       _watch(currentPath);
     }, 100);
   }
-}
-
-export function clearBatchedEvents() {
-  nodeModulesBatch.clear();
-  console.log("Cleared all batched node_modules events");
 }

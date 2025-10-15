@@ -6,7 +6,7 @@ import {
   watch,
 } from "../common/workbench.store/workbench.store.selector.js";
 import { update_editor_tabs } from "../common/workbench.store/workbench.store.slice.js";
-import { getFileIcon } from "../common/workbench.utils.js";
+import { getFileIcon, getIcon } from "../common/workbench.utils.js";
 import { IEditorTab } from "../workbench.types.js";
 import { closeIcon } from "./workbench.media/workbench.icons.js";
 import { CoreEl } from "./workbench.parts/workbench.part.el.js";
@@ -28,6 +28,14 @@ export class Editor extends CoreEl {
 
     const editorArea = document.createElement("div");
     editorArea.className = "editor-area";
+
+    const emptyState = document.createElement("div");
+    emptyState.className = "empty-state";
+
+    const backgroundImage = document.createElement("span");
+    backgroundImage.innerHTML = getIcon("../images/background.svg");
+
+    emptyState.appendChild(backgroundImage);
 
     const _close = (tabUri: string, event?: Event) => {
       if (event) {
@@ -67,6 +75,18 @@ export class Editor extends CoreEl {
     function _render(_tabs: IEditorTab[]) {
       const editor = getStandalone("editor") as _editor;
       const activeTab = _tabs.find((t) => t.active);
+
+      if (_tabs.length === 0) {
+        IEditorTabs.style.display = "none";
+        editorArea.style.display = "none";
+        emptyState.style.display = "flex";
+        if (editor) editor._visiblity(false);
+        return;
+      } else {
+        IEditorTabs.style.display = "flex";
+        editorArea.style.display = "block";
+        emptyState.style.display = "none";
+      }
 
       setTimeout(() => {
         if (activeTab) {
@@ -146,6 +166,10 @@ export class Editor extends CoreEl {
 
     if (_tabs.length > 0) {
       _render(_tabs);
+    } else {
+      IEditorTabs.style.display = "none";
+      editorArea.style.display = "none";
+      emptyState.style.display = "flex";
     }
 
     watch(
@@ -157,5 +181,6 @@ export class Editor extends CoreEl {
 
     this._el.appendChild(IEditorTabs);
     this._el.appendChild(editorArea);
+    this._el.appendChild(emptyState);
   }
 }

@@ -218,10 +218,10 @@ export const pathBridge = {
 
 export const filesBridge = {
   openFolder: () => {
-    ipcRenderer.invoke("files-open-folder");
+    ipcRenderer.invoke("workbench.workspace.folder.open");
   },
   openChildFolder: (_path: string) => {
-    return ipcRenderer.invoke("files-open-child-structure", _path);
+    return ipcRenderer.invoke("workbench.workspace.folder.get.child", _path);
   },
 };
 

@@ -5,6 +5,7 @@ import "./common/workbench.editor/workbench.editor.js";
 import "./common/workbench.scrollbar.js";
 import "./common/workbench.uistate.js";
 import "./common/workbench.extension.listener.js";
+import "./common/workbench.action.js";
 import "./event/workbench.event.statusbar.js";
 import "./event/workbench.event.panel.options.js";
 import "./event/workbench.event.editor.js";

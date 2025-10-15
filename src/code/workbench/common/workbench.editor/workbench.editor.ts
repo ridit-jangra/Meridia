@@ -17,6 +17,7 @@ import { select } from "../workbench.store/workbench.store.selector.js";
 import { registerTheme } from "./workbench.editor.theme.js";
 import { registerFsSuggestion } from "./workbench.editor.utils.js";
 import { getLanguageServer } from "../../../platform/editor/editor.languages.js";
+import { getLanguage } from "../workbench.utils.js";
 
 const fs = window.fs;
 const path = window.path;
@@ -94,37 +95,6 @@ export class Editor {
     return p.toLowerCase().replace(/\//g, "\\");
   }
 
-  private _getMonacoLanguageId(extension: string): string {
-    const languageMap: { [key: string]: string } = {
-      py: "python",
-      js: "javascript",
-      ts: "typescript",
-      json: "json",
-      html: "html",
-      css: "css",
-      scss: "scss",
-      less: "less",
-      xml: "xml",
-      yaml: "yaml",
-      yml: "yaml",
-      md: "markdown",
-      txt: "plaintext",
-      java: "java",
-      cpp: "cpp",
-      c: "c",
-      h: "c",
-      hpp: "cpp",
-      rs: "rust",
-      go: "go",
-      php: "php",
-      rb: "ruby",
-      sh: "shell",
-      bat: "bat",
-      ps1: "powershell",
-    };
-    return languageMap[extension] || "plaintext";
-  }
-
   private _registerProviders() {
     if (this._isProvidersRegistered) return;
 
@@ -191,7 +161,7 @@ export class Editor {
 
     const filePath = uriString;
     const extension = path.extname(filePath).substring(1);
-    const languageName = this._getMonacoLanguageId(extension);
+    const languageName = getLanguage(extension);
     const serverPort = getLanguageServer(extension);
     const serverName = this._getServerName(serverPort, extension);
 
@@ -599,7 +569,7 @@ export class Editor {
       listen({
         webSocket,
         onConnection: (connection) => {
-          const monacoLanguageId = this._getMonacoLanguageId(extension);
+          const monacoLanguageId = getLanguage(extension);
           const workspaceRoot =
             select((s) => s.main.folder_structure).uri ?? "/";
 
@@ -719,6 +689,9 @@ export class Editor {
           preferences: {
             includeCompletionsForModuleExports: true,
             includeCompletionsWithInsertText: true,
+            includeCompletionsForImportStatements: true,
+            includeAutomaticOptionalChainCompletions: true,
+            includeCompletionsWithSnippetText: true,
           },
           workspaceFolder: workspaceRoot,
           rootUri: workspaceRoot,
@@ -819,7 +792,7 @@ export class Editor {
 
       const uri = monaco.Uri.file(tab.uri);
       const extension = path.extname(tab.uri).substring(1);
-      const monacoLanguageId = this._getMonacoLanguageId(extension);
+      const monacoLanguageId = getLanguage(extension);
 
       const existingModel = monaco.editor.getModel(uri);
       if (existingModel && !existingModel.isDisposed()) {
@@ -941,7 +914,7 @@ export class Editor {
 
     const filePath = uriString;
     const extension = path.extname(filePath).substring(1);
-    const languageName = this._getMonacoLanguageId(extension);
+    const languageName = getLanguage(extension);
     const serverPort = getLanguageServer(extension);
     const serverName = this._getServerName(serverPort, extension);
 

@@ -88,6 +88,31 @@ export class Layout {
       if (_active) runCommand("workbench.editor.stop", [_active.uri]);
     };
 
+    document.addEventListener("workbench.editor.run.disable", () => {
+      runOption.classList.add("disabled");
+      runOption.style.pointerEvents = "none";
+      runOption.style.opacity = "0.5";
+    });
+    document.addEventListener("workbench.editor.run.enable", () => {
+      runOption.classList.remove("disabled");
+      runOption.style.pointerEvents = "auto";
+      runOption.style.opacity = "1";
+    });
+    document.addEventListener("workbench.editor.stop.disable", () => {
+      stopOption.classList.add("disabled");
+      stopOption.style.pointerEvents = "none";
+      stopOption.style.opacity = "0.5";
+    });
+    document.addEventListener("workbench.editor.stop.enable", () => {
+      stopOption.classList.remove("disabled");
+      stopOption.style.pointerEvents = "auto";
+      stopOption.style.opacity = "1";
+    });
+
+    stopOption.classList.add("disabled");
+    stopOption.style.pointerEvents = "none";
+    stopOption.style.opacity = "0.5";
+
     const middlePanelOptions = new PanelOptions(
       [runOption, stopOption],
       null as any,

@@ -8,6 +8,18 @@
   height: calc(100% - 56px);
 }
 
-.monaco-editor .suggest-widget {
-  z-index: 2147483647 !important; /* Maximum z-index value */
+.code .editor .empty-state {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  container-type: size;
+}
+
+.code .editor .empty-state span {
+  width: max(20%, min(80%, calc(40% * (100cqh / 400px))));
+  mix-blend-mode: overlay;
+  filter: blur(0.5px);
+  opacity: 0.2;
 }

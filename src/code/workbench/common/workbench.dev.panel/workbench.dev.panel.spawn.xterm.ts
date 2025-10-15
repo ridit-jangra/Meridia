@@ -19,6 +19,15 @@ class XtermManager {
     (status: "success" | "error" | "interrupted") => void
   >();
 
+  private _dispatch(eventName: string, detail?: any) {
+    const event = new CustomEvent(eventName, {
+      detail,
+      bubbles: true,
+      cancelable: true,
+    });
+    document.dispatchEvent(event);
+  }
+
   _setCompletionCallback(
     id: string,
     callback: (status: "success" | "error" | "interrupted") => void
@@ -30,6 +39,12 @@ class XtermManager {
     if (this._terminals.has(id)) {
       this._dispose(id);
     }
+
+    this._dispatch("workbench.terminal.create", {
+      id,
+      shell,
+      cwd,
+    });
 
     const _container = document.createElement("div");
     _container.style.position = "relative";
@@ -71,19 +86,37 @@ class XtermManager {
         filteredData.includes("\x1b[2J")
       ) {
         term.clear();
+
+        this._dispatch("workbench.terminal.clear", { id });
       } else if (filteredData.length > 0) {
         term.write(filteredData);
+
+        this._dispatch("workbench.terminal.output", {
+          id,
+          data: filteredData,
+        });
       }
     };
     ipcRenderer.on(`workbench.terminal.data.pty-${id}`, onPtyData);
 
     term.onData((data) => {
       ipcRenderer.invoke("workbench.terminal.data.user", id, data);
+
+      this._dispatch("workbench.terminal.input", {
+        id,
+        data,
+      });
     });
 
     term.onResize(({ cols, rows }) => {
       ipcRenderer.invoke("workbench.terminal.resize", id, cols, rows);
       this._update();
+
+      this._dispatch("workbench.terminal.resize", {
+        id,
+        cols,
+        rows,
+      });
     });
 
     setTimeout(() => {
@@ -122,6 +155,8 @@ class XtermManager {
       _ptyDataListener: onPtyData,
     });
 
+    this._dispatch("workbench.terminal.ready", { id });
+
     return _container;
   }
 
@@ -154,6 +189,8 @@ class XtermManager {
         brightWhite: _theme.getColor("workbench.terminal.bright.white"),
       };
     }
+
+    this._dispatch("workbench.terminal.theme.changed");
   }
 
   private _filter(id: string, data: string): string {
@@ -186,6 +223,20 @@ class XtermManager {
       } else if (hasInterruptedMarker) {
         status = "interrupted";
       }
+
+      this._dispatch("workbench.editor.run.complete", {
+        id,
+        status,
+        output: data,
+      });
+
+      this._dispatch("workbench.editor.run.enable");
+      this._dispatch("workbench.editor.stop.disable");
+
+      this._dispatchStatusUpdate(
+        id,
+        status === "success" ? "stopped" : "error"
+      );
 
       const callback = this._completionCallbacks.get(id);
       if (callback) {
@@ -258,6 +309,8 @@ class XtermManager {
     const _instance = this._terminals.get(id);
     if (!_instance) return;
 
+    this._dispatch("workbench.terminal.dispose", { id });
+
     ipcRenderer.removeListener(
       `workbench.terminal.data.pty-${id}`,
       _instance._ptyDataListener
@@ -272,19 +325,38 @@ class XtermManager {
     this._completionCallbacks.delete(id);
 
     ipcRenderer.invoke("workbench.terminal.kill", id);
+
+    this._dispatch("workbench.terminal.disposed", { id });
   }
 
   async _run(id: string, command: string, _path: string) {
+    this._dispatch("workbench.editor.run.start", {
+      id,
+      command,
+      path: _path,
+    });
+
+    this._dispatch("workbench.editor.run.disable");
+    this._dispatch("workbench.editor.stop.enable");
+
     await this._spawn(id, "", _path);
 
     const instance = this._terminals.get(id);
-    if (!instance?.term) return false;
+    if (!instance?.term) {
+      this._dispatch("workbench.editor.run.error", {
+        id,
+        error: "Failed to create terminal instance",
+      });
+      return false;
+    }
 
     this._completionDetected.set(id, false);
     this._runningCommands.set(id, { isRunning: true });
 
     instance.term.clear();
     instance.term.options.disableStdin = false;
+
+    this._dispatchStatusUpdate(id, "running");
 
     ipcRenderer.invoke("workbench.terminal.data.user", id, `${command}\r`);
 
@@ -297,6 +369,8 @@ class XtermManager {
       return false;
     }
 
+    this._dispatch("workbench.editor.stop.start", { id });
+
     const term = this._terminals.get(id)?.term;
 
     if (term) {
@@ -307,7 +381,6 @@ class XtermManager {
         this._completionDetected.set(id, true);
 
         term.options.disableStdin = true;
-        term.write(`\r\nProcess terminated.\r\n`);
 
         const callback = this._completionCallbacks.get(id);
         if (callback) {
@@ -315,9 +388,22 @@ class XtermManager {
           this._completionCallbacks.delete(id);
         }
 
+        this._dispatch("workbench.editor.stop.success", { id });
+
+        this._dispatch("workbench.editor.run.enable");
+        this._dispatch("workbench.editor.stop.disable");
+
+        this._dispatchStatusUpdate(id, "stopped");
+
         return true;
       } catch (error) {
         console.error("Stop error:", error);
+
+        this._dispatch("workbench.editor.stop.error", {
+          id,
+          error: error,
+        });
+
         return false;
       }
     }
@@ -333,10 +419,47 @@ class XtermManager {
   _isCompleted(id: string): boolean {
     return this._completionDetected.get(id) ?? false;
   }
+
+  _dispatchTerminalEvent(eventType: string, id: string, data?: any) {
+    this._dispatch(`workbench.terminal.${eventType}`, {
+      terminalId: id,
+      ...data,
+    });
+  }
+
+  _dispatchStatusUpdate(id: string, status: "running" | "stopped" | "error") {
+    this._dispatch("workbench.terminal.status.update", {
+      id,
+      status,
+      timestamp: Date.now(),
+    });
+  }
+
+  _dispatchThemeChange() {
+    this._dispatch("workbench.terminal.theme.changed");
+  }
+
+  dispatchCustomEvent(eventName: string, detail?: any) {
+    this._dispatch(eventName, detail);
+  }
+
+  dispatchBatchEvents(events: Array<{ name: string; detail?: any }>) {
+    events.forEach((event) => {
+      this._dispatch(event.name, event.detail);
+    });
+  }
 }
 
 export const _xtermManager = new XtermManager();
 
 ipcRenderer.on("reset-sizes", () => {
   _xtermManager._update();
+});
+
+ipcRenderer.on("workbench.terminal.theme.update", () => {
+  _xtermManager._updateTheme();
+});
+
+ipcRenderer.on("workbench.terminal.dispose.all", () => {
+  _xtermManager._disposeAll();
 });

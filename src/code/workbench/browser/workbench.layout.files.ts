@@ -16,6 +16,10 @@ export class Files extends CoreEl {
   private _structure: IFolderStructure;
   private _expandedFolders: Set<string> = new Set();
   private _loadedFolders: Set<string> = new Set();
+  private _renderedNodes: Map<string, HTMLElement> = new Map();
+  private _renderedChildContainers: Map<string, HTMLElement> = new Map();
+  private _lastStructureHash: string = "";
+  private _refreshTimeout: NodeJS.Timeout | null = null;
 
   constructor() {
     super();
@@ -98,7 +102,7 @@ export class Files extends CoreEl {
         await this._loadIfNeeded(folderUri);
       }
 
-      this._refreshTree();
+      this._updateTreeIncremental();
     }
   }
 
@@ -126,8 +130,9 @@ export class Files extends CoreEl {
   private _createEl() {
     this._el = document.createElement("div");
     this._el.className = "files scrollbar-container x-disable";
+    console.log(this._structure);
 
-    if (!this._structure || !this._structure.isRoot) {
+    if (!this._structure) {
       this._createEmptyState();
     } else {
       this._createTreeView();
@@ -158,9 +163,8 @@ export class Files extends CoreEl {
     const _tree = document.createElement("div");
     _tree.className = "tree";
 
-    if (this._structure.children && this._structure.children.length > 0) {
-      this._render(this._structure.children, _tree, 0);
-    }
+    this._render(this._structure.children, _tree, 0);
+
     this._el!.appendChild(_tree);
   }
 
@@ -223,82 +227,112 @@ export class Files extends CoreEl {
         return;
       }
 
-      const _nodeEl = document.createElement("div");
-      _nodeEl.className = "node";
-      _nodeEl.dataset.nodeId = _node.uri;
-
-      _nodeEl.style.setProperty("--nesting-depth", depth.toString());
-
-      const _icon = document.createElement("span");
-      _icon.className = "icon";
-
-      const nodeId = _node.uri;
-
-      if (_node.type === "file") {
-        _icon.innerHTML = getFileIcon(_node.name);
-      } else {
-        const isExpanded = this._expandedFolders.has(nodeId);
-        _icon.innerHTML = chevronRightIcon;
-        _icon.style.cursor = "pointer";
-
-        if (isExpanded) {
-          _icon.classList.add("expanded");
-        }
-
-        _icon.onclick = (e) => {
-          e.stopPropagation();
-          this._toggleFolder(nodeId, _nodeEl);
-        };
-      }
-
-      const _name = document.createElement("span");
-      _name.textContent = _node.name;
-      _name.className = "name";
+      const nodeElement = this._createNodeElement(_node, depth);
+      container.appendChild(nodeElement);
+      this._renderedNodes.set(_node.uri, nodeElement);
 
       if (_node.type === "folder") {
-        _name.style.cursor = "pointer";
-        _name.onclick = (e) => {
-          e.stopPropagation();
-          this._toggleFolder(nodeId, _nodeEl);
-        };
-      }
-
-      _nodeEl.appendChild(_icon);
-      _nodeEl.appendChild(_name);
-      container.appendChild(_nodeEl);
-
-      _nodeEl.onclick = (e) => {
-        e.stopPropagation();
-        if (_node.type === "folder") {
-          this._toggleFolder(nodeId, _nodeEl);
-        } else {
-          this._open(_node.uri, _node.name);
-        }
-      };
-
-      if (_node.type === "folder") {
-        const _childrenContainer = document.createElement("div");
-        _childrenContainer.className = "child-nodes";
-        _childrenContainer.dataset.nodeId = nodeId;
-
-        const isExpanded = this._expandedFolders.has(nodeId);
-
-        if (isExpanded) {
-          _childrenContainer.style.height = "auto";
-          _childrenContainer.style.opacity = "1";
-        } else {
-          _childrenContainer.style.height = "0px";
-          _childrenContainer.style.opacity = "0";
-        }
+        const childContainer = this._createChildContainer(_node.uri);
+        container.appendChild(childContainer);
+        this._renderedChildContainers.set(_node.uri, childContainer);
 
         if (_node.children && _node.children.length > 0) {
-          this._render(_node.children, _childrenContainer, depth + 1);
-          this._loadedFolders.add(nodeId);
+          this._render(_node.children, childContainer, depth + 1);
+          this._loadedFolders.add(_node.uri);
         }
-
-        container.appendChild(_childrenContainer);
       }
     });
+  }
+
+  private _createNodeElement(
+    node: IFolderStructure,
+    depth: number
+  ): HTMLElement {
+    const _nodeEl = document.createElement("div");
+    _nodeEl.className = "node";
+    _nodeEl.dataset.nodeId = node.uri;
+    _nodeEl.style.setProperty("--nesting-depth", depth.toString());
+
+    const _icon = document.createElement("span");
+    _icon.className = "icon";
+
+    const nodeId = node.uri;
+
+    if (node.type === "file") {
+      _icon.innerHTML = getFileIcon(node.name);
+    } else {
+      const isExpanded = this._expandedFolders.has(nodeId);
+      _icon.innerHTML = chevronRightIcon;
+      _icon.style.cursor = "pointer";
+
+      if (isExpanded) {
+        _icon.classList.add("expanded");
+      }
+
+      _icon.onclick = (e) => {
+        e.stopPropagation();
+        this._toggleFolder(nodeId, _nodeEl);
+      };
+    }
+
+    const _name = document.createElement("span");
+    _name.textContent = node.name;
+    _name.className = "name";
+
+    if (node.type === "folder") {
+      _name.style.cursor = "pointer";
+      _name.onclick = (e) => {
+        e.stopPropagation();
+        this._toggleFolder(nodeId, _nodeEl);
+      };
+    }
+
+    _nodeEl.appendChild(_icon);
+    _nodeEl.appendChild(_name);
+
+    _nodeEl.onclick = (e) => {
+      e.stopPropagation();
+      if (node.type === "folder") {
+        this._toggleFolder(nodeId, _nodeEl);
+      } else {
+        this._open(node.uri, node.name);
+      }
+    };
+
+    return _nodeEl;
+  }
+
+  private _createChildContainer(nodeId: string): HTMLElement {
+    const _childrenContainer = document.createElement("div");
+    _childrenContainer.className = "child-nodes";
+    _childrenContainer.dataset.nodeId = nodeId;
+
+    const isExpanded = this._expandedFolders.has(nodeId);
+
+    if (isExpanded) {
+      this._showChildContainer(_childrenContainer);
+    } else {
+      this._hideChildContainer(_childrenContainer);
+    }
+
+    return _childrenContainer;
+  }
+
+  // Helper methods for consistent container visibility handling
+  private _showChildContainer(container: HTMLElement) {
+    container.style.height = "auto";
+    container.style.opacity = "1";
+    container.style.pointerEvents = "auto";
+    container.style.visibility = "visible";
+    container.classList.add("expanded");
+  }
+
+  private _hideChildContainer(container: HTMLElement) {
+    container.style.height = "0px";
+    container.style.opacity = "0";
+    container.style.pointerEvents = "none";
+    container.style.visibility = "hidden";
+    container.classList.remove("expanded");
   }
 
   private async _load(folderUri: string, container: HTMLElement) {
@@ -319,8 +353,7 @@ export class Files extends CoreEl {
           this._render(updatedNode.children, container, currentDepth);
 
           container.offsetHeight;
-          container.style.height = "auto";
-          container.style.opacity = "1";
+          this._showChildContainer(container);
         }
 
         dispatch(update_folder_structure(this._structure));
@@ -346,74 +379,62 @@ export class Files extends CoreEl {
     const isExpanded = this._expandedFolders.has(nodeId);
     const _icon = nodeEl.querySelector(".icon") as HTMLElement;
 
-    let _childrenContainer: HTMLElement | null = null;
-
-    let nextSibling = nodeEl.nextElementSibling;
-    while (nextSibling) {
-      if (
-        nextSibling.classList.contains("child-nodes") &&
-        (nextSibling as HTMLElement).dataset.nodeId === nodeId
-      ) {
-        _childrenContainer = nextSibling as HTMLElement;
-        break;
-      }
-      nextSibling = nextSibling.nextElementSibling;
-    }
+    const _childrenContainer = this._renderedChildContainers.get(nodeId);
 
     if (!_childrenContainer) {
-      _childrenContainer = nodeEl.parentElement?.querySelector(
-        `.child-nodes[data-node-id="${nodeId}"]`
-      ) as HTMLElement;
+      console.error(`Child container not found for node: ${nodeId}`);
+      return;
     }
 
     if (isExpanded) {
+      // Collapse
       this._expandedFolders.delete(nodeId);
       _icon.classList.remove("expanded");
 
-      if (_childrenContainer) {
-        const height = _childrenContainer.scrollHeight;
-        _childrenContainer.style.height = height + "px";
+      const height = _childrenContainer.scrollHeight;
+      _childrenContainer.style.height = height + "px";
 
-        _childrenContainer.offsetHeight;
+      _childrenContainer.offsetHeight;
 
-        _childrenContainer.style.transition =
-          "height 0.25s ease, opacity 0.25s ease";
-        _childrenContainer.style.height = "0px";
-        _childrenContainer.style.opacity = "0";
-        _childrenContainer.style.pointerEvents = "none";
+      _childrenContainer.style.transition =
+        "height 0.25s ease, opacity 0.25s ease";
+      _childrenContainer.style.height = "0px";
+      _childrenContainer.style.opacity = "0";
+      _childrenContainer.style.pointerEvents = "none";
+      _childrenContainer.style.visibility = "hidden";
 
-        _childrenContainer.classList.remove("expanded");
-      }
+      _childrenContainer.classList.remove("expanded");
     } else {
+      // Expand
       this._expandedFolders.add(nodeId);
       _icon.classList.add("expanded");
 
-      if (_childrenContainer) {
-        if (!this._loadedFolders.has(nodeId)) {
-          await this._load(nodeId, _childrenContainer);
-        }
-
-        _childrenContainer.style.transition = "none";
-        _childrenContainer.style.height = "0px";
-        _childrenContainer.style.opacity = "0";
-        _childrenContainer.style.pointerEvents = "none";
-
-        _childrenContainer.offsetHeight;
-
-        const height = _childrenContainer.scrollHeight;
-        _childrenContainer.style.transition =
-          "height 0.25s ease, opacity 0.25s ease";
-        _childrenContainer.style.height = height + "px";
-        _childrenContainer.style.opacity = "1";
-        _childrenContainer.style.pointerEvents = "auto";
-
-        setTimeout(() => {
-          if (_childrenContainer && this._expandedFolders.has(nodeId)) {
-            _childrenContainer.style.height = "auto";
-            _childrenContainer.classList.add("expanded");
-          }
-        }, 250);
+      if (!this._loadedFolders.has(nodeId)) {
+        await this._load(nodeId, _childrenContainer);
       }
+
+      _childrenContainer.style.transition = "none";
+      _childrenContainer.style.height = "0px";
+      _childrenContainer.style.opacity = "0";
+      _childrenContainer.style.pointerEvents = "none";
+      _childrenContainer.style.visibility = "hidden";
+
+      _childrenContainer.offsetHeight;
+
+      const height = _childrenContainer.scrollHeight;
+      _childrenContainer.style.transition =
+        "height 0.25s ease, opacity 0.25s ease";
+      _childrenContainer.style.height = height + "px";
+      _childrenContainer.style.opacity = "1";
+      _childrenContainer.style.pointerEvents = "auto";
+      _childrenContainer.style.visibility = "visible";
+
+      setTimeout(() => {
+        if (_childrenContainer && this._expandedFolders.has(nodeId)) {
+          _childrenContainer.style.height = "auto";
+          _childrenContainer.classList.add("expanded");
+        }
+      }, 250);
     }
 
     window.storage.store(
@@ -430,7 +451,6 @@ export class Files extends CoreEl {
       return null;
     }
 
-    // Normalize URIs by replacing all backslashes with forward slashes
     const normalize = (uri: string) => uri.replace(/\\/g, "/");
 
     if (normalize(node.uri) === normalize(targetUri)) {
@@ -449,24 +469,227 @@ export class Files extends CoreEl {
     return null;
   }
 
-  private _refreshTree() {
+  private _updateTreeIncremental(changedNodes?: Set<string>) {
     if (!this._el) {
       return;
     }
 
-    this._el.innerHTML = "";
-
-    if (
-      !this._structure ||
-      !this._structure.children ||
-      this._structure.children.length === 0
-    ) {
+    if (!this._structure) {
+      this._el.innerHTML = "";
+      this._renderedNodes.clear();
+      this._renderedChildContainers.clear();
       this._createEmptyState();
-    } else {
-      this._createTreeView();
+      return;
     }
 
+    const currentHash = this._generateStructureHash(this._structure);
+    const needsFullRefresh =
+      this._lastStructureHash === "" ||
+      this._el.querySelector(".tree") === null;
+
+    if (needsFullRefresh) {
+      this._el.innerHTML = "";
+      this._renderedNodes.clear();
+      this._renderedChildContainers.clear();
+      this._createTreeView();
+      this._lastStructureHash = currentHash;
+      return;
+    }
+
+    const treeContainer = this._el.querySelector(".tree") as HTMLElement;
+    if (treeContainer && this._structure.children) {
+      this._updateNodesIncremental(
+        this._structure.children,
+        treeContainer,
+        0,
+        changedNodes
+      );
+    }
+
+    this._lastStructureHash = currentHash;
     dispatch(update_folder_structure(this._structure));
+  }
+
+  private _updateNodesIncremental(
+    nodes: IFolderStructure[],
+    container: HTMLElement,
+    depth: number,
+    changedNodes?: Set<string>
+  ) {
+    if (!Array.isArray(nodes)) return;
+
+    const existingNodes = new Map<string, HTMLElement>();
+    const existingChildContainers = new Map<string, HTMLElement>();
+
+    Array.from(container.children).forEach((child) => {
+      const element = child as HTMLElement;
+      const nodeId = element.dataset.nodeId;
+
+      if (nodeId) {
+        if (element.classList.contains("node")) {
+          existingNodes.set(nodeId, element);
+        } else if (element.classList.contains("child-nodes")) {
+          existingChildContainers.set(nodeId, element);
+        }
+      }
+    });
+
+    const shouldExist = new Set(nodes.map((node) => node.uri));
+
+    existingNodes.forEach((element, nodeId) => {
+      if (!shouldExist.has(nodeId)) {
+        element.remove();
+        existingChildContainers.get(nodeId)?.remove();
+        this._renderedNodes.delete(nodeId);
+        this._renderedChildContainers.delete(nodeId);
+      }
+    });
+
+    nodes.forEach((node, index) => {
+      if (!node || !node.name || !node.uri) return;
+
+      const nodeId = node.uri;
+      const existingElement = existingNodes.get(nodeId);
+
+      const needsUpdate =
+        !existingElement ||
+        changedNodes?.has(nodeId) ||
+        this._hasNodeChanged(node, existingElement);
+
+      if (needsUpdate) {
+        if (existingElement) {
+          this._updateExistingNode(node, existingElement, depth);
+        } else {
+          const newElement = this._createNodeElement(node, depth);
+          const insertPosition = this._findInsertPosition(
+            container,
+            index,
+            "node"
+          );
+
+          if (insertPosition.nextSibling) {
+            container.insertBefore(newElement, insertPosition.nextSibling);
+          } else {
+            container.appendChild(newElement);
+          }
+
+          this._renderedNodes.set(nodeId, newElement);
+
+          if (node.type === "folder") {
+            const childContainer = this._createChildContainer(nodeId);
+            const childInsertPos = this._findInsertPosition(
+              container,
+              index,
+              "child-nodes"
+            );
+
+            if (childInsertPos.nextSibling) {
+              container.insertBefore(
+                childContainer,
+                childInsertPos.nextSibling
+              );
+            } else {
+              container.appendChild(childContainer);
+            }
+
+            this._renderedChildContainers.set(nodeId, childContainer);
+          }
+        }
+      }
+
+      if (node.type === "folder" && node.children) {
+        const childContainer =
+          existingChildContainers.get(nodeId) ||
+          this._renderedChildContainers.get(nodeId);
+        if (childContainer) {
+          this._updateNodesIncremental(
+            node.children,
+            childContainer,
+            depth + 1,
+            changedNodes
+          );
+
+          const isExpanded = this._expandedFolders.has(nodeId);
+          this._updateChildContainerVisibility(childContainer, isExpanded);
+        }
+      }
+    });
+  }
+
+  private _updateExistingNode(
+    node: IFolderStructure,
+    element: HTMLElement,
+    depth: number
+  ) {
+    element.style.setProperty("--nesting-depth", depth.toString());
+
+    const nameSpan = element.querySelector(".name") as HTMLElement;
+    if (nameSpan && nameSpan.textContent !== node.name) {
+      nameSpan.textContent = node.name;
+    }
+
+    const iconSpan = element.querySelector(".icon") as HTMLElement;
+    if (node.type === "file") {
+      const newIcon = getFileIcon(node.name);
+      if (iconSpan.innerHTML !== newIcon) {
+        iconSpan.innerHTML = newIcon;
+      }
+    } else {
+      const isExpanded = this._expandedFolders.has(node.uri);
+      if (isExpanded && !iconSpan.classList.contains("expanded")) {
+        iconSpan.classList.add("expanded");
+      } else if (!isExpanded && iconSpan.classList.contains("expanded")) {
+        iconSpan.classList.remove("expanded");
+      }
+    }
+  }
+
+  private _updateChildContainerVisibility(
+    container: HTMLElement,
+    isExpanded: boolean
+  ) {
+    if (isExpanded) {
+      this._showChildContainer(container);
+    } else {
+      this._hideChildContainer(container);
+    }
+  }
+
+  private _hasNodeChanged(
+    node: IFolderStructure,
+    element: HTMLElement
+  ): boolean {
+    const nameSpan = element.querySelector(".name") as HTMLElement;
+    return nameSpan?.textContent !== node.name;
+  }
+
+  private _findInsertPosition(
+    container: HTMLElement,
+    index: number,
+    type: "node" | "child-nodes"
+  ): { nextSibling: Element | null } {
+    const children = Array.from(container.children);
+    let nodeCount = 0;
+
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i];
+      if (child!.classList.contains("node")) {
+        if (nodeCount === index) {
+          if (type === "node") {
+            return { nextSibling: child! };
+          } else {
+            return { nextSibling: children[i + 1] || null };
+          }
+        }
+        nodeCount++;
+      }
+    }
+
+    return { nextSibling: null };
+  }
+
+  private _generateStructureHash(structure: IFolderStructure): string {
+    return JSON.stringify(structure, ["name", "uri", "type", "children"]);
   }
 
   private _deepClone<T>(obj: T): T {
@@ -499,7 +722,6 @@ export class Files extends CoreEl {
 
       if (!parentNode) {
         console.error(`Parent node not found: ${parentUri}`);
-
         this._forceFullRefresh();
         return false;
       }
@@ -532,7 +754,7 @@ export class Files extends CoreEl {
           });
 
           this._sortChildren(parentNode);
-          this._persistAndUpdate();
+          this._persistAndUpdateIncremental([parentUri]);
           return true;
         }
 
@@ -555,13 +777,12 @@ export class Files extends CoreEl {
       parentNode.children.push(nodeToAdd);
       this._sortChildren(parentNode);
 
-      this._persistAndUpdate();
+      this._persistAndUpdateIncremental([parentUri]);
 
       console.log(`Successfully added node: ${nodeToAdd.name} to ${parentUri}`);
       return true;
     } catch (error) {
       console.error("Error adding node:", error);
-
       this._forceFullRefresh();
       return false;
     }
@@ -623,20 +844,20 @@ export class Files extends CoreEl {
     });
   }
 
-  private _persistAndUpdate(): void {
+  private _persistAndUpdateIncremental(changedNodeUris: string[]): void {
     try {
       if (this._refreshTimeout) {
         clearTimeout(this._refreshTimeout);
       }
 
       window.storage.store("files-structure", this._structure);
-
       dispatch(update_folder_structure(this._structure));
 
       this._refreshTimeout = setTimeout(() => {
-        this._refreshTree();
+        const changedNodes = new Set(changedNodeUris);
+        this._updateTreeIncremental(changedNodes);
         this._refreshTimeout = null;
-      }, 50);
+      }, 10);
     } catch (error) {
       console.error("Error in persist and update:", error);
       this._forceFullRefresh();
@@ -652,13 +873,17 @@ export class Files extends CoreEl {
         this._refreshTimeout = null;
       }
 
+      this._renderedNodes.clear();
+      this._renderedChildContainers.clear();
+      this._lastStructureHash = "";
+
       const storedStructure = window.storage.get("files-structure");
       if (storedStructure) {
         this._structure = this._deepClone(storedStructure);
         dispatch(update_folder_structure(this._structure));
       }
 
-      this._refreshTree();
+      this._updateTreeIncremental();
     } catch (error) {
       console.error("Error during forced refresh:", error);
     }
@@ -668,10 +893,15 @@ export class Files extends CoreEl {
     try {
       this._structure = this._deepClone(this._structure);
 
+      const parentNode = this._findParentNode(this._structure, nodeUri);
       const result = this._removeNodeRecursively(this._structure, nodeUri);
 
       if (result) {
-        this._persistAndUpdate();
+        this._cleanupRemovedNode(nodeUri);
+
+        const changedUris = parentNode ? [parentNode.uri] : [];
+        this._persistAndUpdateIncremental(changedUris);
+
         console.log(`Successfully removed node: ${nodeUri}`);
       } else {
         console.warn(`Node not found for removal: ${nodeUri}`);
@@ -707,7 +937,17 @@ export class Files extends CoreEl {
     );
   }
 
-  private _refreshTimeout: NodeJS.Timeout | null = null;
+  private _cleanupRemovedNode(nodeUri: string): void {
+    this._renderedNodes.delete(nodeUri);
+    this._renderedChildContainers.delete(nodeUri);
+    this._expandedFolders.delete(nodeUri);
+    this._loadedFolders.delete(nodeUri);
+
+    const nodeToRemove = this._findNodeByUri(this._structure, nodeUri);
+    if (nodeToRemove) {
+      this._cleanupNestedFolders(nodeToRemove);
+    }
+  }
 
   private _findParentNode(
     node: IFolderStructure,
@@ -741,6 +981,8 @@ export class Files extends CoreEl {
       if (child.type === "folder") {
         this._expandedFolders.delete(child.uri);
         this._loadedFolders.delete(child.uri);
+        this._renderedNodes.delete(child.uri);
+        this._renderedChildContainers.delete(child.uri);
 
         this._cleanupNestedFolders(child);
       }

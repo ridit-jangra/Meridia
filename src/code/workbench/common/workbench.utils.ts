@@ -195,6 +195,8 @@ export function getFileIcon(_name: string) {
     "pdf",
     "pyc",
     "binary",
+    "jsx",
+    "tsx",
   ];
 
   const iconName = _supported.includes(_ext) ? _ext : "default";
@@ -240,6 +242,10 @@ export function getLanguage(_path: string) {
       return "javascript";
     case "ts":
       return "typescript";
+    case "jsx":
+      return "javascript";
+    case "tsx":
+      return "typescript";
     case "json":
       return "json";
     case "html":
@@ -250,6 +256,8 @@ export function getLanguage(_path: string) {
       return "markdown";
     case "xml":
       return "xml";
+    case "rs":
+      return "rust";
     case "yaml":
     case "yml":
       return "yaml";

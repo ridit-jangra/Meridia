@@ -61,7 +61,25 @@
   display: flex;
   flex-direction: column;
   padding-left: 1.4rem;
-  transition: height 0.25s ease, opacity 0.25s ease;
+  transition:
+    height 0.25s ease,
+    opacity 0.25s ease,
+    visibility 0.25s ease;
+  overflow: hidden;
+}
+
+.code .files .tree .child-nodes:not(.expanded) {
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.code .files .tree .child-nodes.expanded {
+  height: auto;
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
 }
 
 .code .files .tree .node::before {
@@ -127,8 +145,24 @@
   animation: pulse 1.5s ease-in-out infinite;
 }
 
-.child-nodes.expanded {
-  height: auto;
-  opacity: 1;
+.code .files .tree .child-nodes.transitioning {
+  pointer-events: none;
+  visibility: visible;
+}
+
+.code .files .tree .child-nodes:not(.expanded) * {
+  pointer-events: none;
+}
+
+.code .files .tree .child-nodes.expanded * {
+  pointer-events: auto;
+}
+
+.code .files .tree .child-nodes.expanded .node {
+  pointer-events: auto;
+}
+
+.code .files .tree .child-nodes.expanded .node .icon,
+.code .files .tree .child-nodes.expanded .node .name {
   pointer-events: auto;
 }

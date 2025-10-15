@@ -1,5 +1,4 @@
 import fs from "fs";
-import path from "path";
 import { ipcMain, dialog } from "electron";
 import { IFolderStructure } from "../../workbench/workbench.types.js";
 import { Storage } from "../services/storage.service.js";
@@ -53,7 +52,7 @@ async function _refresh() {
   } catch (error) {}
 }
 
-ipcMain.handle("files-open-folder", async () => {
+ipcMain.handle("workbench.workspace.folder.open", async () => {
   const result = await dialog.showOpenDialog({
     properties: ["openDirectory"],
   });
@@ -72,7 +71,7 @@ ipcMain.handle("files-open-folder", async () => {
 });
 
 ipcMain.handle(
-  "files-open-child-structure",
+  "workbench.workspace.folder.get.child",
   async (event, folderUri: string) => {
     try {
       const currentStructure = Storage.get(

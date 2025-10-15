@@ -101,12 +101,19 @@ export const menuItems: Menuitems[] = [
         shortcut: ["ctrl", "shift", "p"],
       },
       {
-        label: "Appearance",
-        submenu: [
-          {
-            label: "",
-          },
-        ],
+        label: "Toggle Left Panel",
+        action: "workbench.panel.toggle.left",
+        shortcut: ["ctrl", "b"],
+      },
+      {
+        label: "Toggle Right Panel",
+        action: "workbench.panel.toggle.right",
+        shortcut: ["ctrl", "alt", "b"],
+      },
+      {
+        label: "Toggle Bottom Panel",
+        action: "workbench.panel.toggle.bottom",
+        shortcut: ["ctrl", "j"],
       },
     ],
   },

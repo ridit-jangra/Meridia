@@ -78,6 +78,14 @@
   fill: var(--workbench-icon-foreground);
 }
 
+.code svg.python path {
+  stroke: var(--workbench-icon-foreground);
+}
+
+.code svg.background path {
+  fill: var(--workbench-icon-foreground);
+}
+
 .cursor {
   position: absolute;
   z-index: 99;
@@ -130,7 +138,9 @@ div,
 span,
 a:hover,
 .hovered {
-  transition: background 0.2s ease-in-out, color 0.2s ease-in-out;
+  transition:
+    background 0.2s ease-in-out,
+    color 0.2s ease-in-out;
 }
 
 h1 {
@@ -195,8 +205,9 @@ code,
 pre,
 kbd,
 samp {
-  font-family: "JetBrains Mono", "Fira Code", "Source Code Pro",
-    "Droid Sans Mono", "Inconsolata", Consolas, Monaco, "Courier New", monospace;
+  font-family:
+    "JetBrains Mono", "Fira Code", "Source Code Pro", "Droid Sans Mono",
+    "Inconsolata", Consolas, Monaco, "Courier New", monospace;
   font-weight: 400;
 }
 
