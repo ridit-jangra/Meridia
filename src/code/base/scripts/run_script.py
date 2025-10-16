@@ -248,7 +248,7 @@ def get_python_command():
     """
     Get the appropriate Python command for the current platform
     """
-    python_commands = ["python3", "python"]
+    python_commands = ["python"]
     
     for cmd in python_commands:
         if shutil.which(cmd):
