@@ -11,8 +11,7 @@ export class Theme {
   constructor(_main?: boolean) {
     this._mainProcess = _main || typeof window === "undefined";
 
-    this.registerTheme(Dark);
-    this.registerTheme(Light);
+    this.registerThemes([Dark, Light]);
 
     this._active = this.registeredThemes.get("Dark")!;
 
@@ -39,6 +38,12 @@ export class Theme {
 
   registerTheme(_theme: ITheme) {
     this.registeredThemes.set(_theme.name, _theme);
+  }
+
+  registerThemes(_themes: ITheme[]) {
+    _themes.forEach((_theme) => {
+      this.registeredThemes.set(_theme.name, _theme);
+    });
   }
 
   getActiveTheme() {

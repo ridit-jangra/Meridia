@@ -1,12 +1,17 @@
 import { CoreEl } from "./workbench.part.el.js";
 
 export class PanelOption extends CoreEl {
+  private _id: string;
   constructor(
-    private _name?: string,
+    private _name: string,
+    public _content?: HTMLElement,
     private _onClickCallback?: Function,
     private _icon?: string
   ) {
     super();
+    if (_name) this._id = _name.toLowerCase();
+    else this._id = "";
+
     this._createEl();
   }
 
@@ -15,6 +20,12 @@ export class PanelOption extends CoreEl {
     if (this._icon) this._el.innerHTML = this._icon;
     else this._el.innerHTML = this._name!;
 
-    if (this._onClickCallback) this._onClickCallback();
+    this._el.onclick = () => {
+      if (this._onClickCallback) this._onClickCallback();
+    };
+  }
+
+  _toggleActive() {
+    this._el?.classList.toggle("active");
   }
 }

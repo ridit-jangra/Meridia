@@ -84,7 +84,6 @@ export class Files extends CoreEl {
           nodeUri: string;
         }
       ) => {
-        console.log("removing", data);
         this._removeNode(data.nodeUri);
       }
     );
@@ -130,7 +129,6 @@ export class Files extends CoreEl {
   private _createEl() {
     this._el = document.createElement("div");
     this._el.className = "files scrollbar-container x-disable";
-    console.log(this._structure);
 
     if (!this._structure) {
       this._createEmptyState();
@@ -382,7 +380,6 @@ export class Files extends CoreEl {
     const _childrenContainer = this._renderedChildContainers.get(nodeId);
 
     if (!_childrenContainer) {
-      console.error(`Child container not found for node: ${nodeId}`);
       return;
     }
 
@@ -721,13 +718,11 @@ export class Files extends CoreEl {
       const parentNode = this._findNodeByUri(this._structure, parentUri);
 
       if (!parentNode) {
-        console.error(`Parent node not found: ${parentUri}`);
         this._forceFullRefresh();
         return false;
       }
 
       if (parentNode.type !== "folder") {
-        console.error(`Parent is not a folder: ${parentUri}`);
         return false;
       }
 
@@ -740,10 +735,6 @@ export class Files extends CoreEl {
       );
 
       if (existingNode) {
-        console.warn(
-          `Node with name "${newNode.name}" or URI "${newNode.uri}" already exists in ${parentUri}`
-        );
-
         if (this._shouldUpdateExistingNode(existingNode, newNode)) {
           Object.assign(existingNode, {
             ...newNode,
@@ -770,7 +761,6 @@ export class Files extends CoreEl {
       };
 
       if (this._isUriDuplicate(this._structure, nodeToAdd.uri)) {
-        console.error(`URI already exists in tree: ${nodeToAdd.uri}`);
         return false;
       }
 
@@ -779,10 +769,8 @@ export class Files extends CoreEl {
 
       this._persistAndUpdateIncremental([parentUri]);
 
-      console.log(`Successfully added node: ${nodeToAdd.name} to ${parentUri}`);
       return true;
     } catch (error) {
-      console.error("Error adding node:", error);
       this._forceFullRefresh();
       return false;
     }
@@ -814,7 +802,6 @@ export class Files extends CoreEl {
 
       return path.join([normalizedParent, normalizedName]).replace(/\\/g, "/");
     } catch (error) {
-      console.error(`Error creating safe URI for ${nodeName}:`, error);
       return path.join([parentUri, nodeName]).replace(/\\/g, "/");
     }
   }
@@ -859,15 +846,12 @@ export class Files extends CoreEl {
         this._refreshTimeout = null;
       }, 10);
     } catch (error) {
-      console.error("Error in persist and update:", error);
       this._forceFullRefresh();
     }
   }
 
   private _forceFullRefresh(): void {
     try {
-      console.log("Forcing full tree refresh due to inconsistency");
-
       if (this._refreshTimeout) {
         clearTimeout(this._refreshTimeout);
         this._refreshTimeout = null;
@@ -884,9 +868,7 @@ export class Files extends CoreEl {
       }
 
       this._updateTreeIncremental();
-    } catch (error) {
-      console.error("Error during forced refresh:", error);
-    }
+    } catch (error) {}
   }
 
   private _removeNode(nodeUri: string): boolean {
@@ -901,15 +883,11 @@ export class Files extends CoreEl {
 
         const changedUris = parentNode ? [parentNode.uri] : [];
         this._persistAndUpdateIncremental(changedUris);
-
-        console.log(`Successfully removed node: ${nodeUri}`);
       } else {
-        console.warn(`Node not found for removal: ${nodeUri}`);
       }
 
       return result;
     } catch (error) {
-      console.error("Error removing node:", error);
       this._forceFullRefresh();
       return false;
     }

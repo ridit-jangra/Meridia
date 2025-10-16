@@ -14,8 +14,12 @@
 .ps__rail-x {
   display: none;
   opacity: 0;
-  transition: background-color 0.2s linear, opacity 0.2s linear;
-  -webkit-transition: background-color 0.2s linear, opacity 0.2s linear;
+  transition:
+    background-color 0.2s linear,
+    opacity 0.2s linear;
+  -webkit-transition:
+    background-color 0.2s linear,
+    opacity 0.2s linear;
   height: 15px;
   bottom: 0px;
   position: absolute;
@@ -26,8 +30,12 @@
 .ps__rail-y {
   display: none;
   opacity: 0;
-  transition: background-color 0.2s linear, opacity 0.2s linear;
-  -webkit-transition: background-color 0.2s linear, opacity 0.2s linear;
+  transition:
+    background-color 0.2s linear,
+    opacity 0.2s linear;
+  -webkit-transition:
+    background-color 0.2s linear,
+    opacity 0.2s linear;
   width: 15px;
   right: 0;
   position: absolute;
@@ -62,23 +70,33 @@
 
 .ps__thumb-x {
   background-color: var(--workbench-scrollbar-thumb-foreground) !important;
-  border-radius: 0px !important;
-  transition: background-color 0.2s linear, height 0.2s ease-in-out;
-  -webkit-transition: background-color 0.2s linear, height 0.2s ease-in-out;
+
+  transition:
+    background-color 0.2s linear,
+    height 0.2s ease-in-out;
+  -webkit-transition:
+    background-color 0.2s linear,
+    height 0.2s ease-in-out;
   height: 3px !important;
   bottom: 2px;
   position: absolute;
   z-index: 10 !important;
+  border-radius: 24px;
 }
 
 .ps__thumb-y {
   background-color: var(--workbench-scrollbar-thumb-foreground) !important;
-  transition: background-color 0.2s linear, width 0.2s ease-in-out;
-  -webkit-transition: background-color 0.2s linear, width 0.2s ease-in-out;
-  width: 11px !important;
+  transition:
+    background-color 0.2s linear,
+    width 0.2s ease-in-out;
+  -webkit-transition:
+    background-color 0.2s linear,
+    width 0.2s ease-in-out;
+  width: 9px !important;
   right: 2px;
   position: absolute;
   z-index: 10 !important;
+  border-radius: 40px !important;
 }
 
 .ps__rail-x:hover > .ps__thumb-x,

@@ -56,13 +56,8 @@ function safeIpcSend(channel: string, data: any) {
     if (mainWindow && !mainWindow.isDestroyed() && mainWindow.webContents) {
       mainWindow.webContents.send(channel, data);
     } else {
-      console.warn(
-        `Cannot send IPC message to ${channel}: mainWindow is not available`
-      );
     }
-  } catch (error) {
-    console.error(`Error sending IPC message to ${channel}:`, error);
-  }
+  } catch (error) {}
 }
 
 function createSafeUri(basePath: string, targetPath: string): string | null {
@@ -76,15 +71,11 @@ function createSafeUri(basePath: string, targetPath: string): string | null {
 
     const relativePath = path.relative(normalizedBase, normalizedTarget);
     if (relativePath.startsWith("..")) {
-      console.warn(
-        `Path traversal detected: ${targetPath} is outside of ${basePath}`
-      );
       return null;
     }
 
     return normalizedTarget.replace(/\\/g, "/");
   } catch (error) {
-    console.error("Error creating safe URI:", error);
     return null;
   }
 }
@@ -102,8 +93,6 @@ export function _watch(rootPath: string) {
     if (!fs.existsSync(watchRootPath)) {
       throw new Error(`Watch path does not exist: ${watchRootPath}`);
     }
-
-    console.log(`Starting file watcher for: ${watchRootPath}`);
 
     fileWatcher = chokidar.watch(rootPath, {
       ignored: [
@@ -145,7 +134,6 @@ export function _watch(rootPath: string) {
     });
 
     fileWatcher.on("error", (error) => {
-      console.error("File watcher error:", error);
       safeIpcSend("files-watcher-error", {
         error: error,
         path: watchRootPath,
@@ -154,7 +142,7 @@ export function _watch(rootPath: string) {
 
     fileWatcher.on("ready", () => {
       isWatching = true;
-      console.log(`File watcher ready for: ${watchRootPath}`);
+
       safeIpcSend("files-watcher-ready", {
         path: watchRootPath,
       });
@@ -168,7 +156,6 @@ export function _watch(rootPath: string) {
           const normalizedPath = path.normalize(filePath);
 
           if (!(await validatePath(normalizedPath))) {
-            console.warn(`File no longer exists: ${normalizedPath}`);
             return;
           }
 
@@ -186,7 +173,6 @@ export function _watch(rootPath: string) {
 
           const safeParentUri = createSafeUri(watchRootPath, parentUri);
           if (!safeParentUri) {
-            console.warn(`Invalid parent URI for file: ${filePath}`);
             return;
           }
 
@@ -195,9 +181,7 @@ export function _watch(rootPath: string) {
             nodeName: fileName,
             nodeType: "file",
           });
-        } catch (error) {
-          console.error(`Error processing add event for ${filePath}:`, error);
-        }
+        } catch (error) {}
       };
 
       debounceEvent(eventKey, callback, getDebounceDelay(filePath, "add"));
@@ -211,7 +195,6 @@ export function _watch(rootPath: string) {
           const normalizedPath = path.normalize(dirPath);
 
           if (!(await validatePath(normalizedPath))) {
-            console.warn(`Directory no longer exists: ${normalizedPath}`);
             return;
           }
 
@@ -229,7 +212,6 @@ export function _watch(rootPath: string) {
 
           const safeParentUri = createSafeUri(watchRootPath, parentUri);
           if (!safeParentUri) {
-            console.warn(`Invalid parent URI for directory: ${dirPath}`);
             return;
           }
 
@@ -238,9 +220,7 @@ export function _watch(rootPath: string) {
             nodeName: dirName,
             nodeType: "folder",
           });
-        } catch (error) {
-          console.error(`Error processing addDir event for ${dirPath}:`, error);
-        }
+        } catch (error) {}
       };
 
       debounceEvent(eventKey, callback, getDebounceDelay(dirPath, "addDir"));
@@ -257,19 +237,13 @@ export function _watch(rootPath: string) {
 
           const safeNodeUri = createSafeUri(watchRootPath, nodeUri);
           if (!safeNodeUri) {
-            console.warn(`Invalid node URI for unlinked file: ${filePath}`);
             return;
           }
 
           safeIpcSend("files-node-removed", {
             nodeUri: safeNodeUri,
           });
-        } catch (error) {
-          console.error(
-            `Error processing unlink event for ${filePath}:`,
-            error
-          );
-        }
+        } catch (error) {}
       };
 
       debounceEvent(eventKey, callback, getDebounceDelay(filePath, "unlink"));
@@ -286,19 +260,13 @@ export function _watch(rootPath: string) {
 
           const safeNodeUri = createSafeUri(watchRootPath, nodeUri);
           if (!safeNodeUri) {
-            console.warn(`Invalid node URI for unlinked directory: ${dirPath}`);
             return;
           }
 
           safeIpcSend("files-node-removed", {
             nodeUri: safeNodeUri,
           });
-        } catch (error) {
-          console.error(
-            `Error processing unlinkDir event for ${dirPath}:`,
-            error
-          );
-        }
+        } catch (error) {}
       };
 
       debounceEvent(eventKey, callback, getDebounceDelay(dirPath, "unlinkDir"));
@@ -312,7 +280,6 @@ export function _watch(rootPath: string) {
           const normalizedPath = path.normalize(filePath);
 
           if (!(await validatePath(normalizedPath))) {
-            console.warn(`Changed file no longer exists: ${normalizedPath}`);
             return;
           }
 
@@ -321,25 +288,18 @@ export function _watch(rootPath: string) {
 
           const safeNodeUri = createSafeUri(watchRootPath, nodeUri);
           if (!safeNodeUri) {
-            console.warn(`Invalid node URI for changed file: ${filePath}`);
             return;
           }
 
           safeIpcSend("files-node-changed", {
             nodeUri: safeNodeUri,
           });
-        } catch (error) {
-          console.error(
-            `Error processing change event for ${filePath}:`,
-            error
-          );
-        }
+        } catch (error) {}
       };
 
       debounceEvent(eventKey, callback, getDebounceDelay(filePath, "change"));
     });
   } catch (error) {
-    console.error("Error setting up file watcher:", error);
     safeIpcSend("files-watcher-error", {
       error: error instanceof Error ? error.message : String(error),
       path: rootPath,
@@ -350,7 +310,6 @@ export function _watch(rootPath: string) {
 export function _stop() {
   try {
     if (fileWatcher) {
-      console.log(`Stopping file watcher for: ${watchRootPath}`);
       fileWatcher.close();
       fileWatcher = null;
     }
@@ -364,9 +323,7 @@ export function _stop() {
     watchRootPath = "";
 
     safeIpcSend("files-watcher-stopped", {});
-  } catch (error) {
-    console.error("Error stopping file watcher:", error);
-  }
+  } catch (error) {}
 }
 
 export function getWatcherStatus() {

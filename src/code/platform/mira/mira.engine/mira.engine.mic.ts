@@ -63,13 +63,11 @@ export class Mic {
 
     for (const pattern of noisePatterns) {
       if (pattern.test(cleanText)) {
-        console.log(`Skipping noise/blank result: "${text}"`);
         return null;
       }
     }
 
     if (cleanText.length < 3) {
-      console.log(`Skipping too short result: "${text}"`);
       return null;
     }
 
@@ -85,32 +83,27 @@ export class Mic {
       this._pyshell = window.python.createStreamingShell(this._path, []);
 
       if (!this._pyshell) {
-        console.error("Failed to start Python voice recognition process");
         return;
       }
 
       this.isListening = true;
-      console.log("Started voice recognition...");
 
       this._pyshell.onMessage((message: string) => {
         this._handleData(message);
       });
 
       this._pyshell.onError((error: Error) => {
-        console.error("Voice recognition error:", error);
         this.isListening = false;
         this._pyshell = null;
         this._isProcessingRequest = false;
       });
 
       this._pyshell.onClose(() => {
-        console.log("Voice recognition process closed");
         this.isListening = false;
         this._pyshell = null;
         this._isProcessingRequest = false;
       });
     } catch (error) {
-      console.error("Failed to create Python shell:", error);
       this.isListening = false;
       this._isProcessingRequest = false;
     }
@@ -118,7 +111,6 @@ export class Mic {
 
   public _stop(): void {
     if (!this.isListening || !this._pyshell) {
-      console.warn("Mic is not currently listening");
       return;
     }
 
@@ -127,18 +119,14 @@ export class Mic {
 
       setTimeout(() => {
         if (this._pyshell && this.isListening) {
-          console.warn("Force killing voice recognition process");
           this._pyshell.kill();
         }
       }, 5000);
-    } catch (error) {
-      console.error("Error stopping mic:", error);
-    }
+    } catch (error) {}
 
     this.isListening = false;
     this._isProcessingRequest = false;
     this._pendingTranscriptions = [];
-    console.log("Stopped voice recognition");
   }
 
   private async _handleData(data: string) {
@@ -152,21 +140,16 @@ export class Mic {
         if (result.partial !== undefined) {
           const cleanPartial = this._cleanTranscription(result.partial);
           if (cleanPartial) {
-            console.log("Partial:", cleanPartial);
             this._onPartialTranscription(cleanPartial);
           }
         } else if (result.text !== undefined) {
           const cleanText = this._cleanTranscription(result.text);
 
           if (!cleanText) {
-            console.log("Skipped filtered result:", result.text);
             return;
           }
 
-          console.log("Final:", cleanText);
-
           if (this._isProcessingRequest) {
-            console.log("Request in progress, queuing:", cleanText);
             this._pendingTranscriptions.push(cleanText);
             this._onFinalTranscription({ ...result, text: cleanText }, true);
             return;
@@ -178,11 +161,8 @@ export class Mic {
           });
         }
       } else {
-        console.log("Raw output:", data);
       }
-    } catch (error) {
-      console.log("Raw output:", data);
-    }
+    } catch (error) {}
   }
 
   private async _processTranscription(
@@ -192,19 +172,15 @@ export class Mic {
     this._isProcessingRequest = true;
 
     try {
-      console.log("Processing:", text);
       this._onFinalTranscription(result, false);
 
       await _voice.say(result.text);
-      console.log("Voice synthesis completed");
     } catch (error) {
-      console.error("Error processing transcription:", error);
     } finally {
       this._isProcessingRequest = false;
 
       if (this._pendingTranscriptions.length > 0) {
         const nextText = this._pendingTranscriptions.shift()!;
-        console.log("Processing queued transcription:", nextText);
 
         setTimeout(() => {
           this._processTranscription(nextText, { text: nextText });
@@ -234,8 +210,8 @@ export class Mic {
       const statusIndicator = isQueued
         ? " (queued)"
         : this._isProcessingRequest
-        ? " (processing)"
-        : "";
+          ? " (processing)"
+          : "";
       transcriptionElement.textContent = result.text + statusIndicator;
       transcriptionElement.style.opacity = "1";
     }
@@ -273,7 +249,6 @@ export class Mic {
 
   public clearQueue(): void {
     this._pendingTranscriptions = [];
-    console.log("Transcription queue cleared");
   }
 }
 

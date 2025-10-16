@@ -68,6 +68,11 @@ export class Editor {
       allowNonTsExtensions: true,
     });
 
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+      noLib: true,
+      allowNonTsExtensions: true,
+    });
+
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
       noLib: true,
       allowNonTsExtensions: true,
@@ -502,6 +507,8 @@ export class Editor {
       renderWhitespace: "none",
       fixedOverflowWidgets: true,
       links: true,
+      renderLineHighlight: "all",
+      renderLineHighlightOnlyWhenFocus: false,
     });
 
     this._mounted = true;
@@ -689,9 +696,6 @@ export class Editor {
           preferences: {
             includeCompletionsForModuleExports: true,
             includeCompletionsWithInsertText: true,
-            includeCompletionsForImportStatements: true,
-            includeAutomaticOptionalChainCompletions: true,
-            includeCompletionsWithSnippetText: true,
           },
           workspaceFolder: workspaceRoot,
           rootUri: workspaceRoot,

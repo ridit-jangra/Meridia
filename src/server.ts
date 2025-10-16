@@ -51,16 +51,10 @@ export class HttpServer {
   }
 
   public _serve() {
-    this._server.listen(this._port, () => {
-      console.log(
-        `Server running at http://localhost:${this._port}/ serving ${this._serveDir}`
-      );
-    });
+    this._server.listen(this._port, () => {});
   }
 
   public _stop() {
-    this._server.close(() => {
-      console.log("Server stopped");
-    });
+    this._server.close(() => {});
   }
 }

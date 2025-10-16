@@ -197,6 +197,7 @@ export function getFileIcon(_name: string) {
     "binary",
     "jsx",
     "tsx",
+    "csv",
   ];
 
   const iconName = _supported.includes(_ext) ? _ext : "default";

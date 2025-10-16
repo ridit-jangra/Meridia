@@ -8,6 +8,39 @@
   height: calc(100% - 56px);
 }
 
+.code .editor .monaco-editor .suggest-widget {
+  border-radius: 12px !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.08) !important;
+}
+
+.monaco-editor .margin-view-overlays .current-line {
+  border-top-left-radius: 8px !important;
+  border-bottom-left-radius: 8px !important;
+  margin-left: 12px !important;
+}
+
+.monaco-editor .view-overlays .current-line {
+  border-top-right-radius: 8px !important;
+  border-bottom-right-radius: 8px !important;
+  width: calc(100% - 12px) !important;
+  box-sizing: border-box !important;
+}
+
+.monaco-editor .scroll-decoration {
+  width: 0px !important;
+  height: 0px !important;
+}
+
+.monaco-editor .suggest-widget .tree .monaco-list-row {
+  transition: none !important;
+}
+
+.monaco-editor .suggest-widget .tree .monaco-list-row.focused {
+  background: var(--workbench-tabs-active-background) !important;
+}
+
 .code .editor .empty-state {
   width: 100%;
   height: 100%;
@@ -18,6 +51,14 @@
 }
 
 .code .editor .empty-state span {
+  width: max(20%, min(80%, calc(40% * (100cqh / 400px))));
+  height: 100%;
+  align-items: center;
+  display: flex;
+  justify-content: center;
+}
+
+.code .editor .empty-state span svg {
   width: max(20%, min(80%, calc(40% * (100cqh / 400px))));
   mix-blend-mode: overlay;
   filter: blur(0.5px);

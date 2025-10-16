@@ -54,5 +54,3 @@ export const _extensions = new Extension();
 _extensions._load();
 
 export { context };
-
-console.log(path.join([path.__dirname, "..", "..", "extensions"]));

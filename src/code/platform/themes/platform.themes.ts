@@ -196,7 +196,6 @@ export const Dark: ITheme = {
     "workbench.terminal.foreground": "#fffff1",
     "workbench.terminal.cursor.foreground": "#fffff1",
     "workbench.terminal.selection.background": "#152639",
-
     "workbench.terminal.black": "#090909",
     "workbench.terminal.red": "#E06C75",
     "workbench.terminal.green": "#98c379",

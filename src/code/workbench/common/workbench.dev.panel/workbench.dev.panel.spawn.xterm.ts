@@ -119,34 +119,32 @@ class XtermManager {
       });
     });
 
-    setTimeout(() => {
-      const _theme = getStandalone("theme") as Theme;
-      term.options.theme = {
-        background: _theme.getColor("workbench.terminal.background"),
-        foreground: _theme.getColor("workbench.terminal.foreground"),
-        cursor: _theme.getColor("workbench.terminal.cursor.foreground"),
-        selectionBackground: _theme.getColor(
-          "workbench.terminal.selection.background"
-        ),
-        black: _theme.getColor("workbench.terminal.black"),
-        red: _theme.getColor("workbench.terminal.red"),
-        green: _theme.getColor("workbench.terminal.green"),
-        yellow: _theme.getColor("workbench.terminal.yellow"),
-        blue: _theme.getColor("workbench.terminal.blue"),
-        magenta: _theme.getColor("workbench.terminal.magenta"),
-        cyan: _theme.getColor("workbench.terminal.cyan"),
-        white: _theme.getColor("workbench.terminal.white"),
-        brightBlack: _theme.getColor("workbench.terminal.bright.black"),
-        brightRed: _theme.getColor("workbench.terminal.bright.red"),
-        brightGreen: _theme.getColor("workbench.terminal.bright.green"),
-        brightYellow: _theme.getColor("workbench.terminal.bright.yellow"),
-        brightBlue: _theme.getColor("workbench.terminal.bright.blue"),
-        brightMagenta: _theme.getColor("workbench.terminal.bright.magenta"),
-        brightCyan: _theme.getColor("workbench.terminal.bright.cyan"),
-        brightWhite: _theme.getColor("workbench.terminal.bright.white"),
-      };
-      this._update();
-    }, 100);
+    const _theme = getStandalone("theme") as Theme;
+    term.options.theme = {
+      background: _theme.getColor("workbench.terminal.background"),
+      foreground: _theme.getColor("workbench.terminal.foreground"),
+      cursor: _theme.getColor("workbench.terminal.cursor.foreground"),
+      selectionBackground: _theme.getColor(
+        "workbench.terminal.selection.background"
+      ),
+      black: _theme.getColor("workbench.terminal.black"),
+      red: _theme.getColor("workbench.terminal.red"),
+      green: _theme.getColor("workbench.terminal.green"),
+      yellow: _theme.getColor("workbench.terminal.yellow"),
+      blue: _theme.getColor("workbench.terminal.blue"),
+      magenta: _theme.getColor("workbench.terminal.magenta"),
+      cyan: _theme.getColor("workbench.terminal.cyan"),
+      white: _theme.getColor("workbench.terminal.white"),
+      brightBlack: _theme.getColor("workbench.terminal.bright.black"),
+      brightRed: _theme.getColor("workbench.terminal.bright.red"),
+      brightGreen: _theme.getColor("workbench.terminal.bright.green"),
+      brightYellow: _theme.getColor("workbench.terminal.bright.yellow"),
+      brightBlue: _theme.getColor("workbench.terminal.bright.blue"),
+      brightMagenta: _theme.getColor("workbench.terminal.bright.magenta"),
+      brightCyan: _theme.getColor("workbench.terminal.bright.cyan"),
+      brightWhite: _theme.getColor("workbench.terminal.bright.white"),
+    };
+    this._update();
 
     this._terminals.set(id, {
       term,

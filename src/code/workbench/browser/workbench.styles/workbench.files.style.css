@@ -65,7 +65,8 @@
     height 0.25s ease,
     opacity 0.25s ease,
     visibility 0.25s ease;
-  overflow: hidden;
+  overflow-x: visible;
+  overflow-y: hidden;
 }
 
 .code .files .tree .child-nodes:not(.expanded) {
