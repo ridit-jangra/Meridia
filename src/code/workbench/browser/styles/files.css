@@ -55,6 +55,7 @@
   cursor: pointer;
   position: relative;
   overflow: visible;
+  color: var(--workbench-panel-foreground);
 }
 
 .code .files .tree .child-nodes {
@@ -166,4 +167,31 @@
 .code .files .tree .child-nodes.expanded .node .icon,
 .code .files .tree .child-nodes.expanded .node .name {
   pointer-events: auto;
+}
+
+.code .files .tree .node.rename:hover::before {
+  background: none !important;
+}
+
+.code .files .tree .node input {
+  width: 100%;
+  background: none;
+  color: var(--workbench-panel-foreground);
+  font-size: 16px;
+  font-family: "Inconsolata";
+  border: none;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  display: inline-block;
+  height: 1.3em;
+  vertical-align: middle;
+}
+
+.code .files .tree .node input:hover {
+  cursor: text;
+}
+
+.code .files .tree .node input:focus {
+  outline-color: var(--workbench-input-active-outline);
 }

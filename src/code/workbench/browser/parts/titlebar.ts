@@ -37,7 +37,7 @@ export class Titlebar extends CoreEl {
 
     const logo = document.createElement("div");
     logo.className = "logo";
-    logo.innerHTML = `<img src="../../browser/workbench.media/images/logo.png" alt="Meridia" />`;
+    logo.innerHTML = `<img src="../../browser/media/images/logo.png" alt="Meridia" />`;
 
     const leftPanel = document.createElement("span");
     leftPanel.innerHTML = leftPanelIcon;

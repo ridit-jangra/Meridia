@@ -5,8 +5,10 @@
   padding: 10px;
   gap: 10px;
   overscroll-behavior: contain;
+  outline: none;
 }
 
+/* Vertical mode */
 .code .tabs.vertical {
   flex-direction: column;
   width: 100%;
@@ -15,10 +17,8 @@
 }
 
 .code .tabs.vertical .tab {
-  justify-content: flex-start;
-  justify-content: space-between;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   padding: 8px 0;
   width: 100%;
   overflow-x: hidden !important;
@@ -28,6 +28,7 @@
   outline: none;
 }
 
+/* Tab base style */
 .code .tabs .tab {
   display: flex;
   align-items: center;
@@ -42,12 +43,8 @@
   min-width: max-content;
 }
 
-.code .tabs .tab svg {
-  display: flex;
-  width: 20px;
-  height: auto;
-}
-
+/* Icons inside tabs */
+.code .tabs .tab svg,
 .code .tabs .tab img {
   display: flex;
   width: 20px;
@@ -66,6 +63,7 @@
   font-size: 18px;
 }
 
+/* Icon wrappers */
 .code .tabs .tab .icon-wrapper {
   display: flex;
   align-items: center;
@@ -111,6 +109,7 @@
   display: block;
 }
 
+/* Hover and active states */
 .code .tabs .tab:not(.active):hover,
 .hovered {
   background: var(--workbench-tabs-hover-background);
@@ -125,6 +124,7 @@
   font-weight: 500;
 }
 
+/* Extra button area (Add, etc.) */
 .code .tabs .extra {
   position: sticky;
   top: 0;

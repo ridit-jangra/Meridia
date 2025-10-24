@@ -64,6 +64,14 @@ function copyPrettierRust() {
   }).pipe(dest("build/formatter/prettier-rust"));
 }
 
+function copyPrettierPython() {
+  return src("node_modules/@prettier/plugin-python/**/*", {
+    base: "node_modules/@prettier/plugin-python/",
+    allowEmpty: true,
+    encoding: false,
+  }).pipe(dest("build/formatter/prettier-python"));
+}
+
 const build = series(
   parallel(
     copyFiles,
@@ -72,6 +80,7 @@ const build = series(
     copyBash,
     copyPrettier,
     copyPrettierRust,
+    copyPrettierPython,
     copyExtensions
   )
 );

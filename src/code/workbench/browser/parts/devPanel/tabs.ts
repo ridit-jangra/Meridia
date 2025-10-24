@@ -56,8 +56,9 @@ export class DevPanelTabs extends CoreEl {
 
     this._render();
 
-    const _active = storage.get("dev-panel-active");
+    const _active = storage.get("workbench.workspace.dev.panel.active.tab");
     if (_active) this._set(_active);
+    else this._set("terminal");
   }
 
   private _render() {
@@ -194,7 +195,7 @@ export class DevPanelTabs extends CoreEl {
 
       this._render();
 
-      storage.store("dev-panel-active", tabId);
+      storage.store("workbench.workspace.dev.panel.active.tab", tabId);
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {

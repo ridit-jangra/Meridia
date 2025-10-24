@@ -1,4 +1,4 @@
-import { registerStandalone } from "../common/standalone.js";
+import { getStandalone, registerStandalone } from "../common/standalone.js";
 import { changePanelOptionsWidth } from "../event/panelOptions.js";
 import { Editor as EditorLayout } from "../../editor/browser/layout.js";
 import { Files } from "./files.js";
@@ -14,15 +14,15 @@ import { Mira } from "../../platform/mira/workbench/browser/layout.js";
 import { _xtermManager } from "../common/devPanel/spawnXterm.js";
 import { runCommand } from "../common/command.js";
 import { select } from "../common/store/selector.js";
-import "../common/init.js";
 import { Structure } from "./structure.js";
+import { Editor } from "../../editor/standalone/standalone.js";
 
 export class Layout {
   constructor() {
-    this.startup();
+    this._createEl();
   }
 
-  private startup() {
+  private _createEl() {
     const codeEl = document.createElement("div");
     codeEl.className = "code";
 
@@ -122,14 +122,14 @@ export class Layout {
     commandPanel.appendChild(middlePanelOptions.getDomElement()!);
     commandPanel.appendChild(rightPanelOptions.getDomElement()!);
 
-    const _editorLayout = new EditorLayout().getDomElement()!;
+    const _editorLayout = new EditorLayout();
 
     const topPanel = new Panel("top-panel").getDomElement()!;
     const bottomPanel = new Panel("bottom-panel").getDomElement()!;
 
     bottomPanel.appendChild(devPanel.getDomElement()!);
 
-    topPanel.appendChild(_editorLayout);
+    topPanel.appendChild(_editorLayout.getDomElement()!);
 
     const statusbar = new Statusbar().getDomElement()!;
 
@@ -164,5 +164,16 @@ export class Layout {
     codeEl.appendChild(statusbar);
 
     document.body.appendChild(codeEl);
+
+    setTimeout(() => {
+      changePanelOptionsWidth();
+
+      const _editor = getStandalone("editor") as Editor;
+      if (_editor) {
+        console.log(_editor);
+        _editor._mount();
+      }
+      _editorLayout.rerender();
+    }, 150);
   }
 }

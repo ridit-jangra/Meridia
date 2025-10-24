@@ -8,10 +8,11 @@
 @import url("./splitter.css");
 @import url("./titlebar.css");
 @import url("./miraChat.css");
-@import url("./statusbar.css");
 @import url("./devPanel.css");
 @import url("./scrollbar.css");
 @import url("./miraVoice.css");
+@import url("./statusbar.css");
+@import url("./contextMenu.css");
 
 :root {
   --workbench-secondary-button-hover-background: color-mix(
@@ -136,7 +137,8 @@ button {
 button,
 div,
 span,
-a:hover,
+a,
+li:hover,
 .hovered {
   transition:
     background 0.2s ease-in-out,

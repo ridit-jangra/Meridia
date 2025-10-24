@@ -23,6 +23,7 @@
     "@google/genai": "^1.20.0",
     "@mistralai/mistralai": "^1.10.0",
     "@neon-rs/load": "^0.1.82",
+    "@prettier/plugin-python": "^0.0.0-development",
     "@reduxjs/toolkit": "^2.9.0",
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",

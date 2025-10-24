@@ -1,0 +1,28 @@
+.context-menu {
+  background: var(--workbench-panel-background);
+  color: var(--workbench-foreground);
+  border: 1px solid var(--workbench-border-foreground);
+  box-shadow: 0 0 20px 10px rgba(var(--workbench-background), 0.05);
+  border-radius: 12px;
+}
+
+.context-menu ul {
+  padding: 12px 10px;
+  margin: 0;
+  width: 40vh;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.context-menu li {
+  font-family: "Inconsolata";
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.context-menu li:hover {
+  cursor: pointer;
+  background: var(--workbench-secondary-button-hover-background);
+}

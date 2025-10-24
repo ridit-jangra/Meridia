@@ -1,8 +1,7 @@
-import { Editor } from "../../editor/standalone/standalone.js";
 import { setPanelVisibilty } from "../event/panel.js";
 import { changePanelOptionsWidth } from "../event/panelOptions.js";
 import { _xtermManager } from "./devPanel/spawnXterm.js";
-import { getStandalone } from "./standalone.js";
+
 import { watch } from "./store/selector.js";
 
 const resizeObserver = new ResizeObserver((entries) => {
@@ -25,9 +24,3 @@ watch(
     setPanelVisibilty(_bottomEl, next.bottom);
   }
 );
-
-setTimeout(() => {
-  const _editor = getStandalone("editor") as Editor;
-  if (_editor) _editor._mount();
-  changePanelOptionsWidth();
-}, 100);

@@ -4,6 +4,8 @@ import "./common/commandRegister.js";
 import "./common/scrollbar.js";
 import "./common/state.js";
 import "./common/extensionListener.js";
+import "./common/init.js";
+import "./common/tabs.js";
 import "./common/action.js";
 import "./event/statusbar.js";
 import "./event/panelOptions.js";

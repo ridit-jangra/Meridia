@@ -9,7 +9,6 @@ const path = window.path;
 
 export class Run extends CoreEl {
   private _tabs: IDevPanelTab[] = [];
-  private _nextId = 1;
 
   constructor() {
     super();
@@ -72,6 +71,27 @@ export class Run extends CoreEl {
       tabEl.appendChild(closeButton);
 
       tabsContainer.appendChild(tabEl);
+
+      const activeTabEl = tabsContainer.querySelector(
+        ".tab.active"
+      ) as HTMLElement | null;
+
+      if (activeTabEl) {
+        const container = tabsContainer;
+        const offsetLeft = activeTabEl.offsetLeft;
+        const tabWidth = activeTabEl.offsetWidth;
+        const containerScrollLeft = container.scrollLeft;
+        const containerWidth = container.clientWidth;
+
+        if (offsetLeft < containerScrollLeft) {
+          container.scrollLeft = offsetLeft;
+        } else if (
+          offsetLeft + tabWidth >
+          containerScrollLeft + containerWidth
+        ) {
+          container.scrollLeft = offsetLeft + tabWidth - containerWidth;
+        }
+      }
     });
 
     const activeTab = this._tabs.find((t) => t.active);

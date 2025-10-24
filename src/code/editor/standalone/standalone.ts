@@ -93,7 +93,6 @@ export class Editor {
     const _languages = languages.keys();
 
     _languages.forEach((_lang) => {
-      console.log(_lang);
       monaco.languages.registerDocumentFormattingEditProvider(
         extensionToLanguage(_lang)!,
         {
@@ -125,12 +124,7 @@ export class Editor {
 
   async _format(_language: string, _text: string, _uri: string) {
     if (_language === "python") {
-      const _response = await python.executeScript(
-        path.join([path.__dirname, "scripts", "format.py"]),
-        [_uri]
-      );
-
-      return _response;
+      return window.ipc.invoke("workbench.editor.format.file.python", _uri);
     } else if (_language === "rust") {
       return window.ipc.invoke("workbench.editor.format.file.rust", _uri);
     } else {
@@ -153,37 +147,38 @@ export class Editor {
 
   private _hoverProvider() {
     if (!this._registeredProviders.has("hover-provider")) {
-      const hoverProvider = monaco.languages.registerHoverProvider("python", {
-        provideHover: (model, position) => {
-          const word = model.getWordAtPosition(position);
-          if (!word) return null;
+      const _languages = languages.keys();
+      _languages.forEach((_lang) => {
+        monaco.languages.registerHoverProvider(extensionToLanguage(_lang)!, {
+          provideHover: (model, position) => {
+            const word = model.getWordAtPosition(position);
+            if (!word) return null;
 
-          const lineText = model.getLineContent(position.lineNumber);
-          const beforeWord = lineText.substring(0, word.startColumn - 1);
-          const afterWord = lineText.substring(word.endColumn - 1);
+            const lineText = model.getLineContent(position.lineNumber);
+            const beforeWord = lineText.substring(0, word.startColumn - 1);
+            const afterWord = lineText.substring(word.endColumn - 1);
 
-          return {
-            range: new monaco.Range(
-              position.lineNumber,
-              word.startColumn,
-              position.lineNumber,
-              word.endColumn
-            ),
-            contents: [
-              { value: `**Symbol**: ${word.word}` },
-              {
-                value: `**Position**: Line ${position.lineNumber}, Column ${position.column}`,
-              },
-              {
-                value: `**Context**: ${beforeWord}**${word.word}**${afterWord}`,
-              },
-              { value: `**Language**: Python` },
-            ],
-          };
-        },
+            return {
+              range: new monaco.Range(
+                position.lineNumber,
+                word.startColumn,
+                position.lineNumber,
+                word.endColumn
+              ),
+              contents: [
+                { value: `**Symbol**: ${word.word}` },
+                {
+                  value: `**Position**: Line ${position.lineNumber}, Column ${position.column}`,
+                },
+                {
+                  value: `**Context**: ${beforeWord}**${word.word}**${afterWord}`,
+                },
+                { value: `**Language**: Python` },
+              ],
+            };
+          },
+        });
       });
-
-      this._registeredProviders.set("hover-provider", hoverProvider);
     }
   }
 
@@ -597,8 +592,6 @@ export class Editor {
           model.getValue(),
           model.uri.path
         );
-
-        console.log(formattedText);
 
         if (formattedText && formattedText !== model.getValue()) {
           const fullRange = model.getFullModelRange();
@@ -1043,7 +1036,7 @@ export class Editor {
       fs.createFile(uriString, model.getValue());
 
       this._update(uriString, false);
-    } catch {}
+    } catch (err) {}
   }
 
   public _close(uriString: string) {

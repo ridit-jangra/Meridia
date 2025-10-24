@@ -53,7 +53,7 @@ export class Terminal extends CoreEl {
   }
 
   private _render() {
-    const tabsContainer = this._el?.querySelector(".tabs");
+    const tabsContainer = this._el!.querySelector(".tabs") as HTMLDivElement;
     if (!tabsContainer) return;
 
     const extra = document.createElement("div");
@@ -112,6 +112,24 @@ export class Terminal extends CoreEl {
     }
 
     tabsContainer.appendChild(extra);
+
+    const activeTabEl = tabsContainer.querySelector(
+      ".tab.active"
+    ) as HTMLElement | null;
+
+    if (activeTabEl) {
+      const container = tabsContainer;
+      const offsetLeft = activeTabEl.offsetLeft;
+      const tabWidth = activeTabEl.offsetWidth;
+      const containerScrollLeft = container.scrollLeft;
+      const containerWidth = container.clientWidth;
+
+      if (offsetLeft < containerScrollLeft) {
+        container.scrollLeft = offsetLeft;
+      } else if (offsetLeft + tabWidth > containerScrollLeft + containerWidth) {
+        container.scrollLeft = offsetLeft + tabWidth - containerWidth;
+      }
+    }
   }
 
   private async _open(tab: IDevPanelTab) {
