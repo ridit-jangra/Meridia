@@ -1,4 +1,4 @@
-import { context } from "../../../src/code/platform/extension/common/extension.context.js";
+import { context } from "../../../src/code/platform/extension/common/context.js";
 
 export function activate(context: context) {
   try {

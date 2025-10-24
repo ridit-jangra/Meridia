@@ -15,18 +15,17 @@ const common = {
 };
 
 async function buildAll() {
-  // Entry globs
   const rendererEntries = await fg([
     "src/code/workbench/**/*.ts",
     "src/code/platform/**/*.ts",
+    "src/code/editor/**/*.ts",
   ]);
 
-  // Separate extensions entries outside src/
   const extensionEntries = await fg(["extensions/**/*.ts"]);
 
   const electronEntries = [
     "src/main.ts",
-    ...(await fg(["src/code/base/**/*.ts", "src/code/editor/**/*.ts"])),
+    ...(await fg(["src/code/base/**/*.ts"])),
   ];
 
   const workerEntries = {
@@ -73,11 +72,10 @@ async function buildAll() {
     external: [],
   };
 
-  // Build extensions separately with proper outbase and folder structure
   const extensionsOpts = {
     ...common,
     entryPoints: extensionEntries,
-    outbase: ".", // important: preserve extensions folder relative to project root
+    outbase: ".",
     outdir: "build",
     platform: "browser",
     format: "esm",
@@ -150,16 +148,15 @@ async function buildAll() {
   }
 }
 
-if (!existsSync("build/code/workbench/browser/workbench.media/fonts")) {
-  mkdirSync("build/code/workbench/browser/workbench.media/fonts", {
+if (!existsSync("build/code/workbench/browser/media/fonts")) {
+  mkdirSync("build/code/workbench/browser/media/fonts", {
     recursive: true,
   });
 }
 
 const fontSrc =
   "node_modules/monaco-editor/esm/vs/base/browser/ui/codicons/codicon/codicon.ttf";
-const fontDest =
-  "build/code/workbench/browser/workbench.media/fonts/codicon.ttf";
+const fontDest = "build/code/workbench/browser/media/fonts/codicon.ttf";
 copyFileSync(fontSrc, fontDest);
 
 buildAll().catch((e) => {

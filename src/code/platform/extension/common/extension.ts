@@ -1,6 +1,6 @@
-import { _context, context } from "./extension.context.js";
-import { commands } from "../../../workbench/common/workbench.command.js";
-import { IExtensionModule } from "../../../workbench/workbench.types.js";
+import { _context, context } from "./context.js";
+import { commands } from "../../../workbench/common/command.js";
+import { IExtensionModule } from "../../../workbench/types.js";
 
 const fs = window.fs;
 const path = window.path;

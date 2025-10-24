@@ -1,4 +1,4 @@
-import { Theme } from "../code/workbench/common/workbench.theme.js";
+import { Theme } from "../code/workbench/common/theme.js";
 import { Layout } from "../code/workbench/workbench.layout.js";
 import {
   filesBridge,
@@ -14,7 +14,7 @@ import {
   extensionBridge,
   nodeBridge,
   urlBridge,
-} from "../code/base/base.preload.js";
+} from "../code/base/preload.js";
 
 declare global {
   interface Window {

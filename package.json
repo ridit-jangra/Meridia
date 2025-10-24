@@ -45,7 +45,6 @@
     "typed-rpc": "^6.1.2",
     "vscode-languageserver": "^9.0.1",
     "vscode-ws-jsonrpc": "^3.5.0",
-    "typescript": "^5.9.3",
     "ws": "^8.18.3"
   },
   "devDependencies": {
@@ -69,6 +68,7 @@
     "gulp": "^5.0.1",
     "pyright": "^1.1.405",
     "rimraf": "^6.0.1",
+    "typescript": "^5.9.3",
     "typescript-language-server": "^5.0.1",
     "vscode-langservers-extracted": "^4.10.0"
   }
