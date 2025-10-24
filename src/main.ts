@@ -2,14 +2,13 @@ import dotenv from "dotenv";
 import path from "path";
 import { app, BrowserWindow } from "electron";
 import { HttpServer } from "./server.js";
-import { Theme } from "./code/workbench/common/workbench.theme.js";
-import "./code/base/common/base.file.create.js";
-import "./code/base/node/files.node.js";
-import "./code/base/node/format.node.js";
-import "./code/base/node/mira.node.js";
-import "./code/base/node/init.node.js";
-import "./code/base/node/pty.node.js";
-import "./code/editor/editor.main.js";
+import { Theme } from "./code/workbench/common/theme.js";
+import "./code/base/common/filesCreate.js";
+import "./code/base/node/files.js";
+import "./code/base/node/format.js";
+import "./code/base/node/mira.js";
+import "./code/base/node/init.js";
+import "./code/base/node/pty.js";
 
 dotenv.config();
 
@@ -24,22 +23,17 @@ if (process.env.NODE_ENV === "development") {
   httpServer._serve();
 }
 
-export const PRELOAD_PATH = path.join(
-  __dirname,
-  "code",
-  "base",
-  "base.preload.js"
-);
+export const PRELOAD_PATH = path.join(__dirname, "code", "base", "preload.js");
 
 export const MAIN_HTML_PATH =
   process.env.NODE_ENV === "development"
-    ? `http://localhost:${PORT}/code/workbench/common/workbench.renderer/code.html`
+    ? `http://localhost:${PORT}/code/workbench/common/renderer/code.html`
     : path.join(
         __dirname,
         "code",
         "workbench",
         "common",
-        "workbench.renderer",
+        "renderer",
         "code.html"
       );
 

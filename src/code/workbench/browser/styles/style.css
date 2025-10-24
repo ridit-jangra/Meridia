@@ -1,0 +1,260 @@
+@import url("./tabs.css");
+@import url("./files.css");
+@import url("./fonts.css");
+@import url("./panel.css");
+@import url("./xterm.css");
+@import url("./editor.css");
+@import url("./problem.css");
+@import url("./splitter.css");
+@import url("./titlebar.css");
+@import url("./miraChat.css");
+@import url("./devPanel.css");
+@import url("./scrollbar.css");
+@import url("./miraVoice.css");
+@import url("./statusbar.css");
+@import url("./contextMenu.css");
+
+:root {
+  --workbench-secondary-button-hover-background: color-mix(
+    in srgb,
+    var(--workbench-secondary-button-background),
+    black 20%
+  );
+}
+
+.code {
+  height: 100vh;
+  overflow: hidden;
+  font-family: "Inconsolata";
+}
+
+.code svg.default path {
+  fill: var(--workbench-icon-foreground);
+  stroke: var(--workbench-icon-foreground);
+}
+
+.code svg.markdown {
+  width: 20px !important;
+  height: auto;
+}
+
+.code svg.markdown path {
+  fill: var(--workbench-terminal-color4);
+}
+
+.code svg.license path {
+  fill: var(--workbench-icon-foreground);
+}
+
+.code svg.terminal rect,
+.code svg.terminal path {
+  stroke: var(--workbench-icon-foreground);
+}
+
+.code svg.image path {
+  fill: var(--workbench-icon-foreground);
+}
+
+.code svg.font path {
+  fill: var(--workbench-terminal-color2);
+}
+
+.code svg.toml path {
+  fill: var(--workbench-terminal-color8);
+}
+
+.code svg.rs path {
+  stroke: var(--workbench-icon-foreground);
+}
+
+.code svg.binary path {
+  stroke: var(--workbench-terminal-color8);
+}
+
+.code svg.gear path {
+  fill: var(--workbench-terminal-color3);
+}
+
+.code svg.python path {
+  stroke: var(--workbench-terminal-color11);
+}
+
+.code svg.background path {
+  fill: var(--workbench-icon-foreground);
+}
+
+.code svg.music path {
+  stroke: var(--workbench-terminal-color5);
+}
+
+.cursor {
+  position: absolute;
+  z-index: 99;
+}
+
+.cursor svg {
+  width: 60px;
+  height: auto;
+}
+
+* {
+  user-select: none;
+}
+
+.monaco-editor * {
+  user-select: text;
+}
+
+::selection {
+  background-color: var(--workbench-terminal-selection-background);
+}
+
+body {
+  margin: 0;
+  padding: 0 10px;
+  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
+  font-size: 16px;
+  background: var(--workbench-background);
+  color: var(--workbench-foreground);
+  height: 100vh;
+  overflow: hidden;
+}
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+button {
+  color: var(--workbench-foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+button,
+div,
+span,
+a,
+li:hover,
+.hovered {
+  transition:
+    background 0.2s ease-in-out,
+    color 0.2s ease-in-out;
+}
+
+h1 {
+  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
+  font-weight: 700;
+  font-size: 2.25em;
+}
+
+h2 {
+  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
+  font-weight: 600;
+  font-size: 1.875em;
+}
+
+h3 {
+  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
+  font-weight: 600;
+  font-size: 1.5em;
+}
+
+h4 {
+  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
+  font-weight: 500;
+  font-size: 1.25em;
+}
+
+h5 {
+  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
+  font-weight: 500;
+  font-size: 1.125em;
+}
+
+h6 {
+  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
+  font-weight: 400;
+  font-size: 1em;
+}
+
+p {
+  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+em {
+  font-style: italic;
+  font-weight: inherit;
+}
+
+strong {
+  font-weight: 600;
+  font-style: inherit;
+}
+
+small {
+  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
+  font-weight: 400;
+  font-size: 0.875em;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family:
+    "JetBrains Mono", "Fira Code", "Source Code Pro", "Droid Sans Mono",
+    "Inconsolata", Consolas, Monaco, "Courier New", monospace;
+  font-weight: 400;
+}
+
+code {
+  font-size: 0.9em;
+  background: color-mix(in srgb, var(--workbench-background), white 5%);
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+pre {
+  font-weight: 300;
+  background: color-mix(in srgb, var(--workbench-background), white 3%);
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+  line-height: 1.4;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+kbd {
+  font-weight: 500;
+  background: color-mix(in srgb, var(--workbench-background), white 10%);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid
+    color-mix(in srgb, var(--workbench-foreground), transparent 80%);
+}
+
+ul,
+ol {
+  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
+  font-weight: 400;
+}
+
+blockquote {
+  font-family: "Droid Serif", "Inter", serif;
+  font-weight: 400;
+  font-style: italic;
+  border-left: 4px solid var(--workbench-icon-foreground);
+  padding-left: 16px;
+  margin-left: 0;
+}
