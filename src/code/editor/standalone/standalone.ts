@@ -124,7 +124,12 @@ export class Editor {
 
   async _format(_language: string, _text: string, _uri: string) {
     if (_language === "python") {
-      return window.ipc.invoke("workbench.editor.format.file.python", _uri);
+      const _raw = await python.executeScript(
+        path.join([path.__dirname, "scripts", "format.py"]),
+        [_uri]
+      );
+      const _response = JSON.parse(_raw[0]!)["formatted_content"];
+      return _response;
     } else if (_language === "rust") {
       return window.ipc.invoke("workbench.editor.format.file.rust", _uri);
     } else {

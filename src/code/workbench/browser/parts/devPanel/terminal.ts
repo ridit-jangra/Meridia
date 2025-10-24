@@ -217,7 +217,7 @@ export class Terminal extends CoreEl {
       id: `terminal-${crypto.randomUUID()}`,
       name: `Terminal ${this._nextId++ + 1}`,
       active: true,
-      uri: select((s) => s.main.folder_structure).uri ?? "/",
+      uri: select((s) => s.main.folder_structure).uri || "/",
     };
 
     this._tabs = this._tabs.map((t) => ({ ...t, active: false }));

@@ -173,7 +173,9 @@ export class Files extends CoreEl {
     this._el = document.createElement("div");
     this._el.className = "files scrollbar-container x-disable";
 
-    if (!this._structure) {
+    console.log(this._structure);
+
+    if (!this._structure.isRoot) {
       this._createEmptyState();
     } else {
       this._createTreeView();

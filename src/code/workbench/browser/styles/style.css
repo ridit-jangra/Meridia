@@ -213,6 +213,10 @@ samp {
   font-weight: 400;
 }
 
+button {
+  font-family: "Inconsolata";
+}
+
 code {
   font-size: 0.9em;
   background: color-mix(in srgb, var(--workbench-background), white 5%);
