@@ -125,6 +125,21 @@ export const tokensToCssVariables: Record<IThemeColors, string> = {
   "workbench.statusbar.foreground": "--workbench-statusbar-foreground",
   "workbench.statusbar.item.hover.background":
     "--workbench-statusbar-item-hover-background",
+  "workbench.drawboard.background": "--workbench-drawboard-background",
+  "workbench.drawboard.canvas.grid.background":
+    "--workbench-drawboard-canvas-grid-background",
+  "workbench.drawboard.canvas.stroke.foreground":
+    "--workbench-drawboard-canvas-stroke-foreground",
+  "workbench.drawboard.canvas.background":
+    "--workbench-drawboard-canvas-background",
+  "workbench.drawboard.tools.background":
+    "--workbench-drawboard-tools-background",
+  "workbench.drawboard.tools.tool.active.background":
+    "--workbench-drawboard-tools-tool-active-background",
+  "workbench.drawboard.tools.tool.hover.background":
+    "--workbench-drawboard-tools-tool-hover-background",
+  "workbench.drawboard.tools.tool.active.border.foreground":
+    "--workbench-drawboard-tools-tool-active-border-foreground",
 };
 
 export function parseTokensToCssVariables(
@@ -326,6 +341,16 @@ export function openTab(_tab: IEditorTab) {
 
 export function getRunCommand(_path: string) {
   if (_path.endsWith(".py")) {
-    return "";
+    return "python";
+  } else if (
+    _path.endsWith(".js") ||
+    _path.endsWith(".cjs") ||
+    _path.endsWith("mjs")
+  ) {
+    return "node";
+  } else if (_path.endsWith(".rs")) {
+    return "cargo run";
+  } else {
+    return `echo -e "\\033[35m[SupprtError]\\033[0m" "\\033[90mExtension not supported\\033[0m"`;
   }
 }

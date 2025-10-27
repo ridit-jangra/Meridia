@@ -11,6 +11,8 @@ import {
   getThemeIcon,
 } from "../media/icons.js";
 import { CoreEl } from "./el.js";
+import { runCommand } from "../../common/command.js";
+import { PanelOption } from "./panelOption.js";
 
 export class Titlebar extends CoreEl {
   private menuVisible: boolean = false;
@@ -88,21 +90,91 @@ export class Titlebar extends CoreEl {
     const menuOptionsContainer = document.createElement("div");
     menuOptionsContainer.className = "menu-options-container";
 
-    const settings = document.createElement("span");
-    settings.innerHTML = getThemeIcon("settings");
-    settings.onclick = () => {
-      const _tab: IEditorTab = {
-        name: "Settings",
-        icon: getThemeIcon("settings"),
-        uri: "tab://settings",
-        is_touched: false,
-        active: true,
+    const settings = new PanelOption(
+      null as any,
+      null as any,
+      () => {
+        const _tab: IEditorTab = {
+          name: "Settings",
+          icon: getThemeIcon("settings"),
+          uri: "tab://settings",
+          is_touched: false,
+          active: true,
+        };
+
+        openTab(_tab);
+      },
+      getThemeIcon("settings")
+    );
+
+    const runOption = new PanelOption(
+      null as any,
+      null as any,
+      () => {
+        const _tabs = select((s) => s.main.editor_tabs);
+        const _active = _tabs.find((t) => t.active);
+
+        if (_active) runCommand("workbench.editor.run", [_active.uri]);
+      },
+      getThemeIcon("run")
+    );
+
+    const debugOption = new PanelOption(
+      null as any,
+      null as any,
+      () => {
+        const _tabs = select((s) => s.main.editor_tabs);
+        const _active = _tabs.find((t) => t.active);
+
+        if (_active) runCommand("workbench.editor.debug", [_active.uri]);
+      },
+      getThemeIcon("debug")
+    );
+
+    const stopOption = new PanelOption(
+      null as any,
+      null as any,
+      () => {
+        const _tabs = select((s) => s.main.editor_tabs);
+        const _active = _tabs.find((t) => t.active);
+
+        if (_active) runCommand("workbench.editor.stop", [_active.uri]);
+      },
+      getThemeIcon("stop")
+    );
+
+    document.addEventListener("workbench.editor.run.disable", () => {
+      runOption.getDomElement()!.innerHTML = getThemeIcon("rerun");
+      runOption.getDomElement()!.onclick = () => {
+        const _tabs = select((s) => s.main.editor_tabs);
+        const _active = _tabs.find((t) => t.active);
+
+        if (_active) runCommand("workbench.editor.rerun", [_active.uri]);
       };
+    });
+    document.addEventListener("workbench.editor.run.enable", () => {
+      runOption.getDomElement()!.innerHTML = getThemeIcon("run");
+      runOption.getDomElement()!.onclick = () => {
+        const _tabs = select((s) => s.main.editor_tabs);
+        const _active = _tabs.find((t) => t.active);
 
-      openTab(_tab);
-    };
+        if (_active) runCommand("workbench.editor.run", [_active.uri]);
+      };
+    });
 
-    menuOptionsContainer.appendChild(settings);
+    document.addEventListener("workbench.editor.stop.disable", () => {
+      stopOption.getDomElement()!.style.display = "none";
+    });
+    document.addEventListener("workbench.editor.stop.enable", () => {
+      stopOption.getDomElement()!.style.display = "flex";
+    });
+
+    stopOption.getDomElement()!.style.display = "none";
+
+    menuOptionsContainer.appendChild(runOption.getDomElement()!);
+    menuOptionsContainer.appendChild(stopOption.getDomElement()!);
+    menuOptionsContainer.appendChild(debugOption.getDomElement()!);
+    menuOptionsContainer.appendChild(settings.getDomElement()!);
 
     rightControlsSection.appendChild(menuOptionsContainer);
 

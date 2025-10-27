@@ -72,7 +72,7 @@ function createWindow() {
   }
 
   function getTitlebarControlInsets() {
-    const _inset = _win ? 160 : 100;
+    const _inset = _win ? 160 : 95;
     return _inset;
   }
 

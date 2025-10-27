@@ -16,6 +16,9 @@ import { runCommand } from "../common/command.js";
 import { select } from "../common/store/selector.js";
 import { Structure } from "./structure.js";
 import { Editor } from "../../editor/standalone/standalone.js";
+import { IEditorTab } from "../types.js";
+import { openTab } from "../common/utils.js";
+import { _drawboard } from "../common/init.js";
 
 export class Layout {
   constructor() {
@@ -35,94 +38,41 @@ export class Layout {
     const devPanel = new DevPanel();
     registerStandalone("dev-panel", devPanel);
 
-    const commandPanel = new Panel("command-panel").getDomElement()!;
-
-    const leftPanel = new Panel("left-panel").getDomElement()!;
-    const middlePanel = new Panel("split-panel").getDomElement()!;
-    const rightPanel = new Panel("right-panel").getDomElement()!;
+    const leftPanel = document.createElement("div");
+    leftPanel.className = "left-panel";
 
     const filesOption = new PanelOption("Files", files);
-
     const extensionOption = new PanelOption("Extensions", mira);
 
-    const leftPanelOptions = new PanelOptions(
-      [filesOption, extensionOption],
-      leftPanel,
-      "left-panel-options",
-      "left-panel-options"
-    );
-
     const miraOption = new PanelOption("Mira", mira);
-
     const structureOption = new PanelOption("Structure", structure);
 
-    const runOption = new PanelOption(
-      null as any,
-      null as any,
-      () => {
-        const _tabs = select((s) => s.main.editor_tabs);
-        const _active = _tabs.find((t) => t.active);
+    const leftPanelContent = new Panel("left-panel-content").getDomElement()!;
+    const leftPanelOptions = new PanelOptions(
+      [filesOption, extensionOption],
+      leftPanelContent,
+      "left-panel-options",
+      "left-panel-options"
+    ).getDomElement()!;
 
-        if (_active) runCommand("workbench.editor.run", [_active.uri]);
-      },
-      getThemeIcon("run")
-    );
+    const middlePanel = new Panel("split-panel").getDomElement()!;
 
-    const stopOption = new PanelOption(
-      null as any,
-      null as any,
-      () => {
-        const _tabs = select((s) => s.main.editor_tabs);
-        const _active = _tabs.find((t) => t.active);
+    const rightPanel = document.createElement("div");
+    rightPanel.className = "right-panel";
 
-        if (_active) runCommand("workbench.editor.stop", [_active.uri]);
-      },
-      getThemeIcon("stop")
-    );
-
-    document.addEventListener("workbench.editor.run.disable", () => {
-      runOption.getDomElement()!.innerHTML = getThemeIcon("rerun");
-      runOption.getDomElement()!.onclick = () => {
-        const _tabs = select((s) => s.main.editor_tabs);
-        const _active = _tabs.find((t) => t.active);
-
-        if (_active) runCommand("workbench.editor.rerun", [_active.uri]);
-      };
-    });
-    document.addEventListener("workbench.editor.run.enable", () => {
-      runOption.getDomElement()!.innerHTML = getThemeIcon("run");
-      runOption.getDomElement()!.onclick = () => {
-        const _tabs = select((s) => s.main.editor_tabs);
-        const _active = _tabs.find((t) => t.active);
-
-        if (_active) runCommand("workbench.editor.run", [_active.uri]);
-      };
-    });
-    document.addEventListener("workbench.editor.stop.disable", () => {
-      stopOption.getDomElement()!.style.display = "none";
-    });
-    document.addEventListener("workbench.editor.stop.enable", () => {
-      stopOption.getDomElement()!.style.display = "flex";
-    });
-
-    stopOption.getDomElement()!.style.display = "none";
-
-    const middlePanelOptions = new PanelOptions(
-      [runOption, stopOption],
-      null as any,
-      "middle-panel-options"
-    );
-
+    const rightPanelContent = new Panel("right-panel-content").getDomElement()!;
     const rightPanelOptions = new PanelOptions(
       [miraOption, structureOption],
-      rightPanel,
+      rightPanelContent,
       "right-panel-options",
       "right-panel-options"
-    );
+    ).getDomElement()!;
 
-    commandPanel.appendChild(leftPanelOptions.getDomElement()!);
-    commandPanel.appendChild(middlePanelOptions.getDomElement()!);
-    commandPanel.appendChild(rightPanelOptions.getDomElement()!);
+    leftPanel.appendChild(leftPanelOptions);
+    leftPanel.appendChild(leftPanelContent);
+
+    rightPanel.appendChild(rightPanelOptions);
+    rightPanel.appendChild(rightPanelContent);
 
     const _editorLayout = new EditorLayout();
 
@@ -141,6 +91,7 @@ export class Layout {
       [60, 40],
       () => {
         _xtermManager._update();
+        _drawboard._updateCanvasSize();
       }
     );
 
@@ -155,13 +106,13 @@ export class Layout {
       () => {
         changePanelOptionsWidth();
         _xtermManager._update();
+        _drawboard._updateCanvasSize();
       }
     );
 
     registerStandalone("panel-splitter-horizontal", splitterHorizontal);
 
     codeEl.appendChild(titlebar);
-    codeEl.appendChild(commandPanel);
     codeEl.appendChild(splitterHorizontal.getDomElement()!);
     codeEl.appendChild(statusbar);
 
@@ -176,6 +127,18 @@ export class Layout {
         _editor._mount();
       }
       _editorLayout.rerender();
+
+      const _tab: IEditorTab = {
+        name: "Drawboard",
+        icon: getThemeIcon("drawboard"),
+        uri: "tab://drawboard",
+        is_touched: false,
+        active: true,
+      };
+
+      openTab(_tab);
+
+      _drawboard._updateCanvasSize();
     }, 150);
   }
 }

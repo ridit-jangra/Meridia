@@ -4,7 +4,7 @@ import { getThemeIcon } from "../../media/icons.js";
 import { CoreEl } from "../el.js";
 import { _xtermManager } from "../../../common/devPanel/spawnXterm.js";
 import { registerStandalone } from "../../../common/standalone.js";
-import { getFileIcon } from "../../../common/utils.js";
+import { getFileIcon, getRunCommand } from "../../../common/utils.js";
 
 const path = window.path;
 
@@ -223,7 +223,7 @@ export class Run extends CoreEl {
     const container = await _xtermManager._spawn(tabId);
     runArea.appendChild(container!);
 
-    const command = `python "${_path}"`;
+    const command = `${getRunCommand(_path)} "${_path}"`;
 
     await _xtermManager._run(tabId, command, path.dirname(_path));
     this._set(tabId, "running");

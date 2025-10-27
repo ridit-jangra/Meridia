@@ -7,6 +7,7 @@ import { registerStandalone } from "../../../common/standalone.js";
 import { select } from "../../../common/store/selector.js";
 
 const storage = window.storage;
+const ipcRenderer = window.ipc;
 
 export class Terminal extends CoreEl {
   private _tabs: IDevPanelTab[] = [];
@@ -33,6 +34,11 @@ export class Terminal extends CoreEl {
     setTimeout(() => {
       this._render();
     }, 100);
+
+    ipcRenderer.on("workbench.terminal.death", (_: any, id: string) => {
+      console.log("closing", id);
+      this._close(id);
+    });
   }
 
   private _createEl() {

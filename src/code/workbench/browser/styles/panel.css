@@ -19,46 +19,72 @@
   background: var(--workbench-panel-background);
 }
 
-.code .panel.command-panel .left-panel-options,
-.right-panel-options,
-.middle-panel-options {
+.left-panel-options,
+.right-panel-options {
   display: flex;
   align-items: center;
   justify-content: center;
   max-height: 32px;
-  gap: 6px;
+  gap: 2px;
+  overflow: hidden;
 }
 
 .left-panel-options,
-.right-panel-options,
-.middle-panel-options {
-  height: 20px;
+.right-panel-options {
+  background: var(--workbench-panel-background);
+  border-radius: 8px;
+  height: 40px;
 }
 
-.code .panel.command-panel span {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.left-panel-options span,
+.right-panel-options span {
+  cursor: pointer;
   padding: 2px 8px;
   border-radius: 4px;
-  width: fit-content;
-  cursor: pointer;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.code .panel.command-panel span svg {
-  width: 18px;
-  height: auto;
-}
-
-.code .panel.command-panel span.active {
+.left-panel-options span.active,
+.right-panel-options span.active {
   font-weight: 600;
 }
 
-.code .panel.command-panel span:not(.active):hover,
-.hovered {
+.code .left-panel-options span:not(.active):hover,
+.code .right-panel-options span:not(.active):hover {
   background: var(--workbench-panel-options-hover-background);
 }
 
 .code .panel.bottom-panel {
   background: transparent !important;
+}
+
+.code .left-panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.code .left-panel .left-panel-content {
+  height: calc(100% - 40px);
+  overflow: hidden;
+}
+
+.code .right-panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+}
+
+.code .right-panel .right-panel-content {
+  height: calc(100% - 40px);
+  overflow: hidden;
 }

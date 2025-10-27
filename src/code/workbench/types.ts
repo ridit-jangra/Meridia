@@ -131,6 +131,15 @@ export const ThemeColors = [
   "workbench.terminal.bright.white",
   "workbench.statusbar.foreground",
   "workbench.statusbar.item.hover.background",
+  "workbench.drawboard.background",
+  "workbench.drawboard.canvas.background",
+  "workbench.drawboard.canvas.background",
+  "workbench.drawboard.tools.background",
+  "workbench.drawboard.tools.tool.active.background",
+  "workbench.drawboard.tools.tool.hover.background",
+  "workbench.drawboard.tools.tool.active.border.foreground",
+  "workbench.drawboard.canvas.grid.background",
+  "workbench.drawboard.canvas.stroke.foreground",
 ] as const;
 
 export type IThemeColors = (typeof ThemeColors)[number];
@@ -238,3 +247,36 @@ export interface IStatusBarAction {
 export interface IExtensionModule {
   activate?(api: any): void;
 }
+
+export interface IPoint {
+  x: number;
+  y: number;
+}
+
+export interface IBoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export type TShapeType = "freehand" | "rectangle" | "circle" | "line" | "arrow";
+
+export interface IShape {
+  type: TShapeType;
+  path: IPoint[];
+  selected: boolean;
+  boundingBox: IBoundingBox;
+  startPoint?: IPoint;
+  endPoint?: IPoint;
+  thickness: number;
+}
+
+export type TResizeHandle = "nw" | "ne" | "sw" | "se" | null;
+export type TDrawingTool =
+  | "mouse"
+  | "pen"
+  | "rectangle"
+  | "circle"
+  | "line"
+  | "arrow";

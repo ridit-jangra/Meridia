@@ -1,8 +1,10 @@
+import { Drawboard } from "../browser/drawboard.js";
 import { setPanelVisibilty } from "../event/panel.js";
 import { changePanelOptionsWidth } from "../event/panelOptions.js";
 import { _xtermManager } from "./devPanel/spawnXterm.js";
 
 import { watch } from "./store/selector.js";
+import { _addContent } from "./tabs.js";
 
 const resizeObserver = new ResizeObserver((entries) => {
   entries.forEach(() => {
@@ -24,3 +26,6 @@ watch(
     setPanelVisibilty(_bottomEl, next.bottom);
   }
 );
+
+export const _drawboard = new Drawboard();
+_addContent("tab://drawboard", _drawboard.getDomElement()!);

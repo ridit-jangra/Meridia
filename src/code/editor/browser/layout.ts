@@ -7,11 +7,13 @@ import { getFileIcon, getIcon } from "../../workbench/common/utils.js";
 import { IEditorTab } from "../../workbench/types.js";
 import { getThemeIcon } from "../../workbench/browser/media/icons.js";
 import { CoreEl } from "../../workbench/browser/parts/el.js";
+import { _getContent } from "../../workbench/common/tabs.js";
 
 export class Editor extends CoreEl {
   private _editorTabs!: HTMLDivElement;
-  private _editorAra!: HTMLDivElement;
+  private _editorArea!: HTMLDivElement;
   private _emptyState!: HTMLDivElement;
+  private _contentArea!: HTMLDivElement;
 
   constructor() {
     super();
@@ -25,11 +27,16 @@ export class Editor extends CoreEl {
     this._editorTabs = document.createElement("div");
     this._editorTabs.className = "tabs scrollbar-container y-disable";
 
-    this._editorAra = document.createElement("div");
-    this._editorAra.className = "editor-area";
+    this._editorArea = document.createElement("div");
+    this._editorArea.className = "editor-area";
 
     this._emptyState = document.createElement("div");
     this._emptyState.className = "empty-state";
+
+    this._contentArea = document.createElement("div");
+    this._contentArea.className = "content-area";
+
+    this._editorArea.appendChild(this._contentArea);
 
     const backgroundImage = document.createElement("span");
     backgroundImage.innerHTML = getIcon("../images/background.svg");
@@ -76,13 +83,13 @@ export class Editor extends CoreEl {
 
       if (_tabs.length === 0) {
         this._editorTabs.style.display = "none";
-        this._editorAra.style.display = "none";
+        this._editorArea.style.display = "none";
         this._emptyState.style.display = "flex";
         if (editor) editor._visiblity(false);
         return;
       } else {
         this._editorTabs.style.display = "flex";
-        this._editorAra.style.display = "block";
+        this._editorArea.style.display = "block";
         this._emptyState.style.display = "none";
         if (editor) editor._visiblity(true);
       }
@@ -90,8 +97,23 @@ export class Editor extends CoreEl {
       if (activeTab) {
         if (activeTab.uri.startsWith("tab://")) {
           if (editor) editor._visiblity(false);
+          this._contentArea.style.display = "flex";
+          const _details = this._editorArea.querySelector(
+            ".details"
+          ) as HTMLDivElement;
+          if (_details) _details.style.display = "none";
+          this._contentArea.innerHTML = "";
+          const _content = _getContent(activeTab.uri);
+          if (_content) {
+            this._contentArea.appendChild(_content);
+          }
         } else {
+          this._contentArea.style.display = "none";
           if (editor) {
+            const _details = this._editorArea.querySelector(
+              ".details"
+            ) as HTMLDivElement;
+            if (_details) _details.style.display = "flex";
             if (editor._editor) {
               editor._open(activeTab);
             } else {
@@ -180,7 +202,7 @@ export class Editor extends CoreEl {
       _render(_tabs);
     } else {
       this._editorTabs.style.display = "none";
-      this._editorAra.style.display = "none";
+      this._editorArea.style.display = "none";
       this._emptyState.style.display = "flex";
     }
 
@@ -192,7 +214,7 @@ export class Editor extends CoreEl {
     );
 
     this._el.appendChild(this._editorTabs);
-    this._el.appendChild(this._editorAra);
+    this._el.appendChild(this._editorArea);
     this._el.appendChild(this._emptyState);
   }
 
@@ -204,13 +226,13 @@ export class Editor extends CoreEl {
 
     if (_tabs.length === 0) {
       this._editorTabs.style.display = "none";
-      this._editorAra.style.display = "none";
+      this._editorArea.style.display = "none";
       this._emptyState.style.display = "flex";
       if (editor) editor._visiblity(false);
       return;
     } else {
       this._editorTabs.style.display = "flex";
-      this._editorAra.style.display = "block";
+      this._editorArea.style.display = "block";
       this._emptyState.style.display = "none";
       if (editor) editor._visiblity(true);
     }
@@ -218,8 +240,23 @@ export class Editor extends CoreEl {
     if (activeTab) {
       if (activeTab.uri.startsWith("tab://")) {
         if (editor) editor._visiblity(false);
+        this._contentArea.style.display = "flex";
+        const _details = this._editorArea.querySelector(
+          ".details"
+        ) as HTMLDivElement;
+        if (_details) _details.style.display = "none";
+        const _content = _getContent(activeTab.uri);
+        if (_content) {
+          this._contentArea.innerHTML = "";
+          this._contentArea.appendChild(_content);
+        }
       } else {
+        this._contentArea.style.display = "none";
         if (editor) {
+          const _details = this._editorArea.querySelector(
+            ".details"
+          ) as HTMLDivElement;
+          if (_details) _details.style.display = "flex";
           if (editor._editor) {
             editor._open(activeTab);
           } else {
