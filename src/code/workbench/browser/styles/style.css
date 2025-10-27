@@ -75,10 +75,6 @@
   fill: var(--workbench-terminal-color3);
 }
 
-.code svg.python path {
-  stroke: var(--workbench-terminal-color11);
-}
-
 .code svg.background path {
   fill: var(--workbench-icon-foreground);
 }
@@ -134,7 +130,7 @@ button {
   white-space: nowrap;
 }
 
-button,
+/* button,
 div,
 span,
 a,
@@ -143,7 +139,7 @@ li:hover,
   transition:
     background 0.2s ease-in-out,
     color 0.2s ease-in-out;
-}
+} */
 
 h1 {
   font-family: "Inter", "Droid Sans", "Roboto", sans-serif;

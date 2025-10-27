@@ -92,6 +92,8 @@ export const ThemeColors = [
   "workbench.editor.foreground",
   "workbench.editor.cursor.foreground",
   "workbench.editor.line.highlight.background",
+  "workbench.editor.suggestion.active.background",
+  "workbench.editor.widget.background",
   "workbench.mira.message.user.background",
   "workbench.mira.message.user.foreground",
   "workbench.mira.message.user.border.foreground",
@@ -111,7 +113,6 @@ export const ThemeColors = [
   "workbench.terminal.foreground",
   "workbench.terminal.cursor.foreground",
   "workbench.terminal.selection.background",
-
   "workbench.terminal.black",
   "workbench.terminal.red",
   "workbench.terminal.green",

@@ -101,6 +101,10 @@ export const menuItems: Menuitems[] = [
         shortcut: ["ctrl", "shift", "p"],
       },
       {
+        label: "",
+        separator: true,
+      },
+      {
         label: "Toggle Left Panel",
         action: "workbench.panel.toggle.left",
         shortcut: ["ctrl", "b"],

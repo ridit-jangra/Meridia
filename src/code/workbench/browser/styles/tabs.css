@@ -8,7 +8,6 @@
   outline: none;
 }
 
-/* Vertical mode */
 .code .tabs.vertical {
   flex-direction: column;
   width: 100%;
@@ -28,7 +27,6 @@
   outline: none;
 }
 
-/* Tab base style */
 .code .tabs .tab {
   display: flex;
   align-items: center;
@@ -43,7 +41,6 @@
   min-width: max-content;
 }
 
-/* Icons inside tabs */
 .code .tabs .tab svg,
 .code .tabs .tab img {
   display: flex;
@@ -63,7 +60,6 @@
   font-size: 18px;
 }
 
-/* Icon wrappers */
 .code .tabs .tab .icon-wrapper {
   display: flex;
   align-items: center;
@@ -79,6 +75,10 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.code .tabs .tab .icon-wrapper .close-icon svg {
+  width: 19px !important;
 }
 
 .code .tabs .tab .icon-wrapper .dot-icon {
@@ -109,7 +109,6 @@
   display: block;
 }
 
-/* Hover and active states */
 .code .tabs .tab:not(.active):hover,
 .hovered {
   background: var(--workbench-tabs-hover-background);
@@ -121,10 +120,9 @@
   background: var(--workbench-tabs-active-background);
   color: var(--workbench-tabs-active-foreground);
   outline: 2px solid var(--workbench-tabs-active-border-foreground);
-  font-weight: 500;
+  font-weight: 700;
 }
 
-/* Extra button area (Add, etc.) */
 .code .tabs .extra {
   position: sticky;
   top: 0;

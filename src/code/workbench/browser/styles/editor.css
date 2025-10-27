@@ -6,6 +6,7 @@
 
 .code .editor .editor-area {
   height: calc(100% - 56px);
+  position: relative;
 }
 
 .code .editor .monaco-editor *:focus {
@@ -13,7 +14,6 @@
 }
 
 .code .editor .monaco-editor [class*="widget"],
-.code .editor .monaco-editor .context-view,
 .code .editor .monaco-editor .monaco-menu {
   border-radius: 12px !important;
   box-shadow:
@@ -25,6 +25,12 @@
   border-top-left-radius: 8px !important;
   border-bottom-left-radius: 8px !important;
   margin-left: 12px !important;
+}
+
+.monaco-editor .monaco-menu {
+  z-index: 10000 !important;
+  position: fixed !important;
+  font-size: 16px !important;
 }
 
 .monaco-editor .view-overlays .current-line {
@@ -39,12 +45,54 @@
   height: 0px !important;
 }
 
-.monaco-editor .suggest-widget .tree .monaco-list-row {
+.monaco-editor .slider {
+  border-radius: 24px !important;
+  width: 9px !important;
+}
+
+.monaco-editor .suggest-widget .tree .monaco-list-row * {
   transition: none !important;
 }
 
-.monaco-editor .suggest-widget .tree .monaco-list-row.focused {
-  background: var(--workbench-tabs-active-background) !important;
+.monaco-editor .suggest-widget {
+  padding: 6px !important;
+  border: 2px solid var(--workbench-border-foreground) !important;
+}
+
+.monaco-editor .suggest-widget .monaco-list-row {
+  width: 100% !important;
+  border-radius: 6px !important;
+  padding: 0 12px !important;
+}
+
+.monaco-editor .suggest-widget .monaco-list-row .suggest-icon {
+  margin-right: 6px !important;
+  font-size: 18px !important;
+}
+
+.monaco-editor .suggest-details {
+  border-radius: 6px !important;
+  border: 2px solid var(--workbench-border-foreground) !important;
+}
+
+.monaco-editor .monaco-menu {
+  border: 2px solid var(--workbench-border-foreground) !important;
+}
+
+.monaco-editor .monaco-menu .monaco-action-bar {
+  padding: 6px !important;
+  font-size: 16px !important;
+}
+
+.monaco-editor .monaco-menu .monaco-action-bar .action-item .action-menu-item {
+  width: 100% !important;
+  border-radius: 6px !important;
+  padding: 2px 0 !important;
+  font-family: "Source Code Pro" !important;
+}
+
+.monaco-editor .rename-input {
+  color: var(--workbench-editor-foreground) !important;
 }
 
 .code .editor .empty-state {
@@ -69,4 +117,44 @@
   mix-blend-mode: overlay;
   filter: blur(0.5px);
   opacity: 0.2;
+}
+
+.code .editor .details {
+  position: absolute;
+  top: 0px;
+  right: 10px;
+  z-index: 999;
+  background: var(--workbench-editor-background);
+  width: 35px;
+  height: 35px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.code .editor .details .problems {
+  background: var(--workbench-terminal-color1);
+  width: 90%;
+  height: 90%;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.code .editor .details .problems.none {
+  display: none;
+}
+
+.code .editor .details .none-div {
+  background: var(--workbench-terminal-color2);
+  width: 90%;
+  height: 90%;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
 }

@@ -1,9 +1,10 @@
 import PerfectScrollbar from "perfect-scrollbar";
 import { IDevPanelTab } from "../../../types.js";
-import { closeIcon, runIcon } from "../../media/icons.js";
+import { getThemeIcon } from "../../media/icons.js";
 import { CoreEl } from "../el.js";
 import { _xtermManager } from "../../../common/devPanel/spawnXterm.js";
 import { registerStandalone } from "../../../common/standalone.js";
+import { getFileIcon } from "../../../common/utils.js";
 
 const path = window.path;
 
@@ -52,7 +53,7 @@ export class Run extends CoreEl {
 
       const icon = document.createElement("span");
       icon.className = "icon";
-      icon.innerHTML = runIcon;
+      icon.innerHTML = getFileIcon(tab.name);
 
       const name = document.createElement("span");
       name.className = "name";
@@ -60,7 +61,7 @@ export class Run extends CoreEl {
 
       const closeButton = document.createElement("span");
       closeButton.className = "close-icon";
-      closeButton.innerHTML = closeIcon;
+      closeButton.innerHTML = getThemeIcon("close");
       closeButton.onclick = (e) => {
         e.stopPropagation();
         this._close(tab.id);
@@ -222,11 +223,7 @@ export class Run extends CoreEl {
     const container = await _xtermManager._spawn(tabId);
     runArea.appendChild(container!);
 
-    const command = `python "${path.join([
-      path.__dirname,
-      "scripts",
-      "run_script.py",
-    ])}" "${_path}"`;
+    const command = `python "${_path}"`;
 
     await _xtermManager._run(tabId, command, path.dirname(_path));
     this._set(tabId, "running");

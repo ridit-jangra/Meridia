@@ -14,6 +14,7 @@ import {
   extensionBridge,
   nodeBridge,
   urlBridge,
+  electronBridge,
 } from "../code/base/preload.js";
 
 declare global {
@@ -30,5 +31,6 @@ declare global {
     editor: typeof editorBridge;
     node: typeof nodeBridge;
     url: typeof urlBridge;
+    electron: typeof electronBridge;
   }
 }

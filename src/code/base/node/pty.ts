@@ -4,6 +4,7 @@ import * as os from "os";
 import * as pty from "node-pty";
 
 const terminals = new Map<string, pty.IPty>();
+const processes = new Map<string, pty.IPty>();
 
 function getShell(): string {
   if (os.platform() === "win32") {
@@ -51,12 +52,10 @@ setTimeout(() => {
     "workbench.terminal.resize",
     (event, id: string, cols: number, rows: number) => {
       const term = terminals.get(id);
-      if (term) {
-        term.resize(cols, rows);
-        return true;
-      } else {
-        return false;
-      }
+      const process = processes.get(id);
+      if (term) term.resize(cols, rows);
+      if (process) process.resize(cols, rows);
+      else return false;
     }
   );
 
@@ -91,6 +90,48 @@ setTimeout(() => {
       });
     }
   );
+
+  ipcMain.on(
+    "workbench.terminal.user.run",
+    (event, command: string, termId: string, cwd: string) => {
+      const shell = getShell();
+      const ptyProcess = pty.spawn(shell, ["-c", command], {
+        name: "xterm-color",
+        cwd,
+        cols: 80,
+        rows: 24,
+        env: Object.assign({}, process.env, { PYTHONUNBUFFERED: "1" }),
+      });
+
+      processes.set(termId, ptyProcess);
+
+      ptyProcess.onData((data) => {
+        event.sender.send(`workbench.terminal.user.run.stdout.${termId}`, data);
+      });
+
+      ptyProcess.onExit(({ exitCode }) => {
+        event.sender.send(
+          `workbench.terminal.user.run.exit.${termId}`,
+          exitCode
+        );
+        processes.delete(termId);
+      });
+    }
+  );
+
+  ipcMain.on("workbench.terminal.run.user.data", (event, termId, input) => {
+    const ptyProcess = processes.get(termId);
+    if (ptyProcess) {
+      ptyProcess.write(input);
+    }
+  });
+
+  ipcMain.handle("workbench.terminal.run.kill", (event, termId) => {
+    const term = processes.get(termId);
+    if (term) {
+      term.kill();
+    }
+  });
 
   ipcMain.handle("workbench.terminal.kill", (event, id: string) => {
     const term = terminals.get(id);

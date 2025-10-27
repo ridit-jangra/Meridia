@@ -6,12 +6,9 @@ import { openTab } from "../../common/utils.js";
 import { IEditorTab, Menuitems } from "../../types.js";
 import {
   bottomPanelIcon,
-  chevronRightIcon,
-  hamburgerIcon,
   leftPanelIcon,
   rightPanelIcon,
-  searchIcon,
-  settingsIcon,
+  getThemeIcon,
 } from "../media/icons.js";
 import { CoreEl } from "./el.js";
 
@@ -62,7 +59,7 @@ export class Titlebar extends CoreEl {
 
     this.hamburgerContainer = document.createElement("span");
     this.hamburgerContainer.className = "menu-button menu-container";
-    this.hamburgerContainer.innerHTML = hamburgerIcon;
+    this.hamburgerContainer.innerHTML = getThemeIcon("menu");
     this.hamburgerContainer.onclick = (e) => {
       e.stopPropagation();
       this._toggle();
@@ -81,7 +78,7 @@ export class Titlebar extends CoreEl {
     centerSearchSection.className = "center-panel-section";
 
     const searchBar = document.createElement("div");
-    searchBar.innerHTML = searchIcon;
+    searchBar.innerHTML = getThemeIcon("search");
 
     centerSearchSection.appendChild(searchBar);
 
@@ -92,11 +89,11 @@ export class Titlebar extends CoreEl {
     menuOptionsContainer.className = "menu-options-container";
 
     const settings = document.createElement("span");
-    settings.innerHTML = settingsIcon;
+    settings.innerHTML = getThemeIcon("settings");
     settings.onclick = () => {
       const _tab: IEditorTab = {
         name: "Settings",
-        icon: settingsIcon,
+        icon: getThemeIcon("settings"),
         uri: "tab://settings",
         is_touched: false,
         active: true,
@@ -147,7 +144,7 @@ export class Titlebar extends CoreEl {
         if (item.submenu && item.submenu.length > 0) {
           const arrow = document.createElement("span");
           arrow.className = "menu-submenu-arrow";
-          arrow.innerHTML = chevronRightIcon;
+          arrow.innerHTML = getThemeIcon("chevronRight");
           content.appendChild(arrow);
 
           const submenu = document.createElement("div");

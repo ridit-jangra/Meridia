@@ -142,9 +142,18 @@
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
+  border-radius: 6px;
   position: relative;
   width: 100%;
   height: 90%;
+}
+
+.code .titlebar .menu-item-content:hover {
+  background: var(--workbench-titlebar-menu-item-hover-background);
+}
+
+.code .titlebar .menu-item.active > .menu-item-content {
+  background: var(--workbench-titlebar-menu-item-hover-background);
 }
 
 .code .titlebar .menu-item-icon {
@@ -158,7 +167,7 @@
 }
 
 .code .titlebar .menu-item-label {
-  color: var(--workbench-titlebar-menu--foreground);
+  color: var(--workbench-titlebar-menu-foreground);
   font-size: 14px;
   font-family: "Inconsolata";
 }
@@ -211,6 +220,11 @@
   height: 30px;
   width: 70vh;
   cursor: pointer;
+}
+
+.code .titlebar .center-panel-section div svg {
+  width: 22px;
+  height: auto;
 }
 
 .code .titlebar .center-panel-section div:hover,

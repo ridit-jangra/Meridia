@@ -1,5 +1,6 @@
 import * as monaco from "monaco-editor";
 import "monaco-languages";
+import "../common/icons.js";
 import {
   CloseAction,
   createConnection,
@@ -19,11 +20,17 @@ import {
 import { update_editor_tabs } from "../../workbench/common/store/slice.js";
 import { dispatch } from "../../workbench/common/store/store.js";
 import { select } from "../../workbench/common/store/selector.js";
-import { registerStandalone } from "../../workbench/common/standalone.js";
+import {
+  getStandalone,
+  registerStandalone,
+} from "../../workbench/common/standalone.js";
+import { DevPanelTabs } from "../../workbench/browser/parts/devPanel/tabs.js";
+import { getThemeIcon } from "../../workbench/browser/media/icons.js";
 
 const fs = window.fs;
 const path = window.path;
 const python = window.python;
+const shell = window.electron.shell;
 
 Object.assign(window, {
   MonacoEnvironment: {
@@ -49,6 +56,8 @@ export class Editor {
   private _tabs: IEditorTab[] = [];
   public _editor!: monaco.editor.IStandaloneCodeEditor;
   private _layout = document.querySelector(".editor-area") as HTMLElement;
+  private _detailsElement?: HTMLElement;
+  private _problemsCountElement?: HTMLElement;
 
   private _clients = new Map<number, MonacoLanguageClient>();
   private _models = new Map<string, monaco.editor.ITextModel>();
@@ -126,9 +135,10 @@ export class Editor {
     if (_language === "python") {
       const _raw = await python.executeScript(
         path.join([path.__dirname, "scripts", "format.py"]),
-        [_uri]
+        [`"${_text}"`]
       );
       const _response = JSON.parse(_raw[0]!)["formatted_content"];
+      console.log(_response);
       return _response;
     } else if (_language === "rust") {
       return window.ipc.invoke("workbench.editor.format.file.rust", _uri);
@@ -189,6 +199,11 @@ export class Editor {
 
   private _setupMarkerListener() {
     this._markerChangeListener = monaco.editor.onDidChangeMarkers((uris) => {
+      const model = this._editor.getModel();
+      if (!model) return;
+      if (uris.some((uri) => uri.toString() === model.uri.toString())) {
+        this._updateProblemCount();
+      }
       uris.forEach((uri) => {
         this._handleMarkerChanges(uri);
       });
@@ -209,7 +224,6 @@ export class Editor {
     const extension = path.extname(filePath).substring(1);
     const languageName = getLanguage(extension);
     const serverPort = getLanguageServer(extension);
-    const serverName = this._getServerName(serverPort, extension);
 
     currentMarkers.forEach((marker) => {
       const eventType = this._getMarkerEventType(marker.severity);
@@ -225,7 +239,6 @@ export class Editor {
           marker.endColumn,
           marker.message,
           languageName,
-          serverName,
           marker.code?.toString(),
           marker.source
         );
@@ -249,7 +262,6 @@ export class Editor {
             marker.endColumn,
             marker.message,
             languageName,
-            serverName,
             marker.code?.toString(),
             marker.source
           );
@@ -275,22 +287,6 @@ export class Editor {
     }
   }
 
-  private _getServerName(port?: number, extension?: string): string {
-    const serverNames: { [key: string]: string } = {
-      py: "Pyright",
-      ts: "TypeScript Language Server",
-      js: "TypeScript Language Server",
-      rs: "rust-analyzer",
-      json: "JSON Language Server",
-    };
-
-    if (extension && serverNames[extension]) {
-      return serverNames[extension];
-    }
-
-    return port ? `Language Server (port ${port})` : "Language Server";
-  }
-
   private _emitDiagnosticEvent(
     eventType: "error" | "warning",
     fileName: string,
@@ -301,7 +297,6 @@ export class Editor {
     endColumn: number,
     message: string,
     languageName: string,
-    serverName: string,
     code?: string,
     source?: string
   ) {
@@ -321,10 +316,9 @@ export class Editor {
           endColumn,
           message,
           code,
-          source: source || serverName,
+          source: source,
           severity: eventType,
           languageName,
-          serverName,
           timestamp: Date.now(),
         },
       })
@@ -341,7 +335,6 @@ export class Editor {
     endColumn: number,
     message: string,
     languageName: string,
-    serverName: string,
     code?: string,
     source?: string
   ) {
@@ -361,10 +354,9 @@ export class Editor {
           endColumn,
           message,
           code,
-          source: source || serverName,
+          source: source,
           severity: eventType,
           languageName,
-          serverName,
           timestamp: Date.now(),
         },
       })
@@ -548,7 +540,29 @@ export class Editor {
       renderLineHighlightOnlyWhenFocus: false,
       largeFileOptimizations: true,
       formatOnPaste: true,
+      overviewRulerBorder: false,
+      useShadowDOM: false,
     });
+
+    const _detail = document.createElement("div");
+    _detail.className = "details";
+
+    const _problems = document.createElement("div");
+    _problems.className = "problems";
+
+    _problems.onclick = () => {
+      const _tabs = getStandalone(
+        "workbench.workspace.dev.tab"
+      ) as DevPanelTabs;
+      if (_tabs) _tabs._set("problem");
+    };
+
+    _detail.appendChild(_problems);
+
+    this._layout.appendChild(_detail);
+
+    this._detailsElement = _detail;
+    this._problemsCountElement = _problems;
 
     this._mounted = true;
     this._visiblity(false);
@@ -564,6 +578,63 @@ export class Editor {
     ) as HTMLDivElement;
     if (editorElement) {
       editorElement.style.display = visible ? "flex" : "none";
+    }
+  }
+
+  private _updateProblemCount() {
+    const model = this._editor.getModel();
+    if (!model) {
+      this._setNoProblemsState();
+      return;
+    }
+
+    const markers = monaco.editor.getModelMarkers({ resource: model.uri });
+    const errorCount = markers.filter(
+      (m) => m.severity === monaco.MarkerSeverity.Error
+    ).length;
+    const warningCount = markers.filter(
+      (m) => m.severity === monaco.MarkerSeverity.Warning
+    ).length;
+
+    const totalProblems = errorCount + warningCount;
+    this._problemsCountElement!.textContent = totalProblems.toString();
+
+    if (totalProblems === 0) {
+      this._setNoProblemsState();
+    } else {
+      this._clearNoProblemsState();
+    }
+  }
+
+  private _setNoProblemsState() {
+    if (!this._problemsCountElement) return;
+
+    this._problemsCountElement.classList.add("none");
+
+    let noneDiv = this._detailsElement?.querySelector(".none-div");
+    if (!noneDiv) {
+      noneDiv = document.createElement("div");
+      noneDiv.className = "none-div";
+      noneDiv.innerHTML = getThemeIcon("check");
+      noneDiv.addEventListener("click", () => {
+        const _tabs = getStandalone(
+          "workbench.workspace.dev.tab"
+        ) as DevPanelTabs;
+        if (_tabs) _tabs._set("problem");
+      });
+
+      this._detailsElement?.appendChild(noneDiv);
+    }
+  }
+
+  private _clearNoProblemsState() {
+    if (!this._problemsCountElement) return;
+
+    this._problemsCountElement.classList.remove("none");
+
+    const noneDiv = this._detailsElement?.querySelector(".none-div");
+    if (noneDiv) {
+      this._detailsElement?.removeChild(noneDiv);
     }
   }
 
@@ -895,6 +966,8 @@ export class Editor {
       this._editor.setModel(model);
       this._editor.focus();
     }
+
+    this._updateProblemCount();
   }
 
   private _watch(uriString: string) {
@@ -986,8 +1059,6 @@ export class Editor {
     const filePath = uriString;
     const extension = path.extname(filePath).substring(1);
     const languageName = getLanguage(extension);
-    const serverPort = getLanguageServer(extension);
-    const serverName = this._getServerName(serverPort, extension);
 
     previousMarkers.forEach((marker) => {
       const eventType = this._getMarkerEventType(marker.severity);
@@ -1003,7 +1074,6 @@ export class Editor {
           marker.endColumn,
           marker.message,
           languageName,
-          serverName,
           marker.code?.toString(),
           marker.source
         );
@@ -1018,30 +1088,16 @@ export class Editor {
   }
 
   async _save(uriString: string) {
-    const key = this._normalizePath(uriString);
-    const model = this._models.get(key);
+    const key = uriString.toLowerCase().replace(/\//g, "\\");
+    let model = this._models.get(key);
     if (!model || model.isDisposed()) return;
 
     try {
-      const formattedText = await this._format(
-        model.getModeId(),
-        model.getValue(),
-        model.uri.path
-      );
-
-      if (formattedText && formattedText !== model.getValue()) {
-        const fullRange = model.getFullModelRange();
-        model.pushEditOperations(
-          [],
-          [{ range: fullRange, text: formattedText }],
-          () => null
-        );
-      }
-
       fs.createFile(uriString, model.getValue());
-
       this._update(uriString, false);
-    } catch (err) {}
+    } catch (err) {
+      console.error("Save error:", err);
+    }
   }
 
   public _close(uriString: string) {

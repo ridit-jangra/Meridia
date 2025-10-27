@@ -3,12 +3,7 @@ import {
   getStandalone,
   registerStandalone,
 } from "../../../common/standalone.js";
-import {
-  errorIcon,
-  warningIcon,
-  chevronDownIcon,
-  chevronRightIcon,
-} from "../../media/icons.js";
+import { getThemeIcon } from "../../media/icons.js";
 import { Editor } from "../../../../editor/standalone/standalone.js";
 
 export class Problmen extends CoreEl {
@@ -187,7 +182,9 @@ export class Problmen extends CoreEl {
 
     const toggleIconEl = document.createElement("span");
     toggleIconEl.className = "problem-file-toggle";
-    toggleIconEl.innerHTML = isCollapsed ? chevronRightIcon : chevronDownIcon;
+    toggleIconEl.innerHTML = isCollapsed
+      ? getThemeIcon("chevronRight")
+      : getThemeIcon("chevronDown");
 
     const fileNameEl = document.createElement("span");
     fileNameEl.className = "problem-file-name";
@@ -235,7 +232,7 @@ export class Problmen extends CoreEl {
       problemsContainerEl.offsetHeight;
 
       problemsContainerEl.style.maxHeight = `${naturalHeight}px`;
-      toggleIconEl.innerHTML = chevronDownIcon;
+      toggleIconEl.innerHTML = getThemeIcon("chevronDown");
 
       const handleTransitionEnd = () => {
         problemsContainerEl.style.maxHeight = "none";
@@ -259,7 +256,7 @@ export class Problmen extends CoreEl {
       problemsContainerEl.offsetHeight;
 
       problemsContainerEl.style.maxHeight = "0";
-      toggleIconEl.innerHTML = chevronRightIcon;
+      toggleIconEl.innerHTML = getThemeIcon("chevronRight");
     }
   }
 
@@ -277,7 +274,10 @@ export class Problmen extends CoreEl {
 
     const iconEl = document.createElement("span");
     iconEl.className = "problem-icon";
-    iconEl.innerHTML = problem.type === "error" ? errorIcon : warningIcon;
+    iconEl.innerHTML =
+      problem.type === "error"
+        ? getThemeIcon("error")
+        : getThemeIcon("warning");
 
     const messageEl = document.createElement("span");
     messageEl.className = "problem-message";

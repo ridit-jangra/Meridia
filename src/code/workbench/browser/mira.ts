@@ -1,7 +1,7 @@
 import hljs from "highlight.js";
 import { marked } from "marked";
 import { IChatMessage } from "../types.js";
-import { attachIcon, geminiIcon, sendIcon } from "./media/icons.js";
+import { geminiIcon, getThemeIcon } from "./media/icons.js";
 import { CoreEl } from "./parts/el.js";
 import { Chat } from "../common/mira/chat.js";
 
@@ -138,11 +138,11 @@ export class Mira extends CoreEl {
 
     const _send = document.createElement("span");
     _send.className = "send";
-    _send.innerHTML = sendIcon;
+    _send.innerHTML = getThemeIcon("send");
 
     const _attach = document.createElement("span");
     _attach.className = "attach";
-    _attach.innerHTML = attachIcon;
+    _attach.innerHTML = getThemeIcon("attach");
 
     _chatbox.appendChild(this._input);
     _chatbox.appendChild(_attach);

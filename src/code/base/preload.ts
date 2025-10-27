@@ -4,7 +4,7 @@ import os from "os";
 import url from "url";
 import { spawn, SpawnOptions, SpawnOptionsWithoutStdio } from "child_process";
 import { PythonShell } from "python-shell";
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, shell } from "electron";
 import {
   createServerProcess,
   forward,
@@ -419,6 +419,12 @@ export const urlBridge = {
   },
 };
 
+export const electronBridge = {
+  shell: {
+    ...shell,
+  },
+};
+
 window.addEventListener("beforeunload", () => {
   activeWatchers.forEach((watcher, path) => {
     try {
@@ -448,3 +454,4 @@ contextBridge.exposeInMainWorld("spawn", spawnBridge);
 contextBridge.exposeInMainWorld("editor", editorBridge);
 contextBridge.exposeInMainWorld("node", nodeBridge);
 contextBridge.exposeInMainWorld("url", urlBridge);
+contextBridge.exposeInMainWorld("electron", electronBridge);

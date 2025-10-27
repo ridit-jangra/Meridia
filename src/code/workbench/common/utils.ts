@@ -29,6 +29,9 @@ export const tokensToCssVariables: Record<IThemeColors, string> = {
   "workbench.editor.cursor.foreground": "--workbench-editor-cursor-foreground",
   "workbench.editor.line.highlight.background":
     "--workbench-editor-line-highlight-background",
+  "workbench.editor.suggestion.active.background":
+    "--workbench-editor-suggestion-active-background",
+  "workbench.editor.widget.background": "--workbench-editor-widget-background",
   "workbench.mira.chatbox.active.border.foreground":
     "--workbench-mira-chatbox-active-border-foreground",
   "workbench.mira.chatbox.background": "--workbench-mira-chatbox-background",
@@ -201,6 +204,7 @@ export function getFileIcon(_name: string) {
     "wav",
     "mp3",
     "pyi",
+    "map",
   ];
 
   const iconName = _supported.includes(_ext) ? _ext : "default";
@@ -317,5 +321,11 @@ export function openTab(_tab: IEditorTab) {
     ];
 
     dispatch(update_editor_tabs(updatedTabs));
+  }
+}
+
+export function getRunCommand(_path: string) {
+  if (_path.endsWith(".py")) {
+    return "";
   }
 }

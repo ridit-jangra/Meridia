@@ -5,7 +5,7 @@ import { select, watch } from "../../workbench/common/store/selector.js";
 import { update_editor_tabs } from "../../workbench/common/store/slice.js";
 import { getFileIcon, getIcon } from "../../workbench/common/utils.js";
 import { IEditorTab } from "../../workbench/types.js";
-import { closeIcon } from "../../workbench/browser/media/icons.js";
+import { getThemeIcon } from "../../workbench/browser/media/icons.js";
 import { CoreEl } from "../../workbench/browser/parts/el.js";
 
 export class Editor extends CoreEl {
@@ -137,7 +137,7 @@ export class Editor extends CoreEl {
 
         const _closeIcon = document.createElement("span");
         _closeIcon.className = "close-icon";
-        _closeIcon.innerHTML = closeIcon;
+        _closeIcon.innerHTML = getThemeIcon("close");
 
         _closeIcon.onclick = (e) => {
           _close(_tab.uri, e);
@@ -265,7 +265,7 @@ export class Editor extends CoreEl {
 
       const _closeIcon = document.createElement("span");
       _closeIcon.className = "close-icon";
-      _closeIcon.innerHTML = closeIcon;
+      _closeIcon.innerHTML = getThemeIcon("close");
 
       _closeIcon.onclick = (e) => {
         _close(_tab.uri, e);

@@ -7,7 +7,7 @@ import {
 } from "../common/store/slice.js";
 import { getFileIcon } from "../common/utils.js";
 import { IEditorTab, IFolderStructure } from "../types.js";
-import { chevronRightIcon } from "./media/icons.js";
+import { getThemeIcon } from "./media/icons.js";
 import { CoreEl } from "./parts/el.js";
 
 const path = window.path;
@@ -19,7 +19,6 @@ export class Files extends CoreEl {
   private _renderedNodes: Map<string, HTMLElement> = new Map();
   private _renderedChildContainers: Map<string, HTMLElement> = new Map();
   private _lastStructureHash: string = "";
-  private _refreshTimeout: NodeJS.Timeout | null = null;
   private _contextMenuEl: HTMLElement | null = null;
 
   constructor() {
@@ -173,8 +172,6 @@ export class Files extends CoreEl {
     this._el = document.createElement("div");
     this._el.className = "files scrollbar-container x-disable";
 
-    console.log(this._structure);
-
     if (!this._structure.isRoot) {
       this._createEmptyState();
     } else {
@@ -294,7 +291,12 @@ export class Files extends CoreEl {
     const _nodeEl = document.createElement("div");
     _nodeEl.className = "node";
     _nodeEl.dataset.nodeId = node.uri;
+    _nodeEl.dataset.nodeType = node.type;
+
+    _nodeEl.dataset.depth = depth.toString();
     _nodeEl.style.setProperty("--nesting-depth", depth.toString());
+
+    _nodeEl.style.paddingLeft = `${depth * 1.4}rem`;
 
     const _icon = document.createElement("span");
     _icon.className = "icon";
@@ -303,8 +305,9 @@ export class Files extends CoreEl {
       _icon.innerHTML = getFileIcon(node.name);
     } else {
       const isExpanded = this._expandedFolders.has(node.uri);
-      _icon.innerHTML = chevronRightIcon;
+      _icon.innerHTML = getThemeIcon("chevronRight");
       _icon.style.cursor = "pointer";
+      _icon.classList.add("toggle");
 
       if (isExpanded) {
         _icon.classList.add("expanded");
@@ -409,17 +412,29 @@ export class Files extends CoreEl {
   }
 
   private _calculateDepth(container: HTMLElement): number {
-    let depth = 0;
-    let parent = container.parentElement;
+    let parent = container.previousElementSibling as HTMLDivElement;
 
-    while (parent && !parent.classList.contains("tree")) {
-      if (parent.classList.contains("child-nodes")) {
-        depth++;
+    if (parent && parent.classList.contains("node")) {
+      const parentDepth = parent.dataset.depth;
+      if (parentDepth) {
+        const depth = parseInt(parentDepth) + 1;
+        return depth;
       }
-      parent = parent.parentElement;
     }
 
-    return depth;
+    parent = container.parentElement as HTMLDivElement;
+    while (parent && !parent.classList.contains("tree")) {
+      if (parent.classList.contains("node")) {
+        const parentDepth = parent.dataset.depth;
+        if (parentDepth) {
+          const depth = parseInt(parentDepth) + 1;
+          return depth;
+        }
+      }
+      parent = parent.parentElement as HTMLDivElement;
+    }
+
+    return 0;
   }
 
   private async _toggleFolder(nodeId: string, nodeEl: HTMLElement) {
@@ -627,8 +642,6 @@ export class Files extends CoreEl {
     if (node.type === "folder") {
       this._updateChildUris(node, oldUri, newUri);
     }
-
-    this._persistAndUpdateIncremental([parentDir]);
   }
 
   private _updateChildUris(
@@ -825,7 +838,9 @@ export class Files extends CoreEl {
     element: HTMLElement,
     depth: number
   ) {
+    element.dataset.depth = depth.toString();
     element.style.setProperty("--nesting-depth", depth.toString());
+    element.style.paddingLeft = `${depth * 1.4}rem`;
 
     const nameSpan = element.querySelector(".name") as HTMLElement;
     if (nameSpan && nameSpan.textContent !== node.name) {
@@ -918,99 +933,87 @@ export class Files extends CoreEl {
     return cloned;
   }
 
-  private _addNode(parentUri: string, newNode: IFolderStructure): boolean {
-    try {
-      this._structure = this._deepClone(this._structure);
+  private _normalizeUri(uri: string): string {
+    return uri.replace(/\\/g, "/");
+  }
 
-      const parentNode = this._findNodeByUri(this._structure, parentUri);
-
-      if (!parentNode) {
-        this._forceFullRefresh();
-        return false;
+  private _addNode(parentUri: string, newNode: IFolderStructure) {
+    let childContainer = this._renderedChildContainers.get(parentUri);
+    if (!childContainer) {
+      childContainer = this._el?.querySelector(".tree") as
+        | HTMLElement
+        | undefined;
+      if (!childContainer) {
+        return;
       }
+    }
 
-      if (parentNode.type !== "folder") {
-        return false;
-      }
+    const newNodeEl = this._createNodeElement(
+      newNode,
+      this._calculateDepth(childContainer)
+    );
+    childContainer.appendChild(newNodeEl);
 
+    const normalizedUri = this._normalizeUri(newNode.uri);
+    this._renderedNodes.set(normalizedUri, newNodeEl);
+
+    if (newNode.type === "folder") {
+      const newChildContainer = this._createChildContainer(newNode.uri);
+      childContainer.appendChild(newChildContainer);
+      this._renderedChildContainers.set(normalizedUri, newChildContainer);
+    }
+
+    const normalizedParentUri = this._normalizeUri(parentUri);
+    const parentNode = this._findNodeByUri(
+      this._structure,
+      normalizedParentUri
+    );
+    if (parentNode) {
       if (!parentNode.children) {
         parentNode.children = [];
       }
-
-      const existingNode = parentNode.children.find(
-        (child) => child.name === newNode.name || child.uri === newNode.uri
-      );
-
-      if (existingNode) {
-        if (this._shouldUpdateExistingNode(existingNode, newNode)) {
-          Object.assign(existingNode, {
-            ...newNode,
-            uri: newNode.uri || path.join([parentUri, newNode.name]),
-            type: newNode.type || "file",
-            children: newNode.type === "folder" ? newNode.children || [] : [],
-            isRoot: false,
-          });
-
-          this._sortChildren(parentNode);
-          this._persistAndUpdateIncremental([parentUri]);
-          return true;
-        }
-
-        return false;
-      }
-
-      const nodeToAdd: IFolderStructure = {
-        name: newNode.name,
-        uri: newNode.uri || this._createSafeUri(parentUri, newNode.name),
-        type: newNode.type || "file",
-        children: newNode.type === "folder" ? newNode.children || [] : [],
-        isRoot: false,
-      };
-
-      if (this._isUriDuplicate(this._structure, nodeToAdd.uri)) {
-        return false;
-      }
-
-      parentNode.children.push(nodeToAdd);
+      parentNode.children.push(newNode);
       this._sortChildren(parentNode);
-
-      this._persistAndUpdateIncremental([parentUri]);
-
-      return true;
-    } catch (error) {
-      this._forceFullRefresh();
-      return false;
     }
-  }
 
-  private _shouldUpdateExistingNode(
-    existing: IFolderStructure,
-    newNode: IFolderStructure
-  ): boolean {
-    return (
-      existing.type !== newNode.type ||
-      (newNode.type === "folder" &&
-        JSON.stringify(existing.children) !== JSON.stringify(newNode.children))
+    if (newNode.type === "folder") {
+      this._loadedFolders.add(normalizedUri);
+    }
+
+    this._lastStructureHash = this._generateStructureHash(this._structure);
+
+    window.storage.store(
+      "workbench.workspace.folder.structure",
+      this._structure
     );
+    dispatch(update_folder_structure(this._structure));
   }
 
-  private _createSafeUri(parentUri: string, nodeName: string): string {
-    try {
-      const normalizedParent = path.normalize(parentUri);
-      const normalizedName = path.normalize(nodeName);
+  private _removeNode(nodeUri: string) {
+    const normalizedUri = this._normalizeUri(nodeUri);
 
-      if (
-        normalizedName.includes("..") ||
-        normalizedName.includes("/") ||
-        normalizedName.includes("\\")
-      ) {
-        throw new Error(`Invalid node name: ${nodeName}`);
-      }
+    const nodeEl = this._renderedNodes.get(normalizedUri);
+    if (!nodeEl) return;
+    nodeEl.remove();
+    this._renderedNodes.delete(normalizedUri);
 
-      return path.join([normalizedParent, normalizedName]).replace(/\\/g, "/");
-    } catch (error) {
-      return path.join([parentUri, nodeName]).replace(/\\/g, "/");
+    const childContainer = this._renderedChildContainers.get(normalizedUri);
+    if (childContainer) {
+      childContainer.remove();
+      this._renderedChildContainers.delete(normalizedUri);
     }
+
+    this._removeNodeRecursively(this._structure, normalizedUri);
+
+    this._loadedFolders.delete(normalizedUri);
+
+    this._lastStructureHash = this._generateStructureHash(this._structure);
+
+    window.storage.store(
+      "workbench.workspace.folder.structure",
+      this._structure
+    );
+    dispatch(update_folder_structure(this._structure));
   }
 
   private _isUriDuplicate(node: IFolderStructure, targetUri: string): boolean {
@@ -1038,73 +1041,6 @@ export class Files extends CoreEl {
     });
   }
 
-  private _persistAndUpdateIncremental(changedNodeUris: string[]): void {
-    try {
-      if (this._refreshTimeout) {
-        clearTimeout(this._refreshTimeout);
-      }
-
-      window.storage.store(
-        "workbench.workspace.folder.structure",
-        this._structure
-      );
-      dispatch(update_folder_structure(this._structure));
-
-      this._refreshTimeout = setTimeout(() => {
-        const changedNodes = new Set(changedNodeUris);
-        this._updateTreeIncremental(changedNodes);
-        this._refreshTimeout = null;
-      }, 10);
-    } catch (error) {
-      this._forceFullRefresh();
-    }
-  }
-
-  private _forceFullRefresh(): void {
-    try {
-      if (this._refreshTimeout) {
-        clearTimeout(this._refreshTimeout);
-        this._refreshTimeout = null;
-      }
-
-      this._renderedNodes.clear();
-      this._renderedChildContainers.clear();
-      this._lastStructureHash = "";
-
-      const storedStructure = window.storage.get(
-        "workbench.workspace.folder.structure"
-      );
-      if (storedStructure) {
-        this._structure = this._deepClone(storedStructure);
-        dispatch(update_folder_structure(this._structure));
-      }
-
-      this._updateTreeIncremental();
-    } catch (error) {}
-  }
-
-  private _removeNode(nodeUri: string): boolean {
-    try {
-      this._structure = this._deepClone(this._structure);
-
-      const parentNode = this._findParentNode(this._structure, nodeUri);
-      const result = this._removeNodeRecursively(this._structure, nodeUri);
-
-      if (result) {
-        this._cleanupRemovedNode(nodeUri);
-
-        const changedUris = parentNode ? [parentNode.uri] : [];
-        this._persistAndUpdateIncremental(changedUris);
-      } else {
-      }
-
-      return result;
-    } catch (error) {
-      this._forceFullRefresh();
-      return false;
-    }
-  }
-
   private _removeNodeRecursively(
     node: IFolderStructure,
     targetUri: string
@@ -1125,57 +1061,5 @@ export class Files extends CoreEl {
     return node.children.some((child) =>
       this._removeNodeRecursively(child, targetUri)
     );
-  }
-
-  private _cleanupRemovedNode(nodeUri: string): void {
-    this._renderedNodes.delete(nodeUri);
-    this._renderedChildContainers.delete(nodeUri);
-    this._expandedFolders.delete(nodeUri);
-    this._loadedFolders.delete(nodeUri);
-
-    const nodeToRemove = this._findNodeByUri(this._structure, nodeUri);
-    if (nodeToRemove) {
-      this._cleanupNestedFolders(nodeToRemove);
-    }
-  }
-
-  private _findParentNode(
-    node: IFolderStructure,
-    targetUri: string
-  ): IFolderStructure | null {
-    if (!node.children || node.children.length === 0) {
-      return null;
-    }
-
-    const hasChild = node.children.some((child) => child.uri === targetUri);
-    if (hasChild) {
-      return node;
-    }
-
-    for (const child of node.children) {
-      const found = this._findParentNode(child, targetUri);
-      if (found) {
-        return found;
-      }
-    }
-
-    return null;
-  }
-
-  private _cleanupNestedFolders(node: IFolderStructure): void {
-    if (!node.children) {
-      return;
-    }
-
-    node.children.forEach((child) => {
-      if (child.type === "folder") {
-        this._expandedFolders.delete(child.uri);
-        this._loadedFolders.delete(child.uri);
-        this._renderedNodes.delete(child.uri);
-        this._renderedChildContainers.delete(child.uri);
-
-        this._cleanupNestedFolders(child);
-      }
-    });
   }
 }

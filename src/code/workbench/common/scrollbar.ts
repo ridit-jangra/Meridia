@@ -25,7 +25,7 @@ class ScrollbarManager {
     return `${tagName}:${id}:${className}:${innerHTML}:${attributes}`;
   }
 
-  private _captuieStyle(element: Element): IScrollbarState {
+  private _captureStyle(element: Element): IScrollbarState {
     const yDisable = element.classList.contains("y-disable");
     const xDisable = element.classList.contains("x-disable");
 
@@ -91,7 +91,7 @@ class ScrollbarManager {
 
     this._scrollbars.set(element, scrollbar);
     this._setupObserver(element, scrollbar);
-
+    this._setupScrollVisibility(element);
     return scrollbar;
   }
 
@@ -110,10 +110,7 @@ class ScrollbarManager {
       const hasRelevantChanges = mutations.some(
         (mutation) =>
           mutation.type === "childList" ||
-          (mutation.type === "attributes" &&
-            mutation.attributeName === "style" &&
-            ((mutation.target as HTMLElement).style.height !== undefined ||
-              (mutation.target as HTMLElement).style.width !== undefined))
+          (mutation.type === "attributes" && mutation.attributeName === "style")
       );
 
       if (hasRelevantChanges) {
@@ -126,10 +123,24 @@ class ScrollbarManager {
       subtree: true,
       attributes: true,
       attributeFilter: ["style"],
-      attributeOldValue: false,
     });
 
     this._elementObservers.set(element, mutationObserver);
+  }
+
+  private _setupScrollVisibility(element: Element): void {
+    let hideTimeout: NodeJS.Timeout;
+
+    const showScrollbar = () => {
+      element.classList.add("scrolling-active");
+      clearTimeout(hideTimeout);
+      hideTimeout = setTimeout(() => {
+        element.classList.remove("scrolling-active");
+      }, 1000);
+    };
+
+    element.addEventListener("ps-scroll-y", showScrollbar);
+    element.addEventListener("ps-scroll-x", showScrollbar);
   }
 
   private _setup(): void {
@@ -183,7 +194,7 @@ class ScrollbarManager {
             scrollbarElements.forEach((scrollbarEl) => {
               const scrollbar = this._scrollbars.get(scrollbarEl);
               if (scrollbar) {
-                const state = this._captuieStyle(scrollbarEl);
+                const state = this._captureStyle(scrollbarEl);
                 const elementKey = this._generateKey(scrollbarEl);
 
                 this._destroyedScrollbars.set(elementKey, state);
@@ -219,9 +230,7 @@ class ScrollbarManager {
   public update(element?: Element): void {
     if (element) {
       const scrollbar = this._scrollbars.get(element);
-      if (scrollbar) {
-        scrollbar.update();
-      }
+      if (scrollbar) scrollbar.update();
     } else {
       this._scrollbars.forEach((scrollbar) => scrollbar.update());
     }

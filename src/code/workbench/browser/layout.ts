@@ -9,7 +9,7 @@ import { Splitter } from "./parts/splitter.js";
 import { Statusbar } from "./parts/statusbar.js";
 import { DevPanel } from "./parts/devPanel/el.js";
 import { Titlebar } from "./parts/titlebar.js";
-import { runIcon, stopIcon } from "./media/icons.js";
+import { getThemeIcon } from "./media/icons.js";
 import { Mira } from "../../platform/mira/workbench/browser/layout.js";
 import { _xtermManager } from "../common/devPanel/spawnXterm.js";
 import { runCommand } from "../common/command.js";
@@ -65,7 +65,7 @@ export class Layout {
 
         if (_active) runCommand("workbench.editor.run", [_active.uri]);
       },
-      runIcon
+      getThemeIcon("run")
     );
 
     const stopOption = new PanelOption(
@@ -77,33 +77,35 @@ export class Layout {
 
         if (_active) runCommand("workbench.editor.stop", [_active.uri]);
       },
-      stopIcon
+      getThemeIcon("stop")
     );
 
     document.addEventListener("workbench.editor.run.disable", () => {
-      runOption.getDomElement()!.classList.add("disabled");
-      runOption.getDomElement()!.style.pointerEvents = "none";
-      runOption.getDomElement()!.style.opacity = "0.5";
+      runOption.getDomElement()!.innerHTML = getThemeIcon("rerun");
+      runOption.getDomElement()!.onclick = () => {
+        const _tabs = select((s) => s.main.editor_tabs);
+        const _active = _tabs.find((t) => t.active);
+
+        if (_active) runCommand("workbench.editor.rerun", [_active.uri]);
+      };
     });
     document.addEventListener("workbench.editor.run.enable", () => {
-      runOption.getDomElement()!.classList.remove("disabled");
-      runOption.getDomElement()!.style.pointerEvents = "auto";
-      runOption.getDomElement()!.style.opacity = "1";
+      runOption.getDomElement()!.innerHTML = getThemeIcon("run");
+      runOption.getDomElement()!.onclick = () => {
+        const _tabs = select((s) => s.main.editor_tabs);
+        const _active = _tabs.find((t) => t.active);
+
+        if (_active) runCommand("workbench.editor.run", [_active.uri]);
+      };
     });
     document.addEventListener("workbench.editor.stop.disable", () => {
-      stopOption.getDomElement()!.classList.add("disabled");
-      stopOption.getDomElement()!.style.pointerEvents = "none";
-      stopOption.getDomElement()!.style.opacity = "0.5";
+      stopOption.getDomElement()!.style.display = "none";
     });
     document.addEventListener("workbench.editor.stop.enable", () => {
-      stopOption.getDomElement()!.classList.remove("disabled");
-      stopOption.getDomElement()!.style.pointerEvents = "auto";
-      stopOption.getDomElement()!.style.opacity = "1";
+      stopOption.getDomElement()!.style.display = "flex";
     });
 
-    stopOption.getDomElement()!.classList.add("disabled");
-    stopOption.getDomElement()!.style.pointerEvents = "none";
-    stopOption.getDomElement()!.style.opacity = "0.5";
+    stopOption.getDomElement()!.style.display = "none";
 
     const middlePanelOptions = new PanelOptions(
       [runOption, stopOption],

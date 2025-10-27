@@ -1,11 +1,6 @@
 import PerfectScrollbar from "perfect-scrollbar";
 import { IDevTab } from "../../../types.js";
-import {
-  eillipsisIcon,
-  problemIcon,
-  runIcon,
-  terminalIcon,
-} from "../../media/icons.js";
+import { getThemeIcon } from "../../media/icons.js";
 import { CoreEl } from "../el.js";
 import { Panel } from "../panel.js";
 import { _terminal } from "./terminal.js";
@@ -21,19 +16,19 @@ export class DevPanelTabs extends CoreEl {
       id: `terminal`,
       name: "Terminal",
       active: true,
-      icon: terminalIcon,
+      icon: getThemeIcon("terminal"),
     },
     {
       id: `run`,
       name: "Run",
       active: false,
-      icon: runIcon,
+      icon: getThemeIcon("run"),
     },
     {
       id: `problem`,
       name: "Problems",
       active: false,
-      icon: problemIcon,
+      icon: getThemeIcon("problem"),
     },
   ];
   private _contentEl: HTMLElement;
@@ -104,7 +99,7 @@ export class DevPanelTabs extends CoreEl {
 
       const icon = document.createElement("span");
       icon.className = "icon";
-      icon.innerHTML = tab.icon ?? terminalIcon;
+      icon.innerHTML = tab.icon ?? getThemeIcon("terminal");
 
       tabEl.appendChild(icon);
 

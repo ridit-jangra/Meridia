@@ -1,6 +1,8 @@
 import { dispatch } from "./store/store.js";
 import { select } from "./store/selector.js";
 import { update_panel_state } from "./store/slice.js";
+import { getStandalone } from "./standalone.js";
+import { Editor } from "../../editor/standalone/standalone.js";
 
 const ipcRenderer = window.ipc;
 
@@ -19,5 +21,11 @@ document.addEventListener("workbench.workspace.toggle.action", (_event) => {
     dispatch(update_panel_state({ ..._state, bottom: !_state.bottom }));
   } else if (_action === "workbench.files.open") {
     ipcRenderer.invoke("workbench.workspace.folder.open");
+  } else if (_action === "workbench.editor.save") {
+    const _editor = getStandalone("editor") as Editor;
+    if (_editor && _editor._editor) {
+      const _model = _editor._editor.getModel();
+      _editor._save(_model?.uri.path!);
+    }
   }
 });

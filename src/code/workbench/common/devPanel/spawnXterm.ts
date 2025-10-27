@@ -59,6 +59,9 @@ class XtermManager {
       scrollback: 1000,
       fontFamily: "Jetbrains Mono",
       fontSize: 18,
+      cursorBlink: true,
+      cursorStyle: "bar",
+      cursorInactiveStyle: "none",
     });
     term.open(_container);
 
@@ -79,21 +82,16 @@ class XtermManager {
     );
 
     const onPtyData = (_event: any, data: string) => {
-      let filteredData = this._filter(id, data);
-
-      if (
-        filteredData.includes("\x1b[H\x1b[2J") ||
-        filteredData.includes("\x1b[2J")
-      ) {
+      if (data.includes("\x1b[H\x1b[2J") || data.includes("\x1b[2J")) {
         term.clear();
 
         this._dispatch("workbench.terminal.clear", { id });
-      } else if (filteredData.length > 0) {
-        term.write(filteredData);
+      } else if (data.length > 0) {
+        term.write(data);
 
         this._dispatch("workbench.terminal.output", {
           id,
-          data: filteredData,
+          data: data,
         });
       }
     };
@@ -158,117 +156,6 @@ class XtermManager {
     return _container;
   }
 
-  _updateTheme() {
-    const _theme = getStandalone("theme") as Theme;
-
-    for (const [id, instance] of this._terminals) {
-      instance.term.options.theme = {
-        background: _theme.getColor("workbench.terminal.background"),
-        foreground: _theme.getColor("workbench.terminal.foreground"),
-        cursor: _theme.getColor("workbench.terminal.cursor.foreground"),
-        selectionBackground: _theme.getColor(
-          "workbench.terminal.selection.background"
-        ),
-        black: _theme.getColor("workbench.terminal.black"),
-        red: _theme.getColor("workbench.terminal.red"),
-        green: _theme.getColor("workbench.terminal.green"),
-        yellow: _theme.getColor("workbench.terminal.yellow"),
-        blue: _theme.getColor("workbench.terminal.blue"),
-        magenta: _theme.getColor("workbench.terminal.magenta"),
-        cyan: _theme.getColor("workbench.terminal.cyan"),
-        white: _theme.getColor("workbench.terminal.white"),
-        brightBlack: _theme.getColor("workbench.terminal.bright.black"),
-        brightRed: _theme.getColor("workbench.terminal.bright.red"),
-        brightGreen: _theme.getColor("workbench.terminal.bright.green"),
-        brightYellow: _theme.getColor("workbench.terminal.bright.yellow"),
-        brightBlue: _theme.getColor("workbench.terminal.bright.blue"),
-        brightMagenta: _theme.getColor("workbench.terminal.bright.magenta"),
-        brightCyan: _theme.getColor("workbench.terminal.bright.cyan"),
-        brightWhite: _theme.getColor("workbench.terminal.bright.white"),
-      };
-    }
-
-    this._dispatch("workbench.terminal.theme.changed");
-  }
-
-  private _filter(id: string, data: string): string {
-    const executionMarkerRegex =
-      /__EXECUTION_COMPLETE_[a-f0-9]{8}__([A-Z_]+)(_\d+)?/;
-
-    const markerMatch = data.match(executionMarkerRegex);
-    const hasSuccessMarker = data.includes("__SUCCESS");
-    const hasErrorMarker = data.includes("__ERROR");
-    const hasInterruptedMarker = data.includes("__INTERRUPTED");
-    const hasExceptionMarker = data.includes("__EXCEPTION");
-
-    if (
-      markerMatch ||
-      hasSuccessMarker ||
-      hasErrorMarker ||
-      hasInterruptedMarker ||
-      hasExceptionMarker
-    ) {
-      this._completionDetected.set(id, true);
-
-      const commandInfo = this._runningCommands.get(id);
-      if (commandInfo) {
-        this._runningCommands.set(id, { ...commandInfo, isRunning: false });
-      }
-
-      let status: "success" | "error" | "interrupted" = "success";
-      if (hasErrorMarker || hasExceptionMarker) {
-        status = "error";
-      } else if (hasInterruptedMarker) {
-        status = "interrupted";
-      }
-
-      this._dispatch("workbench.editor.run.complete", {
-        id,
-        status,
-        output: data,
-      });
-
-      this._dispatch("workbench.editor.run.enable");
-      this._dispatch("workbench.editor.stop.disable");
-
-      this._dispatchStatusUpdate(
-        id,
-        status === "success" ? "stopped" : "error"
-      );
-
-      const callback = this._completionCallbacks.get(id);
-      if (callback) {
-        callback(status);
-        this._completionCallbacks.delete(id);
-      }
-
-      const lines = data.split("\n");
-      const filteredLines = [];
-
-      for (const line of lines) {
-        if (
-          line.match(executionMarkerRegex) ||
-          line.includes("__EXECUTION_COMPLETE_") ||
-          line.includes("__SUCCESS") ||
-          line.includes("__ERROR") ||
-          line.includes("__INTERRUPTED") ||
-          line.includes("__EXCEPTION")
-        ) {
-          break;
-        }
-        filteredLines.push(line);
-      }
-
-      return filteredLines.join("\n");
-    }
-
-    if (this._completionDetected.get(id)) {
-      return "";
-    }
-
-    return data;
-  }
-
   _get(id: string): HTMLElement | null {
     return this._terminals.get(id)?._container || null;
   }
@@ -328,37 +215,101 @@ class XtermManager {
   }
 
   async _run(id: string, command: string, _path: string) {
-    this._dispatch("workbench.editor.run.start", {
-      id,
-      command,
-      path: _path,
-    });
-
     this._dispatch("workbench.editor.run.disable");
     this._dispatch("workbench.editor.stop.enable");
 
-    await this._spawn(id, "", _path);
+    const cwd = select((s) => s.main.folder_structure).uri ?? "/";
 
-    const instance = this._terminals.get(id);
-    if (!instance?.term) {
-      this._dispatch("workbench.editor.run.error", {
-        id,
-        error: "Failed to create terminal instance",
-      });
-      return false;
-    }
+    this._dispose(id);
 
-    this._completionDetected.set(id, false);
+    const _container = document.createElement("div");
+    _container.style.position = "relative";
+    _container.style.width = "100%";
+    _container.style.height = "100%";
+    _container.style.background = "var(--workbench-terminal-background)";
+    _container.style.display = "flex";
+    _container.style.flexDirection = "column";
+    _container.style.padding = "12px";
+
+    const term = new XTerm({
+      scrollback: 1000,
+      fontFamily: "Jetbrains Mono",
+      fontSize: 18,
+      cursorBlink: true,
+      cursorStyle: "bar",
+      cursorInactiveStyle: "none",
+    });
+    term.open(_container);
+
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+    fitAddon.fit();
+
+    const _theme = getStandalone("theme") as Theme;
+    term.options.theme = {
+      background: _theme.getColor("workbench.terminal.background"),
+      foreground: _theme.getColor("workbench.terminal.foreground"),
+      cursor: _theme.getColor("workbench.terminal.cursor.foreground"),
+      selectionBackground: _theme.getColor(
+        "workbench.terminal.selection.background"
+      ),
+      black: _theme.getColor("workbench.terminal.black"),
+      red: _theme.getColor("workbench.terminal.red"),
+      green: _theme.getColor("workbench.terminal.green"),
+      yellow: _theme.getColor("workbench.terminal.yellow"),
+      blue: _theme.getColor("workbench.terminal.blue"),
+      magenta: _theme.getColor("workbench.terminal.magenta"),
+      cyan: _theme.getColor("workbench.terminal.cyan"),
+      white: _theme.getColor("workbench.terminal.white"),
+      brightBlack: _theme.getColor("workbench.terminal.bright.black"),
+      brightRed: _theme.getColor("workbench.terminal.bright.red"),
+      brightGreen: _theme.getColor("workbench.terminal.bright.green"),
+      brightYellow: _theme.getColor("workbench.terminal.bright.yellow"),
+      brightBlue: _theme.getColor("workbench.terminal.bright.blue"),
+      brightMagenta: _theme.getColor("workbench.terminal.bright.magenta"),
+      brightCyan: _theme.getColor("workbench.terminal.bright.cyan"),
+      brightWhite: _theme.getColor("workbench.terminal.bright.white"),
+    };
+
+    term.clear();
+    // term.options.disableStdin = false;
+
+    this._terminals.set(id, {
+      term,
+      _container,
+      _fitAddon: fitAddon,
+      _ptyDataListener: () => {},
+    });
+
     this._runningCommands.set(id, { isRunning: true });
 
-    instance.term.clear();
-    instance.term.options.disableStdin = false;
+    term.write("\x1b[90m" + command + "\x1b[0m" + "\r\n\n");
 
-    this._dispatchStatusUpdate(id, "running");
+    ipcRenderer.send("workbench.terminal.user.run", command, id, cwd);
 
-    ipcRenderer.invoke("workbench.terminal.data.user", id, `${command}\r`);
+    term.onData((data) => {
+      ipcRenderer.send("workbench.terminal.run.user.data", id, data);
+    });
 
-    return id;
+    ipcRenderer.on(
+      `workbench.terminal.user.run.stdout.${id}`,
+      (event: any, data: string) => {
+        this._update();
+        term.write(data);
+      }
+    );
+
+    ipcRenderer.on(
+      `workbench.terminal.user.run.exit.${id}`,
+      (event: any, code: string) => {
+        term.write(`\r\n\x1b[90mProcess exited with code ${code}\x1b[0m\r\n`);
+
+        this._dispatch("workbench.editor.run.enable");
+        this._dispatch("workbench.editor.stop.disable");
+      }
+    );
+
+    return _container;
   }
 
   async _stop(id: string): Promise<boolean> {
@@ -367,40 +318,25 @@ class XtermManager {
       return false;
     }
 
-    this._dispatch("workbench.editor.stop.start", { id });
-
     const term = this._terminals.get(id)?.term;
 
     if (term) {
       try {
-        await ipcRenderer.invoke("workbench.terminal.kill", id);
+        await ipcRenderer.invoke("workbench.terminal.run.kill", id);
 
         this._runningCommands.set(id, { ...commandInfo, isRunning: false });
         this._completionDetected.set(id, true);
 
         term.options.disableStdin = true;
 
-        const callback = this._completionCallbacks.get(id);
-        if (callback) {
-          callback("interrupted");
-          this._completionCallbacks.delete(id);
-        }
-
-        this._dispatch("workbench.editor.stop.success", { id });
+        this._completionCallbacks.delete(id);
 
         this._dispatch("workbench.editor.run.enable");
         this._dispatch("workbench.editor.stop.disable");
 
-        this._dispatchStatusUpdate(id, "stopped");
-
         return true;
       } catch (error) {
         console.error("Stop error:", error);
-
-        this._dispatch("workbench.editor.stop.error", {
-          id,
-          error: error,
-        });
 
         return false;
       }
@@ -408,56 +344,10 @@ class XtermManager {
 
     return false;
   }
-
-  _isRunning(id: string): boolean {
-    const commandInfo = this._runningCommands.get(id);
-    return commandInfo?.isRunning ?? false;
-  }
-
-  _isCompleted(id: string): boolean {
-    return this._completionDetected.get(id) ?? false;
-  }
-
-  _dispatchTerminalEvent(eventType: string, id: string, data?: any) {
-    this._dispatch(`workbench.terminal.${eventType}`, {
-      terminalId: id,
-      ...data,
-    });
-  }
-
-  _dispatchStatusUpdate(id: string, status: "running" | "stopped" | "error") {
-    this._dispatch("workbench.terminal.status.update", {
-      id,
-      status,
-      timestamp: Date.now(),
-    });
-  }
-
-  _dispatchThemeChange() {
-    this._dispatch("workbench.terminal.theme.changed");
-  }
-
-  dispatchCustomEvent(eventName: string, detail?: any) {
-    this._dispatch(eventName, detail);
-  }
-
-  dispatchBatchEvents(events: Array<{ name: string; detail?: any }>) {
-    events.forEach((event) => {
-      this._dispatch(event.name, event.detail);
-    });
-  }
 }
 
 export const _xtermManager = new XtermManager();
 
 ipcRenderer.on("reset-sizes", () => {
   _xtermManager._update();
-});
-
-ipcRenderer.on("workbench.terminal.theme.update", () => {
-  _xtermManager._updateTheme();
-});
-
-ipcRenderer.on("workbench.terminal.dispose.all", () => {
-  _xtermManager._disposeAll();
 });

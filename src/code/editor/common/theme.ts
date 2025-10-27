@@ -12,14 +12,10 @@ const _lineHighlight = _theme.getColor(
 );
 const _tokens = _theme.getActiveTheme().tokenColors!;
 
-const _widgetBackground = _theme.getColor("workbench.panel.background");
+const _widgetBackground = _theme.getColor("workbench.editor.widget.background");
 const _hoverBackground = _theme.getColor("workbench.item.hover.background");
 const _borderForeground = _theme.getColor("workbench.border.foreground");
 const _inputBackground = _theme.getColor("workbench.input.background");
-const _tabsActiveBackground = _theme.getColor(
-  "workbench.tabs.active.background"
-);
-const _scrollbarBackground = _theme.getColor("workbench.scrollbar.background");
 const _scrollbarThumb = _theme.getColor("workbench.scrollbar.thumb.foreground");
 const _scrollbarThumbHover = _theme.getColor(
   "workbench.scrollbar.thumb.hover.foreground"

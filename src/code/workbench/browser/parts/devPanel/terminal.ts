@@ -1,5 +1,5 @@
 import { IDevPanelTab } from "../../../types.js";
-import { addIcon, closeIcon, terminalIcon } from "../../media/icons.js";
+import { getThemeIcon } from "../../media/icons.js";
 import { CoreEl } from "../el.js";
 import { _xtermManager } from "../../../common/devPanel/spawnXterm.js";
 import PerfectScrollbar from "perfect-scrollbar";
@@ -75,7 +75,7 @@ export class Terminal extends CoreEl {
 
       const icon = document.createElement("span");
       icon.className = "icon";
-      icon.innerHTML = terminalIcon;
+      icon.innerHTML = getThemeIcon("terminal");
 
       const name = document.createElement("span");
       name.className = "name";
@@ -83,7 +83,7 @@ export class Terminal extends CoreEl {
 
       const closeButton = document.createElement("span");
       closeButton.className = "close-icon";
-      closeButton.innerHTML = closeIcon;
+      closeButton.innerHTML = getThemeIcon("close");
       closeButton.onclick = (e) => {
         e.stopPropagation();
         this._close(tab.id);
@@ -97,7 +97,7 @@ export class Terminal extends CoreEl {
     });
 
     const add = document.createElement("span");
-    add.innerHTML = addIcon;
+    add.innerHTML = getThemeIcon("add");
 
     add.onclick = () => {
       const newTab = this._add();
