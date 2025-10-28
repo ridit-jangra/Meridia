@@ -79,6 +79,10 @@
   height: auto;
 }
 
+.code .files .tree-container {
+  height: 100%;
+}
+
 .code .files .tree .node,
 .code .files .tree .child-nodes {
   min-width: 0;
