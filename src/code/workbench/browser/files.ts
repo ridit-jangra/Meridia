@@ -11,6 +11,7 @@ import { getThemeIcon } from "./media/icons.js";
 import { CoreEl } from "./parts/el.js";
 
 const path = window.path;
+const fs = window.fs;
 
 export class Files extends CoreEl {
   private _structure: IFolderStructure;
@@ -20,6 +21,7 @@ export class Files extends CoreEl {
   private _renderedChildContainers: Map<string, HTMLElement> = new Map();
   private _lastStructureHash: string = "";
   private _contextMenuEl: HTMLElement | null = null;
+  private _isRenamingInProgress = false;
 
   constructor() {
     super();
@@ -126,6 +128,21 @@ export class Files extends CoreEl {
         this._removeNode(data.nodeUri);
       }
     );
+
+    ipcRender.on(
+      "files-node-renamed",
+      (
+        _: any,
+        data: {
+          oldUri: string;
+          newUri: string;
+          newName: string;
+        }
+      ) => {
+        console.log("renaming", data);
+        this._renameNode(data.oldUri, data.newName);
+      }
+    );
   }
 
   private async _restore() {
@@ -170,7 +187,7 @@ export class Files extends CoreEl {
 
   private _createEl() {
     this._el = document.createElement("div");
-    this._el.className = "files scrollbar-container x-disable";
+    this._el.className = "files";
 
     if (!this._structure.isRoot) {
       this._createEmptyState();
@@ -200,12 +217,48 @@ export class Files extends CoreEl {
   }
 
   private _createTreeView() {
+    const _root = document.createElement("div");
+    _root.className = "root";
+
+    const _title = document.createElement("span");
+    _title.className = "title";
+    _title.textContent = path.basename(this._structure.uri);
+
+    const _options = document.createElement("div");
+    _options.className = "options";
+
+    const _addFile = document.createElement("span");
+    _addFile.innerHTML = getThemeIcon("addFile");
+
+    _addFile.onclick = () => {
+      this._startAddNode(this._structure.uri, "file");
+    };
+
+    const _addFolder = document.createElement("span");
+    _addFolder.innerHTML = getThemeIcon("addDirectory");
+
+    _addFolder.onclick = () => {
+      this._startAddNode(this._structure.uri, "folder");
+    };
+
+    _options.appendChild(_addFile);
+    _options.appendChild(_addFolder);
+
+    _root.appendChild(_title);
+    _root.appendChild(_options);
+
+    const _treeContainer = document.createElement("div");
+    _treeContainer.className = "tree-container scrollbar-container x-disable";
+
     const _tree = document.createElement("div");
     _tree.className = "tree";
 
     this._render(this._structure.children, _tree, 0);
 
-    this._el!.appendChild(_tree);
+    _treeContainer.appendChild(_tree);
+
+    this._el!.appendChild(_root);
+    this._el!.appendChild(_treeContainer);
   }
 
   private _handleOpenFolder() {
@@ -581,10 +634,15 @@ export class Files extends CoreEl {
 
   private _startAddNode(parentUri: string, type: "file" | "folder") {
     const parentElement = this._renderedNodes.get(parentUri);
-    if (!parentElement || parentElement.dataset.nodeType !== "folder") return;
 
-    const childContainer = this._renderedChildContainers.get(parentUri);
-    if (!childContainer) return;
+    let childContainer = this._renderedChildContainers.get(parentUri);
+
+    if (!childContainer) {
+      childContainer = this._el!.querySelector(".tree") as HTMLDivElement;
+      if (!childContainer) {
+        return;
+      }
+    }
 
     const input = document.createElement("input");
     input.type = "text";
@@ -600,10 +658,24 @@ export class Files extends CoreEl {
 
     input.focus();
 
+    let isProcessing = false;
+
     const finishAdd = (confirmed: boolean) => {
+      if (isProcessing) return;
+      isProcessing = true;
+
       const name = input.value.trim();
       if (confirmed && name) {
         const uri = path.join([parentUri, name]);
+
+        if (this._isDuplicateInParent(parentUri, name)) {
+          alert(`A ${type} named "${name}" already exists in this location.`);
+          isProcessing = false;
+          input.focus();
+          input.select();
+          return;
+        }
+
         const newNode: IFolderStructure = {
           name,
           uri,
@@ -611,23 +683,46 @@ export class Files extends CoreEl {
           children: [],
           isRoot: false,
         };
-        this._addNode(parentUri, newNode);
+        if (type === "file") fs.createFile(uri);
+        else fs.createFolder(uri);
       }
       tempLi.remove();
     };
 
-    input.addEventListener("blur", () => finishAdd(false));
     input.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") finishAdd(true);
-      if (e.key === "Escape") finishAdd(false);
+      if (e.key === "Enter") {
+        e.preventDefault();
+        finishAdd(true);
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        finishAdd(false);
+      }
+    });
+
+    input.addEventListener("blur", () => {
+      setTimeout(() => finishAdd(false), 100);
     });
   }
 
-  private _performRename(nodeUri: string, newName: string) {
-    const node = this._findNodeByUri(this._structure, nodeUri);
-    if (!node || !newName || node.name === newName) return;
+  private _isDuplicateInParent(parentUri: string, name: string): boolean {
+    const normalizedParentUri = this._normalizeUri(parentUri);
+    const parentNode = this._findNodeByUri(
+      this._structure,
+      normalizedParentUri
+    );
 
-    const oldUri = node.uri;
+    if (!parentNode || !parentNode.children) {
+      return false;
+    }
+
+    return parentNode.children.some(
+      (child) => child.name.toLowerCase() === name.toLowerCase()
+    );
+  }
+
+  private async _performRename(nodeUri: string, newName: string) {
+    const oldUri = nodeUri;
     const parentDir = path.dirname(oldUri);
     const newUri = path.join([parentDir, newName]);
 
@@ -636,12 +731,10 @@ export class Files extends CoreEl {
       return;
     }
 
-    node.name = newName;
-    node.uri = newUri;
+    fs.rename(nodeUri, newUri);
 
-    if (node.type === "folder") {
-      this._updateChildUris(node, oldUri, newUri);
-    }
+    const _newStructure = await path.walkdir(this._structure.uri);
+    this._structure = _newStructure;
   }
 
   private _updateChildUris(
@@ -937,7 +1030,119 @@ export class Files extends CoreEl {
     return uri.replace(/\\/g, "/");
   }
 
-  private _addNode(parentUri: string, newNode: IFolderStructure) {
+  private async _renameNode(nodeUri: string, newName: string) {
+    const node = this._findNodeByUri(this._structure, nodeUri);
+    if (!node || !newName || node.name === newName) {
+      return;
+    }
+
+    const oldUri = node.uri;
+    const parentDir = path.dirname(oldUri);
+    const newUri = path.join([parentDir, newName]);
+
+    if (this._isDuplicateInParent(parentDir, newName)) {
+      alert("A file or folder with that name already exists.");
+      return;
+    }
+
+    try {
+      this._isRenamingInProgress = true;
+
+      await fs.rename(oldUri, newUri);
+
+      node.name = newName;
+      node.uri = newUri;
+
+      if (node.type === "folder") {
+        this._updateChildUris(node, oldUri, newUri);
+      }
+
+      const nodeElement = this._renderedNodes.get(oldUri);
+      if (nodeElement) {
+        const nameSpan = nodeElement.querySelector(".name") as HTMLElement;
+        if (nameSpan) {
+          nameSpan.textContent = newName;
+        }
+
+        nodeElement.dataset.nodeId = newUri;
+
+        this._renderedNodes.delete(oldUri);
+        this._renderedNodes.set(newUri, nodeElement);
+      }
+
+      if (node.type === "folder") {
+        const childContainer = this._renderedChildContainers.get(oldUri);
+        if (childContainer) {
+          childContainer.dataset.nodeId = newUri;
+          this._renderedChildContainers.delete(oldUri);
+          this._renderedChildContainers.set(newUri, childContainer);
+        }
+      }
+
+      if (this._expandedFolders.has(oldUri)) {
+        this._expandedFolders.delete(oldUri);
+        this._expandedFolders.add(newUri);
+        window.storage.store(
+          "files-expanded-folder",
+          Array.from(this._expandedFolders)
+        );
+      }
+
+      if (this._loadedFolders.has(oldUri)) {
+        this._loadedFolders.delete(oldUri);
+        this._loadedFolders.add(newUri);
+      }
+
+      this._lastStructureHash = this._generateStructureHash(this._structure);
+      window.storage.store(
+        "workbench.workspace.folder.structure",
+        this._structure
+      );
+      dispatch(update_folder_structure(this._structure));
+
+      this._updateTabs(oldUri, newUri, newName);
+
+      setTimeout(() => {
+        this._isRenamingInProgress = false;
+      }, 500);
+    } catch (error) {
+      this._isRenamingInProgress = false;
+      console.error("Failed to rename:", error);
+      alert("Failed to rename. Please try again.");
+    }
+  }
+
+  private _updateTabs(oldUri: string, newUri: string, newName: string) {
+    const stateValue = select((s) => s.main.editor_tabs);
+    let currentTabs: IEditorTab[] = [];
+
+    if (Array.isArray(stateValue)) {
+      currentTabs = stateValue;
+    } else if (stateValue && typeof stateValue === "object") {
+      currentTabs = Object.values(stateValue);
+    }
+
+    const updatedTabs = currentTabs.map((tab) => {
+      if (tab.uri === oldUri) {
+        return { ...tab, uri: newUri, name: newName };
+      }
+      return tab;
+    });
+
+    const hasChanged = updatedTabs.some(
+      (tab, index) => tab.uri !== currentTabs[index]?.uri
+    );
+
+    if (hasChanged) {
+      dispatch(update_editor_tabs(updatedTabs));
+    }
+  }
+
+  private async _addNode(parentUri: string, newNode: IFolderStructure) {
+    if (this._isRenamingInProgress) {
+      return;
+    }
+
     let childContainer = this._renderedChildContainers.get(parentUri);
     if (!childContainer) {
       childContainer = this._el?.querySelector(".tree") as
@@ -952,14 +1157,30 @@ export class Files extends CoreEl {
       newNode,
       this._calculateDepth(childContainer)
     );
-    childContainer.appendChild(newNodeEl);
+
+    const insertPosition = this._findInsertPositionAlphabetically(
+      childContainer,
+      newNode
+    );
+
+    if (insertPosition) {
+      childContainer.insertBefore(newNodeEl, insertPosition);
+    } else {
+      childContainer.appendChild(newNodeEl);
+    }
 
     const normalizedUri = this._normalizeUri(newNode.uri);
     this._renderedNodes.set(normalizedUri, newNodeEl);
 
     if (newNode.type === "folder") {
       const newChildContainer = this._createChildContainer(newNode.uri);
-      childContainer.appendChild(newChildContainer);
+
+      if (newNodeEl.nextSibling) {
+        childContainer.insertBefore(newChildContainer, newNodeEl.nextSibling);
+      } else {
+        childContainer.appendChild(newChildContainer);
+      }
+
       this._renderedChildContainers.set(normalizedUri, newChildContainer);
     }
 
@@ -980,6 +1201,9 @@ export class Files extends CoreEl {
       this._loadedFolders.add(normalizedUri);
     }
 
+    const _newStructure = await path.walkdir(this._structure.uri);
+    this._structure = _newStructure;
+
     this._lastStructureHash = this._generateStructureHash(this._structure);
 
     window.storage.store(
@@ -989,25 +1213,55 @@ export class Files extends CoreEl {
     dispatch(update_folder_structure(this._structure));
   }
 
-  private _removeNode(nodeUri: string) {
-    const normalizedUri = this._normalizeUri(nodeUri);
+  private _findInsertPositionAlphabetically(
+    container: HTMLElement,
+    newNode: IFolderStructure
+  ): HTMLElement | null {
+    const children = Array.from(container.children);
+    const newNodeName = newNode.name.toLowerCase();
+    const newNodeType = newNode.type;
 
-    const nodeEl = this._renderedNodes.get(normalizedUri);
-    if (!nodeEl) return;
-    nodeEl.remove();
-    this._renderedNodes.delete(normalizedUri);
+    for (const child of children) {
+      const element = child as HTMLElement;
 
-    const childContainer = this._renderedChildContainers.get(normalizedUri);
-    if (childContainer) {
-      childContainer.remove();
-      this._renderedChildContainers.delete(normalizedUri);
+      if (!element.classList.contains("node")) {
+        continue;
+      }
+
+      const elementType = element.dataset.nodeType;
+      const nameSpan = element.querySelector(".name") as HTMLElement;
+      const elementName = nameSpan?.textContent?.toLowerCase() || "";
+
+      if (newNodeType === "folder") {
+        if (elementType === "file") {
+          return element;
+        }
+
+        if (elementType === "folder" && elementName > newNodeName) {
+          return element;
+        }
+      }
+
+      if (newNodeType === "file" && elementType === "file") {
+        if (elementName > newNodeName) {
+          return element;
+        }
+      }
     }
 
-    this._removeNodeRecursively(this._structure, normalizedUri);
+    return null;
+  }
 
-    this._loadedFolders.delete(normalizedUri);
+  private async _removeNode(nodeUri: string) {
+    if (this._isRenamingInProgress) {
+      return;
+    }
 
-    this._lastStructureHash = this._generateStructureHash(this._structure);
+    if (fs.isFolder(nodeUri)) fs.deleteFolder(nodeUri);
+    else fs.deleteFile(nodeUri);
+
+    const _newStructure = await path.walkdir(this._structure.uri);
+    this._structure = _newStructure;
 
     window.storage.store(
       "workbench.workspace.folder.structure",

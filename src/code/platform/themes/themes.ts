@@ -232,7 +232,7 @@ export const Dark: ITheme = {
     "workbench.drawboard.canvas.background": "#18191b",
     "workbench.drawboard.canvas.grid.background": "#37383a",
     "workbench.drawboard.canvas.stroke.foreground": "#d9a654",
-    "workbench.drawboard.tools.background": "#28292b",
+    "workbench.drawboard.tools.background": "#141517",
     "workbench.drawboard.tools.tool.active.background": "#0e5098",
     "workbench.drawboard.tools.tool.hover.background": "#142f4d",
     "workbench.drawboard.tools.tool.active.border.foreground": "#0a3a73",

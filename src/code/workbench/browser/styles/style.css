@@ -39,12 +39,8 @@
   height: auto;
 }
 
-.code svg.markdown path {
-  fill: var(--workbench-terminal-color4);
-}
-
 .code svg.license path {
-  fill: var(--workbench-icon-foreground);
+  fill: var(--workbench-terminal-color4);
 }
 
 .code svg.terminal rect,

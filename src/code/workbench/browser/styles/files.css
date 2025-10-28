@@ -40,6 +40,45 @@
   position: relative;
 }
 
+.code .files .root {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  max-height: 40px;
+  width: 96%;
+  align-self: center;
+}
+
+.code .files .root .title {
+  font-size: 18px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.code .files .root .options {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.code .files .root .options span {
+  padding: 4px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.code .files .root .options span:hover {
+  background: var(--workbench-hover-background);
+}
+
+.code .files .root .options span svg {
+  width: 22px;
+  height: auto;
+}
+
 .code .files .tree .node,
 .code .files .tree .child-nodes {
   min-width: 0;

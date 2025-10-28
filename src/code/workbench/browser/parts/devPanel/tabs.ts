@@ -7,6 +7,9 @@ import { _terminal } from "./terminal.js";
 import { _run } from "./run.js";
 import { _problem } from "./problem.js";
 import { _xtermManager } from "../../../common/devPanel/spawnXterm.js";
+import { select } from "../../../common/store/selector.js";
+import { dispatch } from "../../../common/store/store.js";
+import { update_panel_state } from "../../../common/store/slice.js";
 
 const storage = window.storage;
 
@@ -167,6 +170,9 @@ export class DevPanelTabs extends CoreEl {
 
   public async _set(tabId: string): Promise<boolean> {
     return new Promise((resolve) => {
+      const _state = select((s) => s.main.panel_state);
+      dispatch(update_panel_state({ ..._state, bottom: true }));
+
       const targetTab = this._tabs.find((tab) => tab.id === tabId);
 
       if (!targetTab) {

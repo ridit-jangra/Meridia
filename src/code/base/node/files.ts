@@ -12,6 +12,10 @@ export async function _get(_path: string, depth: number = 1) {
   return structure;
 }
 
+ipcMain.handle("workbench.workspace.walkdir", async (_, _path: string) => {
+  return _get(_path, 1);
+});
+
 function _update(
   structure: IFolderStructure,
   targetUri: string,

@@ -178,15 +178,24 @@ export const fsBridge = {
   },
 
   joinPath: (...paths: string[]): string => {
-    return require("path").join(...paths);
+    return path.join(...paths);
   },
 
   dirname: (_path: string): string => {
-    return require("path").dirname(_path);
+    return path.dirname(_path);
   },
 
   basename: (_path: string): string => {
-    return require("path").basename(_path);
+    return path.basename(_path);
+  },
+
+  isFolder: (_path: string) => {
+    const _stat = fs.statSync(_path);
+    if (_stat.isFile()) {
+      return false;
+    } else if (_stat.isDirectory()) {
+      return true;
+    }
   },
 };
 
@@ -213,6 +222,9 @@ export const pathBridge = {
   },
   extname: (_path: string) => {
     return path.extname(_path);
+  },
+  walkdir: async (_path: string) => {
+    return ipcRenderer.invoke("workbench.workspace.walkdir", _path);
   },
 };
 

@@ -16,10 +16,12 @@
   scale: 0.66;
   transform: rotate(240deg);
 }
+
 .code .mira .scale-2 {
   scale: 0.53;
   transform: rotate(80deg);
 }
+
 .code .mira .scale-3 {
   scale: 0.16;
   transform: rotate(30deg);
@@ -30,8 +32,8 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 150px;
-  height: 150px;
+  width: clamp(80px, 20vw, 150px);
+  height: clamp(80px, 20vw, 150px);
   border-radius: var(--workbench-mira-voice-dynamic-border-radius);
   box-shadow: 0 0 20px 10px rgba(var(--workbench-mira-voice-color-orange), 0.05);
   animation: rotateShape var(--workbench-mira-voice-rotation-duration) infinite
@@ -90,8 +92,8 @@
 }
 
 .code .mira .gradient-circle {
-  width: 150px;
-  height: 150px;
+  width: clamp(80px, 20vw, 150px);
+  height: clamp(80px, 20vw, 150px);
   border-radius: 50%;
   background: conic-gradient(
     from 0deg,
@@ -159,7 +161,7 @@
   left: 50%;
   transform: translateX(-50%);
   color: var(--workbench-foreground);
-  font-size: 24px;
+  font-size: clamp(14px, 3vw, 24px);
   font-family: "Jetbrains Mono";
   padding: 12px 18px;
   border-radius: 8px;

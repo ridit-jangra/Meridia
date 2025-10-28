@@ -64,6 +64,7 @@ export class Drawboard extends CoreEl {
   private _createEl() {
     this._el = document.createElement("div");
     this._el.className = "drawboard";
+    this._el.tabIndex = 0;
 
     this._toolbar = document.createElement("div");
     this._toolbar.className = "toolbar";
@@ -120,8 +121,9 @@ export class Drawboard extends CoreEl {
     this._thicknessSlider = document.createElement("input");
     this._thicknessSlider.type = "range";
     this._thicknessSlider.min = "1";
-    this._thicknessSlider.max = "20";
+    this._thicknessSlider.max = "100";
     this._thicknessSlider.value = "2";
+    this._thicknessSlider.style.width = "200px";
     this._thicknessSlider.className = "thickness-slider";
     this._thicknessSlider.title = "Line Thickness";
 
@@ -213,7 +215,8 @@ export class Drawboard extends CoreEl {
   }
 
   private _setupUndoRedoKeybindings() {
-    window.addEventListener("keydown", (e) => {
+    this._canvas.addEventListener("keydown", (e) => {
+      console.log(e.key);
       if (!e.ctrlKey && !e.shiftKey && !e.altKey) {
         switch (e.key.toLowerCase()) {
           case "v":
@@ -272,7 +275,7 @@ export class Drawboard extends CoreEl {
   }
 
   private _setupDeleteKeybinding() {
-    window.addEventListener("keydown", (e) => {
+    this._el!.addEventListener("keydown", (e) => {
       if (e.key === "Delete" || e.key === "Backspace") {
         e.preventDefault();
         this._deleteSelectedShape();
@@ -784,8 +787,8 @@ export class Drawboard extends CoreEl {
     ];
 
     points.forEach((pt) => {
-      ctx.fillStyle = "white";
-      ctx.strokeStyle = "rgba(0,0,0,0.8)";
+      ctx.fillStyle = _theme.getColor("workbench.foreground");
+      ctx.strokeStyle = _theme.getColor("workbench.border.foreground");
       ctx.lineWidth = 1;
       ctx.fillRect(
         pt.x * scale + this._offsetX - handleSize / 2,
@@ -932,5 +935,6 @@ export class Drawboard extends CoreEl {
     this._canvas.width = rect.width - 1;
     this._canvas.height = rect.height - 2;
     this._redrawCanvas();
+    this._el!.tabIndex = 0;
   }
 }

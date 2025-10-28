@@ -157,22 +157,18 @@ export function parseTokensToCssVariables(
 export function getFileIcon(_name: string) {
   let _ext: string;
 
-  if (_name.indexOf(".") === -1) {
-    _ext = "binary";
+  const dotCount = (_name.match(/\./g) || []).length;
+
+  const specificPatterns = [".d.ts"];
+  const hasSpecificPattern = specificPatterns.some((pattern) =>
+    _name.endsWith(pattern)
+  );
+
+  if (dotCount >= 2 && hasSpecificPattern) {
+    const firstDotIndex = _name.indexOf(".");
+    _ext = _name.substring(firstDotIndex + 1).toLowerCase();
   } else {
-    const dotCount = (_name.match(/\./g) || []).length;
-
-    const specificPatterns = [".d.ts"];
-    const hasSpecificPattern = specificPatterns.some((pattern) =>
-      _name.endsWith(pattern)
-    );
-
-    if (dotCount >= 2 && hasSpecificPattern) {
-      const firstDotIndex = _name.indexOf(".");
-      _ext = _name.substring(firstDotIndex + 1).toLowerCase();
-    } else {
-      _ext = (_name.split(".").pop() || "").toLowerCase();
-    }
+    _ext = (_name.split(".").pop() || "").toLowerCase();
   }
 
   const _supported = [
@@ -212,7 +208,6 @@ export function getFileIcon(_name: string) {
     "doc",
     "pdf",
     "pyc",
-    "binary",
     "jsx",
     "tsx",
     "csv",

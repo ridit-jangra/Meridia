@@ -8,6 +8,12 @@ let watchRootPath = "";
 let isWatching = false;
 const eventQueue = new Map<string, NodeJS.Timeout>();
 
+const recentlyUnlinked = new Map<
+  string,
+  { name: string; timeout: NodeJS.Timeout }
+>();
+const RENAME_DETECTION_WINDOW = 500;
+
 const DEBOUNCE_DELAYS: Record<string, number> = {
   change: 500,
   unlink: 300,
@@ -48,6 +54,45 @@ function createSafeUri(basePath: string, targetPath: string) {
   }
 }
 
+function checkForRename(filePath: string, isAdd: boolean): boolean {
+  const baseName = path.basename(filePath);
+  const parentDir = path.dirname(filePath);
+
+  if (isAdd) {
+    for (const [oldPath, data] of recentlyUnlinked.entries()) {
+      const oldParent = path.dirname(oldPath);
+      const oldName = data.name;
+
+      if (oldParent === parentDir || oldName === baseName) {
+        clearTimeout(data.timeout);
+        recentlyUnlinked.delete(oldPath);
+
+        const safeOldUri = createSafeUri(watchRootPath, oldPath);
+        const safeNewUri = createSafeUri(watchRootPath, filePath);
+
+        if (safeOldUri && safeNewUri) {
+          safeIpcSend("files-node-renamed", {
+            oldUri: safeOldUri,
+            newUri: safeNewUri,
+            newName: baseName,
+          });
+        }
+        return true;
+      }
+    }
+  }
+
+  if (!isAdd) {
+    const timeout = setTimeout(() => {
+      recentlyUnlinked.delete(filePath);
+    }, RENAME_DETECTION_WINDOW);
+
+    recentlyUnlinked.set(filePath, { name: baseName, timeout });
+  }
+
+  return false;
+}
+
 function handleEvent(eventType: string, filePath: string) {
   const normalized = path.normalize(filePath);
 
@@ -70,6 +115,9 @@ function handleEvent(eventType: string, filePath: string) {
       const baseName = path.basename(normalized);
 
       if (eventType === "add" || eventType === "addDir") {
+        const isRename = checkForRename(normalized, true);
+        if (isRename) return;
+
         let parentUri = watchRootPath;
         const relativeParent = path.relative(watchRootPath, parentDir);
         if (relativeParent && relativeParent !== ".") {
@@ -83,12 +131,18 @@ function handleEvent(eventType: string, filePath: string) {
           nodeType: eventType === "add" ? "file" : "folder",
         });
       } else if (eventType === "unlink" || eventType === "unlinkDir") {
-        const relativePath = path.relative(watchRootPath, normalized);
-        const nodeUri = path.join(watchRootPath, relativePath);
-        const safeUri = createSafeUri(watchRootPath, nodeUri);
-        if (!safeUri) return;
+        checkForRename(normalized, false);
 
-        safeIpcSend("files-node-removed", { nodeUri: safeUri });
+        setTimeout(() => {
+          if (!recentlyUnlinked.has(normalized)) {
+            const relativePath = path.relative(watchRootPath, normalized);
+            const nodeUri = path.join(watchRootPath, relativePath);
+            const safeUri = createSafeUri(watchRootPath, nodeUri);
+            if (!safeUri) return;
+
+            safeIpcSend("files-node-removed", { nodeUri: safeUri });
+          }
+        }, RENAME_DETECTION_WINDOW);
       } else if (eventType === "change") {
         const relativePath = path.relative(watchRootPath, normalized);
         const nodeUri = path.join(watchRootPath, relativePath);
@@ -175,6 +229,10 @@ export function _stop() {
   eventQueue.forEach((id) => clearTimeout(id));
   eventQueue.clear();
   throttledPaths.clear();
+
+  recentlyUnlinked.forEach((data) => clearTimeout(data.timeout));
+  recentlyUnlinked.clear();
+
   isWatching = false;
   watchRootPath = "";
   safeIpcSend("files-watcher-stopped", {});
@@ -186,6 +244,7 @@ export function getWatcherStatus() {
     watchRootPath,
     hasActiveWatcher: fileWatcher !== null,
     pendingEventCount: eventQueue.size,
+    pendingRenames: recentlyUnlinked.size,
   };
 }
 
