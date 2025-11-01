@@ -1,6 +1,6 @@
-import { registerStandalone } from "../../../common/standalone.js";
-import { CoreEl } from "../el.js";
-import { Panel } from "../panel.js";
+import { registerStandalone } from "../../../common/class.js";
+import { CoreEl } from "../core.js";
+import { Panel } from "../panel/panel.js";
 import { DevPanelTabs } from "./tabs.js";
 
 export class DevPanel extends CoreEl {

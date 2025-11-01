@@ -1,4 +1,4 @@
-import { IStatusBarAction } from "../../../workbench/types.js";
+import { IStatusBarAction } from "../../../workbench/workbench.types.js";
 import { _contextEvent } from "../common/context.js";
 
 export const api = {

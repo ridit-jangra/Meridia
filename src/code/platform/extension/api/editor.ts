@@ -1,4 +1,4 @@
-import { IEditorTab } from "../../../workbench/types.js";
+import { IEditorTab } from "../../../workbench/workbench.types.js";
 import { _contextEvent } from "../common/context.js";
 
 export const api = {

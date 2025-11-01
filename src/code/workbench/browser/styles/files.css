@@ -46,12 +46,14 @@
   justify-content: space-between;
   min-height: 40px;
   max-height: 40px;
-  width: 96%;
+  width: 100%;
   align-self: center;
 }
 
 .code .files .root .title {
   font-size: 18px;
+  font-weight: 600;
+  margin-left: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -62,11 +64,12 @@
   align-items: center;
   justify-content: center;
   gap: 7px;
+  margin-right: 12px;
 }
 
 .code .files .root .options span {
-  padding: 4px;
-  border-radius: 8px;
+  padding: 2px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
@@ -195,7 +198,18 @@
   background: none !important;
 }
 
-.code .files .tree .node input {
+.code .files .tree .node .temp-node {
+  display: flex;
+  align-items: center;
+}
+
+.code .files .tree .temp-node span svg {
+  width: 18px;
+  height: auto;
+  margin: 0 10px;
+}
+
+.code .files .tree .inline-editor-input {
   width: 100%;
   background: none;
   color: var(--workbench-panel-foreground);
@@ -204,16 +218,12 @@
   border: none;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-  display: inline-block;
-  height: 1.35em;
-  vertical-align: middle;
 }
 
-.code .files .tree .node input:hover {
+.code .files .tree .inline-editor-input:hover {
   cursor: text;
 }
 
-.code .files .tree .node input:focus {
+.code .files .tree .inline-editor-input:focus {
   outline-color: var(--workbench-input-active-outline);
 }

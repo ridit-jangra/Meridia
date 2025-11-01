@@ -18,6 +18,7 @@ export function activate(context: context) {
     const _serverCli = context.workbench.workspace.utils.path.join(
       context.workbench.workspace.utils.path.__dirname,
       "extensions",
+      "languages",
       "rust",
       "rust-analyzer",
       _win ? _winPath : _otherPath

@@ -28,11 +28,15 @@
   justify-content: center;
 }
 
-.code .titlebar .left-panel-section .logo img {
-  width: 25px;
+.code .titlebar .left-panel-section .logo svg {
+  width: 35px;
   height: auto;
-  margin-right: 12px;
-  border-radius: 4px;
+  /* margin-right: 12px; */
+  /* border-radius: 4px; */
+}
+
+.code .titlebar .left-panel-section .logo svg path {
+  fill: var(--workbench-icon-foreground);
 }
 
 .code .titlebar .left-panel-section span {

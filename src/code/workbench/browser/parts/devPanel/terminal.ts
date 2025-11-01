@@ -1,9 +1,9 @@
-import { IDevPanelTab } from "../../../types.js";
+import { IDevPanelTab } from "../../../workbench.types.js";
 import { getThemeIcon } from "../../media/icons.js";
-import { CoreEl } from "../el.js";
+import { CoreEl } from "../core.js";
 import { _xtermManager } from "../../../common/devPanel/spawnXterm.js";
 import PerfectScrollbar from "perfect-scrollbar";
-import { registerStandalone } from "../../../common/standalone.js";
+import { registerStandalone } from "../../../common/class.js";
 import { select } from "../../../common/store/selector.js";
 
 const storage = window.storage;

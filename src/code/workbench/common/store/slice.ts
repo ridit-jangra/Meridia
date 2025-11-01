@@ -5,7 +5,7 @@ import {
   IFolderStructure,
   IMainState,
   IPanelState,
-} from "../../types.js";
+} from "../../workbench.types.js";
 
 const initialState: IMainState = {
   editor_tabs: {} as IEditorTab[],

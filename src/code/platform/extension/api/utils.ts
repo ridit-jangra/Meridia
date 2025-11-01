@@ -5,7 +5,7 @@ export const api = {
         join: (...args: string[]) => {
           return window.path.join(args);
         },
-        __dirname: window.path.join([window.path.__dirname, "..", ".."]),
+        __dirname: window.path.join([window.path.__dirname, "..", "..", ".."]),
       },
     },
   },

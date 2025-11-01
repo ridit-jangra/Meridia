@@ -1,7 +1,7 @@
 {
   "name": "meridia",
   "version": "1.0.0",
-  "main": "build/main.js",
+  "main": "build/code/workbench/electron-browser/window.js",
   "scripts": {
     "clean": "rimraf build",
     "build": "node esbuild.config.js --prod",
@@ -9,7 +9,7 @@
     "rebuild": "electron-rebuild",
     "copy": "gulp copy",
     "copy:watch": "gulp watch",
-    "start:electron": "electron build/main.js",
+    "start:electron": "electron .",
     "dev": "npm run clean && npm run build && concurrently -c blue,cyan,green -n BUILD,COPY,ELECTRON \"npm run build:watch\" \"npm run copy:watch\" \"npm run start:electron\"",
     "package": "npm run clean && npm run build && npm run copy && electron-builder",
     "postinstall": "npm run rebuild"

@@ -9,7 +9,7 @@ import {
   MonacoServices,
 } from "monaco-languageclient";
 import { listen } from "@codingame/monaco-jsonrpc";
-import { IEditorTab } from "../../workbench/types.js";
+import { IEditorTab } from "../../workbench/workbench.types.js";
 import { registerTheme } from "../common/theme.js";
 import { extensionToLanguage, registerFsSuggestion } from "../common/utils.js";
 import { getLanguage } from "../../workbench/common/utils.js";
@@ -23,9 +23,11 @@ import { select } from "../../workbench/common/store/selector.js";
 import {
   getStandalone,
   registerStandalone,
-} from "../../workbench/common/standalone.js";
+} from "../../workbench/common/class.js";
 import { DevPanelTabs } from "../../workbench/browser/parts/devPanel/tabs.js";
 import { getThemeIcon } from "../../workbench/browser/media/icons.js";
+import { format } from "prettier";
+import { PortMessageReader } from "vscode-languageserver/node.js";
 
 const fs = window.fs;
 const path = window.path;
@@ -102,6 +104,13 @@ export class Editor {
     const _languages = languages.keys();
 
     _languages.forEach((_lang) => {
+      const languageId = extensionToLanguage(_lang);
+
+      if (!languageId) {
+        console.warn(`Unknown language for extension: ${_lang}`);
+        return;
+      }
+
       monaco.languages.registerDocumentFormattingEditProvider(
         extensionToLanguage(_lang)!,
         {
@@ -123,11 +132,6 @@ export class Editor {
       );
     });
 
-    setTimeout(() => {
-      this._registerProviders();
-    }, 1000);
-
-    this._hoverProvider();
     this._setupMarkerListener();
   }
 
@@ -567,6 +571,8 @@ export class Editor {
     this._mounted = true;
     this._visiblity(false);
 
+    this._registerProviders();
+    this._hoverProvider();
     this._setupMouse();
     this._setupCursorTracking();
     this._actions();

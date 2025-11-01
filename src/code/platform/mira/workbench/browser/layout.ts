@@ -1,4 +1,4 @@
-import { CoreEl } from "../../../../workbench/browser/parts/el.js";
+import { CoreEl } from "../../../../workbench/browser/parts/core.js";
 import { getIcon } from "../../../../workbench/common/utils.js";
 import { _mic } from "../../engine/mic.js";
 import { _voice } from "../../engine/voice.js";

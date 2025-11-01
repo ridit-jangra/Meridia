@@ -1,7 +1,7 @@
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal as XTerm } from "@xterm/xterm";
-import { IXTermInstance } from "../../types.js";
-import { getStandalone } from "../standalone.js";
+import { IXTermInstance } from "../../workbench.types.js";
+import { getStandalone } from "../class.js";
 import { Theme } from "../theme.js";
 import { select } from "../store/selector.js";
 

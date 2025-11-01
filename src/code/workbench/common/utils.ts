@@ -1,4 +1,4 @@
-import { IEditorTab, IThemeColors, ThemeColors } from "../types.js";
+import { IEditorTab, IThemeColors, ThemeColors } from "../workbench.types.js";
 import { dispatch } from "./store/store.js";
 import { select } from "./store/selector.js";
 import { update_editor_tabs } from "./store/slice.js";
@@ -222,7 +222,6 @@ export function getFileIcon(_name: string) {
   const _iconPath = window.path.join([
     window.path.__dirname,
     "..",
-    "workbench",
     "browser",
     "media",
     "icons",
@@ -238,9 +237,8 @@ export function getIcon(_relativePath: string) {
   let _iconPath = window.path.join([
     window.path.__dirname,
     "..",
-    "workbench",
     "browser",
-    "workbench.media",
+    "media",
     "icons",
     _relativePath,
   ]);

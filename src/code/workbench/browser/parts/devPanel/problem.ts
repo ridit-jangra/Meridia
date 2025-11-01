@@ -1,8 +1,5 @@
-import { CoreEl } from "../el.js";
-import {
-  getStandalone,
-  registerStandalone,
-} from "../../../common/standalone.js";
+import { CoreEl } from "../core.js";
+import { getStandalone, registerStandalone } from "../../../common/class.js";
 import { getThemeIcon } from "../../media/icons.js";
 import { Editor } from "../../../../editor/standalone/standalone.js";
 

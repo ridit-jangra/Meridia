@@ -1,8 +1,8 @@
 import PerfectScrollbar from "perfect-scrollbar";
-import { IDevTab } from "../../../types.js";
+import { IDevTab } from "../../../workbench.types.js";
 import { getThemeIcon } from "../../media/icons.js";
-import { CoreEl } from "../el.js";
-import { Panel } from "../panel.js";
+import { CoreEl } from "../core.js";
+import { Panel } from "../panel/panel.js";
 import { _terminal } from "./terminal.js";
 import { _run } from "./run.js";
 import { _problem } from "./problem.js";

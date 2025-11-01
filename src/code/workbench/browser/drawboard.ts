@@ -6,9 +6,9 @@ import {
   TDrawingTool,
   TResizeHandle,
   TShapeType,
-} from "../types.js";
+} from "../workbench.types.js";
 import { getThemeIcon } from "./media/icons.js";
-import { CoreEl } from "./parts/el.js";
+import { CoreEl } from "./parts/core.js";
 
 export class Drawboard extends CoreEl {
   private _canvas!: HTMLCanvasElement;

@@ -1,4 +1,4 @@
-import { ITheme } from "../../workbench/types.js";
+import { ITheme } from "../../workbench/workbench.types.js";
 
 export const Light: ITheme = {
   name: "Light",
@@ -45,6 +45,8 @@ export const Light: ITheme = {
     "workbench.editor.foreground": "#1e1e1e",
     "workbench.editor.cursor.foreground": "#1e1e1e",
     "workbench.editor.line.highlight.background": "#f0f8ff",
+    "workbench.editor.suggestion.active.background": "#cce7ff",
+    "workbench.editor.widget.background": "#f3f3f3",
     "workbench.mira.message.user.background": "#f3f3f3",
     "workbench.mira.message.user.foreground": "#1e1e1e",
     "workbench.mira.message.user.border.foreground": "#007acc",

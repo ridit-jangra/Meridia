@@ -1,6 +1,6 @@
 import { Dark, Light } from "../../platform/themes/themes.js";
-import { ITheme, IThemeColors } from "../types.js";
-import { registerStandalone } from "./standalone.js";
+import { ITheme, IThemeColors } from "../workbench.types.js";
+import { registerStandalone } from "./class.js";
 import { tokensToCssVariables } from "./utils.js";
 
 export class Theme {

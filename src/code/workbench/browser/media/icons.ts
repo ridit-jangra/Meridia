@@ -10,7 +10,6 @@ export function getThemeIcon(name: string) {
   const _folder = path.join([
     path.__dirname,
     "..",
-    "workbench",
     "browser",
     "media",
     "icons",

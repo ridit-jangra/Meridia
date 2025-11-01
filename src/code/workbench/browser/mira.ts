@@ -1,8 +1,8 @@
 import hljs from "highlight.js";
 import { marked } from "marked";
-import { IChatMessage } from "../types.js";
+import { IChatMessage } from "../workbench.types.js";
 import { geminiIcon, getThemeIcon } from "./media/icons.js";
-import { CoreEl } from "./parts/el.js";
+import { CoreEl } from "./parts/core.js";
 import { Chat } from "../common/mira/chat.js";
 
 export class Mira extends CoreEl {

@@ -1,5 +1,5 @@
 import monaco from "monaco-editor";
-import { getStandalone } from "../../workbench/common/standalone";
+import { getStandalone } from "../../workbench/common/class";
 import { Theme } from "../../workbench/common/theme";
 
 const _theme = getStandalone("theme") as Theme;

@@ -1,12 +1,9 @@
 import { Editor } from "../../editor/standalone/standalone.js";
 import { _contextEvent } from "../../platform/extension/common/context.js";
-import {
-  registerStatusbarItem,
-  removeStatusbarItem,
-} from "../event/statusbar.js";
-import { IEditorTab, IStatusBarAction } from "../types.js";
+import { registerStatusbarItem, removeStatusbarItem } from "./statusbar.js";
+import { IEditorTab, IStatusBarAction } from "../workbench.types.js";
 
-import { getStandalone } from "./standalone.js";
+import { getStandalone } from "./class.js";
 import { dispatch } from "./store/store.js";
 import { select } from "./store/selector.js";
 import { update_editor_tabs } from "./store/slice.js";

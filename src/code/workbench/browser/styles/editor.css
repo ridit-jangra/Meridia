@@ -15,6 +15,7 @@
 
 .code .editor .monaco-editor [class*="widget"],
 .code .editor .monaco-editor .monaco-menu {
+  border: 2px solid var(--workbench-border-foreground) !important;
   border-radius: 12px !important;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.15),
@@ -92,7 +93,37 @@
 }
 
 .monaco-editor .rename-input {
+  border-radius: 8px !important;
+  border: 2px solid var(--workbench-border-foreground) !important;
   color: var(--workbench-editor-foreground) !important;
+}
+
+.monaco-editor .quick-input-widget {
+  font-size: 16px !important;
+}
+
+.monaco-editor .monaco-hover {
+  border-radius: 8px !important;
+  border: 2px solid var(--workbench-border-foreground) !important;
+}
+
+.monaco-editor .monaco-hover .monaco-hover-content a {
+  text-decoration: none !important;
+  font-size: 16px !important;
+}
+
+.monaco-editor .monaco-hover .monaco-hover-content ul {
+  display: flex !important;
+  list-style: none !important;
+  gap: 12px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 16px !important;
+}
+
+.monaco-editor .monaco-hover .monaco-hover-content code {
+  font-weight: bold !important;
+  background: transparent !important;
 }
 
 .code .editor .empty-state {

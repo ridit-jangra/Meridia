@@ -1,4 +1,4 @@
-import { CoreEl } from "./parts/el.js";
+import { CoreEl } from "./parts/core.js";
 
 export class Structure extends CoreEl {
   constructor() {

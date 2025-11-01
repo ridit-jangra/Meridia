@@ -53,7 +53,7 @@
 }
 
 .code svg.font path {
-  fill: var(--workbench-terminal-color2);
+  fill: var(--workbench-terminal-color1);
 }
 
 .code svg.toml path {

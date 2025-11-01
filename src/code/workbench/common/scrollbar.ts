@@ -1,4 +1,4 @@
-import { IScrollbarState } from "../types.js";
+import { IScrollbarState } from "../workbench.types.js";
 import PerfectScrollbar from "perfect-scrollbar";
 
 class ScrollbarManager {

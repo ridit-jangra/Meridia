@@ -1,5 +1,5 @@
 import { Mira as MiraLayout } from "./browser/layout.js";
-import { registerStandalone } from "../../../workbench/common/standalone.js";
+import { registerStandalone } from "../../../workbench/common/class.js";
 import { createFile } from "../actions/files.js";
 
 export class Mira {

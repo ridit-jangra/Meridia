@@ -1,12 +1,12 @@
 import { Editor as _editor } from "../standalone/standalone.js";
-import { getStandalone } from "../../workbench/common/standalone.js";
+import { getStandalone } from "../../workbench/common/class.js";
 import { dispatch } from "../../workbench/common/store/store.js";
 import { select, watch } from "../../workbench/common/store/selector.js";
 import { update_editor_tabs } from "../../workbench/common/store/slice.js";
 import { getFileIcon, getIcon } from "../../workbench/common/utils.js";
-import { IEditorTab } from "../../workbench/types.js";
+import { IEditorTab } from "../../workbench/workbench.types.js";
 import { getThemeIcon } from "../../workbench/browser/media/icons.js";
-import { CoreEl } from "../../workbench/browser/parts/el.js";
+import { CoreEl } from "../../workbench/browser/parts/core.js";
 import { _getContent } from "../../workbench/common/tabs.js";
 
 export class Editor extends CoreEl {

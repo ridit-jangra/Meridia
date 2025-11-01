@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Model } from "./model.js";
-import { IChatMessage, IEditorTab } from "../../types.js";
+import { IChatMessage, IEditorTab } from "../../workbench.types.js";
 import { _fileTools, FileOperations } from "./fileOperations.js";
 import { dispatch } from "../store/store.js";
 import { update_editor_tabs } from "../store/slice.js";

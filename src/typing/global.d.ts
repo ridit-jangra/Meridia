@@ -15,7 +15,7 @@ import {
   nodeBridge,
   urlBridge,
   electronBridge,
-} from "../code/base/preload.js";
+} from "../code/workbench/electron-browser/preload.js";
 
 declare global {
   interface Window {

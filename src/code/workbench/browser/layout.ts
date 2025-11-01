@@ -1,24 +1,19 @@
-import { getStandalone, registerStandalone } from "../common/standalone.js";
-import { changePanelOptionsWidth } from "../event/panelOptions.js";
+import { getStandalone, registerStandalone } from "../common/class.js";
 import { Editor as EditorLayout } from "../../editor/browser/layout.js";
 import { Files } from "./files.js";
-import { Panel } from "./parts/panel.js";
-import { PanelOptions } from "./parts/panelOptions.js";
-import { PanelOption } from "./parts/panelOption.js";
-import { Splitter } from "./parts/splitter.js";
-import { Statusbar } from "./parts/statusbar.js";
+import { Panel } from "./parts/panel/panel.js";
+import { PanelOptions } from "./parts/panel/panelOptions.js";
+import { PanelOption } from "./parts/panel/panelOption.js";
 import { DevPanel } from "./parts/devPanel/el.js";
-import { Titlebar } from "./parts/titlebar.js";
-import { getThemeIcon } from "./media/icons.js";
 import { Mira } from "../../platform/mira/workbench/browser/layout.js";
 import { _xtermManager } from "../common/devPanel/spawnXterm.js";
-import { runCommand } from "../common/command.js";
-import { select } from "../common/store/selector.js";
 import { Structure } from "./structure.js";
 import { Editor } from "../../editor/standalone/standalone.js";
-import { IEditorTab } from "../types.js";
-import { openTab } from "../common/utils.js";
-import { _drawboard } from "../common/init.js";
+import { Titlebar } from "./parts/titlebar/titlebar.js";
+import { Splitter } from "./parts/splitter/splitter.js";
+import { Statusbar } from "./parts/statusbar/statusbar.js";
+import { changePanelOptionsWidth } from "../common/panelOptions.js";
+import { _drawboard } from "../workbench.desktop.js";
 
 export class Layout {
   constructor() {
@@ -128,15 +123,15 @@ export class Layout {
       }
       _editorLayout.rerender();
 
-      const _tab: IEditorTab = {
-        name: "Drawboard",
-        icon: getThemeIcon("drawboard"),
-        uri: "tab://drawboard",
-        is_touched: false,
-        active: true,
-      };
+      // const _tab: IEditorTab = {
+      //   name: "Drawboard",
+      //   icon: getThemeIcon("drawboard"),
+      //   uri: "tab://drawboard",
+      //   is_touched: false,
+      //   active: true,
+      // };
 
-      openTab(_tab);
+      // openTab(_tab);
 
       _drawboard._updateCanvasSize();
     }, 150);
