@@ -171,20 +171,20 @@
   pointer-events: none;
 }
 
-.code .mira .transcription-word.highlight {
+.code .mira .transcription-text span.active {
   color: var(--workbench-mira-voice-caption-active-background);
   background: rgba(255, 120, 0, 0.15);
   border-radius: 4px;
 }
 
-.code .mira .transcription-word {
+.code .mira .transcription-text span {
   word-wrap: break-word;
   overflow-wrap: break-word;
   display: inline-block;
   max-width: 100%;
 }
 
-.code .mira #transcriptionText {
+.code .mira .transcription-text {
   white-space: pre-wrap;
   word-wrap: break-word;
   line-height: 1.4;

@@ -36,7 +36,6 @@ export class Terminal extends CoreEl {
     }, 100);
 
     ipcRenderer.on("workbench.terminal.death", (_: any, id: string) => {
-      console.log("closing", id);
       this._close(id);
     });
   }

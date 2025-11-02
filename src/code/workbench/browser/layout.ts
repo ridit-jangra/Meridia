@@ -5,7 +5,7 @@ import { Panel } from "./parts/panel/panel.js";
 import { PanelOptions } from "./parts/panel/panelOptions.js";
 import { PanelOption } from "./parts/panel/panelOption.js";
 import { DevPanel } from "./parts/devPanel/el.js";
-import { Mira } from "../../platform/mira/workbench/browser/layout.js";
+import { Mira } from "../../platform/mira/browser/layout.js";
 import { _xtermManager } from "../common/devPanel/spawnXterm.js";
 import { Structure } from "./structure.js";
 import { Editor } from "../../editor/standalone/standalone.js";
@@ -118,7 +118,6 @@ export class Layout {
 
       const _editor = getStandalone("editor") as Editor;
       if (_editor) {
-        console.log(_editor);
         _editor._mount();
       }
       _editorLayout.rerender();

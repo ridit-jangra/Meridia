@@ -216,7 +216,6 @@ export class Drawboard extends CoreEl {
 
   private _setupUndoRedoKeybindings() {
     this._canvas.addEventListener("keydown", (e) => {
-      console.log(e.key);
       if (!e.ctrlKey && !e.shiftKey && !e.altKey) {
         switch (e.key.toLowerCase()) {
           case "v":

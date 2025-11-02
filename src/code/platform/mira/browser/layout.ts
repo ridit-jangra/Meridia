@@ -1,7 +1,7 @@
-import { CoreEl } from "../../../../workbench/browser/parts/core.js";
-import { getIcon } from "../../../../workbench/common/utils.js";
-import { _mic } from "../../engine/mic.js";
-import { _voice } from "../../engine/voice.js";
+import { CoreEl } from "../../../workbench/browser/parts/core.js";
+import { getIcon } from "../../../workbench/common/utils.js";
+import { _mic } from "../common/mic.js";
+import { _voice } from "../common/voice.js";
 
 export class Mira extends CoreEl {
   constructor() {
@@ -9,15 +9,9 @@ export class Mira extends CoreEl {
     this._createEl();
   }
 
-  private _createEl() {
+  private async _createEl() {
     this._el = document.createElement("div");
     this._el.className = "mira";
-
-    // const _cursor = document.createElement("span");
-    // _cursor.innerHTML = getIcon("cursor/cursor.svg");
-    // _cursor.className = "cursor";
-
-    // document.body.appendChild(_cursor);
 
     const scale = document.createElement("div");
     scale.className = "scale-0";
@@ -34,14 +28,11 @@ export class Mira extends CoreEl {
     scale.appendChild(circle3);
 
     const transcriptionText = document.createElement("div");
-    transcriptionText.id = "transcriptionText";
     transcriptionText.className = "transcription-text";
 
     this._el.appendChild(transcriptionText);
     this._el.appendChild(scale);
 
-    setTimeout(async () => {
-      // _mic._start();
-    }, 100);
+    // await _voice.say("The quick brown fox jumps over the lazy dog ");
   }
 }

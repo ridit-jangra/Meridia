@@ -22,6 +22,7 @@ export class Files extends CoreEl {
   private _lastStructureHash: string = "";
   private _contextMenuEl: HTMLElement | null = null;
   private _isRenamingInProgress = false;
+  private _activeNodeUri: string | null = null;
 
   constructor() {
     super();
@@ -163,7 +164,6 @@ export class Files extends CoreEl {
           newName: string;
         }
       ) => {
-        console.log("renaming", data);
         this._renameNode(data.oldUri, data.newName);
       }
     );
@@ -255,14 +255,26 @@ export class Files extends CoreEl {
     _addFile.innerHTML = getThemeIcon("addFile");
 
     _addFile.onclick = () => {
-      this._startAddNode(this._structure.uri, "file");
+      const targetUri =
+        this._activeNodeUri &&
+        this._findNodeByUri(this._structure, this._activeNodeUri)?.type ===
+          "folder"
+          ? this._activeNodeUri
+          : this._structure.uri;
+      this._startAddNode(targetUri, "file");
     };
 
     const _addFolder = document.createElement("span");
     _addFolder.innerHTML = getThemeIcon("addDirectory");
 
     _addFolder.onclick = () => {
-      this._startAddNode(this._structure.uri, "folder");
+      const targetUri =
+        this._activeNodeUri &&
+        this._findNodeByUri(this._structure, this._activeNodeUri)?.type ===
+          "folder"
+          ? this._activeNodeUri
+          : this._structure.uri;
+      this._startAddNode(targetUri, "folder");
     };
 
     const _refresh = document.createElement("span");
@@ -282,8 +294,25 @@ export class Files extends CoreEl {
     const _treeContainer = document.createElement("div");
     _treeContainer.className = "tree-container scrollbar-container x-disable";
 
+    _treeContainer.addEventListener("contextmenu", (e) => {
+      if (
+        (e.target as HTMLElement).classList.contains("tree-container") ||
+        (e.target as HTMLElement).classList.contains("tree")
+      ) {
+        e.preventDefault();
+        this._showRootContextMenu(e.clientX, e.clientY);
+      }
+    });
+
     const _tree = document.createElement("div");
     _tree.className = "tree";
+
+    _tree.addEventListener("contextmenu", (e) => {
+      if ((e.target as HTMLElement).classList.contains("tree")) {
+        e.preventDefault();
+        this._showRootContextMenu(e.clientX, e.clientY);
+      }
+    });
 
     this._render(this._structure.children, _tree, 0);
 
@@ -291,6 +320,58 @@ export class Files extends CoreEl {
 
     this._el!.appendChild(_root);
     this._el!.appendChild(_treeContainer);
+  }
+
+  private _showRootContextMenu(x: number, y: number) {
+    if (!this._contextMenuEl) return;
+
+    this._contextMenuEl.style.top = `${y}px`;
+    this._contextMenuEl.style.left = `${x}px`;
+    this._contextMenuEl.style.display = "block";
+
+    const openItem = this._contextMenuEl.querySelector(
+      ".cm-open"
+    ) as HTMLElement;
+    const renameItem = this._contextMenuEl.querySelector(
+      ".cm-rename"
+    ) as HTMLElement;
+    const newFileItem = this._contextMenuEl.querySelector(
+      ".cm-new-file"
+    ) as HTMLElement;
+    const newFolderItem = this._contextMenuEl.querySelector(
+      ".cm-new-folder"
+    ) as HTMLElement;
+    const deleteItem = this._contextMenuEl.querySelector(
+      ".cm-delete"
+    ) as HTMLElement;
+
+    if (openItem) openItem.style.display = "none";
+    if (renameItem) renameItem.style.display = "none";
+    if (deleteItem) deleteItem.style.display = "none";
+    if (newFileItem) newFileItem.style.display = "block";
+    if (newFolderItem) newFolderItem.style.display = "block";
+
+    const newFileHandler = () => {
+      this._startAddNode(this._structure.uri, "file");
+      this._contextMenuEl!.style.display = "none";
+    };
+
+    const newFolderHandler = () => {
+      this._startAddNode(this._structure.uri, "folder");
+      this._contextMenuEl!.style.display = "none";
+    };
+
+    if (newFileItem) {
+      const newNewFileItem = newFileItem.cloneNode(true) as HTMLElement;
+      newFileItem.replaceWith(newNewFileItem);
+      newNewFileItem.addEventListener("click", newFileHandler);
+    }
+
+    if (newFolderItem) {
+      const newNewFolderItem = newFolderItem.cloneNode(true) as HTMLElement;
+      newFolderItem.replaceWith(newNewFolderItem);
+      newNewFolderItem.addEventListener("click", newFolderHandler);
+    }
   }
 
   private async _refresh() {
@@ -341,6 +422,18 @@ export class Files extends CoreEl {
       ];
 
       dispatch(update_editor_tabs(updatedTabs));
+    }
+  }
+
+  private _setActiveNode(nodeUri: string) {
+    this._renderedNodes.forEach((element) => {
+      element.classList.remove("active");
+    });
+
+    this._activeNodeUri = nodeUri;
+    const nodeElement = this._renderedNodes.get(nodeUri);
+    if (nodeElement) {
+      nodeElement.classList.add("active");
     }
   }
 
@@ -406,7 +499,6 @@ export class Files extends CoreEl {
 
       _icon.onclick = (e) => {
         e.stopPropagation();
-        this._toggleFolder(node.uri, _nodeEl);
       };
     }
 
@@ -418,7 +510,6 @@ export class Files extends CoreEl {
       _name.style.cursor = "pointer";
       _name.onclick = (e) => {
         e.stopPropagation();
-        this._toggleFolder(node.uri, _nodeEl);
       };
     }
 
@@ -436,6 +527,9 @@ export class Files extends CoreEl {
 
     _nodeEl.addEventListener("contextmenu", (e) => {
       e.preventDefault();
+      e.stopPropagation();
+
+      this._setActiveNode(node.uri);
       this._showContextMenu(e.clientX, e.clientY, node);
     });
 

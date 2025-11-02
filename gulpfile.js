@@ -4,6 +4,7 @@ const SOURCE_GLOBS = [
   "src/**/*.{html,css,json,svg,png,ico,py,ttf,otf,zip}",
   "!src/**/tsconfig.*",
   "src/code/base/native/cpp/**/*",
+  "src/code/base/model/**/*",
 ];
 
 const EXTENSION_GLOBS = ["extensions/**/*", "!extensions/**/*.{ts,js}"];

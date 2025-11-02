@@ -26,13 +26,10 @@ import {
 } from "../../workbench/common/class.js";
 import { DevPanelTabs } from "../../workbench/browser/parts/devPanel/tabs.js";
 import { getThemeIcon } from "../../workbench/browser/media/icons.js";
-import { format } from "prettier";
-import { PortMessageReader } from "vscode-languageserver/node.js";
 
 const fs = window.fs;
 const path = window.path;
 const python = window.python;
-const shell = window.electron.shell;
 
 Object.assign(window, {
   MonacoEnvironment: {
@@ -76,62 +73,6 @@ export class Editor {
   constructor() {
     registerTheme(monaco);
 
-    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-      noLib: true,
-      allowNonTsExtensions: true,
-    });
-
-    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-      noLib: true,
-      allowNonTsExtensions: true,
-    });
-
-    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-      noLib: true,
-      allowNonTsExtensions: true,
-    });
-
-    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: true,
-      noSyntaxValidation: true,
-    });
-
-    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: true,
-      noSyntaxValidation: true,
-    });
-
-    const _languages = languages.keys();
-
-    _languages.forEach((_lang) => {
-      const languageId = extensionToLanguage(_lang);
-
-      if (!languageId) {
-        console.warn(`Unknown language for extension: ${_lang}`);
-        return;
-      }
-
-      monaco.languages.registerDocumentFormattingEditProvider(
-        extensionToLanguage(_lang)!,
-        {
-          provideDocumentFormattingEdits: function (model, options, token) {
-            const range = model.getFullModelRange();
-            const text = model.getValue();
-            const langauge = model.getModeId();
-            const path = model.uri.path;
-
-            const formattedText = (this as any)._format(langauge, text, path);
-            return [
-              {
-                range: range,
-                text: formattedText,
-              },
-            ];
-          },
-        }
-      );
-    });
-
     this._setupMarkerListener();
   }
 
@@ -142,7 +83,6 @@ export class Editor {
         [`"${_text}"`]
       );
       const _response = JSON.parse(_raw[0]!)["formatted_content"];
-      console.log(_response);
       return _response;
     } else if (_language === "rust") {
       return window.ipc.invoke("workbench.editor.format.file.rust", _uri);
@@ -153,52 +93,6 @@ export class Editor {
 
   private _normalizePath(p: string) {
     return p.toLowerCase().replace(/\//g, "\\");
-  }
-
-  private _registerProviders() {
-    if (this._isProvidersRegistered) return;
-
-    try {
-      const fsProvider = registerFsSuggestion(monaco);
-      this._isProvidersRegistered = true;
-    } catch (error) {}
-  }
-
-  private _hoverProvider() {
-    if (!this._registeredProviders.has("hover-provider")) {
-      const _languages = languages.keys();
-      _languages.forEach((_lang) => {
-        monaco.languages.registerHoverProvider(extensionToLanguage(_lang)!, {
-          provideHover: (model, position) => {
-            const word = model.getWordAtPosition(position);
-            if (!word) return null;
-
-            const lineText = model.getLineContent(position.lineNumber);
-            const beforeWord = lineText.substring(0, word.startColumn - 1);
-            const afterWord = lineText.substring(word.endColumn - 1);
-
-            return {
-              range: new monaco.Range(
-                position.lineNumber,
-                word.startColumn,
-                position.lineNumber,
-                word.endColumn
-              ),
-              contents: [
-                { value: `**Symbol**: ${word.word}` },
-                {
-                  value: `**Position**: Line ${position.lineNumber}, Column ${position.column}`,
-                },
-                {
-                  value: `**Context**: ${beforeWord}**${word.word}**${afterWord}`,
-                },
-                { value: `**Language**: Python` },
-              ],
-            };
-          },
-        });
-      });
-    }
   }
 
   private _setupMarkerListener() {
@@ -571,8 +465,94 @@ export class Editor {
     this._mounted = true;
     this._visiblity(false);
 
-    this._registerProviders();
-    this._hoverProvider();
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+      noLib: true,
+      allowNonTsExtensions: true,
+    });
+
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+      noLib: true,
+      allowNonTsExtensions: true,
+    });
+
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      noLib: true,
+      allowNonTsExtensions: true,
+    });
+
+    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: true,
+      noSyntaxValidation: true,
+    });
+
+    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: true,
+      noSyntaxValidation: true,
+    });
+
+    const _languages = languages.keys();
+
+    _languages.forEach((_lang) => {
+      const languageId = extensionToLanguage(_lang);
+
+      if (!languageId) {
+        console.warn(`Unknown language for extension: ${_lang}`);
+        return;
+      }
+
+      monaco.languages.registerDocumentFormattingEditProvider(
+        extensionToLanguage(_lang)!,
+        {
+          provideDocumentFormattingEdits: function (model, options, token) {
+            const range = model.getFullModelRange();
+            const text = model.getValue();
+            const langauge = model.getModeId();
+            const path = model.uri.path;
+
+            const formattedText = (this as any)._format(langauge, text, path);
+            return [
+              {
+                range: range,
+                text: formattedText,
+              },
+            ];
+          },
+        }
+      );
+    });
+
+    _languages.forEach((_lang) => {
+      monaco.languages.registerHoverProvider(extensionToLanguage(_lang)!, {
+        provideHover: (model, position) => {
+          const word = model.getWordAtPosition(position);
+          if (!word) return null;
+
+          const lineText = model.getLineContent(position.lineNumber);
+          const beforeWord = lineText.substring(0, word.startColumn - 1);
+          const afterWord = lineText.substring(word.endColumn - 1);
+
+          return {
+            range: new monaco.Range(
+              position.lineNumber,
+              word.startColumn,
+              position.lineNumber,
+              word.endColumn
+            ),
+            contents: [
+              { value: `**Symbol**: ${word.word}` },
+              {
+                value: `**Position**: Line ${position.lineNumber}, Column ${position.column}`,
+              },
+              {
+                value: `**Context**: ${beforeWord}**${word.word}**${afterWord}`,
+              },
+              { value: `**Language**: Python` },
+            ],
+          };
+        },
+      });
+    });
+
     this._setupMouse();
     this._setupCursorTracking();
     this._actions();

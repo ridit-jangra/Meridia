@@ -10,7 +10,7 @@ import "./common/class.js";
 import "./common/command.js";
 import "./common/editor.js";
 import "./common/statusbar.js";
-import "../platform/mira/workbench/mira.js";
+import "../platform/mira/mira.js";
 import "../platform/extension/extension.js";
 import "../editor/standalone/standalone.js";
 import { changePanelOptionsWidth } from "./common/panelOptions.js";
@@ -19,11 +19,6 @@ import { watch } from "./common/store/selector.js";
 import { setPanelVisibilty } from "./common/panel.js";
 import { Drawboard } from "./browser/drawboard.js";
 import { _addContent } from "./common/tabs.js";
-
-const python = window.python;
-const path = window.path;
-
-python.executeScript(path.join([path.__dirname, "scripts", "download.py"]));
 
 const resizeObserver = new ResizeObserver((entries) => {
   entries.forEach(() => {

@@ -3,7 +3,6 @@ import path from "path";
 import os from "os";
 import url from "url";
 import { spawn, SpawnOptions, SpawnOptionsWithoutStdio } from "child_process";
-import { PythonShell } from "python-shell";
 import { contextBridge, ipcRenderer, shell } from "electron";
 import {
   createServerProcess,
@@ -13,7 +12,6 @@ import {
 import { createWebSocketConnection } from "vscode-ws-jsonrpc/server";
 import { WebSocketServer, ServerOptions } from "ws";
 import { Storage } from "../node/storage.js";
-import { FetchCompletionItemParams } from "../../platform/mira/suggestions/types/internal.js";
 import { _xtermManager } from "../common/devPanel/spawnXterm.js";
 import { IWebSocket } from "@codingame/monaco-jsonrpc";
 
@@ -55,15 +53,9 @@ const activeWatchers = new Map<string, fs.FSWatcher>();
 
 export const fsBridge = {
   readFile: (_path: string, encoding?: fs.EncodingOption) => {
-    if (!fs.existsSync(_path)) {
-      return "";
-    }
     return fs.readFileSync(_path, { encoding: encoding as any }).toString();
   },
   readFileBuffer: (_path: string, encoding?: fs.EncodingOption) => {
-    if (!fs.existsSync(_path)) {
-      return "";
-    }
     return fs.readFileSync(_path, { encoding: encoding as any });
   },
   deleteFile: (_path: string) => {
@@ -261,11 +253,7 @@ export const ipcBridge = {
     ipcRenderer.removeListener(channel, listener),
 };
 
-export const miraBridge = {
-  requestCompletion: (params: FetchCompletionItemParams) => {
-    return ipcRenderer.invoke("mira-completion-request", params);
-  },
-};
+export const miraBridge = {};
 
 export const pythonBridge = {
   executeScript: (
@@ -273,62 +261,30 @@ export const pythonBridge = {
     args: string[] = []
   ): Promise<string[]> => {
     return new Promise((resolve, reject) => {
-      const options = {
-        ...PythonShell.defaultOptions,
-        args: args,
-      };
-
       const logs: string[] = [];
-      const pyshell = new PythonShell(scriptPath, options);
 
-      pyshell.on("message", (message) => {
-        logs.push(message);
+      // Spawn Python process in background (non-blocking)
+      const python = spawn("python", [scriptPath, ...args], {
+        detached: true,
+        stdio: ["ignore", "pipe", "pipe"],
       });
 
-      pyshell.on("error", (err) => {
-        reject(err);
+      python.stdout?.on("data", (data) => {
+        logs.push(data.toString().trim());
       });
 
-      pyshell.end((err) => {
-        if (err) {
-          reject(err);
-        } else {
+      python.stderr?.on("data", (data) => {
+        reject(new Error(data.toString()));
+      });
+
+      python.on("close", (code) => {
+        if (code === 0) {
           resolve(logs);
+        } else {
+          reject(new Error(`Python process exited with code ${code}`));
         }
       });
     });
-  },
-
-  createStreamingShell: (scriptPath: string, args: string[] = []) => {
-    const options = {
-      mode: "text" as const,
-      pythonOptions: ["-u"],
-      args: args,
-    };
-
-    const pyshell = new PythonShell(scriptPath, options);
-
-    return {
-      shell: pyshell,
-      onMessage: (callback: (message: string) => void) => {
-        pyshell.on("message", callback);
-      },
-      onError: (callback: (error: Error) => void) => {
-        pyshell.on("error", callback);
-      },
-      onClose: (callback: () => void) => {
-        pyshell.on("close", callback);
-      },
-      terminate: () => {
-        pyshell.terminate();
-      },
-      kill: () => {
-        pyshell.kill();
-      },
-      send: (message: string) => {
-        pyshell.send(message);
-      },
-    };
   },
 };
 

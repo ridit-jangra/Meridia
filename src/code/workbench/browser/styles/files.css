@@ -203,6 +203,11 @@
   align-items: center;
 }
 
+.code .files .tree .node.active {
+  background: var(--workbench-tabs-active-background);
+  color: var(--workbench-tabs-active-foreground);
+}
+
 .code .files .tree .temp-node span svg {
   width: 18px;
   height: auto;
