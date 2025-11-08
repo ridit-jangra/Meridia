@@ -15,7 +15,7 @@ It combines a clean, minimal design with powerful tools for coding, data workflo
 Clone and start the project locally:
 
 ```bash
-git clone https://github.com/MeridiaByMNovus/Meridia.git
+git clone https://github.com/ridit-jangra/Meridia.git
 ```
 
 ```bash
@@ -39,6 +39,10 @@ NODE_ENV=development
 ### Intelligent Editor Core
 
 At the heart of Meridia lies the Monaco Editor. Each file you open is managed as a model, representing its text, language, and edit history. Meridia extends Monaco’s capabilities to handle multiple languages, syntax-aware tooling, and live code analysis—all through a unified editor interface.
+
+### File Models
+
+Meridia uses Monaco’s URI-based model system to simulate a virtual file system. Every open file, whether it exists locally or in memory, has its own unique URI (`file:///`), ensuring accurate language features and file tracking across tabs and sessions.
 
 ### Editors & Views
 
