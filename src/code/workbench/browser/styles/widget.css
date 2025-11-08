@@ -19,11 +19,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 10px 0;
+  background: var(--workbench-input-background);
+  border: 1px solid var(--workbench-input-border-foreground);
+  width: 96%;
   height: 30px;
   border-radius: 8px;
-  width: 95%;
-  outline: 2px solid var(--workbench-tabs-active-border-foreground);
+  margin: 10px 0;
+  box-shadow: 0 0 2px 2px var(--workbench-input-active-outline);
 }
 
 .widget .search input {

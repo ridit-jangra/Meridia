@@ -38,13 +38,27 @@
   user-select: none;
   box-sizing: border-box;
 }
-
-/* .gutter.gutter-horizontal {
-  width: 10px;
-  cursor: col-resize;
+.splitter-horizontal,
+.splitter-vertical {
+  position: relative; /* For absolute positioning of collapsed panels */
+  transition: all 0.2s ease;
+  overflow: hidden; /* Clip any potential overflows */
 }
 
-.gutter.gutter-vertical {
-  height: 10px;
-  cursor: row-resize;
-} */
+.splitter-horizontal > *,
+.splitter-vertical > * {
+  transition:
+    width 0.2s ease,
+    height 0.2s ease;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.gutter {
+  transition: max-width 0.2s ease;
+  box-sizing: border-box;
+}
+
+.gutter-hidden {
+  max-width: 0 !important;
+}

@@ -29,10 +29,8 @@
 }
 
 .code .titlebar .left-panel-section .logo svg {
-  width: 35px;
+  width: 25px;
   height: auto;
-  /* margin-right: 12px; */
-  /* border-radius: 4px; */
 }
 
 .code .titlebar .left-panel-section .logo svg path {
@@ -49,11 +47,6 @@
   cursor: pointer;
 }
 
-.code .titlebar .left-panel-section > span:not(.menu-container):hover,
-.hovered {
-  background: var(--workbench-titlebar-item-hover-background);
-}
-
 .code .titlebar .left-panel-section svg {
   width: 24px;
   height: auto;
@@ -61,8 +54,22 @@
 
 .code .titlebar .left-panel-section .menu-container {
   position: relative;
-  margin-left: 24px;
+  margin-left: 12px;
   border-radius: 12px;
+}
+
+.code .titlebar .left-panel-section .action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 2px solid var(--workbench-border-foreground);
+  height: 20px;
+  padding: 0 12px;
+  gap: 4px;
+}
+
+.code .titlebar .left-panel-section .action span:hover {
+  background: var(--workbench-titlebar-item-hover-background);
 }
 
 .code .titlebar .hamburger-menu {

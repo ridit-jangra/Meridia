@@ -13,7 +13,7 @@ import {
 import { CoreEl } from "../core.js";
 import { runCommand } from "../../../common/command.js";
 import { PanelOption } from "../panel/panelOption.js";
-import { _commandPanel, CommandPanel } from "./commandPanel.js";
+import { _commandPanel } from "./commandPanel.js";
 
 export class Titlebar extends CoreEl {
   private menuVisible: boolean = false;
@@ -71,10 +71,14 @@ export class Titlebar extends CoreEl {
     this.menuElement = this._createMenuMenu();
     this.hamburgerContainer.appendChild(this.menuElement);
 
+    const actionEl = document.createElement("div");
+    actionEl.className = "action";
+
     leftPanelSection.appendChild(logo);
-    leftPanelSection.appendChild(leftPanel);
-    leftPanelSection.appendChild(bottomPanel);
-    leftPanelSection.appendChild(rightPanel);
+    leftPanelSection.appendChild(actionEl);
+    actionEl.appendChild(leftPanel);
+    actionEl.appendChild(bottomPanel);
+    actionEl.appendChild(rightPanel);
     leftPanelSection.appendChild(this.hamburgerContainer);
 
     const centerSearchSection = document.createElement("div");
@@ -86,6 +90,8 @@ export class Titlebar extends CoreEl {
     searchBar.onclick = () => {
       _commandPanel._toggle();
     };
+
+    // _commandPanel._show();
 
     centerSearchSection.appendChild(searchBar);
 

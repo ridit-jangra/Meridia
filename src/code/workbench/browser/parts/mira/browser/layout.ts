@@ -52,7 +52,7 @@ export class Mira extends CoreEl {
     sendButton.onclick = () => {
       const currentText = input.value.trim();
       this._send(currentText);
-      input.value = "";
+      // input.value = "";
     };
 
     input.addEventListener("keydown", (e) => {

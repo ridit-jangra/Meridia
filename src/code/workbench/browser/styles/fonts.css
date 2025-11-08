@@ -11,44 +11,9 @@
 
 @font-face {
   font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-Thin.ttf");
-  font-weight: 100;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-ThinItalic.ttf");
-  font-weight: 100;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-ExtraLight.ttf");
-  font-weight: 200;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-ExtraLightItalic.ttf");
-  font-weight: 200;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
   src: url("../media/fonts/JetBrainsMono-Light.ttf");
   font-weight: 300;
   font-style: normal;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-LightItalic.ttf");
-  font-weight: 300;
-  font-style: italic;
 }
 
 @font-face {
@@ -60,23 +25,9 @@
 
 @font-face {
   font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-Italic.ttf");
-  font-weight: 400;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
   src: url("../media/fonts/JetBrainsMono-Medium.ttf");
   font-weight: 500;
   font-style: normal;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-MediumItalic.ttf");
-  font-weight: 500;
-  font-style: italic;
 }
 
 @font-face {
@@ -88,13 +39,6 @@
 
 @font-face {
   font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-SemiBoldItalic.ttf");
-  font-weight: 600;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
   src: url("../media/fonts/JetBrainsMono-Bold.ttf");
   font-weight: 700;
   font-style: normal;
@@ -102,23 +46,9 @@
 
 @font-face {
   font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-BoldItalic.ttf");
-  font-weight: 700;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
   src: url("../media/fonts/JetBrainsMono-ExtraBold.ttf");
   font-weight: 800;
   font-style: normal;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-ExtraBoldItalic.ttf");
-  font-weight: 800;
-  font-style: italic;
 }
 
 @font-face {
@@ -192,45 +122,10 @@
 }
 
 @font-face {
-  font-family: "Droid Serif";
-  src: url("../media/fonts/DroidSerif-Regular.ttf");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Droid Serif";
-  src: url("../media/fonts/DroidSerif-Regular.ttf");
-  font-weight: 400;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: "Droid Serif";
-  src: url("../media/fonts/DroidSerif-Bold.ttf");
-  font-weight: 700;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Droid Serif";
-  src: url("../media/fonts/DroidSerif-BoldItalic.ttf");
-  font-weight: 700;
-  font-style: italic;
-}
-
-@font-face {
   font-family: "Inter";
   src: url("../media/fonts/Inter-Regular.otf");
   font-weight: 400;
   font-style: normal;
-}
-
-@font-face {
-  font-family: "Inter";
-  src: url("../media/fonts/Inter-Italic.otf");
-  font-weight: 400;
-  font-style: italic;
 }
 
 @font-face {
@@ -241,30 +136,9 @@
 }
 
 @font-face {
-  font-family: "Inter";
-  src: url("../media/fonts/Inter-SemiBoldItalic.otf");
-  font-weight: 600;
-  font-style: italic;
-}
-
-@font-face {
   font-family: "Inter Variable";
   src: url("../media/fonts/InterVariable.ttf");
   font-weight: 100 900;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Roboto";
-  src: url("../media/fonts/Roboto-Light.ttf");
-  font-weight: 300;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Roboto";
-  src: url("../media/fonts/Roboto-Thin.ttf");
-  font-weight: 100;
   font-style: normal;
 }
 
@@ -298,7 +172,7 @@
 
 @font-face {
   font-family: "Inconsolata";
-  src: url("../media/fonts/Inconsolata.ttf");
+  src: url("../media/fonts/DroidSansMonoDotted.ttf");
   font-weight: 400;
   font-style: normal;
 }

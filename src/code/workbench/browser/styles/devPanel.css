@@ -45,3 +45,7 @@
   background: var(--workbench-tabs-hover-background);
   color: var(--workbench-tabs-hover-foreground);
 }
+
+.dev-panel .panel.vertical svg path {
+  stroke: var(--workbench-icon-foreground) !important;
+}

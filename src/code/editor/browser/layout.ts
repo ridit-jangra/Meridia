@@ -38,10 +38,6 @@ export class Editor extends CoreEl {
 
     this._editorArea.appendChild(this._contentArea);
 
-    const backgroundImage = document.createElement("span");
-    backgroundImage.innerHTML = getIcon("../images/background.svg");
-    this._emptyState.appendChild(backgroundImage);
-
     const _close = (tabUri: string, event?: Event) => {
       if (event) {
         event.stopPropagation();

@@ -55,6 +55,8 @@ export class Splitter extends CoreEl {
 
   private _create() {
     this._el = document.createElement("div");
+    this._el.style.position = "relative";
+    this._el.style.overflow = "hidden";
     this._el.className =
       this._direction === "horizontal"
         ? "splitter-horizontal"
@@ -74,26 +76,20 @@ export class Splitter extends CoreEl {
       const panel = this._panels[i];
       if (!panel) return;
 
-      panel.style.flexShrink = "0";
+      panel.style.flexShrink = "1";
       panel.style.overflow = "auto";
       panel.style.minWidth = "0";
       panel.style.minHeight = "0";
       panel.style.boxSizing = "border-box";
+      panel.style.position = "relative";
 
       this._el.appendChild(panel);
 
       if (i < this._panels.length - 1) {
         const gutter = document.createElement("div");
-        gutter.className =
-          this._direction === "horizontal"
-            ? "gutter gutter-horizontal"
-            : "gutter gutter-vertical";
-        gutter.style.cursor =
-          this._direction === "horizontal" ? "col-resize" : "row-resize";
-        gutter.style.flexShrink = "0";
-        gutter.style.userSelect = "none";
-        gutter.style.boxSizing = "border-box";
 
+        gutter.style.flexShrink = "0";
+        gutter.style.maxWidth = "10px";
         if (this._direction === "horizontal") {
           gutter.style.width = "10px";
           gutter.style.height = "100%";
@@ -207,33 +203,33 @@ export class Splitter extends CoreEl {
     const shouldNormalize = Math.abs(totalVisibleSize - 100) > tolerance;
 
     this._panels.forEach((panel, i) => {
+      let size: number;
       if (this._panelsVisible[i]) {
-        let size: number;
         if (shouldNormalize && totalVisibleSize > 0) {
           size = (this._sizes[i]! / totalVisibleSize) * 100;
         } else {
           size = this._sizes[i]!;
         }
-
-        if (this._direction === "horizontal") {
-          panel.style.width = `${size}%`;
-          panel.style.height = "100%";
-          panel.style.display = "";
-        } else {
-          panel.style.height = `${size}%`;
-          panel.style.width = "100%";
-          panel.style.display = "";
-        }
+        panel.style.visibility = "visible";
+        panel.style.flexBasis = size + "%";
+        panel.style.height = "100%";
+        panel.style.width = "auto";
       } else {
-        panel.style.display = "none";
+        panel.style.flexBasis = "0";
+        panel.style.visibility = "hidden";
+        panel.style.height = "100%";
+        panel.style.width = "auto";
       }
     });
 
     this._gutters.forEach((gutter, i) => {
       if (this._panelsVisible[i] && this._panelsVisible[i + 1]) {
-        gutter.style.display = "";
+        gutter.style.flexBasis =
+          this._direction === "horizontal" ? "10px" : "10px";
+        gutter.style.visibility = "visible";
       } else {
-        gutter.style.display = "none";
+        gutter.style.flexBasis = "0px";
+        gutter.style.visibility = "hidden";
       }
     });
   }
@@ -333,7 +329,6 @@ export class Splitter extends CoreEl {
     this._redistribute(index, !wasVisible);
     this._save();
 
-    // Delay size application for smoother UI update
     setTimeout(() => {
       this._applySizes();
       if (this._onSizeChangeCallback) this._onSizeChangeCallback();
