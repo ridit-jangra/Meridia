@@ -215,8 +215,8 @@ export const pathBridge = {
   extname: (_path: string) => {
     return path.extname(_path);
   },
-  walkdir: async (_path: string) => {
-    return ipcRenderer.invoke("workbench.workspace.walkdir", _path);
+  walkdir: async (_path: string, depth: number = 1) => {
+    return ipcRenderer.invoke("workbench.workspace.walkdir", _path, depth);
   },
 };
 

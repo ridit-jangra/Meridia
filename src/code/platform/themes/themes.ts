@@ -244,6 +244,7 @@ export const Dark: ITheme = {
     keyword: "#c678dd",
     "keyword.json": "#E06C75",
     "keyword.typeModifier": "#88DBD7",
+    source: "#d9a654",
     metadata: "#E5C07B",
     number: "#6897bb",
     boolean: "#d19a66",

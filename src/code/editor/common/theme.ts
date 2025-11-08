@@ -32,6 +32,7 @@ export function registerTheme(_monaco: any) {
       { token: "default", foreground: _tokens.default },
       { token: "keyword", foreground: _tokens.keyword },
       { token: "keyword.json", foreground: _tokens["keyword.json"] },
+      { token: "identifier.python", foreground: _tokens.source },
       {
         token: "keyword.typeModifier",
         foreground: _tokens["keyword.typeModifier"],

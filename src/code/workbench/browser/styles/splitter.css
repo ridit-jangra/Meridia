@@ -1,6 +1,6 @@
 .splitter-horizontal {
   display: flex;
-  width: calc(100% - 10px) !important;
+  width: 100%;
   height: calc(100vh - 95px);
 }
 
@@ -39,7 +39,7 @@
   box-sizing: border-box;
 }
 
-.gutter.gutter-horizontal {
+/* .gutter.gutter-horizontal {
   width: 10px;
   cursor: col-resize;
 }
@@ -47,4 +47,4 @@
 .gutter.gutter-vertical {
   height: 10px;
   cursor: row-resize;
-}
+} */

@@ -13,6 +13,7 @@ import {
 import { CoreEl } from "../core.js";
 import { runCommand } from "../../../common/command.js";
 import { PanelOption } from "../panel/panelOption.js";
+import { _commandPanel, CommandPanel } from "./commandPanel.js";
 
 export class Titlebar extends CoreEl {
   private menuVisible: boolean = false;
@@ -81,6 +82,10 @@ export class Titlebar extends CoreEl {
 
     const searchBar = document.createElement("div");
     searchBar.innerHTML = getThemeIcon("search");
+
+    searchBar.onclick = () => {
+      _commandPanel._toggle();
+    };
 
     centerSearchSection.appendChild(searchBar);
 

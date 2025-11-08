@@ -10,7 +10,7 @@ import "./common/class.js";
 import "./common/command.js";
 import "./common/editor.js";
 import "./common/statusbar.js";
-import "../platform/mira/mira.js";
+import "./browser/parts/mira/mira.js";
 import "../platform/extension/extension.js";
 import "../editor/standalone/standalone.js";
 import { changePanelOptionsWidth } from "./common/panelOptions.js";

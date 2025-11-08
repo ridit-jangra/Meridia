@@ -32,7 +32,6 @@
     "cross-spawn": "^7.0.6",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
-    "get-pty-output": "^0.8.2",
     "highlight.js": "^11.11.1",
     "lodash.debounce": "^4.0.8",
     "marked": "^16.3.0",

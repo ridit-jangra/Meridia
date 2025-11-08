@@ -65,6 +65,10 @@ export class Voice {
 
     const audio = new Audio(audioUrl);
 
+    audio.addEventListener("ended", () => {
+      _transcriptionEl.innerHTML = "";
+    });
+
     audio.addEventListener("timeupdate", () => {
       const currentTime = audio.currentTime;
 

@@ -12,6 +12,7 @@ export const TokenColors = [
   "default",
   "keyword",
   "keyword.json",
+  "source",
   "keyword.typeModifier",
   "metadata",
   "number",

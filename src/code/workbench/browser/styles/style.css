@@ -3,6 +3,7 @@
 @import url("./fonts.css");
 @import url("./panel.css");
 @import url("./xterm.css");
+@import url("./widget.css");
 @import url("./editor.css");
 @import url("./problem.css");
 @import url("./splitter.css");
@@ -254,4 +255,8 @@ blockquote {
   border-left: 4px solid var(--workbench-icon-foreground);
   padding-left: 16px;
   margin-left: 0;
+}
+
+input {
+  font-family: "Inconsolata";
 }

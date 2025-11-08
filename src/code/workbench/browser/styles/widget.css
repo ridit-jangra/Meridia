@@ -1,0 +1,80 @@
+.widget {
+  display: none;
+  position: absolute;
+  align-items: center;
+  top: 40px;
+  left: 50%;
+  border-radius: 12px;
+  border: 2px solid #38393c;
+  transform: translateX(-50%);
+  background: #252629;
+  color: var(--workbench-panel-foreground);
+  width: 90vh;
+  height: 70vh;
+  z-index: 999;
+  flex-direction: column;
+}
+
+.widget .search {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px 0;
+  height: 30px;
+  border-radius: 8px;
+  width: 95%;
+  outline: 2px solid var(--workbench-tabs-active-border-foreground);
+}
+
+.widget .search input {
+  width: 100%;
+  height: 100%;
+  color: var(--workbench-panel-foreground);
+  background: none;
+  border: none;
+  font-size: 18px;
+  padding: 0 12px;
+  font-family: "Inconsolata";
+}
+
+.widget .search input:focus {
+  outline: none;
+}
+
+.widget .options {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.widget .options .option {
+  width: 95%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.widget .options .option .name {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.widget .options .option .name .icon svg {
+  width: 18px;
+  height: auto;
+  display: flex;
+}
+
+.widget .options .option .detail {
+  font-size: 14px;
+}
+
+.widget .options .option.selected {
+  background: var(--workbench-hover-background);
+}

@@ -12,9 +12,12 @@ export async function _get(_path: string, depth: number = 1) {
   return structure;
 }
 
-ipcMain.handle("workbench.workspace.walkdir", async (_, _path: string) => {
-  return _get(_path, 1);
-});
+ipcMain.handle(
+  "workbench.workspace.walkdir",
+  async (_, _path: string, depth: number) => {
+    return _get(_path, depth);
+  }
+);
 
 function _update(
   structure: IFolderStructure,

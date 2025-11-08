@@ -293,6 +293,11 @@ export class Files extends CoreEl {
   }
 
   private async _refresh() {
+    this._expandedFolders.clear();
+    this._loadedFolders.clear();
+    this._renderedNodes.clear();
+    this._renderedChildContainers.clear();
+    this._lastStructureHash = "";
     this._el!.innerHTML = "";
     this._structure = await path.walkdir(this._structure.uri);
     this._createTreeView();

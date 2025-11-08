@@ -40,10 +40,6 @@ NODE_ENV=development
 
 At the heart of Meridia lies the Monaco Editor. Each file you open is managed as a model, representing its text, language, and edit history. Meridia extends Monaco’s capabilities to handle multiple languages, syntax-aware tooling, and live code analysis—all through a unified editor interface.
 
-### File Models
-
-Meridia uses Monaco’s URI-based model system to simulate a virtual file system. Every open file, whether it exists locally or in memory, has its own unique URI (`file:///`), ensuring accurate language features and file tracking across tabs and sessions.
-
 ### Editors & Views
 
 Each editor window is a visual view of a model, synchronized with your workspace state. You can open multiple views of the same file, manage them in tabs, or split the layout to view different parts of your project simultaneously—all with persistent view states.

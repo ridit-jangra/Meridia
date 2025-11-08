@@ -5,7 +5,7 @@ import { Panel } from "./parts/panel/panel.js";
 import { PanelOptions } from "./parts/panel/panelOptions.js";
 import { PanelOption } from "./parts/panel/panelOption.js";
 import { DevPanel } from "./parts/devPanel/el.js";
-import { Mira } from "../../platform/mira/browser/layout.js";
+import { Mira } from "./parts/mira/browser/layout.js";
 import { _xtermManager } from "../common/devPanel/spawnXterm.js";
 import { Structure } from "./structure.js";
 import { Editor } from "../../editor/standalone/standalone.js";
@@ -14,6 +14,7 @@ import { Splitter } from "./parts/splitter/splitter.js";
 import { Statusbar } from "./parts/statusbar/statusbar.js";
 import { changePanelOptionsWidth } from "../common/panelOptions.js";
 import { _drawboard } from "../workbench.desktop.js";
+import { _commandPanel } from "./parts/titlebar/commandPanel.js";
 
 export class Layout {
   constructor() {
@@ -112,6 +113,8 @@ export class Layout {
     codeEl.appendChild(statusbar);
 
     document.body.appendChild(codeEl);
+
+    codeEl.appendChild(_commandPanel.getDomElement()!);
 
     setTimeout(() => {
       changePanelOptionsWidth();

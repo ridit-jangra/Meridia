@@ -6,7 +6,8 @@
 .code .mira {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  flex-direction: column;
   margin: 0;
   overflow: hidden;
   position: relative;
@@ -154,14 +155,14 @@
 
 .code .mira .transcription-text {
   position: absolute;
-  bottom: 20px;
+  bottom: 70px;
   width: 90%;
   max-width: 800px;
   margin: 0 auto;
   left: 50%;
   transform: translateX(-50%);
   color: var(--workbench-foreground);
-  font-size: clamp(14px, 3vw, 24px);
+  font-size: 20px;
   font-family: "Jetbrains Mono";
   padding: 12px 18px;
   border-radius: 8px;
@@ -188,4 +189,49 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   line-height: 1.4;
+}
+
+.code .mira .textbox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--workbench-input-background);
+  border: 1px solid var(--workbench-input-border-foreground);
+  width: 96%;
+  height: 30px;
+  border-radius: 8px;
+  margin: 10px 0;
+  box-shadow: 0 0 2px 2px var(--workbench-input-active-outline);
+}
+
+.code .mira .textbox .input {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  color: var(--workbench-input-foreground);
+  padding: 0 10px;
+}
+
+.code .mira .textbox .input:focus {
+  outline: none;
+}
+
+.code .mira .textbox span {
+  margin: 0 2px;
+  padding: 2px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.code .mira .textbox span svg {
+  width: 20px;
+  height: auto;
+}
+
+.code .mira .textbox span:hover {
+  background: var(--workbench-hover-background);
 }
