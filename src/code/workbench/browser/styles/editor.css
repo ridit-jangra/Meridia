@@ -17,6 +17,11 @@
 
 .code .editor .preview-area {
   height: calc(100% - 50px);
+  padding: 0 10px;
+}
+
+.code .editor .preview-area * {
+  font-family: "Inconsolata" !important;
 }
 
 .code .editor .monaco-editor *:focus {
