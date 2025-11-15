@@ -312,7 +312,6 @@ export const editorBridge = {
         path: path.join(resolvedPath, item.name),
       }));
     } catch (error) {
-      console.error("Error reading directory:", error);
       return [];
     }
   },

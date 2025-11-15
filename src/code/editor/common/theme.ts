@@ -1,4 +1,4 @@
-import monaco from "monaco-editor";
+import monaco from "./utils.js";
 import { getStandalone } from "../../workbench/common/class";
 import { Theme } from "../../workbench/common/theme";
 

@@ -25,7 +25,5 @@ export function activate(context: context) {
     );
 
     context.workbench.workspace.language.registerLanguageServer(_server);
-  } catch (err) {
-    console.error(err);
-  }
+  } catch (err) {}
 }

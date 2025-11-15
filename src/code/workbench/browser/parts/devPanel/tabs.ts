@@ -16,24 +16,25 @@ const storage = window.storage;
 export class DevPanelTabs extends CoreEl {
   private _tabs: IDevTab[] = [
     {
-      id: `terminal`,
+      id: "terminal",
       name: "Terminal",
-      active: true,
+      active: false,
       icon: getThemeIcon("terminal"),
     },
     {
-      id: `run`,
+      id: "run",
       name: "Run",
       active: false,
       icon: getThemeIcon("run"),
     },
     {
-      id: `problem`,
+      id: "problem",
       name: "Problems",
       active: false,
       icon: getThemeIcon("problem"),
     },
   ];
+
   private _contentEl: HTMLElement;
   private _panels: Map<string, any> = new Map();
   private _eventListeners: Map<string, Function[]> = new Map();
@@ -41,7 +42,6 @@ export class DevPanelTabs extends CoreEl {
 
   constructor(contentEl: HTMLElement) {
     super();
-
     this._contentEl = contentEl;
     this._createEl();
   }
@@ -52,16 +52,31 @@ export class DevPanelTabs extends CoreEl {
     this._el.style.height = "100%";
     this._el.style.width = "fit-content";
 
+    const _active = storage.get("workbench.workspace.dev.panel.active.tab");
+
+    if (_active) {
+      this._tabs = this._tabs.map((tab) => ({
+        ...tab,
+        active: tab.id === _active,
+      }));
+    } else {
+      this._tabs[0]!.active = true;
+    }
+
     this._render();
 
-    const _active = storage.get("workbench.workspace.dev.panel.active.tab");
-    if (_active) this._set(_active);
-    else this._set("terminal");
+    const activeTab = this._tabs.find((t) => t.active);
+    if (activeTab) {
+      this._set(activeTab.id);
+    } else {
+      this._set("terminal");
+    }
   }
 
   private _render() {
     const existingTabsContainer = this._el!.querySelector(".tabs");
     const existingCollapseIcon = this._el!.querySelector(".collapse");
+
     if (existingTabsContainer) {
       existingTabsContainer.remove();
     }
@@ -70,8 +85,9 @@ export class DevPanelTabs extends CoreEl {
     }
 
     const tabsContainer = document.createElement("div");
-    tabsContainer.className = "tabs vertical";
+    tabsContainer.className = "tabs";
     new PerfectScrollbar(tabsContainer);
+
     if (!tabsContainer) return;
 
     const activeTab = this._tabs.find((t) => t.active);
@@ -79,33 +95,31 @@ export class DevPanelTabs extends CoreEl {
       this._open(activeTab);
     }
 
-    storage.store("workbench.workspace.dev.panel.active.tab", this._tabs);
-
     this._tabs.forEach((tab) => {
       const tabEl = document.createElement("div");
       tabEl.className = `tab ${tab.active ? "active" : ""}`;
 
-      tabEl.onclick = (e) => {
-        if ((e.target as HTMLElement).closest(".close-icon")) {
-          return;
-        }
-
+      tabEl.onclick = () => {
         this._tabs = this._tabs.map((t) => ({
           ...t,
           active: t.id === tab.id,
         }));
 
-        this._render();
-
         storage.store("workbench.workspace.dev.panel.active.tab", tab.id);
+
+        this._render();
       };
 
       const icon = document.createElement("span");
       icon.className = "icon";
       icon.innerHTML = tab.icon ?? getThemeIcon("terminal");
 
-      tabEl.appendChild(icon);
+      const name = document.createElement("span");
+      name.className = "name";
+      name.textContent = tab.name;
 
+      tabEl.appendChild(icon);
+      tabEl.appendChild(name);
       tabsContainer.appendChild(tabEl);
     });
 
@@ -130,6 +144,12 @@ export class DevPanelTabs extends CoreEl {
     }
 
     this._contentEl.appendChild(panel.getDomElement()!);
+
+    setTimeout(() => {
+      if (panel === _terminal) _terminal._render();
+      else if (panel === _run) _run._render();
+      else if (panel === _problem) _problem._render();
+    }, 10);
   }
 
   private _emit(event: string, data?: any): void {
@@ -137,9 +157,7 @@ export class DevPanelTabs extends CoreEl {
     listeners.forEach((callback) => {
       try {
         callback(data);
-      } catch (error) {
-        console.error(`Error in event listener for ${event}:`, error);
-      }
+      } catch (error) {}
     });
   }
 
@@ -171,7 +189,12 @@ export class DevPanelTabs extends CoreEl {
   public async _set(tabId: string): Promise<boolean> {
     return new Promise((resolve) => {
       const _state = select((s) => s.main.panel_state);
-      dispatch(update_panel_state({ ..._state, bottom: true }));
+      dispatch(
+        update_panel_state({
+          ..._state,
+          bottom: true,
+        })
+      );
 
       const targetTab = this._tabs.find((tab) => tab.id === tabId);
 
@@ -192,7 +215,10 @@ export class DevPanelTabs extends CoreEl {
         active: tab.id === tabId,
       }));
 
-      this._emit("tabChanging", { from: this.getActiveTab()?.id, to: tabId });
+      this._emit("tabChanging", {
+        from: this.getActiveTab()?.id,
+        to: tabId,
+      });
 
       this._render();
 
@@ -201,12 +227,10 @@ export class DevPanelTabs extends CoreEl {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           this._isTransitioning = false;
-
           this._emit("tabChanged", {
             activeTab: tabId,
             tabInstance: this._panels.get(tabId),
           });
-
           resolve(true);
         });
       });
@@ -228,6 +252,8 @@ export class DevPanelTabs extends CoreEl {
       ...tab,
       active: tab.id === tabId,
     }));
+
+    storage.store("workbench.workspace.dev.panel.active.tab", tabId);
 
     this._render();
     return true;

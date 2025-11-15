@@ -2,3 +2,7 @@
 .xterm .xterm-viewport::-webkit-scrollbar {
   display: none !important;
 }
+
+.xterm .xterm-viewport {
+  width: initial !important;
+}

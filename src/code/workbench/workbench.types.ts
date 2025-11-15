@@ -1,3 +1,4 @@
+import * as monaco from "monaco-editor";
 import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 
@@ -174,6 +175,13 @@ export interface IEditorTab {
   active: boolean;
 }
 
+export interface IPreviewTab {
+  name: string;
+  icon?: string;
+  uri: string;
+  active: boolean;
+}
+
 export interface IDevTab {
   id: string;
   name: string;
@@ -188,6 +196,27 @@ export interface IDevPanelTab {
   uri: string;
 }
 
+export interface IError {
+  detials: string;
+  line: number;
+  column: number;
+}
+
+export interface IWarning {
+  detials: string;
+  line: number;
+  column: number;
+}
+
+export interface IProblemTab {
+  id: string;
+  name: string;
+  active: boolean;
+  uri: string;
+  error: IError;
+  warnings: IWarning;
+}
+
 export interface IXTermInstance {
   term: XTerm;
   _container: HTMLElement;
@@ -197,6 +226,7 @@ export interface IXTermInstance {
 
 export interface IMainState {
   editor_tabs: IEditorTab[];
+  preview_tabs: IPreviewTab[];
   panel_state: IPanelState;
   folder_structure: IFolderStructure;
 }

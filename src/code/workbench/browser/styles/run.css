@@ -1,0 +1,21 @@
+.code .run-container {
+  position: relative;
+  display: flex;
+  height: 100%;
+}
+
+.code .run-container .tabs {
+  max-width: 200px;
+  border-left: 1px solid var(--workbench-border-foreground);
+}
+
+.code .dev-panel .content-tabs .name {
+  max-width: 120px;
+  min-width: 120px;
+  text-align: center;
+}
+
+.code .run-container .run-area {
+  flex: 1;
+  position: relative;
+}

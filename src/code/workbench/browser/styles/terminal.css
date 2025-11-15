@@ -1,0 +1,30 @@
+.code .terminal-container {
+  position: relative;
+  display: flex;
+  height: 100%;
+}
+
+.code .terminal-container .tabs {
+  width: 200px;
+  border-left: 2px solid var(--workbench-background);
+}
+
+.code .terminal-container .add {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 1000;
+  right: 20px;
+  top: 5px;
+  background: var(--workbench-terminal-background);
+  outline: 2px solid var(--workbench-border-foreground);
+}
+
+.code .terminal-container .add svg {
+  width: 18px;
+  height: auto;
+}

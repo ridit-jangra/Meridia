@@ -215,6 +215,7 @@ export function getFileIcon(_name: string) {
     "mp3",
     "pyi",
     "map",
+    "ipynb",
   ];
 
   const iconName = _supported.includes(_ext) ? _ext : "default";

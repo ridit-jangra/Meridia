@@ -34,7 +34,7 @@
     "express": "^5.1.0",
     "highlight.js": "^11.11.1",
     "lodash.debounce": "^4.0.8",
-    "marked": "^16.3.0",
+    "marked": "^16.4.2",
     "monaco-editor": "^0.29.0",
     "monaco-editor-core": "^0.29.0",
     "monaco-languageclient": "0.13.1-next.9",

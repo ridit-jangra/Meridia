@@ -1,4 +1,5 @@
 @import url("./tabs.css");
+@import url("./run.css");
 @import url("./files.css");
 @import url("./fonts.css");
 @import url("./panel.css");
@@ -9,6 +10,7 @@
 @import url("./splitter.css");
 @import url("./titlebar.css");
 @import url("./miraChat.css");
+@import url("./terminal.css");
 @import url("./devPanel.css");
 @import url("./scrollbar.css");
 @import url("./miraVoice.css");
@@ -26,7 +28,7 @@
 
 .code {
   height: 100vh;
-  overflow: hidden;
+  /* overflow: hidden; */
   font-family: "Inconsolata";
 }
 
@@ -108,10 +110,11 @@ body {
   padding: 0 10px;
   font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
   font-size: 16px;
+  max-width: 98.4vw;
   background: var(--workbench-background);
   color: var(--workbench-foreground);
   height: 100vh;
-  overflow: hidden;
+  overflow-y: hidden;
 }
 
 p,
@@ -127,17 +130,6 @@ button {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
-/* button,
-div,
-span,
-a,
-li:hover,
-.hovered {
-  transition:
-    background 0.2s ease-in-out,
-    color 0.2s ease-in-out;
-} */
 
 h1 {
   font-family: "Inter", "Droid Sans", "Roboto", sans-serif;

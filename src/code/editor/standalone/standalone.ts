@@ -1,4 +1,4 @@
-import * as monaco from "monaco-editor";
+import monaco from "../common/utils.js";
 import "monaco-languages";
 import "../common/icons.js";
 import {
@@ -11,7 +11,8 @@ import {
 import { listen } from "@codingame/monaco-jsonrpc";
 import { IEditorTab } from "../../workbench/workbench.types.js";
 import { registerTheme } from "../common/theme.js";
-import { extensionToLanguage, registerFsSuggestion } from "../common/utils.js";
+import { extensionToLanguage } from "../common/utils.js";
+import { _preview as _previewManager } from "../common/preview.js";
 import { getLanguage } from "../../workbench/common/utils.js";
 import {
   getLanguageServer,
@@ -55,6 +56,7 @@ export class Editor {
   private _tabs: IEditorTab[] = [];
   public _editor!: monaco.editor.IStandaloneCodeEditor;
   private _layout = document.querySelector(".editor-area") as HTMLElement;
+  private _preview!: HTMLDivElement;
   private _detailsElement?: HTMLElement;
   private _problemsCountElement?: HTMLElement;
 
@@ -457,7 +459,18 @@ export class Editor {
 
     _detail.appendChild(_problems);
 
+    this._preview = document.createElement("div");
+    this._preview.className = "preview";
+    this._preview.innerHTML = getThemeIcon("preview");
+
+    this._preview.onclick = () => {
+      const _tabs = select((s) => s.main.editor_tabs);
+      const _active = _tabs.find((t) => t.active);
+      if (_active) _previewManager._open(_active);
+    };
+
     this._layout.appendChild(_detail);
+    this._layout.appendChild(this._preview);
 
     this._detailsElement = _detail;
     this._problemsCountElement = _problems;
@@ -496,7 +509,6 @@ export class Editor {
       const languageId = extensionToLanguage(_lang);
 
       if (!languageId) {
-        console.warn(`Unknown language for extension: ${_lang}`);
         return;
       }
 
@@ -953,6 +965,9 @@ export class Editor {
       this._editor.focus();
     }
 
+    if (!tab.uri.endsWith(".md")) this._preview.style.display = "none";
+    else this._preview.style.display = "flex";
+
     this._updateProblemCount();
   }
 
@@ -1081,9 +1096,7 @@ export class Editor {
     try {
       fs.createFile(uriString, model.getValue());
       this._update(uriString, false);
-    } catch (err) {
-      console.error("Save error:", err);
-    }
+    } catch (err) {}
   }
 
   public _close(uriString: string) {
@@ -1175,5 +1188,5 @@ export class Editor {
   }
 }
 
-const _editor = new Editor();
+export const _editor = new Editor();
 registerStandalone("editor", _editor);

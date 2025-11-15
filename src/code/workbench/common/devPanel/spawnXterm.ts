@@ -40,14 +40,7 @@ class XtermManager {
       this._dispose(id);
     }
 
-    this._dispatch("workbench.terminal.create", {
-      id,
-      shell,
-      cwd,
-    });
-
     const _container = document.createElement("div");
-    _container.style.position = "relative";
     _container.style.width = "100%";
     _container.style.height = "100%";
     _container.style.background = "var(--workbench-terminal-background)";
@@ -84,37 +77,19 @@ class XtermManager {
     const onPtyData = (_event: any, data: string) => {
       if (data.includes("\x1b[H\x1b[2J") || data.includes("\x1b[2J")) {
         term.clear();
-
-        this._dispatch("workbench.terminal.clear", { id });
       } else if (data.length > 0) {
         term.write(data);
-
-        this._dispatch("workbench.terminal.output", {
-          id,
-          data: data,
-        });
       }
     };
     ipcRenderer.on(`workbench.terminal.data.pty-${id}`, onPtyData);
 
     term.onData((data) => {
       ipcRenderer.invoke("workbench.terminal.data.user", id, data);
-
-      this._dispatch("workbench.terminal.input", {
-        id,
-        data,
-      });
     });
 
     term.onResize(({ cols, rows }) => {
       ipcRenderer.invoke("workbench.terminal.resize", id, cols, rows);
       this._update();
-
-      this._dispatch("workbench.terminal.resize", {
-        id,
-        cols,
-        rows,
-      });
     });
 
     const _theme = getStandalone("theme") as Theme;
@@ -151,8 +126,6 @@ class XtermManager {
       _ptyDataListener: onPtyData,
     });
 
-    this._dispatch("workbench.terminal.ready", { id });
-
     return _container;
   }
 
@@ -170,31 +143,30 @@ class XtermManager {
     setTimeout(() => {
       for (const [id, instance] of this._terminals) {
         try {
-          instance._fitAddon.fit();
+          const parentElement =
+            instance._container.parentElement?.parentElement?.parentElement;
+
+          if (!parentElement) continue;
 
           const _height =
             instance._container.parentElement!.parentElement!.parentElement!
               .clientHeight -
-            85 +
-            "px";
-          const _width =
-            instance._container.parentElement!.parentElement!.parentElement!
-              .clientWidth -
-            10 +
+            25 +
             "px";
 
           instance._container.style.height = _height;
-          instance._container.style.width = _width;
+          instance._container.style.width = "calc(100% - 15px)";
+          instance._container.style.overflow = "hidden";
+
+          instance._fitAddon.fit();
         } catch (e) {}
       }
-    }, 10);
+    }, 50);
   }
 
   _dispose(id: string) {
     const _instance = this._terminals.get(id);
     if (!_instance) return;
-
-    this._dispatch("workbench.terminal.dispose", { id });
 
     ipcRenderer.removeListener(
       `workbench.terminal.data.pty-${id}`,
@@ -210,8 +182,6 @@ class XtermManager {
     this._completionCallbacks.delete(id);
 
     ipcRenderer.invoke("workbench.terminal.kill", id);
-
-    this._dispatch("workbench.terminal.disposed", { id });
   }
 
   async _run(id: string, command: string, _path: string) {
@@ -223,13 +193,15 @@ class XtermManager {
     this._dispose(id);
 
     const _container = document.createElement("div");
-    _container.style.position = "relative";
+
     _container.style.width = "100%";
     _container.style.height = "100%";
     _container.style.background = "var(--workbench-terminal-background)";
     _container.style.display = "flex";
     _container.style.flexDirection = "column";
     _container.style.padding = "12px";
+    _container.style.overflow = "hidden";
+    _container.style.boxSizing = "border-box";
 
     const term = new XTerm({
       scrollback: 1000,
@@ -272,7 +244,6 @@ class XtermManager {
     };
 
     term.clear();
-    // term.options.disableStdin = false;
 
     this._terminals.set(id, {
       term,
@@ -336,8 +307,6 @@ class XtermManager {
 
         return true;
       } catch (error) {
-        console.error("Stop error:", error);
-
         return false;
       }
     }

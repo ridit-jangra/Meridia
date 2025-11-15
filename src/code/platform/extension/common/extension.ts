@@ -26,14 +26,10 @@ export class Extension {
 
             this._extensions.push(module);
             this._activate(module);
-          } catch (error) {
-            console.error("Error importing", fileUrl, error);
-          }
+          } catch (error) {}
         }
       }
-    } catch (err) {
-      console.error("Error reading extensions folder:", err);
-    }
+    } catch (err) {}
   }
 
   _activate(ext: IExtensionModule) {

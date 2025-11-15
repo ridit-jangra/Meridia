@@ -15,6 +15,7 @@ import { Statusbar } from "./parts/statusbar/statusbar.js";
 import { changePanelOptionsWidth } from "../common/panelOptions.js";
 import { _drawboard } from "../workbench.desktop.js";
 import { _commandPanel } from "./parts/titlebar/commandPanel.js";
+import { Preview } from "../../editor/common/preview.js";
 
 export class Layout {
   constructor() {
@@ -123,6 +124,11 @@ export class Layout {
       if (_editor) {
         _editor._mount();
       }
+      const _preview = getStandalone("preview") as Preview;
+      if (_preview) {
+        _preview._mount();
+      }
+
       _editorLayout.rerender();
 
       // const _tab: IEditorTab = {

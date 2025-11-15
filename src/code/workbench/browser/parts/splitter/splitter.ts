@@ -55,8 +55,6 @@ export class Splitter extends CoreEl {
 
   private _create() {
     this._el = document.createElement("div");
-    this._el.style.position = "relative";
-    this._el.style.overflow = "hidden";
     this._el.className =
       this._direction === "horizontal"
         ? "splitter-horizontal"
@@ -65,7 +63,8 @@ export class Splitter extends CoreEl {
     this._el.style.display = "flex";
     this._el.style.flexDirection =
       this._direction === "horizontal" ? "row" : "column";
-    this._el.style.width = "100%";
+    this._el.style.width =
+      this._direction === "horizontal" ? "calc(100% - 10px)" : "100%";
     this._el.style.boxSizing = "border-box";
     this._el.style.padding = "0";
     this._el.style.margin = "0";
@@ -76,20 +75,26 @@ export class Splitter extends CoreEl {
       const panel = this._panels[i];
       if (!panel) return;
 
-      panel.style.flexShrink = "1";
+      panel.style.flexShrink = "0";
       panel.style.overflow = "auto";
       panel.style.minWidth = "0";
       panel.style.minHeight = "0";
       panel.style.boxSizing = "border-box";
-      panel.style.position = "relative";
 
       this._el.appendChild(panel);
 
       if (i < this._panels.length - 1) {
         const gutter = document.createElement("div");
-
+        gutter.className =
+          this._direction === "horizontal"
+            ? "gutter gutter-horizontal"
+            : "gutter gutter-vertical";
+        gutter.style.cursor =
+          this._direction === "horizontal" ? "col-resize" : "row-resize";
         gutter.style.flexShrink = "0";
-        gutter.style.maxWidth = "10px";
+        gutter.style.userSelect = "none";
+        gutter.style.boxSizing = "border-box";
+
         if (this._direction === "horizontal") {
           gutter.style.width = "10px";
           gutter.style.height = "100%";
@@ -191,6 +196,24 @@ export class Splitter extends CoreEl {
     if (this._onSizeChangeCallback) this._onSizeChangeCallback();
   }
 
+  _expandPanel(index: number) {
+    if (index < 0 || index >= this._panels.length) return;
+
+    if (this._panelsVisible[index]) return;
+
+    this._panelsVisible[index] = true;
+    this._panels[index]!.style.display = "flex";
+
+    const visibleCount = this._panelsVisible.filter((v) => v).length;
+    if (visibleCount === 0) return;
+
+    this._redistribute(index, true);
+    this._applySizes();
+    this._save();
+
+    if (this._onSizeChangeCallback) this._onSizeChangeCallback();
+  }
+
   private _applySizes() {
     let totalVisibleSize = 0;
     for (let i = 0; i < this._panels.length; i++) {
@@ -203,33 +226,33 @@ export class Splitter extends CoreEl {
     const shouldNormalize = Math.abs(totalVisibleSize - 100) > tolerance;
 
     this._panels.forEach((panel, i) => {
-      let size: number;
       if (this._panelsVisible[i]) {
+        let size: number;
         if (shouldNormalize && totalVisibleSize > 0) {
           size = (this._sizes[i]! / totalVisibleSize) * 100;
         } else {
           size = this._sizes[i]!;
         }
-        panel.style.visibility = "visible";
-        panel.style.flexBasis = size + "%";
-        panel.style.height = "100%";
-        panel.style.width = "auto";
+
+        if (this._direction === "horizontal") {
+          panel.style.width = `${size}%`;
+          panel.style.height = "100%";
+          panel.style.display = "";
+        } else {
+          panel.style.height = `${size}%`;
+          panel.style.width = "100%";
+          panel.style.display = "";
+        }
       } else {
-        panel.style.flexBasis = "0";
-        panel.style.visibility = "hidden";
-        panel.style.height = "100%";
-        panel.style.width = "auto";
+        panel.style.display = "none";
       }
     });
 
     this._gutters.forEach((gutter, i) => {
       if (this._panelsVisible[i] && this._panelsVisible[i + 1]) {
-        gutter.style.flexBasis =
-          this._direction === "horizontal" ? "10px" : "10px";
-        gutter.style.visibility = "visible";
+        gutter.style.display = "";
       } else {
-        gutter.style.flexBasis = "0px";
-        gutter.style.visibility = "hidden";
+        gutter.style.display = "none";
       }
     });
   }

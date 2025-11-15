@@ -222,7 +222,7 @@
   font-family: "Inconsolata";
   border: none;
   margin: 0;
-  padding: 0;
+  padding: 0 5px;
 }
 
 .code .files .tree .inline-editor-input:hover {

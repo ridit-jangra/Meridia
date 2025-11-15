@@ -27,6 +27,12 @@
   outline: none;
 }
 
+.code .tabs.vertical .tab .name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .code .tabs .tab {
   display: flex;
   align-items: center;

@@ -7,6 +7,16 @@
 .code .editor .editor-area {
   height: calc(100% - 56px);
   position: relative;
+  display: flex;
+}
+
+.code .editor .splitter-horizontal .gutter {
+  border-radius: 8px !important;
+  width: 5px !important;
+}
+
+.code .editor .preview-area {
+  height: calc(100% - 50px);
 }
 
 .code .editor .monaco-editor *:focus {
@@ -89,7 +99,7 @@
   width: 100% !important;
   border-radius: 6px !important;
   padding: 2px 0 !important;
-  font-family: "Source Code Pro" !important;
+  font-family: "Inconsolata" !important;
 }
 
 .monaco-editor .rename-input {
@@ -155,10 +165,10 @@
   top: 0px;
   right: 20px;
   z-index: 999;
-  background: var(--workbench-editor-background);
+  background: var(--workbench-background);
   width: 35px;
   height: 35px;
-  border-radius: 8px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -173,6 +183,27 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+}
+
+.code .editor .preview {
+  position: absolute;
+  top: 50px;
+  right: 20px;
+  z-index: 999;
+  background: var(--workbench-secondary-button-background);
+  outline: 2px solid var(--workbench-background);
+  width: 35px;
+  height: 35px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.code .editor .preview svg {
+  width: 18px;
+  height: auto;
 }
 
 .code .editor .details .problems.none {

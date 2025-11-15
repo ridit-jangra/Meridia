@@ -4,6 +4,8 @@ import { languages } from "../../platform/editor/languages";
 
 const path = window.path;
 
+export default monaco;
+
 function getCurrentFileDirectory(): string {
   const activeFile = select((s) => s.main.editor_tabs).find((t) => t.active);
   if (activeFile && activeFile.uri) {
@@ -186,12 +188,12 @@ export function extensionToLanguage(_ext: string) {
   return languageMap[_ext.toLowerCase()];
 }
 
-export function registerFsSuggestion(_monaco: any) {
+export function registerFsSuggestion() {
   const _extensions = languages.keys();
   _extensions.forEach((_ext) => {
     const _language = extensionToLanguage(_ext);
 
-    return _monaco.languages.registerCompletionItemProvider(_language, {
+    return monaco.languages.registerCompletionItemProvider(_language!, {
       triggerCharacters: ["/", "\\", "."],
 
       provideCompletionItems: async function (
@@ -242,7 +244,7 @@ export function registerFsSuggestion(_monaco: any) {
                 startColumn: pathInfo.replaceStart,
                 endColumn: pathInfo.replaceEnd,
               },
-            })),
+            })) as any,
           };
         } catch (error) {
           return { suggestions: [] };

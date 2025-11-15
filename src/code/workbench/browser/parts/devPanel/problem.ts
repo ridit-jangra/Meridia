@@ -2,30 +2,20 @@ import { CoreEl } from "../core.js";
 import { getStandalone, registerStandalone } from "../../../common/class.js";
 import { getThemeIcon } from "../../media/icons.js";
 import { Editor } from "../../../../editor/standalone/standalone.js";
+import { IProblemTab, IError, IWarning } from "../../../workbench.types.js";
+import { getFileIcon } from "../../../common/utils.js";
+import { watch } from "../../../common/store/selector.js";
 
-export class Problmen extends CoreEl {
+const path = window.path;
+
+export class Problem extends CoreEl {
   private _problems = new Map<string, any>();
-  private _headerEl!: HTMLElement;
   private _listEl!: HTMLElement;
-  private _collapsedFiles = new Set<string>();
+  private _tabs: IProblemTab[] = [];
 
   constructor() {
     super();
     this._createEl();
-  }
-
-  private _createEl() {
-    this._el = document.createElement("div");
-    this._el.className = "error-container";
-
-    this._headerEl = document.createElement("div");
-    this._headerEl.className = "problems-header";
-    this._headerEl.textContent = "Problems: 0 errors, 0 warnings";
-    this._el.appendChild(this._headerEl);
-
-    this._listEl = document.createElement("div");
-    this._listEl.className = "problems-list scrollbar-container";
-    this._el.appendChild(this._listEl);
 
     document.addEventListener("workbench.editor.detect.error", (_event) => {
       const _customEvent = _event as CustomEvent;
@@ -52,6 +42,23 @@ export class Problmen extends CoreEl {
     });
   }
 
+  private _createEl() {
+    this._el = document.createElement("div");
+    this._el.className = "error-container";
+
+    this._listEl = document.createElement("div");
+    this._listEl.className = "problems-list scrollbar-container";
+    this._el.appendChild(this._listEl);
+
+    watch(
+      (s) => s.main.editor_tabs,
+      (_tabs) => {
+        const _active = _tabs.find((_tab) => _tab.active);
+        if (_active) this.setActiveTab(_active.uri);
+      }
+    );
+  }
+
   private _handleErrorDetected(info: any) {
     this._addError(info);
   }
@@ -75,53 +82,72 @@ export class Problmen extends CoreEl {
   private _addError(info: any) {
     const problemId = this._createProblemId(info);
     this._problems.set(problemId, { ...info, type: "error" });
-    this._update();
+    this._updateTabs();
   }
 
   private _addWarning(info: any) {
     const problemId = this._createProblemId(info);
     this._problems.set(problemId, { ...info, type: "warning" });
-    this._update();
+    this._updateTabs();
   }
 
   private _removeError(info: any) {
     const problemId = this._createProblemId(info);
     this._problems.delete(problemId);
-    this._update();
+    this._updateTabs();
   }
 
   private _removeWarning(info: any) {
     const problemId = this._createProblemId(info);
     this._problems.delete(problemId);
-    this._update();
+    this._updateTabs();
   }
 
-  private _update() {
+  private _updateTabs() {
     const problems = Array.from(this._problems.values());
-    const errors = problems.filter((p) => p.type === "error");
-    const warnings = problems.filter((p) => p.type === "warning");
+    const problemsByFile = this._groupByFile(problems);
 
-    this._headerEl.textContent = `Problems: ${errors.length} errors, ${warnings.length} warnings`;
+    const currentActiveUri = this._tabs.find((t) => t.active)?.uri;
 
-    this._listEl.innerHTML = "";
+    this._tabs = [];
 
-    if (problems.length === 0) {
-      const emptyEl = document.createElement("div");
-      emptyEl.className = "problems-empty";
-      emptyEl.textContent = "No problems detected";
-      this._listEl.appendChild(emptyEl);
-      return;
+    for (const [filePath, items] of problemsByFile) {
+      const fileProblems = items.filter((p) => p.type === "error");
+      const fileWarnings = items.filter((p) => p.type === "warning");
+
+      const tab: IProblemTab = {
+        id: this._generateTabId(filePath),
+        name: path.basename(filePath),
+        active: false,
+        uri: filePath,
+        error: fileProblems.map((p) => ({
+          details: p.message,
+          line: p.line,
+          column: p.column,
+        })) as any,
+        warnings: fileWarnings.map((w) => ({
+          details: w.message,
+          line: w.line,
+          column: w.column,
+        })) as any,
+      };
+
+      this._tabs.push(tab);
     }
 
-    const problemsByFile = this._groupProblems(problems);
-
-    for (const [filePath, fileProblems] of problemsByFile) {
-      const fileGroupEl = this._createGroup(filePath, fileProblems);
-      this._listEl.appendChild(fileGroupEl);
+    if (this._tabs.length > 0) {
+      const tabToActivate = this._tabs.find((t) => t.uri === currentActiveUri);
+      if (tabToActivate) {
+        tabToActivate.active = true;
+      } else {
+        this._tabs[0]!.active = true;
+      }
     }
+
+    this._render();
   }
 
-  private _groupProblems(problems: any[]): Map<string, any[]> {
+  private _groupByFile(problems: any[]): Map<string, any[]> {
     const grouped = new Map<string, any[]>();
 
     for (const problem of problems) {
@@ -142,124 +168,118 @@ export class Problmen extends CoreEl {
     return grouped;
   }
 
-  private _createGroup(filePath: string, problems: any[]): HTMLElement {
-    const fileGroupEl = document.createElement("div");
-    fileGroupEl.className = "problem-file-group";
-
-    const fileHeaderEl = this._createHeader(filePath, problems);
-    fileGroupEl.appendChild(fileHeaderEl);
-
-    const problemsContainerEl = document.createElement("div");
-    problemsContainerEl.className = "problem-file-problems";
-
-    const isCollapsed = this._collapsedFiles.has(filePath);
-
-    if (isCollapsed) {
-      problemsContainerEl.style.maxHeight = "0";
-      problemsContainerEl.style.overflow = "hidden";
-    } else {
-      problemsContainerEl.style.maxHeight = "none";
-      problemsContainerEl.style.overflow = "visible";
-    }
-
-    problems.forEach((problem) => {
-      const problemEl = this._createElement(problem);
-      problemsContainerEl.appendChild(problemEl);
-    });
-
-    fileGroupEl.appendChild(problemsContainerEl);
-    return fileGroupEl;
+  private _generateTabId(filePath: string): string {
+    return `file-${filePath.replace(/[^a-zA-Z0-9]/g, "-")}`;
   }
 
-  private _createHeader(filePath: string, problems: any[]): HTMLElement {
-    const headerEl = document.createElement("div");
-    headerEl.className = "problem-file-header";
+  _render() {
+    const tabsContainer =
+      this._el!.parentElement!.parentElement!.parentElement!.querySelector(
+        ".content-tabs"
+      ) as HTMLDivElement;
+    if (!tabsContainer) return;
 
-    const isCollapsed = this._collapsedFiles.has(filePath);
+    tabsContainer.innerHTML = "";
 
-    const toggleIconEl = document.createElement("span");
-    toggleIconEl.className = "problem-file-toggle";
-    toggleIconEl.innerHTML = isCollapsed
-      ? getThemeIcon("chevronRight")
-      : getThemeIcon("chevronDown");
+    this._tabs.forEach((tab) => {
+      const tabEl = document.createElement("div");
+      tabEl.className = `tab ${tab.active ? "active" : ""}`;
 
-    const fileNameEl = document.createElement("span");
-    fileNameEl.className = "problem-file-name";
-    fileNameEl.textContent = this._getRelativePath(filePath);
-
-    const errors = problems.filter((p) => p.type === "error").length;
-    const warnings = problems.filter((p) => p.type === "warning").length;
-
-    const countEl = document.createElement("span");
-    countEl.className = "problem-file-count";
-    countEl.textContent = `${errors} errors, ${warnings} warnings`;
-
-    headerEl.appendChild(toggleIconEl);
-    headerEl.appendChild(fileNameEl);
-    headerEl.appendChild(countEl);
-
-    headerEl.addEventListener("click", () => {
-      this._toggle(filePath, headerEl);
-    });
-
-    return headerEl;
-  }
-
-  private _toggle(filePath: string, headerEl: HTMLElement) {
-    const fileGroupEl = headerEl.parentElement!;
-    const problemsContainerEl = fileGroupEl.querySelector(
-      ".problem-file-problems"
-    ) as HTMLElement;
-    const toggleIconEl = headerEl.querySelector(
-      ".problem-file-toggle"
-    ) as HTMLElement;
-
-    const isCollapsed = this._collapsedFiles.has(filePath);
-
-    if (isCollapsed) {
-      this._collapsedFiles.delete(filePath);
-
-      problemsContainerEl.style.maxHeight = "none";
-      problemsContainerEl.style.overflow = "visible";
-      const naturalHeight = problemsContainerEl.scrollHeight;
-
-      problemsContainerEl.style.maxHeight = "0";
-      problemsContainerEl.style.overflow = "hidden";
-
-      problemsContainerEl.offsetHeight;
-
-      problemsContainerEl.style.maxHeight = `${naturalHeight}px`;
-      toggleIconEl.innerHTML = getThemeIcon("chevronDown");
-
-      const handleTransitionEnd = () => {
-        problemsContainerEl.style.maxHeight = "none";
-        problemsContainerEl.style.overflow = "visible";
-        problemsContainerEl.removeEventListener(
-          "transitionend",
-          handleTransitionEnd
-        );
+      tabEl.onclick = (e) => {
+        if ((e.target as HTMLElement).closest(".close-icon")) return;
+        this._switchTab(tab.id);
       };
-      problemsContainerEl.addEventListener(
-        "transitionend",
-        handleTransitionEnd
-      );
-    } else {
-      this._collapsedFiles.add(filePath);
 
-      const currentHeight = problemsContainerEl.scrollHeight;
-      problemsContainerEl.style.maxHeight = `${currentHeight}px`;
-      problemsContainerEl.style.overflow = "hidden";
+      const icon = document.createElement("span");
+      icon.className = "icon";
+      icon.innerHTML = getFileIcon(tab.name);
 
-      problemsContainerEl.offsetHeight;
+      const name = document.createElement("span");
+      name.className = "name";
+      name.textContent = tab.name;
 
-      problemsContainerEl.style.maxHeight = "0";
-      toggleIconEl.innerHTML = getThemeIcon("chevronRight");
+      const errorCount = Array.isArray(tab.error) ? tab.error.length : 0;
+      const warningCount = Array.isArray(tab.warnings)
+        ? tab.warnings.length
+        : 0;
+      const totalCount = errorCount + warningCount;
+
+      const badge = document.createElement("span");
+      badge.className = "badge";
+      badge.textContent = `${totalCount}`;
+
+      const closeButton = document.createElement("span");
+      closeButton.className = "close-icon";
+      closeButton.innerHTML = getThemeIcon("close");
+      closeButton.onclick = (e) => {
+        e.stopPropagation();
+        this._closeTab(tab.id);
+      };
+
+      tabEl.appendChild(icon);
+      tabEl.appendChild(name);
+      tabEl.appendChild(badge);
+      tabEl.appendChild(closeButton);
+
+      tabsContainer.appendChild(tabEl);
+    });
+
+    const activeTabEl = tabsContainer.querySelector(
+      ".tab.active"
+    ) as HTMLElement | null;
+
+    if (activeTabEl) {
+      const container = tabsContainer;
+      const offsetLeft = activeTabEl.offsetLeft;
+      const tabWidth = activeTabEl.offsetWidth;
+      const containerScrollLeft = container.scrollLeft;
+      const containerWidth = container.clientWidth;
+
+      if (offsetLeft < containerScrollLeft) {
+        container.scrollLeft = offsetLeft;
+      } else if (offsetLeft + tabWidth > containerScrollLeft + containerWidth) {
+        container.scrollLeft = offsetLeft + tabWidth - containerWidth;
+      }
     }
+
+    this._renderContent();
   }
 
-  private _getRelativePath(filePath: string): string {
-    const parts = filePath.split(/[/\\]/);
-    return parts[parts.length - 1]!;
+  private _renderContent() {
+    const activeTab = this._tabs.find((t) => t.active);
+
+    if (!activeTab) {
+      this._listEl.innerHTML = "";
+      const emptyEl = document.createElement("div");
+      emptyEl.className = "problems-empty";
+      emptyEl.textContent = "No problems detected";
+      this._listEl.appendChild(emptyEl);
+      return;
+    }
+
+    this._listEl.innerHTML = "";
+
+    const fileProblems = Array.from(this._problems.values()).filter(
+      (p) => p.filePath === activeTab.uri
+    );
+
+    if (fileProblems.length === 0) {
+      const emptyEl = document.createElement("div");
+      emptyEl.className = "problems-empty";
+      emptyEl.textContent = "No problems in this file";
+      this._listEl.appendChild(emptyEl);
+      return;
+    }
+
+    fileProblems.sort((a, b) => {
+      if (a.line !== b.line) return a.line - b.line;
+      return a.column - b.column;
+    });
+
+    fileProblems.forEach((problem) => {
+      const problemEl = this._createElement(problem);
+      this._listEl.appendChild(problemEl);
+    });
   }
 
   private _createElement(problem: any): HTMLElement {
@@ -313,14 +333,59 @@ export class Problmen extends CoreEl {
         };
 
         editor.setPosition(position);
-
         editor.revealPositionInCenter(position);
-
         editor.focus();
       }
     }
   }
+
+  private _switchTab(tabId: string) {
+    this._tabs = this._tabs.map((t) => ({
+      ...t,
+      active: t.id === tabId,
+    }));
+    this._render();
+  }
+
+  private _closeTab(tabId: string) {
+    const tabIndex = this._tabs.findIndex((t) => t.id === tabId);
+    if (tabIndex === -1) return;
+
+    const closingTab = this._tabs[tabIndex]!;
+    const isClosingActive = closingTab.active;
+
+    const filePath = closingTab.uri;
+    const keysToDelete: string[] = [];
+
+    for (const [key, value] of this._problems.entries()) {
+      if (value.filePath === filePath) {
+        keysToDelete.push(key);
+      }
+    }
+
+    keysToDelete.forEach((key) => this._problems.delete(key));
+
+    this._tabs = this._tabs.filter((t) => t.id !== tabId);
+
+    if (isClosingActive && this._tabs.length > 0) {
+      const newActiveIndex =
+        tabIndex < this._tabs.length ? tabIndex : this._tabs.length - 1;
+      this._tabs = this._tabs.map((tab, index) => ({
+        ...tab,
+        active: index === newActiveIndex,
+      }));
+    }
+
+    this._render();
+  }
+
+  public setActiveTab(filePath: string) {
+    const tab = this._tabs.find((t) => t.uri === filePath);
+    if (tab) {
+      this._switchTab(tab.id);
+    }
+  }
 }
 
-export const _problem = new Problmen();
+export const _problem = new Problem();
 registerStandalone("problem", _problem);

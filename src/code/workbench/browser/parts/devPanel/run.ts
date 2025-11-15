@@ -7,6 +7,8 @@ import { registerStandalone } from "../../../common/class.js";
 import { getFileIcon, getRunCommand } from "../../../common/utils.js";
 
 const path = window.path;
+const storage = window.storage;
+const ipcRenderer = window.ipc;
 
 export class Run extends CoreEl {
   private _tabs: IDevPanelTab[] = [];
@@ -15,31 +17,35 @@ export class Run extends CoreEl {
     super();
     this._createEl();
 
-    this._render();
+    setTimeout(() => {
+      this._render();
+    }, 100);
+
+    ipcRenderer.on("workbench.run.death", (_: any, id: string) => {
+      this._close(id);
+    });
   }
 
   private _createEl() {
     this._el = document.createElement("div");
     this._el.className = "run-container";
 
-    const tabs = document.createElement("div");
-    tabs.className = "tabs scrollbar-container y-disable";
-
-    const extra = document.createElement("div");
-    extra.className = "extra";
-
     const runArea = document.createElement("div");
     runArea.className = "run-area";
 
-    this._el.appendChild(tabs);
     this._el.appendChild(runArea);
   }
 
-  private _render() {
-    const tabsContainer = this._el?.querySelector(".tabs");
+  _render() {
+    const tabsContainer =
+      this._el!.parentElement!.parentElement!.parentElement!.querySelector(
+        ".content-tabs"
+      ) as HTMLDivElement;
     if (!tabsContainer) return;
 
     tabsContainer.innerHTML = "";
+
+    storage.store("run-tabs", this._tabs);
 
     this._tabs.forEach((tab) => {
       const tabEl = document.createElement("div");
@@ -47,7 +53,6 @@ export class Run extends CoreEl {
 
       tabEl.onclick = (e) => {
         if ((e.target as HTMLElement).closest(".close-icon")) return;
-
         this._switch(tab.id);
       };
 
@@ -72,40 +77,38 @@ export class Run extends CoreEl {
       tabEl.appendChild(closeButton);
 
       tabsContainer.appendChild(tabEl);
-
-      const activeTabEl = tabsContainer.querySelector(
-        ".tab.active"
-      ) as HTMLElement | null;
-
-      if (activeTabEl) {
-        const container = tabsContainer;
-        const offsetLeft = activeTabEl.offsetLeft;
-        const tabWidth = activeTabEl.offsetWidth;
-        const containerScrollLeft = container.scrollLeft;
-        const containerWidth = container.clientWidth;
-
-        if (offsetLeft < containerScrollLeft) {
-          container.scrollLeft = offsetLeft;
-        } else if (
-          offsetLeft + tabWidth >
-          containerScrollLeft + containerWidth
-        ) {
-          container.scrollLeft = offsetLeft + tabWidth - containerWidth;
-        }
-      }
     });
 
     const activeTab = this._tabs.find((t) => t.active);
     if (activeTab) {
       this._open(activeTab);
     }
+
+    const activeTabEl = tabsContainer.querySelector(
+      ".tab.active"
+    ) as HTMLElement | null;
+
+    if (activeTabEl) {
+      const container = tabsContainer;
+      const offsetLeft = activeTabEl.offsetLeft;
+      const tabWidth = activeTabEl.offsetWidth;
+      const containerScrollLeft = container.scrollLeft;
+      const containerWidth = container.clientWidth;
+
+      if (offsetLeft < containerScrollLeft) {
+        container.scrollLeft = offsetLeft;
+      } else if (offsetLeft + tabWidth > containerScrollLeft + containerWidth) {
+        container.scrollLeft = offsetLeft + tabWidth - containerWidth;
+      }
+    }
   }
 
   private async _open(tab: IDevPanelTab) {
-    const runArea = this._el?.querySelector(".run-area");
+    const runArea = this._el?.querySelector(".run-area") as HTMLDivElement;
     if (!runArea) return;
 
     runArea.innerHTML = "";
+    runArea.style.width = "calc(100% - 200px)";
 
     const container =
       _xtermManager._get(tab.id) || (await _xtermManager._spawn(tab.id));
@@ -202,6 +205,8 @@ export class Run extends CoreEl {
         active: true,
         uri: _path,
       };
+
+      this._tabs = this._tabs.map((t) => ({ ...t, active: false }));
       this._tabs.push(tab);
     } else {
       tabId = existing.id;
@@ -249,6 +254,16 @@ export class Run extends CoreEl {
       t.id === tabId ? { ...t, meta: { ...(t as any).meta, status } } : t
     );
     this._render();
+  }
+
+  public _getActive() {
+    return this._tabs.find((t) => t.active);
+  }
+
+  public getDomElement() {
+    const _active = this._getActive();
+    _xtermManager._terminals.get(_active?.id!)?.term.focus();
+    return this._el!;
   }
 }
 

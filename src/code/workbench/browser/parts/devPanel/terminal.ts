@@ -44,25 +44,29 @@ export class Terminal extends CoreEl {
     this._el = document.createElement("div");
     this._el.className = "terminal-container";
 
-    const tabs = document.createElement("div");
-    tabs.className = "tabs scrollbar-container y-disable";
-
-    const extra = document.createElement("div");
-    extra.className = "extra";
-
     const terminalArea = document.createElement("div");
     terminalArea.className = "terminal-area";
 
-    this._el.appendChild(tabs);
+    const add = document.createElement("span");
+    add.className = "add";
+    add.innerHTML = getThemeIcon("add");
+
+    add.onclick = () => {
+      const newTab = this._add();
+      this._switch(newTab.id);
+    };
+
+    this._el.appendChild(add);
     this._el.appendChild(terminalArea);
   }
 
-  private _render() {
-    const tabsContainer = this._el!.querySelector(".tabs") as HTMLDivElement;
-    if (!tabsContainer) return;
+  _render() {
+    const tabsContainer =
+      this._el!.parentElement!.parentElement!.parentElement!.querySelector(
+        ".content-tabs"
+      ) as HTMLDivElement;
 
-    const extra = document.createElement("div");
-    extra.className = "extra";
+    if (!tabsContainer) return;
 
     tabsContainer.innerHTML = "";
 
@@ -101,22 +105,10 @@ export class Terminal extends CoreEl {
       tabsContainer.appendChild(tabEl);
     });
 
-    const add = document.createElement("span");
-    add.innerHTML = getThemeIcon("add");
-
-    add.onclick = () => {
-      const newTab = this._add();
-      this._switch(newTab.id);
-    };
-
-    extra.appendChild(add);
-
     const activeTab = this._tabs.find((t) => t.active);
     if (activeTab) {
       this._open(activeTab);
     }
-
-    tabsContainer.appendChild(extra);
 
     const activeTabEl = tabsContainer.querySelector(
       ".tab.active"
@@ -138,10 +130,13 @@ export class Terminal extends CoreEl {
   }
 
   private async _open(tab: IDevPanelTab) {
-    const terminalArea = this._el?.querySelector(".terminal-area");
+    const terminalArea = this._el?.querySelector(
+      ".terminal-area"
+    ) as HTMLDivElement;
     if (!terminalArea) return;
 
     terminalArea.innerHTML = "";
+    terminalArea.style.width = "100%";
 
     const container =
       _xtermManager._get(tab.id) || (await _xtermManager._spawn(tab.id));
