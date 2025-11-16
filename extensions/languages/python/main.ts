@@ -12,7 +12,7 @@ export function activate(context: context) {
     );
 
     const _server = context.workbench.workspace.language.createLanguageServer(
-      "pyright",
+      "basedpyright",
       "py",
       _port,
       _serverCli,

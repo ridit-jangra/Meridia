@@ -50,7 +50,7 @@ class XtermManager {
 
     const term = new XTerm({
       scrollback: 1000,
-      fontFamily: "Jetbrains Mono",
+      fontFamily: "Jetbrains Mono, monospace",
       fontSize: 18,
       cursorBlink: true,
       cursorStyle: "bar",

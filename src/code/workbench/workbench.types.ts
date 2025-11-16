@@ -96,6 +96,7 @@ export const ThemeColors = [
   "workbench.editor.line.highlight.background",
   "workbench.editor.suggestion.active.background",
   "workbench.editor.widget.background",
+  "workbench.preview.markdown.code.background",
   "workbench.mira.message.user.background",
   "workbench.mira.message.user.foreground",
   "workbench.mira.message.user.border.foreground",

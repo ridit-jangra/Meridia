@@ -1,0 +1,308 @@
+.hljs {
+  color: var(--token-default) !important;
+  background: transparent !important;
+}
+
+.hljs-keyword {
+  color: var(--token-keyword) !important;
+}
+
+.hljs-selector-tag {
+  color: var(--token-keyword) !important;
+}
+
+.hljs-literal {
+  color: var(--token-boolean) !important;
+}
+
+.hljs-section {
+  color: var(--token-keyword) !important;
+}
+
+.hljs-link {
+  color: var(--token-keyword) !important;
+}
+
+.hljs-built_in {
+  color: var(--token-identifier-builtin) !important;
+}
+
+.hljs-name {
+  color: var(--token-keyword) !important;
+}
+
+.hljs-tag {
+  color: var(--token-keyword) !important;
+}
+
+.hljs-type {
+  color: var(--token-identifier-type) !important;
+}
+
+.hljs-class {
+  color: var(--token-identifier-type-class) !important;
+}
+
+.hljs-title {
+  color: var(--token-identifier-function-declaration) !important;
+}
+
+.hljs-title.class_ {
+  color: var(--token-identifier-type-class) !important;
+}
+
+.hljs-title.class_.inherited__ {
+  color: var(--token-identifier-type-class) !important;
+}
+
+.hljs-title.function_ {
+  color: var(--token-identifier-function-declaration) !important;
+}
+
+.hljs-title.function_.invoke__ {
+  color: var(--token-identifier-function-declaration) !important;
+}
+
+.hljs-variable {
+  color: var(--token-identifier-variable-local) !important;
+}
+
+.hljs-variable.language_ {
+  color: var(--token-identifier-this) !important;
+}
+
+.hljs-variable.constant_ {
+  color: var(--token-identifier-constant) !important;
+}
+
+.hljs-template-variable {
+  color: var(--token-identifier-variable-local) !important;
+}
+
+.hljs-property {
+  color: var(--token-identifier-field) !important;
+}
+
+.hljs-attr {
+  color: var(--token-identifier-field) !important;
+}
+
+.hljs-attribute {
+  color: var(--token-identifier-field) !important;
+}
+
+.hljs-params {
+  color: var(--token-identifier-parameter) !important;
+}
+
+.hljs-number {
+  color: var(--token-number) !important;
+}
+
+.hljs-string {
+  color: var(--token-string) !important;
+}
+
+.hljs-doctag {
+  color: var(--token-string) !important;
+}
+
+.hljs-regexp {
+  color: var(--token-string-regexp) !important;
+}
+
+.hljs-subst {
+  color: var(--token-string-escape) !important;
+}
+
+.hljs-template-tag {
+  color: var(--token-string-escape) !important;
+}
+
+.hljs-char {
+  color: var(--token-string) !important;
+}
+
+.hljs-escape {
+  color: var(--token-string-escape) !important;
+}
+
+.hljs-comment {
+  color: var(--token-comment) !important;
+  font-style: italic !important;
+}
+
+.hljs-quote {
+  color: var(--token-comment) !important;
+  font-style: italic !important;
+}
+
+.hljs-doc {
+  color: var(--token-comment-parameter) !important;
+}
+
+.hljs-meta {
+  color: var(--token-metadata) !important;
+}
+
+.hljs-meta .hljs-keyword {
+  color: var(--token-metadata) !important;
+}
+
+.hljs-meta .hljs-string {
+  color: var(--token-string) !important;
+}
+
+.hljs-meta-keyword {
+  color: var(--token-metadata) !important;
+}
+
+.hljs-meta-string {
+  color: var(--token-string) !important;
+}
+
+.hljs-symbol {
+  color: var(--token-identifier-constant) !important;
+}
+
+.hljs-bullet {
+  color: var(--token-identifier-constant) !important;
+}
+
+.hljs-code {
+  color: var(--token-identifier-constant) !important;
+}
+
+.hljs-punctuation {
+  color: var(--token-punctuation) !important;
+}
+
+.hljs-operator {
+  color: var(--token-punctuation) !important;
+}
+
+.hljs-function {
+  color: var(--token-identifier-function-declaration) !important;
+}
+
+.hljs-selector-id {
+  color: var(--token-identifier-function-declaration) !important;
+}
+
+.hljs-selector-class {
+  color: var(--token-identifier-type-class) !important;
+}
+
+.hljs-selector-pseudo {
+  color: var(--token-identifier-function-declaration) !important;
+}
+
+.hljs-selector-attr {
+  color: var(--token-identifier-field) !important;
+}
+
+.hljs-addition {
+  color: var(--token-string) !important;
+  background-color: rgba(0, 255, 0, 0.1) !important;
+}
+
+.hljs-deletion {
+  color: var(--token-string-escape) !important;
+  background-color: rgba(255, 0, 0, 0.1) !important;
+}
+
+.hljs-emphasis {
+  font-style: italic !important;
+}
+
+.hljs-strong {
+  font-weight: bold !important;
+}
+
+.hljs-formula {
+  color: var(--token-identifier-constant) !important;
+}
+
+.hljs-decorator {
+  color: var(--token-metadata) !important;
+}
+
+.hljs-annotation {
+  color: var(--token-metadata) !important;
+}
+
+.hljs-built-in {
+  color: var(--token-identifier-builtin) !important;
+}
+
+.hljs-constructor {
+  color: var(--token-identifier-type-class) !important;
+}
+
+.hljs-interface {
+  color: var(--token-identifier-interface) !important;
+}
+
+.hljs-module {
+  color: var(--token-identifier-type) !important;
+}
+
+.hljs-namespace {
+  color: var(--token-identifier-type) !important;
+}
+
+.hljs-package {
+  color: var(--token-identifier-type) !important;
+}
+
+.hljs-static {
+  color: var(--token-identifier-method-static) !important;
+}
+
+.hljs-this {
+  color: var(--token-identifier-this) !important;
+}
+
+.hljs-super {
+  color: var(--token-identifier-this) !important;
+}
+
+.hljs-constant {
+  color: var(--token-identifier-constant) !important;
+}
+
+.hljs-global {
+  color: var(--token-identifier-builtin) !important;
+}
+
+.hljs-pseudo {
+  color: var(--token-identifier-function-declaration) !important;
+}
+
+.hljs-key {
+  color: var(--token-keyword-json) !important;
+}
+
+.hljs-tag .hljs-name {
+  color: var(--token-keyword) !important;
+}
+
+.hljs-tag .hljs-attr {
+  color: var(--token-identifier-field) !important;
+}
+
+.hljs-tag .hljs-attribute {
+  color: var(--token-identifier-field) !important;
+}
+
+.hljs-selector-combinator {
+  color: var(--token-punctuation) !important;
+}
+
+.hljs-selector-descendant {
+  color: var(--token-punctuation) !important;
+}
+
+.hljs-selector-modifier {
+  color: var(--token-keyword-type-modifier) !important;
+}

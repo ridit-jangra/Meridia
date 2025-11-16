@@ -256,6 +256,19 @@ export function registerTheme(_monaco: any) {
       "editorWarning.foreground": _theme.getColor("workbench.terminal.yellow"),
       "editorInfo.foreground": _theme.getColor("workbench.terminal.blue"),
       "editorHint.foreground": _theme.getColor("workbench.terminal.cyan"),
+      "editorInlayHint.foreground": _theme.getColor(
+        "workbench.tabs.foreground"
+      ),
+      "editorInlayHint.background":
+        _kind === "light" ? "#f3f3f310" : "#00000000",
+      "editorInlayHint.typeForeground":
+        _tokens.comment || _theme.getColor("workbench.tabs.foreground"),
+      "editorInlayHint.typeBackground":
+        _kind === "light" ? "#f3f3f310" : "#00000000",
+      "editorInlayHint.parameterForeground":
+        _tokens.comment || _theme.getColor("workbench.tabs.foreground"),
+      "editorInlayHint.parameterBackground":
+        _kind === "light" ? "#f3f3f310" : "#00000000",
     },
   } as monaco.editor.IStandaloneThemeData);
 }

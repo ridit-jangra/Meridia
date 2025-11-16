@@ -17,11 +17,93 @@
 
 .code .editor .preview-area {
   height: calc(100% - 50px);
-  padding: 0 10px;
+  overflow: hidden;
 }
 
-.code .editor .preview-area * {
-  font-family: "Inconsolata" !important;
+.code .editor .preview-area .preview-content {
+  height: 100%;
+  width: 100%;
+  padding: 0 60px;
+  font-size: 18px;
+  overflow: hidden;
+}
+
+.code .editor .preview-area .preview-content *:not(h1, h2) {
+  font-family: "Figtree";
+  font-weight: 400;
+}
+
+.code .editor .preview-area .preview-content pre {
+  padding-top: 10px !important;
+  position: relative;
+  width: 100%;
+  background: var(--workbench-preview-markdown-code-background);
+  padding: 0;
+}
+
+.code .editor .preview-area .preview-content pre * {
+  font-family: "Jetbrains Mono";
+}
+
+.code .editor .preview-area .preview-content pre .copy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0px;
+  right: 10px;
+  cursor: pointer;
+  padding: 2px 10px;
+  background: var(--workbench-secondary-button-background);
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.code .editor .preview-area .preview-content pre .copy:hover {
+  background: var(--workbench-secondary-button-hover-background);
+}
+
+.code .editor .preview-area .preview-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.code .editor .preview-area .preview-content h1 {
+  border-bottom: 1px solid var(--workbench-border-foreground);
+  padding: 0 !important;
+  margin: 0 !important;
+  padding: 10px 0 !important;
+  font-family: "Figtree";
+  font-weight: 800;
+}
+
+.code .editor .preview-area .preview-content h2 {
+  border-bottom: 1px solid var(--workbench-border-foreground);
+  padding: 0 !important;
+  margin: 0 !important;
+  padding: 10px 0 !important;
+  font-family: "Figtree";
+  font-weight: 800;
+}
+
+.code .editor .preview-area .preview-content h3 {
+  font-family: "Figtree";
+  font-weight: 800;
+}
+
+.code .editor .preview-area .preview-content h4 {
+  font-family: "Figtree";
+  font-weight: 800;
+}
+
+.code .editor a {
+  color: var(--workbench-terminal-color4);
+  text-decoration: none;
+}
+
+.code .editor a:hover {
+  text-decoration: underline;
 }
 
 .code .editor .monaco-editor *:focus {
@@ -63,7 +145,16 @@
 
 .monaco-editor .slider {
   border-radius: 24px !important;
+}
+
+.monaco-editor .scrollbar.vertical .slider {
   width: 9px !important;
+  margin-left: 2px !important;
+}
+
+.monaco-editor .scrollbar.horizontal .slider {
+  height: 9px !important;
+  margin-top: 3px !important;
 }
 
 .monaco-editor .suggest-widget .tree .monaco-list-row * {

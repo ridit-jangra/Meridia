@@ -173,6 +173,10 @@ export class Problem extends CoreEl {
   }
 
   _render() {
+    if (!this._el || !this._el.parentElement) {
+      return;
+    }
+
     const tabsContainer =
       this._el!.parentElement!.parentElement!.parentElement!.querySelector(
         ".content-tabs"
