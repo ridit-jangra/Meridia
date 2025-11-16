@@ -228,9 +228,9 @@ export class Editor extends CoreEl {
   private _renderPreviewTabs(_tabs: IPreviewTab[]) {
     const activeTab = _tabs.find((t) => t.active);
 
-    if (_tabs.length === 0 || !_tabs.find((t) => t.active)) {
+    if (_tabs.length === 0) {
+      _preview._close(activeTab!);
       this._splitter._collapsePanel(1);
-      return;
     } else {
       this._splitter._expandPanel(1);
       this._previewTabs.style.display = "flex";
@@ -238,7 +238,8 @@ export class Editor extends CoreEl {
     }
 
     if (activeTab) {
-      _preview._open(activeTab);
+      const editor = getStandalone("editor") as _editor;
+      if (editor && editor._editor) editor._previewMarkdown(activeTab);
     }
 
     this._previewTabs.innerHTML = "";
@@ -279,6 +280,7 @@ export class Editor extends CoreEl {
 
       _closeIcon.onclick = (e) => {
         e.stopPropagation();
+        _preview._close(activeTab!);
         this._closePreviewTab(_tab.uri, e);
       };
 
@@ -337,7 +339,6 @@ export class Editor extends CoreEl {
 
     this._editorArea.appendChild(this._contentArea);
 
-    // Initial render
     const _editorTabsState = select((s) => s.main.editor_tabs);
     if (_editorTabsState.length > 0) {
       this._renderEditorTabs(_editorTabsState);
@@ -355,7 +356,6 @@ export class Editor extends CoreEl {
       this._previewArea.style.display = "none";
     }
 
-    // Watch for state changes
     watch(
       (s) => s.main.editor_tabs,
       (next) => {

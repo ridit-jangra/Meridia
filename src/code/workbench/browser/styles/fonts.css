@@ -10,169 +10,44 @@
 }
 
 @font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-Light.ttf");
-  font-weight: 300;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-Regular.ttf");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-Medium.ttf");
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-SemiBold.ttf");
-  font-weight: 600;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-Bold.ttf");
-  font-weight: 700;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-ExtraBold.ttf");
-  font-weight: 800;
-  font-style: normal;
-}
-
-@font-face {
   font-family: "Fira Code";
-  src: url("../media/fonts/FiraCode-Light.ttf");
-  font-weight: 300;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Fira Code";
-  src: url("../media/fonts/FiraCode-Regular.ttf");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Fira Code";
-  src: url("../media/fonts/FiraCode-Medium.ttf");
-  font-weight: 500;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Fira Code";
-  src: url("../media/fonts/FiraCode-Retina.ttf");
-  font-weight: 600;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Fira Code";
-  src: url("../media/fonts/FiraCode-Bold.ttf");
-  font-weight: 700;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Droid Sans";
-  src: url("../media/fonts/DroidSans.ttf");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Droid Sans";
-  src: url("../media/fonts/DroidSans-Bold.ttf");
-  font-weight: 700;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Droid Sans Mono";
-  src: url("../media/fonts/DroidSansMono.ttf");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Droid Sans Mono Dotted";
-  src: url("../media/fonts/DroidSansMonoDotted.ttf");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Droid Sans Mono Slashed";
-  src: url("../media/fonts/DroidSansMonoSlashed.ttf");
-  font-weight: 400;
-  font-style: normal;
+  src: url("../media/fonts/FiraCode.ttf");
 }
 
 @font-face {
   font-family: "Inter";
-  src: url("../media/fonts/Inter-Regular.otf");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Inter";
-  src: url("../media/fonts/Inter-SemiBold.otf");
-  font-weight: 600;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Inter Variable";
-  src: url("../media/fonts/InterVariable.ttf");
-  font-weight: 100 900;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Source Code Pro";
-  src: url("../media/fonts/SourceCodePro-Regular.ttf");
-  font-weight: 400;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Source Code Pro";
-  src: url("../media/fonts/SourceCodePro-It.ttf");
-  font-weight: 400;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: "Source Code Pro";
-  src: url("../media/fonts/SourceCodePro-Bold.ttf");
-  font-weight: 700;
-  font-style: normal;
-}
-
-@font-face {
-  font-family: "Source Code Pro";
-  src: url("../media/fonts/SourceCodePro-BoldIt.ttf");
-  font-weight: 700;
-  font-style: italic;
+  src: url("../media/fonts/Inter.otf");
 }
 
 @font-face {
   font-family: "Inconsolata";
-  src: url("../media/fonts/DroidSansMonoDotted.ttf");
+  src: url("../media/fonts/DroidSans.ttf");
+}
+
+@font-face {
+  font-family: "CalSans";
+  src: url("../media/fonts/CalSans.ttf");
+}
+
+@font-face {
+  font-family: "Zwo Web";
+  src: url("../media/fonts/ZwoWeb.ttf");
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("../media/fonts/Figtree-Regular.ttf");
   font-weight: 400;
-  font-style: normal;
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("../media/fonts/Figtree-SemiBold.ttf");
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: "Figtree";
+  src: url("../media/fonts/Figtree-Bold.ttf");
+  font-weight: 800;
 }

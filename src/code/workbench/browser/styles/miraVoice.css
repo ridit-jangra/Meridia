@@ -197,7 +197,7 @@
   justify-content: center;
   background: var(--workbench-input-background);
   border: 1px solid var(--workbench-input-border-foreground);
-  width: 96%;
+  width: 90%;
   height: 30px;
   border-radius: 8px;
   margin: 10px 0;

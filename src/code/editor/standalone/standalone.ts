@@ -9,7 +9,7 @@ import {
   MonacoServices,
 } from "monaco-languageclient";
 import { listen } from "@codingame/monaco-jsonrpc";
-import { IEditorTab } from "../../workbench/workbench.types.js";
+import { IEditorTab, IPreviewTab } from "../../workbench/workbench.types.js";
 import { registerTheme } from "../common/theme.js";
 import { extensionToLanguage } from "../common/utils.js";
 import { _preview as _previewManager } from "../common/preview.js";
@@ -442,6 +442,11 @@ export class Editor {
       formatOnPaste: true,
       overviewRulerBorder: false,
       useShadowDOM: false,
+      inlayHints: {
+        enabled: true,
+        fontSize: 16,
+        fontFamily: "Jetbrains Mono",
+      },
     });
 
     const _detail = document.createElement("div");
@@ -466,7 +471,7 @@ export class Editor {
     this._preview.onclick = () => {
       const _tabs = select((s) => s.main.editor_tabs);
       const _active = _tabs.find((t) => t.active);
-      if (_active) _previewManager._open(_active);
+      if (_active) _previewManager._open(_active, this._editor);
     };
 
     this._layout.appendChild(_detail);
@@ -570,12 +575,103 @@ export class Editor {
     this._actions();
   }
 
-  public _visiblity(visible: boolean) {
+  _previewMarkdown(tab: IPreviewTab) {
+    if (!this._editor) return;
+    _previewManager._open(tab, this._editor);
+  }
+
+  _visiblity(visible: boolean) {
     const editorElement = document.querySelector(
       ".monaco-editor"
     ) as HTMLDivElement;
     if (editorElement) {
       editorElement.style.display = visible ? "flex" : "none";
+    }
+  }
+
+  private _setupInlayHintsProvider(extension: string) {
+    if (this._registeredProviders.has(`inlay-hints-${extension}`)) return;
+
+    const port = getLanguageServer(extension);
+
+    if (!port || !this._clients.has(port)) {
+      return;
+    }
+
+    const languageId = getLanguage(extension);
+    const client = this._clients.get(port)!;
+
+    const provider = monaco.languages.registerInlayHintsProvider(languageId, {
+      provideInlayHints: async (
+        model: monaco.editor.ITextModel,
+        range: monaco.Range,
+        token: monaco.CancellationToken
+      ) => {
+        try {
+          const hints = (await client.sendRequest("textDocument/inlayHint", {
+            textDocument: { uri: model.uri.toString() },
+            range: {
+              start: {
+                line: range.startLineNumber - 1,
+                character: range.startColumn - 1,
+              },
+              end: {
+                line: range.endLineNumber - 1,
+                character: range.endColumn - 1,
+              },
+            },
+          })) as any[];
+
+          if (!hints || hints.length === 0) {
+            return [];
+          }
+
+          const monacoHints: monaco.languages.InlayHint[] = hints.map(
+            (hint) => {
+              let labelText: string;
+              if (typeof hint.label === "string") {
+                labelText = hint.label;
+              } else if (Array.isArray(hint.label)) {
+                labelText = hint.label
+                  .map((part: any) => part.value || part.label)
+                  .join("");
+              } else {
+                labelText = "";
+              }
+
+              return {
+                text: labelText,
+                position: {
+                  lineNumber: hint.position.line + 1,
+                  column: hint.position.character + 1,
+                },
+                kind: this._convertLSPInlayHintKindToMonaco(hint.kind),
+                whitespaceBefore: hint.paddingLeft ?? false,
+                whitespaceAfter: hint.paddingRight ?? false,
+              };
+            }
+          );
+
+          return monacoHints;
+        } catch (error) {
+          return [];
+        }
+      },
+    });
+
+    this._registeredProviders.set(`inlay-hints-${extension}`, provider);
+  }
+
+  private _convertLSPInlayHintKindToMonaco(
+    lspKind?: number
+  ): monaco.languages.InlayHintKind {
+    switch (lspKind) {
+      case 1:
+        return monaco.languages.InlayHintKind.Type;
+      case 2:
+        return monaco.languages.InlayHintKind.Parameter;
+      default:
+        return monaco.languages.InlayHintKind.Type;
     }
   }
 
@@ -815,13 +911,18 @@ export class Editor {
     switch (extension) {
       case "py":
         return {
-          settings: {
-            python: {
-              analysis: {
-                autoSearchPaths: true,
-                useLibraryCodeForTypes: true,
-                diagnosticMode: "workspace",
-                typeCheckingMode: "basic",
+          python: {
+            analysis: {
+              autoSearchPaths: true,
+              useLibraryCodeForTypes: true,
+              diagnosticMode: "workspace",
+              typeCheckingMode: "basic",
+              // Correct path for inlay hints
+              inlayHints: {
+                variableTypes: true,
+                functionReturnTypes: true,
+                callArgumentNames: true,
+                genericTypes: false,
               },
             },
           },
@@ -957,6 +1058,7 @@ export class Editor {
 
       setTimeout(async () => {
         await this._setupClientForLanguage(extension);
+        this._setupInlayHintsProvider(extension);
       }, 1000);
     }
 

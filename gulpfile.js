@@ -18,8 +18,8 @@ function copyFiles() {
 }
 
 function copyPyright() {
-  return src("node_modules/pyright/**/*", {
-    base: "node_modules/pyright/",
+  return src("node_modules/basedpyright/**/*", {
+    base: "node_modules/basedpyright/",
     allowEmpty: true,
     encoding: false,
   }).pipe(dest("build/language/python"));

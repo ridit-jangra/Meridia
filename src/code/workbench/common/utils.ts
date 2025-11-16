@@ -32,6 +32,8 @@ export const tokensToCssVariables: Record<IThemeColors, string> = {
   "workbench.editor.suggestion.active.background":
     "--workbench-editor-suggestion-active-background",
   "workbench.editor.widget.background": "--workbench-editor-widget-background",
+  "workbench.preview.markdown.code.background":
+    "--workbench-preview-markdown-code-background",
   "workbench.mira.chatbox.active.border.foreground":
     "--workbench-mira-chatbox-active-border-foreground",
   "workbench.mira.chatbox.background": "--workbench-mira-chatbox-background",

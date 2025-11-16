@@ -13,6 +13,7 @@
 @import url("./terminal.css");
 @import url("./devPanel.css");
 @import url("./scrollbar.css");
+@import url("./highlight.css");
 @import url("./miraVoice.css");
 @import url("./drawboard.css");
 @import url("./statusbar.css");
@@ -28,7 +29,6 @@
 
 .code {
   height: 100vh;
-  /* overflow: hidden; */
   font-family: "Inconsolata";
 }
 
