@@ -149,7 +149,7 @@
 
 .monaco-editor .scrollbar.vertical .slider {
   width: 9px !important;
-  margin-left: 2px !important;
+  margin-left: 5px !important;
 }
 
 .monaco-editor .scrollbar.horizontal .slider {

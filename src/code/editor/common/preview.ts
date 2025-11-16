@@ -302,17 +302,19 @@ export class Preview {
     if (this._isUpdatingState) return;
 
     const currentTabs = select((s) => s.main.preview_tabs);
-    const existingTabIndex = currentTabs.findIndex((t) => t.uri === tab.uri);
+    const tabsArray = Array.isArray(currentTabs) ? currentTabs : [];
+
+    const existingTabIndex = tabsArray.findIndex((t) => t.uri === tab.uri);
 
     let needsUpdate = false;
     let updatedTabs: IPreviewTab[] = [];
 
     if (existingTabIndex !== -1) {
-      if (currentTabs[existingTabIndex]!.active) {
+      if (tabsArray[existingTabIndex]!.active) {
         return;
       } else {
         needsUpdate = true;
-        updatedTabs = currentTabs.map((t, index) => ({
+        updatedTabs = tabsArray.map((t, index) => ({
           ...t,
           active: index === existingTabIndex,
         }));
@@ -327,7 +329,7 @@ export class Preview {
       };
 
       updatedTabs = [
-        ...currentTabs.map((t) => ({ ...t, active: false })),
+        ...tabsArray.map((t) => ({ ...t, active: false })),
         newTab,
       ];
     }
