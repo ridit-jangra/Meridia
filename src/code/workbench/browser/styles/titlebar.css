@@ -110,6 +110,9 @@
 }
 
 .code .titlebar .menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   position: relative;
   cursor: pointer;
   width: 95%;
@@ -146,6 +149,15 @@
 .code .titlebar .menu-item.disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.code .titlebar .menu-item .shortcut {
+  padding-right: 10px;
+}
+
+.code .titlebar .menu-item .shortcut .shortcut-separator svg {
+  width: 15px;
+  height: auto;
 }
 
 .code .titlebar .menu-item-content {
@@ -187,6 +199,7 @@
   opacity: 1 !important;
   visibility: visible !important;
   transform: translateX(0) !important;
+  width: 50vh;
 }
 
 .code .titlebar .menu-item.active .hamburger-menu.submenu.show {

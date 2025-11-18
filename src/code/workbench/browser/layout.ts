@@ -142,6 +142,7 @@ export class Layout {
       // openTab(_tab);
 
       _drawboard._updateCanvasSize();
+      _xtermManager._update();
     }, 150);
   }
 }

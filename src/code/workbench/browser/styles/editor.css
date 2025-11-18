@@ -34,7 +34,7 @@
 }
 
 .code .editor .preview-area .preview-content pre {
-  padding-top: 10px !important;
+  padding-top: 15px !important;
   position: relative;
   width: 100%;
   background: var(--workbench-preview-markdown-code-background);
@@ -50,7 +50,7 @@
   align-items: center;
   justify-content: center;
   position: absolute;
-  top: 0px;
+  top: -10px;
   right: 10px;
   cursor: pointer;
   padding: 2px 10px;
@@ -59,7 +59,30 @@
   border-bottom-right-radius: 6px;
 }
 
+.code .editor .preview-area .preview-content pre .run {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  gap: 5px;
+  top: -10px;
+  right: 85px;
+  cursor: pointer;
+  padding: 2px 10px;
+  background: var(--workbench-secondary-button-background);
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+}
+
+.code .editor .preview-area .preview-content pre .run span {
+  display: flex;
+}
+
 .code .editor .preview-area .preview-content pre .copy:hover {
+  background: var(--workbench-secondary-button-hover-background);
+}
+
+.code .editor .preview-area .preview-content pre .run:hover {
   background: var(--workbench-secondary-button-hover-background);
 }
 
@@ -279,6 +302,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  color: var(--workbench-secondary-foreground);
 }
 
 .code .editor .preview {

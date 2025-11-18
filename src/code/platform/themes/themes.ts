@@ -6,9 +6,10 @@ export const Light: ITheme = {
   colors: {
     "workbench.background": "#f0f0f0",
     "workbench.foreground": "#1e1e1e",
+    "workbench.secondary.foreground": "#fffff1",
     "workbench.border.foreground": "#d4d4d4",
     "workbench.icon.foreground": "#424242",
-    "workbench.item.hover.background": "#f3f3f3",
+    "workbench.item.hover.background": "#e8e8e8",
     "workbench.primary.button.background": "#007acc",
     "workbench.primary.button.foreground": "#ffffff",
     "workbench.secondary.button.background": "#e1e1e1",
@@ -142,6 +143,7 @@ export const Dark: ITheme = {
   kind: "dark",
   colors: {
     "workbench.background": "#090909",
+    "workbench.secondary.foreground": "#090909",
     "workbench.foreground": "#fffff1",
     "workbench.border.foreground": "#37383a",
     "workbench.icon.foreground": "#CED0D6",

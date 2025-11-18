@@ -45,6 +45,7 @@ export const TokenColors = [
 export const ThemeColors = [
   "workbench.background",
   "workbench.foreground",
+  "workbench.secondary.foreground",
   "workbench.border.foreground",
   "workbench.icon.foreground",
   "workbench.item.hover.background",

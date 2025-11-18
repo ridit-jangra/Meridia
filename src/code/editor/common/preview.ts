@@ -9,6 +9,8 @@ import { dispatch } from "../../workbench/common/store/store.js";
 import { update_preview_tabs } from "../../workbench/common/store/slice.js";
 import { registerStandalone } from "../../workbench/common/class.js";
 import { getFileIcon } from "../../workbench/common/utils.js";
+import { getThemeIcon } from "../../workbench/browser/media/icons.js";
+import { _xtermManager } from "../../workbench/common/devPanel/spawnXterm.js";
 
 const path = window.path;
 const fs = window.fs;
@@ -179,36 +181,78 @@ export class Preview {
       const codeElement = pre.querySelector("code");
       if (!codeElement) return;
 
-      const copy = document.createElement("div");
-      copy.className = "copy";
-      copy.textContent = "Copy";
+      const languageClass = Array.from(codeElement.classList).find((cls) =>
+        cls.startsWith("language-")
+      );
+      const language = languageClass?.replace("language-", "") || "";
 
-      copy.addEventListener("click", async () => {
+      const shellLanguages = [
+        "bash",
+        "sh",
+        "shell",
+        "zsh",
+        "powershell",
+        "ps1",
+        "cmd",
+        "batch",
+        "terminal",
+      ];
+      const _shell = shellLanguages.includes(language.toLowerCase());
+
+      const buttonContainer = document.createElement("div");
+      buttonContainer.className = "code-actions";
+      buttonContainer.style.cssText =
+        "position: absolute; top: 8px; right: 8px; display: flex; gap: 8px;";
+
+      const copyBtn = document.createElement("div");
+      copyBtn.className = "copy";
+      copyBtn.textContent = "Copy";
+
+      copyBtn.addEventListener("click", async () => {
         const code = codeElement.textContent || "";
 
         try {
           await navigator.clipboard.writeText(code);
 
-          copy.textContent = "Copied!";
-          copy.classList.add("copied");
+          copyBtn.textContent = "Copied!";
+          copyBtn.classList.add("copied");
 
           setTimeout(() => {
-            copy.textContent = "Copy";
-            copy.classList.remove("copied");
+            copyBtn.textContent = "Copy";
+            copyBtn.classList.remove("copied");
           }, 2000);
         } catch (err) {
           console.error("Failed to copy:", err);
-          copy.textContent = "Failed";
+          copyBtn.textContent = "Failed";
 
           setTimeout(() => {
-            copy.textContent = "Copy";
+            copyBtn.textContent = "Copy";
           }, 2000);
         }
       });
 
+      buttonContainer.appendChild(copyBtn);
+
+      if (_shell) {
+        const runBtn = document.createElement("div");
+        runBtn.className = "run";
+        runBtn.innerHTML = `<span>${getThemeIcon("run")}</span><span>Run</span>`;
+
+        runBtn.addEventListener("click", () => {
+          const code = codeElement.textContent || "";
+          this._execute(code);
+        });
+
+        buttonContainer.appendChild(runBtn);
+      }
+
       pre.style.position = "relative";
-      pre.appendChild(copy);
+      pre.appendChild(buttonContainer);
     });
+  }
+
+  private _execute(command: string) {
+    _xtermManager._runCommand(command);
   }
 
   async _preview(model: monaco.editor.ITextModel, uri: string) {
