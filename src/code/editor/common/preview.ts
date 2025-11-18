@@ -9,8 +9,6 @@ import { dispatch } from "../../workbench/common/store/store.js";
 import { update_preview_tabs } from "../../workbench/common/store/slice.js";
 import { registerStandalone } from "../../workbench/common/class.js";
 import { getFileIcon } from "../../workbench/common/utils.js";
-import { getThemeIcon } from "../../workbench/browser/media/icons.js";
-import { _xtermManager } from "../../workbench/common/devPanel/spawnXterm.js";
 
 const path = window.path;
 const fs = window.fs;
@@ -181,89 +179,59 @@ export class Preview {
       const codeElement = pre.querySelector("code");
       if (!codeElement) return;
 
-      const languageClass = Array.from(codeElement.classList).find((cls) =>
-        cls.startsWith("language-")
-      );
-      const language = languageClass?.replace("language-", "") || "";
+      const copy = document.createElement("div");
+      copy.className = "copy";
+      copy.textContent = "Copy";
 
-      const shellLanguages = [
-        "bash",
-        "sh",
-        "shell",
-        "zsh",
-        "powershell",
-        "ps1",
-        "cmd",
-        "batch",
-        "terminal",
-      ];
-      const _shell = shellLanguages.includes(language.toLowerCase());
-
-      const buttonContainer = document.createElement("div");
-      buttonContainer.className = "code-actions";
-      buttonContainer.style.cssText =
-        "position: absolute; top: 8px; right: 8px; display: flex; gap: 8px;";
-
-      const copyBtn = document.createElement("div");
-      copyBtn.className = "copy";
-      copyBtn.textContent = "Copy";
-
-      copyBtn.addEventListener("click", async () => {
+      copy.addEventListener("click", async () => {
         const code = codeElement.textContent || "";
 
         try {
           await navigator.clipboard.writeText(code);
 
-          copyBtn.textContent = "Copied!";
-          copyBtn.classList.add("copied");
+          copy.textContent = "Copied!";
+          copy.classList.add("copied");
 
           setTimeout(() => {
-            copyBtn.textContent = "Copy";
-            copyBtn.classList.remove("copied");
+            copy.textContent = "Copy";
+            copy.classList.remove("copied");
           }, 2000);
         } catch (err) {
           console.error("Failed to copy:", err);
-          copyBtn.textContent = "Failed";
+          copy.textContent = "Failed";
 
           setTimeout(() => {
-            copyBtn.textContent = "Copy";
+            copy.textContent = "Copy";
           }, 2000);
         }
       });
 
-      buttonContainer.appendChild(copyBtn);
-
-      if (_shell) {
-        const runBtn = document.createElement("div");
-        runBtn.className = "run";
-        runBtn.innerHTML = `<span>${getThemeIcon("run")}</span><span>Run</span>`;
-
-        runBtn.addEventListener("click", () => {
-          const code = codeElement.textContent || "";
-          this._execute(code);
-        });
-
-        buttonContainer.appendChild(runBtn);
-      }
-
       pre.style.position = "relative";
-      pre.appendChild(buttonContainer);
+      pre.appendChild(copy);
     });
   }
 
-  private _execute(command: string) {
-    _xtermManager._runCommand(command);
-  }
-
-  async _preview(model: monaco.editor.ITextModel, uri: string) {
+  async _preview(model: monaco.editor.ITextModel | null, filePath: string) {
     let content = "";
-    if (model) content = model.getValue();
-    else content = fs.readFile(uri);
 
-    console.log("content", content);
+    if (model) {
+      content = model.getValue();
+    } else {
+      content = fs.readFile(filePath);
+    }
 
-    const currentFileDir = path.dirname(uri);
-    marked.use(baseUrl(`file:///${currentFileDir}/`));
+    console.log("Reading file:", filePath);
+    console.log("Content length:", content.length);
+
+    const currentFileDir = path.dirname(filePath);
+
+    const urlPath = currentFileDir.replace(/\\/g, "/");
+
+    const baseUrlPath = urlPath.startsWith("/")
+      ? `file://${urlPath}/`
+      : `file:///${urlPath}/`;
+
+    marked.use(baseUrl(baseUrlPath));
 
     const html = await marked.parse(content);
 
@@ -278,8 +246,16 @@ export class Preview {
 
   _close(tab: IPreviewTab) {
     if (this._currentModel) {
+      let tabUriObj: monaco.Uri;
+
+      if (tab.uri.startsWith("file://")) {
+        tabUriObj = monaco.Uri.parse(tab.uri);
+      } else {
+        tabUriObj = monaco.Uri.file(tab.uri);
+      }
+
       const currentModelUri = this._currentModel.uri.toString();
-      const tabUri = monaco.Uri.parse(tab.uri).toString();
+      const tabUri = tabUriObj.toString();
 
       if (currentModelUri === tabUri) {
         if (this._contentChangeListener) {
@@ -310,7 +286,26 @@ export class Preview {
   async _open(tab: IPreviewTab, editor: monaco.editor.IStandaloneCodeEditor) {
     if (!this._mounted) this._mount();
 
-    const model = monaco.editor.getModel(monaco.Uri.parse(tab.uri));
+    let uri: monaco.Uri;
+    let fsPath: string;
+
+    if (tab.uri.startsWith("file://")) {
+      uri = monaco.Uri.parse(tab.uri);
+      fsPath = uri.fsPath;
+    } else {
+      fsPath = tab.uri;
+      uri = monaco.Uri.file(tab.uri);
+    }
+
+    console.log("Opening preview for:", fsPath);
+    console.log("Monaco URI:", uri.toString());
+
+    const model = monaco.editor.getModel(uri);
+
+    if (!model) {
+      console.error("Model not found for URI:", uri.toString());
+      return;
+    }
 
     if (this._contentChangeListener) {
       this._contentChangeListener.dispose();
@@ -333,22 +328,29 @@ export class Preview {
     this._currentModel = model;
     this._currentEditor = editor;
 
-    await this._preview(model!, tab.uri);
+    await this._preview(model, fsPath);
 
-    this._contentChangeListener = model!.onDidChangeContent(async () => {
+    console.log("Preview rendered for model:", model.uri.toString());
+
+    this._contentChangeListener = model.onDidChangeContent(async () => {
       if (this._currentModel === model) {
-        await this._preview(model!, tab.uri);
+        await this._preview(model, fsPath);
       }
     });
 
-    this._sync(editor, model!);
+    this._sync(editor, model);
 
     if (this._isUpdatingState) return;
 
     const currentTabs = select((s) => s.main.preview_tabs);
     const tabsArray = Array.isArray(currentTabs) ? currentTabs : [];
 
-    const existingTabIndex = tabsArray.findIndex((t) => t.uri === tab.uri);
+    const existingTabIndex = tabsArray.findIndex((t) => {
+      const tPath = t.uri.startsWith("file://")
+        ? monaco.Uri.parse(t.uri).fsPath
+        : t.uri;
+      return tPath === fsPath;
+    });
 
     let needsUpdate = false;
     let updatedTabs: IPreviewTab[] = [];
@@ -367,7 +369,7 @@ export class Preview {
       needsUpdate = true;
       const newTab: IPreviewTab = {
         name: tab.name,
-        uri: tab.uri,
+        uri: fsPath,
         active: true,
         icon: tab.icon || getFileIcon("file.md"),
       };
