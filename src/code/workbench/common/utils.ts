@@ -6,6 +6,7 @@ import { update_editor_tabs } from "./store/slice.js";
 export const tokensToCssVariables: Record<IThemeColors, string> = {
   "workbench.background": "--workbench-background",
   "workbench.foreground": "--workbench-foreground",
+  "workbench.secondary.foreground": "--workbench-secondary-foreground",
   "workbench.border.foreground": "--workbench-border-foreground",
   "workbench.icon.foreground": "--workbench-icon-foreground",
   "workbench.primary.button.background":

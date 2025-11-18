@@ -26,6 +26,7 @@ export class Titlebar extends CoreEl {
     super();
     this._createEl();
     this._addEventListeners();
+    this._registerShortcuts();
   }
 
   private _createEl(): void {
@@ -90,8 +91,6 @@ export class Titlebar extends CoreEl {
     searchBar.onclick = () => {
       _commandPanel._toggle();
     };
-
-    // _commandPanel._show();
 
     centerSearchSection.appendChild(searchBar);
 
@@ -303,8 +302,75 @@ export class Titlebar extends CoreEl {
         }
 
         menuItem.appendChild(content);
+
+        if (item.shortcut) {
+          const shortcut = document.createElement("span");
+          shortcut.className = "shortcut";
+          item.shortcut.forEach((s, index) => {
+            const _item = document.createElement("span");
+            _item.textContent =
+              s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+            shortcut.appendChild(_item);
+
+            if (index < item.shortcut!.length - 1) {
+              const plus = document.createElement("span");
+              plus.className = "shortcut-separator";
+              plus.innerHTML = getThemeIcon("add");
+              shortcut.appendChild(plus);
+            }
+          });
+
+          menuItem.appendChild(shortcut);
+        }
+
         container.appendChild(menuItem);
       }
+    });
+  }
+
+  private _registerShortcuts(): void {
+    const allItems: Menuitems[] = [];
+
+    const flatten = (items: Menuitems[]) => {
+      items.forEach((item) => {
+        if (item.shortcut) {
+          allItems.push(item);
+        }
+        if (item.submenu) {
+          flatten(item.submenu);
+        }
+      });
+    };
+
+    flatten(menuItems);
+
+    document.addEventListener("keydown", (e: KeyboardEvent) => {
+      allItems.forEach((item) => {
+        if (!item.shortcut) return;
+
+        const keys = item.shortcut.map((k) => k.toLowerCase());
+        const pressedKeys = new Set<string>();
+
+        if (e.ctrlKey) pressedKeys.add("ctrl");
+        if (e.shiftKey) pressedKeys.add("shift");
+        if (e.altKey) pressedKeys.add("alt");
+        if (e.metaKey) pressedKeys.add("meta");
+
+        if (e.key) pressedKeys.add(e.key.toLowerCase());
+
+        const isMatch =
+          pressedKeys.size === keys.length &&
+          keys.every((key) => pressedKeys.has(key));
+
+        if (isMatch) {
+          e.preventDefault();
+          console.log(item.label);
+
+          if (item.action && !item.disabled) {
+            this._action(item.action);
+          }
+        }
+      });
     });
   }
 

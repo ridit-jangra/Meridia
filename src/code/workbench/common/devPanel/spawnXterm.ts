@@ -151,7 +151,7 @@ class XtermManager {
           const _height =
             instance._container.parentElement!.parentElement!.parentElement!
               .clientHeight -
-            25 +
+            5 +
             "px";
 
           instance._container.style.height = _height;
@@ -161,7 +161,7 @@ class XtermManager {
           instance._fitAddon.fit();
         } catch (e) {}
       }
-    }, 50);
+    }, 100);
   }
 
   _dispose(id: string) {
@@ -312,6 +312,30 @@ class XtermManager {
     }
 
     return false;
+  }
+
+  async _runCommand(command: string): Promise<boolean> {
+    const ids = Array.from(this._terminals.keys());
+    const id = ids[0]!;
+    const instance = this._terminals.get(id);
+
+    if (!instance) {
+      console.error(`Terminal with id "${id}" not found`);
+      return false;
+    }
+
+    try {
+      await ipcRenderer.invoke(
+        "workbench.terminal.data.user",
+        id,
+        command + "\r"
+      );
+
+      return true;
+    } catch (error) {
+      console.error("Failed to run command in terminal:", error);
+      return false;
+    }
   }
 }
 
