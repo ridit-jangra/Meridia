@@ -12,7 +12,7 @@ import "./common/editor.js";
 import "./common/statusbar.js";
 import "./browser/parts/mira/mira.js";
 import "../platform/extension/extension.js";
-import "../editor/standalone/standalone.js";
+import "../editor/standalone/editor.js";
 import { changePanelOptionsWidth } from "./common/panelOptions.js";
 import { _xtermManager } from "./common/devPanel/spawnXterm.js";
 import { watch } from "./common/store/selector.js";

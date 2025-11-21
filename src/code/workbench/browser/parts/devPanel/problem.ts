@@ -1,7 +1,7 @@
 import { CoreEl } from "../core.js";
 import { getStandalone, registerStandalone } from "../../../common/class.js";
 import { getThemeIcon } from "../../media/icons.js";
-import { Editor } from "../../../../editor/standalone/standalone.js";
+import { Editor } from "../../../../editor/standalone/editor.js";
 import { IProblemTab, IError, IWarning } from "../../../workbench.types.js";
 import { getFileIcon } from "../../../common/utils.js";
 import { watch } from "../../../common/store/selector.js";

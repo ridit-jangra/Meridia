@@ -1,4 +1,4 @@
-import { Editor as _editor } from "../standalone/standalone.js";
+import { Editor as _editor } from "../standalone/editor.js";
 import {
   getStandalone,
   registerStandalone,
@@ -16,6 +16,10 @@ import { CoreEl } from "../../workbench/browser/parts/core.js";
 import { _getContent } from "../../workbench/common/tabs.js";
 import { Splitter } from "../../workbench/browser/parts/splitter/splitter.js";
 import { _preview } from "../common/preview.js";
+import {
+  getStandaloneForExtension,
+  standalones,
+} from "../common/standalones.js";
 
 export class Editor extends CoreEl {
   private _splitter!: Splitter;
@@ -62,8 +66,16 @@ export class Editor extends CoreEl {
 
     dispatch(update_editor_tabs(updatedTabs));
 
-    const editor = getStandalone("editor") as _editor;
-    if (editor) editor._close(tabUri);
+    const _extensionEditor = getStandaloneForExtension(
+      window.path.extname(tabUri)
+    );
+
+    if (_extensionEditor) {
+      _extensionEditor._close();
+    } else {
+      const editor = getStandalone("editor") as _editor;
+      if (editor) editor._close(tabUri);
+    }
   }
 
   private _closePreviewTab(tabUri: string, event?: Event) {
@@ -133,19 +145,40 @@ export class Editor extends CoreEl {
         }
       } else {
         this._contentArea.style.display = "none";
-        if (editor) {
+        const _extensionEditor = getStandaloneForExtension(
+          window.path.extname(activeTab.uri)
+        );
+
+        if (_extensionEditor) {
+          editor._visiblity(false);
+          standalones.forEach((v) => {
+            v._setVisiblity(false);
+          });
+          _extensionEditor._setVisiblity(true);
+          _extensionEditor._open(activeTab.uri);
           const _details = this._editorArea.querySelector(
             ".details"
           ) as HTMLDivElement;
-          if (_details) _details.style.display = "flex";
+          if (_details) _details.style.display = "none";
           const _preview = this._editorArea.querySelector(
             ".preview"
           ) as HTMLDivElement;
           if (_preview) _preview.style.display = "none";
-          if (editor._editor) {
-            editor._open(activeTab);
-          } else {
-            editor._mount();
+        } else {
+          if (editor) {
+            const _details = this._editorArea.querySelector(
+              ".details"
+            ) as HTMLDivElement;
+            if (_details) _details.style.display = "flex";
+            const _preview = this._editorArea.querySelector(
+              ".preview"
+            ) as HTMLDivElement;
+            if (_preview) _preview.style.display = "none";
+            if (editor._editor) {
+              editor._open(activeTab);
+            } else {
+              editor._mount();
+            }
           }
         }
       }

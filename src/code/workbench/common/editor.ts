@@ -1,4 +1,4 @@
-import { Editor } from "../../editor/standalone/standalone.js";
+import { Editor } from "../../editor/standalone/editor.js";
 import { DevPanelTabs } from "../browser/parts/devPanel/tabs.js";
 import { Run } from "../browser/parts/devPanel/run.js";
 import { addCommand } from "./command.js";
