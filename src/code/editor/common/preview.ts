@@ -81,7 +81,6 @@ export class Preview {
     }
 
     if (!editor) {
-      console.warn("No editor found for model");
       return;
     }
 
@@ -197,7 +196,6 @@ export class Preview {
             copy.classList.remove("copied");
           }, 2000);
         } catch (err) {
-          console.error("Failed to copy:", err);
           copy.textContent = "Failed";
 
           setTimeout(() => {
@@ -219,9 +217,6 @@ export class Preview {
     } else {
       content = fs.readFile(filePath);
     }
-
-    console.log("Reading file:", filePath);
-    console.log("Content length:", content.length);
 
     const currentFileDir = path.dirname(filePath);
 
@@ -297,13 +292,9 @@ export class Preview {
       uri = monaco.Uri.file(tab.uri);
     }
 
-    console.log("Opening preview for:", fsPath);
-    console.log("Monaco URI:", uri.toString());
-
     const model = monaco.editor.getModel(uri);
 
     if (!model) {
-      console.error("Model not found for URI:", uri.toString());
       return;
     }
 
@@ -329,8 +320,6 @@ export class Preview {
     this._currentEditor = editor;
 
     await this._preview(model, fsPath);
-
-    console.log("Preview rendered for model:", model.uri.toString());
 
     this._contentChangeListener = model.onDidChangeContent(async () => {
       if (this._currentModel === model) {
