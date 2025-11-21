@@ -446,6 +446,7 @@ export class Editor {
         fontSize: 16,
         fontFamily: "Jetbrains Mono",
       },
+      codeLens: true,
     });
 
     const _detail = document.createElement("div");
@@ -487,11 +488,6 @@ export class Editor {
       allowNonTsExtensions: true,
     });
 
-    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-      noLib: true,
-      allowNonTsExtensions: true,
-    });
-
     monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
       noLib: true,
       allowNonTsExtensions: true,
@@ -506,6 +502,9 @@ export class Editor {
       noSemanticValidation: true,
       noSyntaxValidation: true,
     });
+
+    monaco.languages.typescript.javascriptDefaults.setEagerModelSync(true);
+    monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true);
 
     const _languages = languages.keys();
 
@@ -916,7 +915,7 @@ export class Editor {
               useLibraryCodeForTypes: true,
               diagnosticMode: "workspace",
               typeCheckingMode: "basic",
-              // Correct path for inlay hints
+
               inlayHints: {
                 variableTypes: true,
                 functionReturnTypes: true,

@@ -19,7 +19,7 @@ export class FontViewer extends Standalone {
     const _layout = document.querySelector(".editor-area") as HTMLElement;
 
     this._viewer = document.createElement("div");
-    this._viewer.className = "font-viewer scrollbar-container";
+    this._viewer.className = "font-viewer scrollbar-container x-disable";
 
     addStandaloneForExtension(this._extensions, this);
 
