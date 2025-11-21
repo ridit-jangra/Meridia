@@ -229,9 +229,6 @@ async function discoverBuildTargets() {
   return targets;
 }
 
-/**
- * Build options from target configuration
- */
 function buildOptions(target) {
   const platformConfig = platformConfigs[target.platform];
 
@@ -245,24 +242,12 @@ function buildOptions(target) {
   };
 }
 
-/**
- * Execute all builds
- */
 async function buildAll() {
   const targets = await discoverBuildTargets();
   const contexts = [];
 
-  console.log(`[build] Found ${targets.length} build targets`);
-
   for (const target of targets) {
     const opts = buildOptions(target);
-    const entryCount = Array.isArray(target.entryPoints)
-      ? target.entryPoints.length
-      : Object.keys(target.entryPoints).length;
-
-    console.log(
-      `[build] ${target.name} (${target.platform}) with ${entryCount} entries`
-    );
 
     if (watch) {
       const ctx = await esbuild.context(opts);
@@ -274,8 +259,6 @@ async function buildAll() {
   }
 
   if (watch) {
-    console.log("[build] Watching for changes...");
-
     await new Promise(() => {});
   }
 }
@@ -295,7 +278,6 @@ function copyAssets() {
   const fontDest = `${fontDir}/codicon.ttf`;
 
   copyFileSync(fontSrc, fontDest);
-  console.log(`[assets] Copied codicon font`);
 }
 
 async function main() {
@@ -303,7 +285,6 @@ async function main() {
     copyAssets();
     await buildAll();
   } catch (e) {
-    console.error("[error]", e);
     process.exit(1);
   }
 }

@@ -320,7 +320,6 @@ class XtermManager {
     const instance = this._terminals.get(id);
 
     if (!instance) {
-      console.error(`Terminal with id "${id}" not found`);
       return false;
     }
 
@@ -333,7 +332,6 @@ class XtermManager {
 
       return true;
     } catch (error) {
-      console.error("Failed to run command in terminal:", error);
       return false;
     }
   }

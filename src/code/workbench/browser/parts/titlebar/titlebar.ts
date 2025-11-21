@@ -364,7 +364,6 @@ export class Titlebar extends CoreEl {
 
         if (isMatch) {
           e.preventDefault();
-          console.log(item.label);
 
           if (item.action && !item.disabled) {
             this._action(item.action);
