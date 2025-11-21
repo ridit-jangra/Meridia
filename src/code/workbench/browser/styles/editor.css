@@ -120,13 +120,31 @@
   font-weight: 800;
 }
 
-.code .editor a {
-  color: var(--workbench-terminal-color4);
-  text-decoration: none;
+.code .editor .image-viewer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
 }
 
-.code .editor a:hover {
-  text-decoration: underline;
+.code .editor .image-viewer img {
+  width: 50%;
+  height: auto;
+}
+
+.code .editor .font-viewer {
+  height: 100%;
+  width: 100%;
+}
+
+.code .editor .monaco-editor a {
+  color: var(--workbench-terminal-color4) !important;
+  text-decoration: none !important;
+}
+
+.code .editor .monaco-editor a:hover {
+  text-decoration: underline !important;
 }
 
 .code .editor .monaco-editor *:focus {

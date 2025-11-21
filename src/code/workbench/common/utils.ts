@@ -189,6 +189,8 @@ export function getFileIcon(_name: string) {
     "gitattributes",
     "otf",
     "ttf",
+    "woff",
+    "woff2",
     "svg",
     "xls",
     "xlsx",

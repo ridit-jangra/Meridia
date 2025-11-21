@@ -2,7 +2,7 @@ import { dispatch } from "./store/store.js";
 import { select } from "./store/selector.js";
 import { update_panel_state } from "./store/slice.js";
 import { getStandalone } from "./class.js";
-import { Editor } from "../../editor/standalone/standalone.js";
+import { Editor } from "../../editor/standalone/editor.js";
 
 const ipcRenderer = window.ipc;
 
