@@ -133,6 +133,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
   height: 100%;
   width: 100%;
 }
@@ -297,6 +298,15 @@
 .monaco-editor .suggest-details {
   border-radius: 6px !important;
   border: 2px solid var(--workbench-border-foreground) !important;
+}
+
+.monaco-editor .suggest-details a {
+  color: var(--workbench-terminal-color4) !important;
+  text-decoration: none !important;
+}
+
+.monaco-editor .suggest-details a:hover {
+  text-decoration: underline !important;
 }
 
 .monaco-editor .monaco-menu {
