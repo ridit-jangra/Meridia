@@ -1,5 +1,5 @@
-import "../../editor/standalone/image-viewer.js";
-import "../../editor/standalone/font-viewer.js";
+import "../../editor/editors/image-viewer.js";
+import "../../editor/editors/font-viewer.js";
 import { getStandalone, registerStandalone } from "../common/class.js";
 import { Editor as EditorLayout } from "../../editor/browser/layout.js";
 import { Files } from "./files.js";
@@ -10,7 +10,7 @@ import { DevPanel } from "./parts/devPanel/el.js";
 import { Mira } from "./parts/mira/browser/layout.js";
 import { _xtermManager } from "../common/devPanel/spawnXterm.js";
 import { Structure } from "./structure.js";
-import { Editor } from "../../editor/standalone/editor.js";
+import { Editor } from "../../editor/editors/editor.js";
 import { Titlebar } from "./parts/titlebar/titlebar.js";
 import { Splitter } from "./parts/splitter/splitter.js";
 import { Statusbar } from "./parts/statusbar/statusbar.js";
@@ -18,8 +18,8 @@ import { changePanelOptionsWidth } from "../common/panelOptions.js";
 import { _drawboard } from "../workbench.desktop.js";
 import { _commandPanel } from "./parts/titlebar/commandPanel.js";
 import { Preview } from "../../editor/common/preview.js";
-import { ImageViewer } from "../../editor/standalone/image-viewer.js";
-import { FontViewer } from "../../editor/standalone/font-viewer.js";
+import { ImageViewer } from "../../editor/editors/image-viewer.js";
+import { FontViewer } from "../../editor/editors/font-viewer.js";
 
 export class Layout {
   constructor() {

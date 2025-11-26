@@ -1,4 +1,4 @@
-import { Editor as _editor } from "../standalone/editor.js";
+import { Editor as _editor } from "../editors/editor.js";
 import {
   getStandalone,
   registerStandalone,
@@ -36,316 +36,301 @@ export class Editor extends CoreEl {
   }
 
   private _closeEditorTab(tabUri: string, event?: Event) {
-    if (event) {
-      event.stopPropagation();
-    }
+    if (event) event.stopPropagation();
 
     const currentTabs = select((s) => s.main.editor_tabs);
     const tabIndex = currentTabs.findIndex((t) => t.uri === tabUri);
-
     if (tabIndex === -1) return;
 
     const closingTab = currentTabs[tabIndex]!;
     const isClosingActiveTab = closingTab.active;
-
-    const updatedTabs = currentTabs.filter((t) => t.uri !== tabUri);
+    let updatedTabs = currentTabs.filter((t) => t.uri !== tabUri);
 
     if (isClosingActiveTab && updatedTabs.length > 0) {
       const newActiveIndex =
         tabIndex < updatedTabs.length ? tabIndex : updatedTabs.length - 1;
-
       const tabToActivate = updatedTabs[newActiveIndex]!;
       updatedTabs[newActiveIndex] = {
-        name: tabToActivate.name,
-        uri: tabToActivate.uri,
+        ...tabToActivate,
         active: true,
-        is_touched: tabToActivate.is_touched,
-        ...(tabToActivate.icon && { icon: tabToActivate.icon }),
       } as IEditorTab;
     }
 
     dispatch(update_editor_tabs(updatedTabs));
 
-    const _extensionEditor = getStandaloneForExtension(
+    const closingExtensionEditor = getStandaloneForExtension(
       window.path.extname(tabUri)
     );
-
-    if (_extensionEditor) {
-      _extensionEditor._close();
+    if (closingExtensionEditor) {
+      closingExtensionEditor._close();
     } else {
       const editor = getStandalone("editor") as _editor;
       if (editor) editor._close(tabUri);
     }
+
+    const newActiveTab = updatedTabs.find((t) => t.active);
+    if (newActiveTab) {
+      const newActiveExtensionEditor = getStandaloneForExtension(
+        window.path.extname(newActiveTab.uri)
+      );
+
+      if (newActiveExtensionEditor) {
+        const editor = getStandalone("editor") as _editor;
+        if (editor) editor._visiblity(false);
+        standalones.forEach((v) => v._setVisiblity(false));
+        newActiveExtensionEditor._setVisiblity(true);
+        newActiveExtensionEditor._open(newActiveTab.uri);
+
+        const details = this._editorArea.querySelector(
+          ".details"
+        ) as HTMLDivElement;
+        const preview = this._editorArea.querySelector(
+          ".preview"
+        ) as HTMLDivElement;
+        if (details) details.style.display = "none";
+        if (preview) preview.style.display = "none";
+
+        this._contentArea.style.display = "none";
+      }
+    }
   }
 
   private _closePreviewTab(tabUri: string, event?: Event) {
-    if (event) {
-      event.stopPropagation();
-    }
+    if (event) event.stopPropagation();
 
     const currentTabs = select((s) => s.main.preview_tabs);
     const tabIndex = currentTabs.findIndex((t) => t.uri === tabUri);
-
     if (tabIndex === -1) return;
 
     const closingTab = currentTabs[tabIndex]!;
     const isClosingActiveTab = closingTab.active;
-
-    const updatedTabs = currentTabs.filter((t) => t.uri !== tabUri);
+    let updatedTabs = currentTabs.filter((t) => t.uri !== tabUri);
 
     if (isClosingActiveTab && updatedTabs.length > 0) {
       const newActiveIndex =
         tabIndex < updatedTabs.length ? tabIndex : updatedTabs.length - 1;
-
       const tabToActivate = updatedTabs[newActiveIndex]!;
       updatedTabs[newActiveIndex] = {
-        name: tabToActivate.name,
-        uri: tabToActivate.uri,
+        ...tabToActivate,
         active: true,
-        ...(tabToActivate.icon && { icon: tabToActivate.icon }),
       } as IPreviewTab;
     }
 
     dispatch(update_preview_tabs(updatedTabs));
   }
 
-  private _renderEditorTabs(_tabs: IEditorTab[]) {
+  private _renderEditorTabs(tabs: IEditorTab[]) {
     const editor = getStandalone("editor") as _editor;
-    const activeTab = _tabs.find((t) => t.active);
 
-    if (_tabs.length === 0) {
-      this._editorTabs.style.display = "none";
-      this._editorArea.style.display = "none";
-      this._emptyState.style.display = "flex";
+    if (tabs.length === 0) {
+      this._showEmptyEditor();
       if (editor) editor._visiblity(false);
       return;
-    } else {
-      this._editorTabs.style.display = "flex";
-      this._editorArea.style.display = "flex";
-      this._emptyState.style.display = "none";
-      if (editor) editor._visiblity(true);
     }
+
+    this._showEditorUI();
+    const activeTab = tabs.find((t) => t.active);
 
     if (activeTab) {
-      if (activeTab.uri.startsWith("tab://")) {
-        if (editor) editor._visiblity(false);
-        this._contentArea.style.display = "flex";
-        const _details = this._editorArea.querySelector(
-          ".details"
-        ) as HTMLDivElement;
-        if (_details) _details.style.display = "none";
-        const _preview = this._editorArea.querySelector(
-          ".preview"
-        ) as HTMLDivElement;
-        if (_preview) _preview.style.display = "none";
-        this._contentArea.innerHTML = "";
-        const _content = _getContent(activeTab.uri);
-        if (_content) {
-          this._contentArea.appendChild(_content);
-        }
-      } else {
-        this._contentArea.style.display = "none";
-        const _extensionEditor = getStandaloneForExtension(
-          window.path.extname(activeTab.uri)
-        );
-
-        if (_extensionEditor) {
-          editor._visiblity(false);
-          standalones.forEach((v) => {
-            v._setVisiblity(false);
-          });
-          _extensionEditor._setVisiblity(true);
-          _extensionEditor._open(activeTab.uri);
-          const _details = this._editorArea.querySelector(
-            ".details"
-          ) as HTMLDivElement;
-          if (_details) _details.style.display = "none";
-          const _preview = this._editorArea.querySelector(
-            ".preview"
-          ) as HTMLDivElement;
-          if (_preview) _preview.style.display = "none";
-        } else {
-          if (editor) {
-            const _details = this._editorArea.querySelector(
-              ".details"
-            ) as HTMLDivElement;
-            if (_details) _details.style.display = "flex";
-            const _preview = this._editorArea.querySelector(
-              ".preview"
-            ) as HTMLDivElement;
-            if (_preview) _preview.style.display = "none";
-            if (editor._editor) {
-              editor._open(activeTab);
-            } else {
-              editor._mount();
-            }
-          }
-        }
-      }
+      this._displayActiveEditorTab(activeTab, editor);
     }
 
-    this._editorTabs.innerHTML = "";
-    _tabs.forEach((_tab) => {
-      const _tabEl = document.createElement("div");
-      _tabEl.className = `tab ${_tab.active ? "active" : ""}`;
-
-      _tabEl.onclick = (e) => {
-        if ((e.target as HTMLElement).closest(".close-icon")) {
-          return;
-        }
-
-        const _tabs = select((s) => s.main.editor_tabs);
-        const newTabs = _tabs.map((t) => ({
-          ...t,
-          active: t.uri === _tab.uri,
-        }));
-
-        dispatch(update_editor_tabs(newTabs));
-      };
-
-      const icon = document.createElement("span");
-      icon.className = "icon";
-
-      if (_tab.icon) icon.innerHTML = _tab.icon;
-      else icon.innerHTML = getFileIcon(_tab.name);
-
-      const name = document.createElement("span");
-      name.className = "name";
-      name.textContent = _tab.name;
-
-      const iconWrapper = document.createElement("div");
-      iconWrapper.className = `icon-wrapper ${
-        _tab.is_touched ? "is_touched" : ""
-      }`;
-
-      const _closeIcon = document.createElement("span");
-      _closeIcon.className = "close-icon";
-      _closeIcon.innerHTML = getThemeIcon("close");
-
-      _closeIcon.onclick = (e) => {
-        e.stopPropagation();
-        this._closeEditorTab(_tab.uri, e);
-      };
-
-      const dotIcon = document.createElement("span");
-      dotIcon.className = "dot-icon";
-
-      iconWrapper.appendChild(_closeIcon);
-      iconWrapper.appendChild(dotIcon);
-
-      _tabEl.appendChild(icon);
-      _tabEl.appendChild(name);
-      _tabEl.appendChild(iconWrapper);
-
-      this._editorTabs.appendChild(_tabEl);
-
-      if (_tab.active) {
-        const container = this._editorTabs;
-        const offsetLeft = _tabEl.offsetLeft;
-        const tabWidth = _tabEl.offsetWidth;
-        const containerScrollLeft = container.scrollLeft;
-        const containerWidth = container.clientWidth;
-
-        if (offsetLeft < containerScrollLeft) {
-          container.scrollLeft = offsetLeft;
-        } else if (
-          offsetLeft + tabWidth >
-          containerScrollLeft + containerWidth
-        ) {
-          container.scrollLeft = offsetLeft + tabWidth - containerWidth;
-        }
-      }
-    });
+    this._renderTabs(
+      tabs,
+      this._editorTabs,
+      (tab) => this._setActiveEditorTab(tab.uri),
+      (tabUri, event) => this._closeEditorTab(tabUri, event)
+    );
   }
 
-  private _renderPreviewTabs(_tabs: IPreviewTab[]) {
-    const activeTab = _tabs.find((t) => t.active);
+  private _renderPreviewTabs(tabs: IPreviewTab[]) {
+    const activeTab = tabs.find((t) => t.active);
 
-    if (_tabs.length === 0) {
-      _preview._close(activeTab!);
+    if (tabs.length === 0) {
       this._splitter._collapsePanel(1);
-    } else {
-      this._splitter._expandPanel(1);
-      this._previewTabs.style.display = "flex";
-      this._previewArea.style.display = "flex";
+      this._previewTabs.style.display = "none";
+      this._previewArea.style.display = "none";
+      return;
     }
+
+    this._splitter._expandPanel(1);
+    this._previewTabs.style.display = "flex";
+    this._previewArea.style.display = "flex";
 
     if (activeTab) {
       const editor = getStandalone("editor") as _editor;
       if (editor && editor._editor) editor._previewMarkdown(activeTab);
     }
 
-    this._previewTabs.innerHTML = "";
-    _tabs.forEach((_tab) => {
-      const _tabEl = document.createElement("div");
-      _tabEl.className = `tab ${_tab.active ? "active" : ""}`;
+    this._renderTabs(
+      tabs,
+      this._previewTabs,
+      (tab) => this._setActivePreviewTab(tab.uri),
+      (tabUri, event) => this._closePreviewTab(tabUri, event)
+    );
+  }
 
-      _tabEl.onclick = (e) => {
-        if ((e.target as HTMLElement).closest(".close-icon")) {
-          return;
+  private _showEmptyEditor() {
+    this._editorTabs.style.display = "none";
+    this._editorArea.style.display = "none";
+    this._emptyState.style.display = "flex";
+  }
+
+  private _showEditorUI() {
+    this._editorTabs.style.display = "flex";
+    this._editorArea.style.display = "flex";
+    this._emptyState.style.display = "none";
+  }
+
+  private _displayActiveEditorTab(
+    activeTab: IEditorTab,
+    editor: _editor | null
+  ) {
+    if (activeTab.uri.startsWith("tab://")) {
+      this._showContentTab(activeTab, editor);
+    } else {
+      this._showFileTab(activeTab, editor);
+    }
+  }
+
+  private _showContentTab(activeTab: IEditorTab, editor: _editor | null) {
+    if (editor) editor._visiblity(false);
+    this._contentArea.style.display = "flex";
+
+    const details = this._editorArea.querySelector(
+      ".details"
+    ) as HTMLDivElement;
+    const preview = this._editorArea.querySelector(
+      ".preview"
+    ) as HTMLDivElement;
+    if (details) details.style.display = "none";
+    if (preview) preview.style.display = "none";
+
+    this._contentArea.innerHTML = "";
+    const content = _getContent(activeTab.uri);
+    if (content) this._contentArea.appendChild(content);
+  }
+
+  private _showFileTab(activeTab: IEditorTab, editor: _editor | null) {
+    this._contentArea.style.display = "none";
+
+    const extEditor = getStandaloneForExtension(
+      window.path.extname(activeTab.uri)
+    );
+    if (extEditor) {
+      if (editor) editor._visiblity(false);
+      standalones.forEach((v) => v._setVisiblity(false));
+      extEditor._setVisiblity(true);
+      extEditor._open(activeTab.uri);
+
+      const details = this._editorArea.querySelector(
+        ".details"
+      ) as HTMLDivElement;
+      const preview = this._editorArea.querySelector(
+        ".preview"
+      ) as HTMLDivElement;
+      if (details) details.style.display = "none";
+      if (preview) preview.style.display = "none";
+    } else {
+      if (editor) {
+        const details = this._editorArea.querySelector(
+          ".details"
+        ) as HTMLDivElement;
+        const preview = this._editorArea.querySelector(
+          ".preview"
+        ) as HTMLDivElement;
+        if (details) details.style.display = "flex";
+        if (preview) preview.style.display = "none";
+
+        if (editor._editor) {
+          editor._open(activeTab);
+        } else {
+          editor._mount();
         }
+      }
+    }
+  }
 
-        const _tabs = select((s) => s.main.preview_tabs);
-        const newTabs = _tabs.map((t) => ({
-          ...t,
-          active: t.uri === _tab.uri,
-        }));
+  private _renderTabs(
+    tabs: (IEditorTab | IPreviewTab)[],
+    container: HTMLDivElement,
+    onClickTab: (tab: IEditorTab | IPreviewTab) => void,
+    onCloseTab: (tabUri: string, event?: Event) => void
+  ) {
+    container.innerHTML = "";
+    tabs.forEach((tab) => {
+      const tabEl = document.createElement("div");
+      tabEl.className = `tab ${tab.active ? "active" : ""}`;
 
-        dispatch(update_preview_tabs(newTabs));
+      tabEl.onclick = (e) => {
+        if ((e.target as HTMLElement).closest(".close-icon")) return;
+        onClickTab(tab);
       };
 
       const icon = document.createElement("span");
       icon.className = "icon";
-
-      if (_tab.icon) icon.innerHTML = _tab.icon;
-      else icon.innerHTML = getFileIcon(_tab.name);
+      icon.innerHTML = tab.icon || getFileIcon(tab.name);
 
       const name = document.createElement("span");
       name.className = "name";
-      name.textContent = `Preview ${_tab.name}`;
+      name.textContent = (tab as IPreviewTab).name.startsWith("Preview ")
+        ? (tab as IPreviewTab).name
+        : tab.name;
 
       const iconWrapper = document.createElement("div");
-      iconWrapper.className = `icon-wrapper`;
+      iconWrapper.className = "icon-wrapper";
+      if ("is_touched" in tab && tab.is_touched)
+        iconWrapper.classList.add("is_touched");
 
-      const _closeIcon = document.createElement("span");
-      _closeIcon.className = "close-icon";
-      _closeIcon.innerHTML = getThemeIcon("close");
-
-      _closeIcon.onclick = (e) => {
+      const closeIcon = document.createElement("span");
+      closeIcon.className = "close-icon";
+      closeIcon.innerHTML = getThemeIcon("close");
+      closeIcon.onclick = (e) => {
         e.stopPropagation();
-        _preview._close(activeTab!);
-        this._closePreviewTab(_tab.uri, e);
+        onCloseTab(tab.uri, e);
       };
 
       const dotIcon = document.createElement("span");
       dotIcon.className = "dot-icon";
 
-      iconWrapper.appendChild(_closeIcon);
+      iconWrapper.appendChild(closeIcon);
       iconWrapper.appendChild(dotIcon);
 
-      _tabEl.appendChild(icon);
-      _tabEl.appendChild(name);
-      _tabEl.appendChild(iconWrapper);
+      tabEl.appendChild(icon);
+      tabEl.appendChild(name);
+      tabEl.appendChild(iconWrapper);
 
-      this._previewTabs.appendChild(_tabEl);
+      container.appendChild(tabEl);
 
-      if (_tab.active) {
-        const container = this._previewTabs;
-        const offsetLeft = _tabEl.offsetLeft;
-        const tabWidth = _tabEl.offsetWidth;
-        const containerScrollLeft = container.scrollLeft;
-        const containerWidth = container.clientWidth;
-
-        if (offsetLeft < containerScrollLeft) {
-          container.scrollLeft = offsetLeft;
-        } else if (
-          offsetLeft + tabWidth >
-          containerScrollLeft + containerWidth
-        ) {
-          container.scrollLeft = offsetLeft + tabWidth - containerWidth;
-        }
+      if (tab.active) {
+        this._scrollTabIntoView(tabEl, container);
       }
     });
+  }
+
+  private _scrollTabIntoView(tabEl: HTMLElement, container: HTMLElement) {
+    const offsetLeft = tabEl.offsetLeft;
+    const tabWidth = tabEl.offsetWidth;
+    const scrollLeft = container.scrollLeft;
+    const containerWidth = container.clientWidth;
+
+    if (offsetLeft < scrollLeft) {
+      container.scrollLeft = offsetLeft;
+    } else if (offsetLeft + tabWidth > scrollLeft + containerWidth) {
+      container.scrollLeft = offsetLeft + tabWidth - containerWidth;
+    }
+  }
+
+  private _setActiveEditorTab(uri: string) {
+    const tabs = select((s) => s.main.editor_tabs);
+    const newTabs = tabs.map((t) => ({ ...t, active: t.uri === uri }));
+    dispatch(update_editor_tabs(newTabs));
+  }
+
+  private _setActivePreviewTab(uri: string) {
+    const tabs = select((s) => s.main.preview_tabs);
+    const newTabs = tabs.map((t) => ({ ...t, active: t.uri === uri }));
+    dispatch(update_preview_tabs(newTabs));
   }
 
   private _createEl() {
@@ -376,9 +361,7 @@ export class Editor extends CoreEl {
     if (_editorTabsState.length > 0) {
       this._renderEditorTabs(_editorTabsState);
     } else {
-      this._editorTabs.style.display = "none";
-      this._editorArea.style.display = "none";
-      this._emptyState.style.display = "flex";
+      this._showEmptyEditor();
     }
 
     const _previewTabsState = select((s) => s.main.preview_tabs);
@@ -391,16 +374,11 @@ export class Editor extends CoreEl {
 
     watch(
       (s) => s.main.editor_tabs,
-      (next) => {
-        this._renderEditorTabs(next);
-      }
+      (next) => this._renderEditorTabs(next)
     );
-
     watch(
       (s) => s.main.preview_tabs,
-      (next) => {
-        this._renderPreviewTabs(next);
-      }
+      (next) => this._renderPreviewTabs(next)
     );
 
     const _editorPane = document.createElement("div");

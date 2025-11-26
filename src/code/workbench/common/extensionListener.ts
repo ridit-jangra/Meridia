@@ -1,4 +1,4 @@
-import { Editor } from "../../editor/standalone/editor.js";
+import { Editor } from "../../editor/editors/editor.js";
 import { _contextEvent } from "../../platform/extension/common/context.js";
 import { registerStatusbarItem, removeStatusbarItem } from "./statusbar.js";
 import { IEditorTab, IStatusBarAction } from "../workbench.types.js";
