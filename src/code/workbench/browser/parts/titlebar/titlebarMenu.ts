@@ -55,7 +55,7 @@ export const menuItems: Menuitems[] = [
       {
         label: "Undo",
         action: "workbench.undo",
-        shortcut: ["ctrl", "u"],
+        shortcut: ["ctrl", "z"],
       },
       {
         label: "Redo",
@@ -66,16 +66,16 @@ export const menuItems: Menuitems[] = [
         label: "",
         separator: true,
       },
-      {
-        label: "Copy",
-        action: "workbench.copy",
-        shortcut: ["ctrl", "c"],
-      },
-      {
-        label: "Paste",
-        action: "workbench.paste",
-        shortcut: ["ctrl", "v"],
-      },
+      // {
+      //   label: "Copy",
+      //   action: "workbench.copy",
+      //   shortcut: ["ctrl", "c"],
+      // },
+      // {
+      //   label: "Paste",
+      //   action: "workbench.paste",
+      //   shortcut: ["ctrl", "v"],
+      // },
       {
         label: "",
         separator: true,

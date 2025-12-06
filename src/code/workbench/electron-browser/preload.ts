@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import url from "url";
+import xlsx from "xlsx";
 import { spawn, SpawnOptions, SpawnOptionsWithoutStdio } from "child_process";
 import { contextBridge, ipcRenderer, shell } from "electron";
 import {
@@ -412,6 +413,8 @@ ipcRenderer.on("titlebar-insets", (_, insets) => {
   );
 });
 
+export default xlsx;
+
 contextBridge.exposeInMainWorld("storage", storageBridge);
 contextBridge.exposeInMainWorld("fs", fsBridge);
 contextBridge.exposeInMainWorld("path", pathBridge);
@@ -425,3 +428,4 @@ contextBridge.exposeInMainWorld("editor", editorBridge);
 contextBridge.exposeInMainWorld("node", nodeBridge);
 contextBridge.exposeInMainWorld("url", urlBridge);
 contextBridge.exposeInMainWorld("electron", electronBridge);
+contextBridge.exposeInMainWorld("xlsx", xlsx);

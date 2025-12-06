@@ -5,19 +5,14 @@
 }
 
 .code .editor .editor-area {
-  height: calc(100% - 56px);
+  height: calc(100% - 53px);
   position: relative;
   display: flex;
   overflow: hidden;
 }
 
-.code .editor .splitter-horizontal .gutter {
-  border-radius: 8px !important;
-  width: 5px !important;
-}
-
 .code .editor .preview-area {
-  height: calc(100% - 50px);
+  height: calc(100% - 53px);
   overflow: hidden;
 }
 
@@ -30,7 +25,6 @@
 }
 
 .code .editor .preview-area .preview-content *:not(h1, h2) {
-  font-family: "Figtree";
   font-weight: 400;
 }
 
@@ -59,7 +53,7 @@
   align-items: center;
   justify-content: center;
   position: absolute;
-  top: -10px;
+  top: -0px;
   right: 10px;
   cursor: pointer;
   padding: 2px 10px;
@@ -74,7 +68,7 @@
   justify-content: center;
   position: absolute;
   gap: 5px;
-  top: -10px;
+  top: -0px;
   right: 85px;
   cursor: pointer;
   padding: 2px 10px;
@@ -95,6 +89,15 @@
   background: var(--workbench-secondary-button-hover-background);
 }
 
+.code .editor .preview-area .preview-content a {
+  color: var(--workbench-terminal-color4) !important;
+  text-decoration: none !important;
+}
+
+.code .editor .preview-area .preview-content a:hover {
+  text-decoration: underline !important;
+}
+
 .code .editor .preview-area .preview-content img {
   max-width: 100%;
   height: auto;
@@ -106,7 +109,6 @@
   padding: 0 !important;
   margin: 0 !important;
   padding: 10px 0 !important;
-  font-family: "Figtree";
   font-weight: 800;
 }
 
@@ -115,17 +117,14 @@
   padding: 0 !important;
   margin: 0 !important;
   padding: 10px 0 !important;
-  font-family: "Figtree";
   font-weight: 800;
 }
 
 .code .editor .preview-area .preview-content h3 {
-  font-family: "Figtree";
   font-weight: 800;
 }
 
 .code .editor .preview-area .preview-content h4 {
-  font-family: "Figtree";
   font-weight: 800;
 }
 
@@ -141,6 +140,122 @@
 .code .editor .image-viewer img {
   width: 50%;
   height: auto;
+}
+
+.code .editor .excel-viewer {
+  height: 100%;
+  width: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.code .editor .excel-viewer .excel-table-container {
+  flex: 1;
+  overflow: auto;
+  background: var(--workbench-editor-background);
+  border: 1px solid var(--workbench-border-foreground);
+  border-radius: 8px;
+  margin: 12px;
+}
+
+.code .editor .excel-viewer .excel-table {
+  border-collapse: collapse;
+  width: 100%;
+  height: 100%;
+  font-family: "Jetbrains Mono", "Consolas", "Monaco", monospace;
+  font-size: 13px;
+  table-layout: auto;
+}
+
+.code .editor .excel-viewer .excel-table th,
+.code .editor .excel-viewer .excel-table td {
+  border: 1px solid var(--workbench-editor-border);
+  padding: 10px 12px;
+  text-align: left;
+  vertical-align: top;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 300px;
+  line-height: 1.4;
+  color: var(--workbench-editor-foreground);
+}
+
+.code .editor .excel-viewer .excel-table th {
+  background: var(--workbench-list-header-background);
+  font-weight: 600;
+  color: var(--workbench-list-header-foreground);
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  border-bottom: 2px solid var(--workbench-border-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px;
+}
+
+.code .editor .excel-viewer .excel-table td {
+  background: var(--workbench-editor-background);
+}
+
+.code .editor .excel-viewer .excel-table tr:not(:last-child) {
+  border-bottom: 1px solid var(--workbench-border-foreground);
+}
+
+.code .editor .excel-viewer .excel-table td:not(:last-child) {
+  border-right: 1px solid var(--workbench-border-foreground);
+}
+
+.code .editor .excel-viewer .excel-table tr:hover td {
+  background: var(--workbench-secondary-button-hover-background) !important;
+}
+
+.code .editor .excel-viewer .sheet-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--workbench-border-foreground);
+  background: var(--workbench-secondary-background);
+  overflow-x: auto;
+}
+
+.code .editor .excel-viewer .sheet-tab {
+  padding: 8px 16px;
+  border-radius: 6px 6px 0 0;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--workbench-foreground);
+  white-space: nowrap;
+}
+
+.code .editor .excel-viewer .sheet-tab.active {
+  /* background: var(--workbench-background); */
+  border-color: var(--workbench-border-foreground);
+  border-bottom-color: var(--workbench-background);
+}
+
+.code .editor .excel-viewer .sheet-tab:hover {
+  background: var(--workbench-hover-background);
+}
+
+.code .editor .excel-viewer .excel-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--workbench-border-foreground);
+  background: var(--workbench-secondary-background);
+  align-items: center;
+}
+
+.code .editor .excel-viewer .error {
+  padding: 40px 20px;
+  text-align: center;
+  border-radius: 8px;
+  margin: 12px;
 }
 
 .code .editor .font-viewer {
@@ -322,7 +437,7 @@
   width: 100% !important;
   border-radius: 6px !important;
   padding: 2px 0 !important;
-  font-family: "Inconsolata" !important;
+  font-family: "Inter" !important;
 }
 
 .monaco-editor .rename-input {
@@ -359,6 +474,35 @@
   background: transparent !important;
 }
 
+.monaco-editor .monaco-inputbox {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: var(--workbench-input-background) !important;
+  border: 1px solid var(--workbench-input-border-foreground) !important;
+  height: 30px !important;
+  border-radius: 8px !important;
+  margin-bottom: 5px !important;
+  box-shadow: 0 0 2px 2px var(--workbench-input-active-outline) !important;
+}
+
+.monaco-editor .monaco-inputbox input {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  border: none !important;
+  background: transparent !important;
+  font-size: 16px !important;
+  font-family: "Jetbrains Mono" !important;
+  color: var(--workbench-input-foreground) !important;
+  padding: 0 10px !important;
+}
+
+.monaco-editor .monaco-inputbox input:focus {
+  outline: none !important;
+}
+
 .code .editor .empty-state {
   width: 100%;
   height: 100%;
@@ -387,7 +531,7 @@
   position: absolute;
   top: 0px;
   right: 20px;
-  z-index: 999;
+  z-index: 10;
   background: var(--workbench-background);
   width: 35px;
   height: 35px;

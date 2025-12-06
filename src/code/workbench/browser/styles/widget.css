@@ -35,8 +35,6 @@
   background: none;
   border: none;
   font-size: 18px;
-  padding: 0 12px;
-  font-family: "Inconsolata";
 }
 
 .widget .search input:focus {

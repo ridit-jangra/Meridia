@@ -483,28 +483,17 @@ export class Editor {
     this._mounted = true;
     this._visiblity(false);
 
-    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-      noLib: true,
-      allowNonTsExtensions: true,
-    });
-
-    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-      noLib: true,
-      allowNonTsExtensions: true,
+    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: true,
+      noSyntaxValidation: true,
+      noSuggestionDiagnostics: true,
     });
 
     monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: true,
       noSyntaxValidation: true,
+      noSuggestionDiagnostics: true,
     });
-
-    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: true,
-      noSyntaxValidation: true,
-    });
-
-    monaco.languages.typescript.javascriptDefaults.setEagerModelSync(true);
-    monaco.languages.typescript.typescriptDefaults.setEagerModelSync(true);
 
     const _languages = languages.keys();
 

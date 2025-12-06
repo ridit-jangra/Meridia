@@ -17,6 +17,7 @@
 @import url("./miraVoice.css");
 @import url("./drawboard.css");
 @import url("./statusbar.css");
+@import url("./activityBar.css");
 @import url("./contextMenu.css");
 
 :root {
@@ -27,9 +28,26 @@
   );
 }
 
-.code {
-  height: 100vh;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
   font-family: "Inconsolata";
+  font-size: 16px;
+  background: var(--workbench-background);
+  color: var(--workbench-foreground);
+  height: 100vh;
+  overflow-y: hidden;
+}
+
+.code {
+  margin: 0;
+  height: 100vh;
 }
 
 .code svg.default path {
@@ -105,18 +123,6 @@
   background-color: var(--workbench-terminal-selection-background);
 }
 
-body {
-  margin: 0;
-  padding: 0 10px;
-  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
-  font-size: 16px;
-  max-width: 98.4vw;
-  background: var(--workbench-background);
-  color: var(--workbench-foreground);
-  height: 100vh;
-  overflow-y: hidden;
-}
-
 p,
 h1,
 h2,
@@ -131,76 +137,14 @@ button {
   white-space: nowrap;
 }
 
-h1 {
-  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
-  font-weight: 700;
-  font-size: 2.25em;
-}
-
-h2 {
-  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
-  font-weight: 600;
-  font-size: 1.875em;
-}
-
-h3 {
-  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
-  font-weight: 600;
-  font-size: 1.5em;
-}
-
-h4 {
-  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
-  font-weight: 500;
-  font-size: 1.25em;
-}
-
-h5 {
-  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
-  font-weight: 500;
-  font-size: 1.125em;
-}
-
-h6 {
-  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
-  font-weight: 400;
-  font-size: 1em;
-}
-
-p {
-  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
-  font-weight: 400;
-  line-height: 1.5;
-}
-
-em {
-  font-style: italic;
-  font-weight: inherit;
-}
-
-strong {
-  font-weight: 600;
-  font-style: inherit;
-}
-
-small {
-  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
-  font-weight: 400;
-  font-size: 0.875em;
-}
-
 code,
 pre,
 kbd,
 samp {
   font-family:
     "JetBrains Mono", "Fira Code", "Source Code Pro", "Droid Sans Mono",
-    "Inconsolata", Consolas, Monaco, "Courier New", monospace;
+    "Inter", Consolas, Monaco, "Courier New", monospace;
   font-weight: 400;
-}
-
-button {
-  font-family: "Inconsolata";
 }
 
 code {
@@ -232,23 +176,4 @@ kbd {
   border-radius: 3px;
   border: 1px solid
     color-mix(in srgb, var(--workbench-foreground), transparent 80%);
-}
-
-ul,
-ol {
-  font-family: "Inter", "Droid Sans", "Roboto", sans-serif;
-  font-weight: 400;
-}
-
-blockquote {
-  font-family: "Droid Serif", "Inter", serif;
-  font-weight: 400;
-  font-style: italic;
-  border-left: 4px solid var(--workbench-icon-foreground);
-  padding-left: 16px;
-  margin-left: 0;
-}
-
-input {
-  font-family: "Inconsolata";
 }

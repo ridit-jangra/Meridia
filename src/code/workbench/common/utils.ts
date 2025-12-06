@@ -199,6 +199,7 @@ export function getFileIcon(_name: string) {
     "rs",
     "iss",
     "license",
+    "readme",
     "prettierrc",
     "prettierignore",
     "env",
