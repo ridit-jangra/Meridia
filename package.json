@@ -52,7 +52,8 @@
     "typed-rpc": "^6.1.2",
     "vscode-languageserver": "^9.0.1",
     "vscode-ws-jsonrpc": "^3.5.0",
-    "ws": "^8.18.3"
+    "ws": "^8.18.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@neon-rs/cli": "^0.1.82",
@@ -63,6 +64,7 @@
     "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20.19.19",
     "@types/ws": "^8.18.1",
+    "@types/xlsx": "^0.0.35",
     "bash-language-server": "^5.6.0",
     "clangd": "^0.0.0",
     "concurrently": "^9.2.1",

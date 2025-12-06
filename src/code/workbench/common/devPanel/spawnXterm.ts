@@ -60,7 +60,10 @@ class XtermManager {
 
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
-    fitAddon.fit();
+
+    setTimeout(() => {
+      fitAddon.fit();
+    }, 50);
 
     const structure = select((s) => s.main.folder_structure);
     const _cwd = structure ? structure.uri : cwd ? cwd : "";
@@ -117,13 +120,16 @@ class XtermManager {
       brightCyan: _theme.getColor("workbench.terminal.bright.cyan"),
       brightWhite: _theme.getColor("workbench.terminal.bright.white"),
     };
-    this._update();
 
     this._terminals.set(id, {
       term,
       _container,
       _fitAddon: fitAddon,
       _ptyDataListener: onPtyData,
+    });
+
+    requestAnimationFrame(() => {
+      this._update();
     });
 
     return _container;
@@ -141,7 +147,7 @@ class XtermManager {
 
   _update() {
     setTimeout(() => {
-      for (const [id, instance] of this._terminals) {
+      for (const [_, instance] of this._terminals) {
         try {
           const parentElement =
             instance._container.parentElement?.parentElement?.parentElement;
@@ -151,7 +157,7 @@ class XtermManager {
           const _height =
             instance._container.parentElement!.parentElement!.parentElement!
               .clientHeight -
-            5 +
+            11 +
             "px";
 
           instance._container.style.height = _height;

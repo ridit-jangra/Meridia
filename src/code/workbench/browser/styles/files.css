@@ -28,7 +28,6 @@
 }
 
 .code .files .empty-state p {
-  font-family: "Inconsolata";
   text-wrap: wrap;
   text-align: center;
 }
@@ -219,7 +218,6 @@
   background: none;
   color: var(--workbench-panel-foreground);
   font-size: 16px;
-  font-family: "Inconsolata";
   border: none;
   margin: 0;
   padding: 0 5px;

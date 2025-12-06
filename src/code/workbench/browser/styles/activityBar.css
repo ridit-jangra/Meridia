@@ -1,0 +1,13 @@
+.code .activity-bar {
+  background: var(--workbench-panel-background);
+  height: 100%;
+  width: 50px;
+}
+
+.code .activity-bar.left {
+  border-right: 2px solid var(--workbench-background);
+}
+
+.code .activity-bar.right {
+  border-left: 2px solid var(--workbench-background);
+}

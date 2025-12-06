@@ -192,7 +192,6 @@
 .code .titlebar .menu-item-label {
   color: var(--workbench-titlebar-menu-foreground);
   font-size: 14px;
-  font-family: "Inconsolata";
 }
 
 .code .titlebar .menu-item.active .hamburger-menu.submenu {

@@ -1,5 +1,5 @@
-import "../../editor/editors/image-viewer.js";
-import "../../editor/editors/font-viewer.js";
+import "../../editor/editors/imageViewer.js";
+import "../../editor/editors/fontViewer.js";
 import { getStandalone, registerStandalone } from "../common/class.js";
 import { Editor as EditorLayout } from "../../editor/browser/layout.js";
 import { Files } from "./files.js";
@@ -18,8 +18,9 @@ import { changePanelOptionsWidth } from "../common/panelOptions.js";
 import { _drawboard } from "../workbench.desktop.js";
 import { _commandPanel } from "./parts/titlebar/commandPanel.js";
 import { Preview } from "../../editor/common/preview.js";
-import { ImageViewer } from "../../editor/editors/image-viewer.js";
-import { FontViewer } from "../../editor/editors/font-viewer.js";
+import { ImageViewer } from "../../editor/editors/imageViewer.js";
+import { FontViewer } from "../../editor/editors/fontViewer.js";
+import { getThemeIcon } from "./media/icons.js";
 
 export class Layout {
   constructor() {
@@ -42,15 +43,22 @@ export class Layout {
     const leftPanel = document.createElement("div");
     leftPanel.className = "left-panel";
 
-    const filesOption = new PanelOption("Files", files);
-    const extensionOption = new PanelOption("Extensions", mira);
-
-    const miraOption = new PanelOption("Mira", mira);
-    const structureOption = new PanelOption("Structure", structure);
+    const explorerOption = new PanelOption(
+      "Explorer",
+      files,
+      () => {},
+      getThemeIcon("explorer")
+    );
+    const extensionOption = new PanelOption(
+      "Extensions",
+      mira,
+      () => {},
+      getThemeIcon("extension")
+    );
 
     const leftPanelContent = new Panel("left-panel-content").getDomElement()!;
     const leftPanelOptions = new PanelOptions(
-      [filesOption, extensionOption],
+      [explorerOption, extensionOption],
       leftPanelContent,
       "left-panel-options",
       "left-panel-options"
@@ -62,17 +70,8 @@ export class Layout {
     rightPanel.className = "right-panel";
 
     const rightPanelContent = new Panel("right-panel-content").getDomElement()!;
-    const rightPanelOptions = new PanelOptions(
-      [miraOption, structureOption],
-      rightPanelContent,
-      "right-panel-options",
-      "right-panel-options"
-    ).getDomElement()!;
 
-    leftPanel.appendChild(leftPanelOptions);
     leftPanel.appendChild(leftPanelContent);
-
-    rightPanel.appendChild(rightPanelOptions);
     rightPanel.appendChild(rightPanelContent);
 
     const _editorLayout = new EditorLayout();
@@ -108,13 +107,30 @@ export class Layout {
         changePanelOptionsWidth();
         _xtermManager._update();
         _drawboard._updateCanvasSize();
-      }
+      },
+      "layout-splitter",
+      "layout-splitter"
     );
 
     registerStandalone("panel-splitter-horizontal", splitterHorizontal);
 
+    const activityBarLeft = document.createElement("div");
+    activityBarLeft.className = "activity-bar left";
+
+    const splitterContainerEl = document.createElement("div");
+    splitterContainerEl.className = "splitter-container";
+
+    splitterContainerEl.appendChild(splitterHorizontal.getDomElement()!);
+
+    splitterContainerEl.insertBefore(
+      activityBarLeft,
+      splitterContainerEl.firstChild
+    );
+
+    activityBarLeft.appendChild(leftPanelOptions);
+
     codeEl.appendChild(titlebar);
-    codeEl.appendChild(splitterHorizontal.getDomElement()!);
+    codeEl.appendChild(splitterContainerEl);
     codeEl.appendChild(statusbar);
 
     document.body.appendChild(codeEl);
@@ -144,16 +160,6 @@ export class Layout {
       }
 
       _editorLayout.rerender();
-
-      // const _tab: IEditorTab = {
-      //   name: "Drawboard",
-      //   icon: getThemeIcon("drawboard"),
-      //   uri: "tab://drawboard",
-      //   is_touched: false,
-      //   active: true,
-      // };
-
-      // openTab(_tab);
 
       _drawboard._updateCanvasSize();
       _xtermManager._update();

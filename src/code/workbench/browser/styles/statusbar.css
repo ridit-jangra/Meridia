@@ -4,7 +4,8 @@
   justify-content: space-between;
   color: var(--workbench-statusbar-foreground);
   height: 40px;
-  width: 100%;
+  width: calc(100% - 20px);
+  margin: 0 10px;
 }
 
 .code .statusbar .item-section {

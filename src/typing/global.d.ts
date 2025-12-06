@@ -1,6 +1,6 @@
 import { Theme } from "../code/workbench/common/theme.js";
 import { Layout } from "../code/workbench/workbench.layout.js";
-import {
+import xlsx, {
   filesBridge,
   fsBridge,
   ipcBridge,
@@ -32,5 +32,6 @@ declare global {
     node: typeof nodeBridge;
     url: typeof urlBridge;
     electron: typeof electronBridge;
+    xlsx: typeof xlsx;
   }
 }

@@ -17,7 +17,8 @@ export class Splitter extends CoreEl {
     direction: TSplitterDirection = "horizontal",
     sizes?: number[],
     onSizeChangeCallback?: Function,
-    storageKey?: string
+    storageKey?: string,
+    private className?: string
   ) {
     super();
     this._panels = panels;
@@ -59,12 +60,12 @@ export class Splitter extends CoreEl {
       this._direction === "horizontal"
         ? "splitter-horizontal"
         : "splitter-vertical";
+    this._el.classList.add(this.className!);
 
     this._el.style.display = "flex";
     this._el.style.flexDirection =
       this._direction === "horizontal" ? "row" : "column";
-    this._el.style.width =
-      this._direction === "horizontal" ? "calc(100% - 10px)" : "100%";
+    this._el.style.width = "100%";
     this._el.style.boxSizing = "border-box";
     this._el.style.padding = "0";
     this._el.style.margin = "0";
@@ -96,10 +97,10 @@ export class Splitter extends CoreEl {
         gutter.style.boxSizing = "border-box";
 
         if (this._direction === "horizontal") {
-          gutter.style.width = "10px";
+          gutter.style.width = "2px";
           gutter.style.height = "100%";
         } else {
-          gutter.style.height = "10px";
+          gutter.style.height = "2px";
           gutter.style.width = "100%";
         }
 
@@ -255,6 +256,11 @@ export class Splitter extends CoreEl {
         gutter.style.display = "none";
       }
     });
+
+    const last = this._panels.length - 1;
+    if (!this._panelsVisible[last] && this._gutters[last - 1]) {
+      this._gutters[last - 1]!.style.display = "none";
+    }
   }
 
   private _getMiddleIndex(): number {
