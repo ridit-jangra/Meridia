@@ -100,7 +100,7 @@ export class Layout {
     middlePanel.appendChild(splitterVertical.getDomElement()!);
 
     const splitterHorizontal = new Splitter(
-      [leftPanel, middlePanel, rightPanel],
+      [leftPanel, middlePanel],
       "horizontal",
       [20, 60, 20],
       () => {
