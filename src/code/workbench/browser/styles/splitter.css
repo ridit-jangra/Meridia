@@ -15,7 +15,7 @@
 }
 
 .splitter-container .layout-splitter {
-  width: calc(100% - 60px) !important;
+  width: calc(100% - 52px) !important;
 }
 
 .splitter-vertical {
