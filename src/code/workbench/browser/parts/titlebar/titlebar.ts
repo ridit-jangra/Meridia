@@ -79,7 +79,7 @@ export class Titlebar extends CoreEl {
     leftPanelSection.appendChild(actionEl);
     actionEl.appendChild(leftPanel);
     actionEl.appendChild(bottomPanel);
-    actionEl.appendChild(rightPanel);
+    // actionEl.appendChild(rightPanel);
     leftPanelSection.appendChild(this.hamburgerContainer);
 
     const centerSearchSection = document.createElement("div");
