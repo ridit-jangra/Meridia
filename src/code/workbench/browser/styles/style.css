@@ -132,18 +132,14 @@ h5,
 h6,
 button {
   color: var(--workbench-foreground);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 code,
 pre,
 kbd,
 samp {
-  font-family:
-    "JetBrains Mono", "Fira Code", "Source Code Pro", "Droid Sans Mono",
-    "Inter", Consolas, Monaco, "Courier New", monospace;
+  font-family: "JetBrains Mono", "Fira Code", "Source Code Pro",
+    "Droid Sans Mono", "Inter", Consolas, Monaco, "Courier New", monospace;
   font-weight: 400;
 }
 

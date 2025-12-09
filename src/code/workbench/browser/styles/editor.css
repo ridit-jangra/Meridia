@@ -1,7 +1,5 @@
 .code .editor {
   height: 100%;
-  overflow: hidden;
-  z-index: 2;
 }
 
 .code .editor .editor-area {
@@ -19,7 +17,7 @@
 .code .editor .preview-area .preview-content {
   height: 100%;
   width: 100%;
-  padding: 0 20px;
+  padding: 0 50px;
   font-size: 18px;
   overflow: hidden;
 }
@@ -231,9 +229,7 @@
 .code .editor .monaco-editor .monaco-menu {
   border: 2px solid var(--workbench-border-foreground) !important;
   border-radius: 12px !important;
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.15),
-    0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }
 
 .monaco-editor .margin-view-overlays .current-line {
