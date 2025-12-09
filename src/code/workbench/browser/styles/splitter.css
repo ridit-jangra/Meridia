@@ -1,6 +1,6 @@
 .splitter-horizontal {
   display: flex;
-  height: calc(100vh - 95px);
+  height: 100%;
   width: 100% !important;
 }
 
@@ -11,11 +11,7 @@
 
 .splitter-container {
   display: flex;
-  height: calc(100vh - 95px);
-}
-
-.splitter-container .layout-splitter {
-  width: calc(100% - 52px) !important;
+  height: calc(100% - 80px);
 }
 
 .splitter-vertical {
@@ -40,7 +36,7 @@
 }
 
 .gutter {
-  background: var(--workbench-background);
+  background: var(--workbench-border-foreground);
   transition: background 0.2s ease;
   z-index: 1;
   pointer-events: auto;

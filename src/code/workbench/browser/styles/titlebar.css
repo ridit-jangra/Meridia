@@ -1,5 +1,4 @@
 .code .titlebar {
-  margin: 5px 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -7,6 +6,8 @@
   width: 100%;
   background: var(--workbench-titlebar-background);
   color: var(--workbench-titlebar-foreground);
+  border-bottom: 1px solid var(--workbench-border-foreground);
+  padding: 0 10px;
   app-region: drag;
 }
 
@@ -229,30 +230,6 @@
   background: var(--workbench-border-foreground);
   margin: 4px auto;
   width: 90%;
-}
-
-.code .titlebar .center-panel-section div {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--workbench-titlebar-search-background);
-  color: var(--workbench-titlebar-search-foreground);
-  border-radius: 6px;
-  padding: 0 12px;
-  border: none;
-  height: 30px;
-  width: 70vh;
-  cursor: pointer;
-}
-
-.code .titlebar .center-panel-section div svg {
-  width: 22px;
-  height: auto;
-}
-
-.code .titlebar .center-panel-section div:hover,
-.hovered {
-  outline: 1px solid var(--workbench-titlebar-search-hover-outline);
 }
 
 .code .titlebar .right-panel-section {

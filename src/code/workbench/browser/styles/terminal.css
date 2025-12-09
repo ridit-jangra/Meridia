@@ -5,7 +5,6 @@
 }
 
 .code .terminal-container .tabs {
-  width: 200px;
   border-left: 2px solid var(--workbench-background);
 }
 

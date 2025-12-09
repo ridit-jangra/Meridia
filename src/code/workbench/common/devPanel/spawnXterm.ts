@@ -161,7 +161,7 @@ class XtermManager {
             "px";
 
           instance._container.style.height = _height;
-          instance._container.style.width = "calc(100% - 15px)";
+          instance._container.style.width = "100%";
           instance._container.style.overflow = "hidden";
 
           instance._fitAddon.fit();

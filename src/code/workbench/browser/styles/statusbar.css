@@ -2,10 +2,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  color: var(--workbench-statusbar-foreground);
+  background: var(--workbench-statusbar-background);
+  color: var(--workbench-status-foreground);
+  border-top: 1px solid var(--workbench-border-foreground);
   height: 40px;
-  width: calc(100% - 20px);
-  margin: 0 10px;
+  width: 100%;
+  padding: 0 10px;
 }
 
 .code .statusbar .item-section {

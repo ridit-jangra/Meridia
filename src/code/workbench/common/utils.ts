@@ -125,9 +125,15 @@ export const tokensToCssVariables: Record<IThemeColors, string> = {
   "workbench.titlebar.menu.foreground": "--workbench-titlebar-menu-foreground",
   "workbench.titlebar.menu.item.hover.background":
     "--workbench-titlebar-menu-item-hover-background",
+  "workbench.statusbar.background": "--workbench-statusbar-background",
   "workbench.statusbar.foreground": "--workbench-statusbar-foreground",
   "workbench.statusbar.item.hover.background":
     "--workbench-statusbar-item-hover-background",
+  "workbench.activitybar.background": "--workbench-activitybar-background",
+  "workbench.activitybar.active.background":
+    "--workbench-activitybar-active-background",
+  "workbench.activitybar.hover.background":
+    "--workbench-activitybar-hover-background",
   "workbench.drawboard.background": "--workbench-drawboard-background",
   "workbench.drawboard.canvas.grid.background":
     "--workbench-drawboard-canvas-grid-background",

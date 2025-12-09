@@ -6,9 +6,10 @@ export function activate(context: context) {
 
     const _serverCli = context.workbench.workspace.utils.path.join(
       context.workbench.workspace.utils.path.__dirname,
-      "language",
+      "extensions",
+      "languages",
       "typescript",
-      "lib",
+      "server",
       "cli.mjs"
     );
 

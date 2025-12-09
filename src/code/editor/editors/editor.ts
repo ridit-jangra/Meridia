@@ -77,21 +77,6 @@ export class Editor {
     this._setupMarkerListener();
   }
 
-  async _format(_language: string, _text: string, _uri: string) {
-    if (_language === "python") {
-      const _raw = await python.executeScript(
-        path.join([path.__dirname, "scripts", "format.py"]),
-        [`"${_text}"`]
-      );
-      const _response = JSON.parse(_raw[0]!)["formatted_content"];
-      return _response;
-    } else if (_language === "rust") {
-      return window.ipc.invoke("workbench.editor.format.file.rust", _uri);
-    } else {
-      return window.ipc.invoke("workbench.editor.format.file", _uri);
-    }
-  }
-
   private _normalizePath(p: string) {
     return p.toLowerCase().replace(/\//g, "\\");
   }
@@ -441,11 +426,6 @@ export class Editor {
       formatOnPaste: true,
       overviewRulerBorder: false,
       useShadowDOM: false,
-      inlayHints: {
-        enabled: true,
-        fontSize: 16,
-        fontFamily: "Jetbrains Mono",
-      },
       codeLens: true,
     });
 
@@ -576,92 +556,6 @@ export class Editor {
     }
   }
 
-  private _setupInlayHintsProvider(extension: string) {
-    if (this._registeredProviders.has(`inlay-hints-${extension}`)) return;
-
-    const port = getLanguageServer(extension);
-
-    if (!port || !this._clients.has(port)) {
-      return;
-    }
-
-    const languageId = getLanguage(extension);
-    const client = this._clients.get(port)!;
-
-    const provider = monaco.languages.registerInlayHintsProvider(languageId, {
-      provideInlayHints: async (
-        model: monaco.editor.ITextModel,
-        range: monaco.Range,
-        token: monaco.CancellationToken
-      ) => {
-        try {
-          const hints = (await client.sendRequest("textDocument/inlayHint", {
-            textDocument: { uri: model.uri.toString() },
-            range: {
-              start: {
-                line: range.startLineNumber - 1,
-                character: range.startColumn - 1,
-              },
-              end: {
-                line: range.endLineNumber - 1,
-                character: range.endColumn - 1,
-              },
-            },
-          })) as any[];
-
-          if (!hints || hints.length === 0) {
-            return [];
-          }
-
-          const monacoHints: monaco.languages.InlayHint[] = hints.map(
-            (hint) => {
-              let labelText: string;
-              if (typeof hint.label === "string") {
-                labelText = hint.label;
-              } else if (Array.isArray(hint.label)) {
-                labelText = hint.label
-                  .map((part: any) => part.value || part.label)
-                  .join("");
-              } else {
-                labelText = "";
-              }
-
-              return {
-                text: labelText,
-                position: {
-                  lineNumber: hint.position.line + 1,
-                  column: hint.position.character + 1,
-                },
-                kind: this._convertLSPInlayHintKindToMonaco(hint.kind),
-                whitespaceBefore: hint.paddingLeft ?? false,
-                whitespaceAfter: hint.paddingRight ?? false,
-              };
-            }
-          );
-
-          return monacoHints;
-        } catch (error) {
-          return [];
-        }
-      },
-    });
-
-    this._registeredProviders.set(`inlay-hints-${extension}`, provider);
-  }
-
-  private _convertLSPInlayHintKindToMonaco(
-    lspKind?: number
-  ): monaco.languages.InlayHintKind {
-    switch (lspKind) {
-      case 1:
-        return monaco.languages.InlayHintKind.Type;
-      case 2:
-        return monaco.languages.InlayHintKind.Parameter;
-      default:
-        return monaco.languages.InlayHintKind.Type;
-    }
-  }
-
   private _updateProblemCount() {
     const model = this._editor.getModel();
     if (!model) {
@@ -730,34 +624,6 @@ export class Editor {
       run: async () => {
         const model = this._editor.getModel();
         if (model) await this._save(model.uri.fsPath);
-      },
-    });
-    this._editor.addAction({
-      id: "workbench.formatDocument",
-      label: "Format Document",
-      keybindings: [
-        monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KEY_F,
-      ],
-      contextMenuGroupId: "navigation",
-      contextMenuOrder: 2,
-      run: async () => {
-        const model = this._editor.getModel();
-        if (!model) return;
-
-        const formattedText = await this._format(
-          model.getModeId(),
-          model.getValue(),
-          model.uri.path
-        );
-
-        if (formattedText && formattedText !== model.getValue()) {
-          const fullRange = model.getFullModelRange();
-          model.pushEditOperations(
-            [],
-            [{ range: fullRange, text: formattedText }],
-            () => null
-          );
-        }
       },
     });
   }
@@ -904,13 +770,6 @@ export class Editor {
               useLibraryCodeForTypes: true,
               diagnosticMode: "workspace",
               typeCheckingMode: "basic",
-
-              inlayHints: {
-                variableTypes: true,
-                functionReturnTypes: true,
-                callArgumentNames: true,
-                genericTypes: false,
-              },
             },
           },
         };
@@ -945,11 +804,6 @@ export class Editor {
           completion: {
             autoimport: { enable: true },
             callable: { snippets: "fill_arguments" },
-          },
-          inlayHints: {
-            chainingHints: { enable: true },
-            parameterHints: { enable: true },
-            typeHints: { enable: true },
           },
           lens: {
             enable: true,
@@ -1045,7 +899,6 @@ export class Editor {
 
       setTimeout(async () => {
         await this._setupClientForLanguage(extension);
-        this._setupInlayHintsProvider(extension);
       }, 1000);
     }
 
