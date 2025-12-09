@@ -76,12 +76,6 @@ export class Splitter extends CoreEl {
       const panel = this._panels[i];
       if (!panel) return;
 
-      panel.style.flexShrink = "0";
-      panel.style.overflow = "auto";
-      panel.style.minWidth = "0";
-      panel.style.minHeight = "0";
-      panel.style.boxSizing = "border-box";
-
       this._el.appendChild(panel);
 
       if (i < this._panels.length - 1) {
@@ -97,10 +91,10 @@ export class Splitter extends CoreEl {
         gutter.style.boxSizing = "border-box";
 
         if (this._direction === "horizontal") {
-          gutter.style.width = "2px";
+          gutter.style.width = "1px";
           gutter.style.height = "100%";
         } else {
-          gutter.style.height = "2px";
+          gutter.style.height = "1px";
           gutter.style.width = "100%";
         }
 

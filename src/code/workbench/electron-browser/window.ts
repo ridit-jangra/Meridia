@@ -42,12 +42,11 @@ function createWindow() {
     width: 800,
     height: 600,
     frame: false,
-    backgroundColor: _theme.getNodeColor("workbench.background"),
+    backgroundColor: _theme.getNodeColor("workbench.titlebar.background"),
     titleBarOverlay: {
-      color: _theme.getNodeColor("workbench.titlebar.background") ?? "#ffffff",
-      symbolColor:
-        _theme.getNodeColor("workbench.titlebar.foreground") ?? "#000000",
-      height: _win ? 40 : 50,
+      color: _theme.getNodeColor("workbench.titlebar.background"),
+      symbolColor: _theme.getNodeColor("workbench.titlebar.foreground"),
+      height: _win ? 27 : 37,
     },
     titleBarStyle: "hidden",
     webPreferences: {

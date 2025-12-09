@@ -19,7 +19,7 @@
 .code .editor .preview-area .preview-content {
   height: 100%;
   width: 100%;
-  padding: 0 60px;
+  padding: 0 20px;
   font-size: 18px;
   overflow: hidden;
 }
@@ -140,122 +140,6 @@
 .code .editor .image-viewer img {
   width: 50%;
   height: auto;
-}
-
-.code .editor .excel-viewer {
-  height: 100%;
-  width: 100%;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.code .editor .excel-viewer .excel-table-container {
-  flex: 1;
-  overflow: auto;
-  background: var(--workbench-editor-background);
-  border: 1px solid var(--workbench-border-foreground);
-  border-radius: 8px;
-  margin: 12px;
-}
-
-.code .editor .excel-viewer .excel-table {
-  border-collapse: collapse;
-  width: 100%;
-  height: 100%;
-  font-family: "Jetbrains Mono", "Consolas", "Monaco", monospace;
-  font-size: 13px;
-  table-layout: auto;
-}
-
-.code .editor .excel-viewer .excel-table th,
-.code .editor .excel-viewer .excel-table td {
-  border: 1px solid var(--workbench-editor-border);
-  padding: 10px 12px;
-  text-align: left;
-  vertical-align: top;
-  white-space: pre-wrap;
-  word-break: break-word;
-  max-width: 300px;
-  line-height: 1.4;
-  color: var(--workbench-editor-foreground);
-}
-
-.code .editor .excel-viewer .excel-table th {
-  background: var(--workbench-list-header-background);
-  font-weight: 600;
-  color: var(--workbench-list-header-foreground);
-  position: sticky;
-  top: 0;
-  left: 0;
-  z-index: 20;
-  border-bottom: 2px solid var(--workbench-border-foreground);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  font-size: 12px;
-}
-
-.code .editor .excel-viewer .excel-table td {
-  background: var(--workbench-editor-background);
-}
-
-.code .editor .excel-viewer .excel-table tr:not(:last-child) {
-  border-bottom: 1px solid var(--workbench-border-foreground);
-}
-
-.code .editor .excel-viewer .excel-table td:not(:last-child) {
-  border-right: 1px solid var(--workbench-border-foreground);
-}
-
-.code .editor .excel-viewer .excel-table tr:hover td {
-  background: var(--workbench-secondary-button-hover-background) !important;
-}
-
-.code .editor .excel-viewer .sheet-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--workbench-border-foreground);
-  background: var(--workbench-secondary-background);
-  overflow-x: auto;
-}
-
-.code .editor .excel-viewer .sheet-tab {
-  padding: 8px 16px;
-  border-radius: 6px 6px 0 0;
-  background: transparent;
-  border: 1px solid transparent;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--workbench-foreground);
-  white-space: nowrap;
-}
-
-.code .editor .excel-viewer .sheet-tab.active {
-  /* background: var(--workbench-background); */
-  border-color: var(--workbench-border-foreground);
-  border-bottom-color: var(--workbench-background);
-}
-
-.code .editor .excel-viewer .sheet-tab:hover {
-  background: var(--workbench-hover-background);
-}
-
-.code .editor .excel-viewer .excel-toolbar {
-  display: flex;
-  gap: 8px;
-  padding: 8px 12px;
-  border-bottom: 1px solid var(--workbench-border-foreground);
-  background: var(--workbench-secondary-background);
-  align-items: center;
-}
-
-.code .editor .excel-viewer .error {
-  padding: 40px 20px;
-  text-align: center;
-  border-radius: 8px;
-  margin: 12px;
 }
 
 .code .editor .font-viewer {

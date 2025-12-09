@@ -2,7 +2,6 @@ const esbuild = require("esbuild");
 const fg = require("fast-glob");
 const { copyFileSync, mkdirSync, existsSync, readdirSync } = require("fs");
 const { nodeExternalsPlugin } = require("esbuild-node-externals");
-const path = require("path");
 
 const watch = process.argv.includes("--watch");
 const prod = process.argv.includes("--prod");
@@ -77,10 +76,6 @@ const common = {
   logLevel: "error",
 };
 
-/**
- * Recursively discover build targets
- * Separates browser code from node-dependent code
- */
 async function discoverBuildTargets() {
   const targets = [];
 

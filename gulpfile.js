@@ -7,7 +7,7 @@ const SOURCE_GLOBS = [
   "src/code/base/model/**/*",
 ];
 
-const EXTENSION_GLOBS = ["extensions/**/*", "!extensions/**/*.{ts,js}"];
+const EXTENSION_GLOBS = ["extensions/**/*", "!extensions/**/*.{ts}"];
 
 function copyFiles() {
   return src(SOURCE_GLOBS, {
@@ -15,30 +15,6 @@ function copyFiles() {
     allowEmpty: true,
     encoding: false,
   }).pipe(dest("build"));
-}
-
-function copyPyright() {
-  return src("node_modules/basedpyright/**/*", {
-    base: "node_modules/basedpyright/",
-    allowEmpty: true,
-    encoding: false,
-  }).pipe(dest("build/language/python"));
-}
-
-function copyTypescript() {
-  return src("node_modules/typescript-language-server/**/*", {
-    base: "node_modules/typescript-language-server/",
-    allowEmpty: true,
-    encoding: false,
-  }).pipe(dest("build/language/typescript"));
-}
-
-function copyBash() {
-  return src("node_modules/bash-language-server/**/*", {
-    base: "node_modules/bash-language-server/",
-    allowEmpty: true,
-    encoding: false,
-  }).pipe(dest("build/language/bash"));
 }
 
 function copyExtensions() {
@@ -49,42 +25,7 @@ function copyExtensions() {
   }).pipe(dest("build/extensions"));
 }
 
-function copyPrettier() {
-  return src("node_modules/prettier/**/*", {
-    base: "node_modules/prettier/",
-    allowEmpty: true,
-    encoding: false,
-  }).pipe(dest("build/formatter/prettier"));
-}
-
-function copyPrettierRust() {
-  return src("node_modules/prettier-plugin-rust/**/*", {
-    base: "node_modules/prettier-plugin-rust/",
-    allowEmpty: true,
-    encoding: false,
-  }).pipe(dest("build/formatter/prettier-rust"));
-}
-
-function copyPrettierPython() {
-  return src("node_modules/@prettier/plugin-python/**/*", {
-    base: "node_modules/@prettier/plugin-python/",
-    allowEmpty: true,
-    encoding: false,
-  }).pipe(dest("build/formatter/prettier-python"));
-}
-
-const build = series(
-  parallel(
-    copyFiles,
-    copyTypescript,
-    copyPyright,
-    copyBash,
-    copyPrettier,
-    copyPrettierRust,
-    copyPrettierPython,
-    copyExtensions
-  )
-);
+const build = series(parallel(copyFiles, copyExtensions));
 
 function watchSourceFiles() {
   return watch(SOURCE_GLOBS, { ignoreInitial: false }, copyFiles);

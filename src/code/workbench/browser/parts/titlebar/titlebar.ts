@@ -82,18 +82,6 @@ export class Titlebar extends CoreEl {
     // actionEl.appendChild(rightPanel);
     leftPanelSection.appendChild(this.hamburgerContainer);
 
-    const centerSearchSection = document.createElement("div");
-    centerSearchSection.className = "center-panel-section";
-
-    const searchBar = document.createElement("div");
-    searchBar.innerHTML = getThemeIcon("search");
-
-    searchBar.onclick = () => {
-      _commandPanel._toggle();
-    };
-
-    centerSearchSection.appendChild(searchBar);
-
     const rightControlsSection = document.createElement("div");
     rightControlsSection.className = "right-panel-section";
 
@@ -189,7 +177,6 @@ export class Titlebar extends CoreEl {
     rightControlsSection.appendChild(menuOptionsContainer);
 
     this._el.appendChild(leftPanelSection);
-    this._el.appendChild(centerSearchSection);
     this._el.appendChild(rightControlsSection);
   }
 

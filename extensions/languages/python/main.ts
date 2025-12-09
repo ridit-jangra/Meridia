@@ -6,9 +6,11 @@ export function activate(context: context) {
 
     const _serverCli = context.workbench.workspace.utils.path.join(
       context.workbench.workspace.utils.path.__dirname,
-      "language",
+      "extensions",
+      "languages",
       "python",
-      "langserver.index.js"
+      "server",
+      "langserver.js"
     );
 
     const _server = context.workbench.workspace.language.createLanguageServer(
