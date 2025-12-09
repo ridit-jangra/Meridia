@@ -9,6 +9,14 @@ const SOURCE_GLOBS = [
 
 const EXTENSION_GLOBS = ["extensions/**/*", "!extensions/**/*.{ts}"];
 
+function copyPyright() {
+  return src("node_modules/pyright/**/*", {
+    base: "node_modules/pyright/",
+    allowEmpty: true,
+    encoding: false,
+  }).pipe(dest("build/extensions/languages/python/server"));
+}
+
 function copyFiles() {
   return src(SOURCE_GLOBS, {
     base: "src",
@@ -25,7 +33,7 @@ function copyExtensions() {
   }).pipe(dest("build/extensions"));
 }
 
-const build = series(parallel(copyFiles, copyExtensions));
+const build = series(parallel(copyFiles, copyExtensions, copyPyright));
 
 function watchSourceFiles() {
   return watch(SOURCE_GLOBS, { ignoreInitial: false }, copyFiles);

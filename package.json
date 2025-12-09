@@ -68,6 +68,7 @@
     "esbuild-node-externals": "^1.18.0",
     "fast-glob": "^3.3.3",
     "gulp": "^5.0.1",
+    "pyright": "^1.1.407",
     "rimraf": "^6.0.1",
     "typescript": "^5.9.3",
     "vscode-langservers-extracted": "^4.10.0"

@@ -10,7 +10,7 @@ export function activate(context: context) {
       "languages",
       "python",
       "server",
-      "langserver.js"
+      "langserver.index.js"
     );
 
     const _server = context.workbench.workspace.language.createLanguageServer(
