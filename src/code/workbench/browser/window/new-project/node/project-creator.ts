@@ -22,7 +22,9 @@ ipcMain.handle(
     fs.writeFileSync(configFile, "");
 
     if (venv)
-      child_process.execSync("python -m venv " + path.join(fullPath, ".venv"));
+      child_process.execSync(
+        "python -m venv " + `"${path.join(fullPath, ".venv")}"`
+      );
 
     workbench.webContents.send(
       "workbench.workspace.project.python.empty.complete",
