@@ -164,8 +164,6 @@ export class Layout {
 
       _drawboard._updateCanvasSize();
       _xtermManager._update();
-
-      _newProject._show();
     }, 300);
   }
 }
