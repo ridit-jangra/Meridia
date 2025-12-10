@@ -11,6 +11,7 @@ import "../node/pty.js";
 import "../node/storage.js";
 import "../node/utils.js";
 import "../node/watcher.js";
+import "../browser/window/new-project/node/project-creator.js";
 
 dotenv.config();
 

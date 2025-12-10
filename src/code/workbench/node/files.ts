@@ -2,14 +2,17 @@ import fs from "fs";
 import { ipcMain, dialog } from "electron";
 import { IFolderStructure } from "../workbench.types.js";
 import { Storage } from "./storage.js";
-import { walkdir } from "../../base/native/rust/lib/index.cjs";
+import { walkdir } from "./walkdir.js";
 import { workbench } from "../electron-browser/window.js";
 import { _watch } from "./watcher.js";
 
 export async function _get(_path: string, depth: number = 1) {
-  const structure = walkdir(_path, depth);
-
-  return structure;
+  try {
+    const structure = walkdir(_path, depth);
+    return structure;
+  } catch (error) {
+    console.error("walkdir crashed:", error, "path:", _path, "depth:", depth);
+  }
 }
 
 ipcMain.handle(
@@ -79,6 +82,29 @@ ipcMain.handle("workbench.workspace.folder.open", async () => {
   workbench.webContents.reload();
 });
 
+ipcMain.handle("workbench.workspace.get.folder.path", async () => {
+  const result = await dialog.showOpenDialog({
+    properties: ["openDirectory"],
+  });
+
+  if (result.canceled) {
+    return null;
+  }
+
+  const _path = result.filePaths[0]!;
+
+  return _path;
+});
+
+ipcMain.handle("workbench.workspace.folder.change", async (_, path: string) => {
+  const structure = await _get(path);
+
+  Storage.store("workbench.workspace.folder.structure", structure);
+  _watch(path);
+
+  workbench.webContents.reload();
+});
+
 ipcMain.handle(
   "workbench.workspace.folder.get.child",
   async (event, folderUri: string) => {
@@ -96,7 +122,7 @@ ipcMain.handle(
       const updatedStructure = _update(
         currentStructure,
         folderUri,
-        folderContent
+        folderContent!
       );
 
       Storage.store("workbench.workspace.folder.structure", updatedStructure);

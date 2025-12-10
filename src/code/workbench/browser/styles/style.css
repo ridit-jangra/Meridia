@@ -17,6 +17,7 @@
 @import url("./miraVoice.css");
 @import url("./drawboard.css");
 @import url("./statusbar.css");
+@import url("./newProject.css");
 @import url("./activityBar.css");
 @import url("./contextMenu.css");
 
@@ -172,4 +173,8 @@ kbd {
   border-radius: 3px;
   border: 1px solid
     color-mix(in srgb, var(--workbench-foreground), transparent 80%);
+}
+
+input {
+  font-family: "Inconsolata";
 }

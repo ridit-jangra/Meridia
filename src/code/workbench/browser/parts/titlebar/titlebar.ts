@@ -14,6 +14,7 @@ import { CoreEl } from "../core.js";
 import { runCommand } from "../../../common/command.js";
 import { PanelOption } from "../panel/panelOption.js";
 import { _commandPanel } from "./commandPanel.js";
+import { _newProject } from "../../window/new-project/browser/new-project.js";
 
 export class Titlebar extends CoreEl {
   private menuVisible: boolean = false;
@@ -72,6 +73,13 @@ export class Titlebar extends CoreEl {
     this.menuElement = this._createMenuMenu();
     this.hamburgerContainer.appendChild(this.menuElement);
 
+    const newProject = document.createElement("span");
+    newProject.innerHTML = getThemeIcon("add");
+    newProject.style.marginLeft = "5px";
+    newProject.onclick = () => {
+      _newProject._show();
+    };
+
     const actionEl = document.createElement("div");
     actionEl.className = "action";
 
@@ -81,6 +89,7 @@ export class Titlebar extends CoreEl {
     actionEl.appendChild(bottomPanel);
     // actionEl.appendChild(rightPanel);
     leftPanelSection.appendChild(this.hamburgerContainer);
+    leftPanelSection.appendChild(newProject);
 
     const rightControlsSection = document.createElement("div");
     rightControlsSection.className = "right-panel-section";

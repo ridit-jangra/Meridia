@@ -21,6 +21,7 @@ import { Preview } from "../../editor/common/preview.js";
 import { ImageViewer } from "../../editor/editors/imageViewer.js";
 import { FontViewer } from "../../editor/editors/fontViewer.js";
 import { getThemeIcon } from "./media/icons.js";
+import { _newProject } from "./window/new-project/browser/new-project.js";
 
 export class Layout {
   constructor() {
@@ -163,6 +164,8 @@ export class Layout {
 
       _drawboard._updateCanvasSize();
       _xtermManager._update();
+
+      _newProject._show();
     }, 300);
   }
 }
