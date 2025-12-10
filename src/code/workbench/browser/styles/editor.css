@@ -430,7 +430,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--workbench-secondary-foreground);
+  color: var(--workbench-foreground);
 }
 
 .code .editor .preview {

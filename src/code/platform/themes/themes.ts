@@ -144,7 +144,7 @@ export const Dark: ITheme = {
   colors: {
     "workbench.background": "#090909",
     "workbench.foreground": "#fffff1",
-    "workbench.secondary.foreground": "#fffff1",
+    "workbench.secondary.foreground": "#c0c0c0",
     "workbench.border.foreground": "#37383a",
     "workbench.icon.foreground": "#CED0D6",
     "workbench.item.hover.background": "#363739",

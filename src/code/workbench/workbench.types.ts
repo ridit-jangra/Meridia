@@ -1,4 +1,3 @@
-import * as monaco from "monaco-editor";
 import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 
@@ -317,3 +316,17 @@ export type TDrawingTool =
   | "circle"
   | "line"
   | "arrow";
+
+export interface IProjectTreeItem {
+  name: string;
+  content: string;
+  key: string;
+  icon: string;
+}
+
+export interface IProjectTree {
+  name: string;
+  key: string;
+  icon: string;
+  children: IProjectTreeItem[];
+}
