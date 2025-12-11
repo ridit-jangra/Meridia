@@ -76,7 +76,7 @@ export class Editor extends CoreEl {
 
       if (newActiveExtensionEditor) {
         const editor = getStandalone("editor") as _editor;
-        if (editor) editor._visiblity(false);
+        if (editor) editor._visibility(false);
         standalones.forEach((v) => v._setVisiblity(false));
         newActiveExtensionEditor._setVisiblity(true);
         newActiveExtensionEditor._open(newActiveTab.uri);
@@ -122,9 +122,10 @@ export class Editor extends CoreEl {
   private _renderEditorTabs(tabs: IEditorTab[]) {
     const editor = getStandalone("editor") as _editor;
 
-    if (tabs.length === 0) {
+    if (!Array.isArray(tabs) || tabs.length === 0) {
       this._showEmptyEditor();
-      if (editor) editor._visiblity(false);
+      if (editor) editor._visibility(false);
+      console.log("hiding", tabs);
       return;
     }
 
@@ -144,14 +145,14 @@ export class Editor extends CoreEl {
   }
 
   private _renderPreviewTabs(tabs: IPreviewTab[]) {
-    const activeTab = tabs.find((t) => t.active);
-
-    if (!tabs || tabs.length === 0) {
-      this._splitter._collapsePanel(1);
+    if (!Array.isArray(tabs) || tabs.length === 0) {
+      if (this._splitter) this._splitter._collapsePanel(1);
       this._previewTabs.style.display = "none";
       this._previewArea.style.display = "none";
       return;
     }
+
+    const activeTab = tabs.find((t) => t.active);
 
     this._splitter._expandPanel(1);
     this._previewTabs.style.display = "flex";
@@ -194,7 +195,7 @@ export class Editor extends CoreEl {
   }
 
   private _showContentTab(activeTab: IEditorTab, editor: _editor | null) {
-    if (editor) editor._visiblity(false);
+    if (editor) editor._visibility(false);
     this._contentArea.style.display = "flex";
 
     const details = this._editorArea.querySelector(
@@ -218,7 +219,7 @@ export class Editor extends CoreEl {
       window.path.extname(activeTab.uri)
     );
     if (extEditor) {
-      if (editor) editor._visiblity(false);
+      if (editor) editor._visibility(false);
       standalones.forEach((v) => v._setVisiblity(false));
       extEditor._setVisiblity(true);
       extEditor._open(activeTab.uri);
@@ -358,19 +359,12 @@ export class Editor extends CoreEl {
     this._editorArea.appendChild(this._contentArea);
 
     const _editorTabsState = select((s) => s.main.editor_tabs);
-    if (_editorTabsState.length > 0) {
-      this._renderEditorTabs(_editorTabsState);
-    } else {
-      this._showEmptyEditor();
-    }
+
+    this._renderEditorTabs(_editorTabsState);
 
     const _previewTabsState = select((s) => s.main.preview_tabs);
-    if (_previewTabsState.length > 0) {
-      this._renderPreviewTabs(_previewTabsState);
-    } else {
-      this._previewTabs.style.display = "none";
-      this._previewArea.style.display = "none";
-    }
+
+    this._renderPreviewTabs(_previewTabsState);
 
     watch(
       (s) => s.main.editor_tabs,

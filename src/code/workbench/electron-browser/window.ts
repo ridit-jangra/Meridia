@@ -8,6 +8,7 @@ import "../node/filesCreate.js";
 import "../node/format.js";
 import "../node/init.js";
 import "../node/pty.js";
+import "../node/project.js";
 import "../node/storage.js";
 import "../node/utils.js";
 import "../node/watcher.js";

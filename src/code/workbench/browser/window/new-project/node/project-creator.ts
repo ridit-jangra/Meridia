@@ -13,18 +13,52 @@ ipcMain.handle(
     if (main) fs.writeFileSync(path.join(fullPath, "main.py"), "");
 
     const meridiaPath = path.join(fullPath, ".meridia");
-
     if (!fs.existsSync(meridiaPath))
       fs.mkdirSync(meridiaPath, { recursive: true });
 
+    let venvConfig: null | {
+      path: string;
+      python: string;
+      activate: string;
+    } = null;
+
+    if (venv) {
+      const venvPath = path.join(fullPath, ".venv");
+
+      let pythonPath: string;
+      let activateCmd: string;
+
+      if (process.platform === "win32") {
+        pythonPath = path.join(venvPath, "Scripts", "python.exe");
+        activateCmd = ".venv\\Scripts\\Activate.ps1";
+      } else {
+        pythonPath = path.join(venvPath, "bin", "python");
+        activateCmd = "source .venv/bin/activate";
+      }
+
+      venvConfig = {
+        path: venvPath,
+        python: pythonPath,
+        activate: activateCmd,
+      };
+    }
+
+    const config = {
+      name,
+      path: fullPath,
+      type: "python",
+      template: "python-empty",
+      venv: venvConfig,
+    };
+
     const configFile = path.join(meridiaPath, "editor.json");
+    fs.writeFileSync(configFile, JSON.stringify(config, null, 2), "utf8");
 
-    fs.writeFileSync(configFile, "");
-
-    if (venv)
+    if (venv) {
       child_process.execSync(
         "python -m venv " + `"${path.join(fullPath, ".venv")}"`
       );
+    }
 
     workbench.webContents.send(
       "workbench.workspace.project.python.empty.complete",

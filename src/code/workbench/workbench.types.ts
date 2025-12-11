@@ -201,6 +201,14 @@ export interface IDevPanelTab {
   uri: string;
 }
 
+export interface IPackageManagerTab {
+  id: string;
+  name: string;
+  active: boolean;
+  icon: string;
+  content: HTMLElement;
+}
+
 export interface IError {
   detials: string;
   line: number;
@@ -234,6 +242,19 @@ export interface IMainState {
   preview_tabs: IPreviewTab[];
   panel_state: IPanelState;
   folder_structure: IFolderStructure;
+  project_details: IProjectDetails;
+}
+
+export interface IProjectDetails {
+  name: string;
+  path: string;
+  type: string;
+  template: string;
+  venv: {
+    path: string;
+    python: string;
+    activate: string;
+  };
 }
 
 export interface IPanelState {
@@ -329,4 +350,11 @@ export interface IProjectTree {
   key: string;
   icon: string;
   children: IProjectTreeItem[];
+}
+
+export interface IPyPIPackage {
+  name: string;
+  version: string;
+  downloads: number;
+  readme: string;
 }

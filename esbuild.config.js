@@ -258,9 +258,6 @@ async function buildAll() {
   }
 }
 
-/**
- * Copy required assets
- */
 function copyAssets() {
   const fontDir = "build/code/workbench/browser/media/fonts";
 

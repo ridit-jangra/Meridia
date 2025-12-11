@@ -40,6 +40,8 @@ class XtermManager {
       this._dispose(id);
     }
 
+    const project_details = select((s) => s.main.project_details);
+
     const _container = document.createElement("div");
     _container.style.width = "100%";
     _container.style.height = "100%";
@@ -131,6 +133,14 @@ class XtermManager {
     requestAnimationFrame(() => {
       this._update();
     });
+
+    if (project_details.venv && project_details.venv.activate) {
+      ipcRenderer.invoke(
+        "workbench.terminal.data.user",
+        id,
+        project_details.venv.activate + "\r"
+      );
+    }
 
     return _container;
   }

@@ -15,6 +15,7 @@ import { WebSocketServer, ServerOptions } from "ws";
 import { Storage } from "../node/storage.js";
 import { _xtermManager } from "../common/devPanel/spawnXterm.js";
 import { IWebSocket } from "@codingame/monaco-jsonrpc";
+import { IFolderStructure, IPyPIPackage } from "../workbench.types.js";
 
 const storage = Storage;
 
@@ -387,6 +388,20 @@ export const nodeBridge = {
     return _process;
   },
   platform: os.platform(),
+  workspaceFolder: () => {
+    let cwd;
+
+    const folder_structure = Storage.get(
+      "workbench.workspace.folder.structure"
+    ) as IFolderStructure;
+
+    if (folder_structure) {
+      cwd = folder_structure.uri;
+    } else {
+      cwd = "/";
+    }
+    return cwd;
+  },
 };
 
 export const urlBridge = {
@@ -399,6 +414,18 @@ export const urlBridge = {
 export const electronBridge = {
   shell: {
     ...shell,
+  },
+};
+
+export const pypiBridge = {
+  async getPackagesList(query: string): Promise<any[]> {
+    try {
+      const packages = [{}];
+      return packages;
+    } catch (error) {
+      console.error("PyPI search failed:", error);
+      return [];
+    }
   },
 };
 
@@ -434,4 +461,5 @@ contextBridge.exposeInMainWorld("editor", editorBridge);
 contextBridge.exposeInMainWorld("node", nodeBridge);
 contextBridge.exposeInMainWorld("url", urlBridge);
 contextBridge.exposeInMainWorld("electron", electronBridge);
+contextBridge.exposeInMainWorld("pypi", pypiBridge);
 contextBridge.exposeInMainWorld("xlsx", xlsx);

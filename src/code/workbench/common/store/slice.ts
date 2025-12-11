@@ -6,6 +6,7 @@ import {
   IMainState,
   IPanelState,
   IPreviewTab,
+  IProjectDetails,
 } from "../../workbench.types.js";
 
 const initialState: IMainState = {
@@ -13,6 +14,7 @@ const initialState: IMainState = {
   preview_tabs: {} as IPreviewTab[],
   panel_state: {} as IPanelState,
   folder_structure: {} as IFolderStructure,
+  project_details: {} as IProjectDetails,
 };
 
 export const mainSlice = createSlice({
@@ -34,6 +36,9 @@ export const mainSlice = createSlice({
     ) => {
       state.folder_structure = action.payload;
     },
+    update_project_details: (state, action: PayloadAction<IProjectDetails>) => {
+      state.project_details = action.payload;
+    },
   },
 });
 
@@ -42,6 +47,7 @@ export const {
   update_preview_tabs,
   update_panel_state,
   update_folder_structure,
+  update_project_details,
 } = mainSlice.actions;
 
 export default mainSlice.reducer;

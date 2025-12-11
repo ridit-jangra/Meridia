@@ -461,7 +461,7 @@ export class Editor {
     this._problemsCountElement = _problems;
 
     this._mounted = true;
-    this._visiblity(false);
+    this._visibility(false);
 
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
       noSemanticValidation: true,
@@ -547,7 +547,7 @@ export class Editor {
     _previewManager._open(tab, this._editor);
   }
 
-  _visiblity(visible: boolean) {
+  _visibility(visible: boolean) {
     const editorElement = document.querySelector(
       ".monaco-editor"
     ) as HTMLDivElement;
@@ -672,10 +672,6 @@ export class Editor {
               errorHandler: {
                 error: () => ErrorAction.Continue,
                 closed: () => CloseAction.DoNotRestart,
-              },
-              workspaceFolder: {
-                uri: workspaceRoot,
-                name: path.basename(workspaceRoot) || "workspace",
               },
               initializationOptions: this._getInitializationOptions(
                 extension,
@@ -861,7 +857,7 @@ export class Editor {
 
   async _open(tab: IEditorTab) {
     this._ensure();
-    this._visiblity(true);
+    this._visibility(true);
 
     const key = this._normalizePath(tab.uri);
     let model = this._models.get(key);
@@ -1073,7 +1069,7 @@ export class Editor {
         this._open(this._tabs[this._tabs.length - 1]!);
       } else {
         this._editor.setModel(null);
-        this._visiblity(false);
+        this._visibility(false);
         this._actionsDisposable?.dispose();
         this._actionsDisposable = undefined as any;
       }
