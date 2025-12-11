@@ -440,10 +440,8 @@ window.addEventListener("beforeunload", () => {
 });
 
 ipcRenderer.on("titlebar-insets", (_, insets) => {
-  document.documentElement.style.setProperty(
-    "--titlebar-window-controls-inset",
-    `${insets}px`
-  );
+  const el = document.querySelector(".right-panel-section") as HTMLDivElement;
+  el.style.marginRight = `${insets}px`;
 });
 
 export default xlsx;
