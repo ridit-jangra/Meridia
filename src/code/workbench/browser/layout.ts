@@ -14,7 +14,7 @@ import { Editor } from "../../editor/editors/editor.js";
 import { Titlebar } from "./parts/titlebar/titlebar.js";
 import { Splitter } from "./parts/splitter/splitter.js";
 import { Statusbar } from "./parts/statusbar/statusbar.js";
-import { changePanelOptionsWidth } from "../common/panelOptions.js";
+import { changePanelOptionsWidth } from "../common/panel-options.js";
 import { _drawboard } from "../workbench.desktop.js";
 import { _commandPanel } from "./parts/titlebar/commandPanel.js";
 import { Preview } from "../../editor/common/preview.js";

@@ -1,6 +1,6 @@
 import dotenv from "dotenv";
 import path from "path";
-import { app, BrowserWindow, globalShortcut } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import { HttpServer } from "../../server/node/http.js";
 import { Theme } from "../common/theme.js";
 import "../node/files.js";
@@ -36,26 +36,24 @@ export const MAIN_HTML_PATH =
 
 export let workbench: BrowserWindow;
 
-function registerZoomShortcuts() {
-  globalShortcut.register("CommandOrControl+Plus", () => {
-    const current = workbench.webContents.getZoomFactor();
-    const next = current + 0.1;
-    workbench.webContents.setZoomFactor(next);
-    updateTitleBarHeight();
-  });
+ipcMain.handle("workbench.zoom", () => {
+  const current = workbench.webContents.getZoomFactor();
+  const next = current + 0.1;
+  workbench.webContents.setZoomFactor(next);
+  updateTitleBarHeight();
+});
 
-  globalShortcut.register("CommandOrControl+-", () => {
-    const current = workbench.webContents.getZoomFactor();
-    const next = Math.max(0.5, current - 0.1);
-    workbench.webContents.setZoomFactor(next);
-    updateTitleBarHeight();
-  });
-}
+ipcMain.handle("workbench.zoomout", () => {
+  const current = workbench.webContents.getZoomFactor();
+  const next = Math.max(0.5, current - 0.1);
+  workbench.webContents.setZoomFactor(next);
+  updateTitleBarHeight();
+});
 
 function updateTitleBarHeight() {
   const zoomFactor = workbench.webContents.getZoomFactor();
   const _win = process.platform === "win32";
-  const base = _win ? 27 : 37;
+  const base = 27;
 
   const clamped = Math.min(Math.max(zoomFactor, 0.75), 2.0);
   const newHeight = Math.round(base * 1.4 * clamped);
@@ -66,7 +64,7 @@ function updateTitleBarHeight() {
     height: newHeight,
   });
 
-  const baseInset = _win ? 170 : 95;
+  const baseInset = _win ? 170 : 115;
   const newInset = Math.round(baseInset / (clamped * 1.3));
 
   workbench.webContents.send("titlebar-insets", newInset);
@@ -117,8 +115,6 @@ function createWindow() {
   workbench.on("minimize", () => workbench.webContents.send("reset-sizes"));
   workbench.on("maximize", () => workbench.webContents.send("reset-sizes"));
   workbench.on("resize", () => workbench.webContents.send("reset-sizes"));
-
-  registerZoomShortcuts();
 
   workbench.maximize();
 }
