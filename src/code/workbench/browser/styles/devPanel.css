@@ -54,10 +54,6 @@
   }
 }
 
-.dev-panel .panel.vertical svg path {
-  stroke: var(--workbench-icon-foreground) !important;
-}
-
 .dev-panel .content-tabs .tab .close-icon svg {
   width: 20px !important;
   height: auto;

@@ -15,6 +15,7 @@ import xlsx, {
   nodeBridge,
   urlBridge,
   electronBridge,
+  pypiBridge,
 } from "../code/workbench/electron-browser/preload.js";
 
 declare global {
@@ -32,6 +33,7 @@ declare global {
     node: typeof nodeBridge;
     url: typeof urlBridge;
     electron: typeof electronBridge;
+    pypi: typeof pypiBridge;
     xlsx: typeof xlsx;
   }
 }

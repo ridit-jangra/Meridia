@@ -103,7 +103,7 @@ export class Layout {
     const splitterHorizontal = new Splitter(
       [leftPanel, middlePanel],
       "horizontal",
-      [20, 60, 20],
+      [30, 70],
       () => {
         changePanelOptionsWidth();
         _xtermManager._update();
@@ -160,10 +160,10 @@ export class Layout {
         _fontViewer._mount();
       }
 
-      _editorLayout.rerender();
-
       _drawboard._updateCanvasSize();
       _xtermManager._update();
+
+      _editorLayout.rerender();
     }, 300);
   }
 }

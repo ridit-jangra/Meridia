@@ -6,6 +6,9 @@ import { registerLanguageServer } from "../../editor/languages";
 export const api = {
   workbench: {
     workspace: {
+      workspaceFolder: () => {
+        return window.node.workspaceFolder();
+      },
       node: {
         createWebSocketServer: (options?: ServerOptions) => {
           return window.node.createWebSocketServer(options);

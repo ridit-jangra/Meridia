@@ -9,6 +9,7 @@ import { getFileIcon } from "../common/utils.js";
 import { IEditorTab, IFolderStructure } from "../workbench.types.js";
 import { getThemeIcon } from "./media/icons.js";
 import { CoreEl } from "./parts/core.js";
+import { _newProject } from "./window/new-project/browser/new-project.js";
 
 const path = window.path;
 const fs = window.fs;
@@ -230,12 +231,24 @@ export class Files extends CoreEl {
     _openFolderBtn.textContent = "Open Folder";
     _openFolderBtn.className = "open-folder";
 
+    const _createProjectLabel = document.createElement("p");
+    _createProjectLabel.textContent = "Create a new project.";
+
+    const _createProjectBtn = document.createElement("button");
+    _createProjectBtn.textContent = "Create Project";
+    _createProjectBtn.className = "open-folder";
+
     _openFolderBtn.onclick = () => {
       this._handleOpenFolder();
     };
 
+    _createProjectBtn.onclick = () => {
+      _newProject._show();
+    };
+
     _emptyContainer.appendChild(_openFolderLabel);
     _emptyContainer.appendChild(_openFolderBtn);
+    _emptyContainer.appendChild(_createProjectBtn);
     this._el!.appendChild(_emptyContainer);
   }
 
@@ -1251,9 +1264,11 @@ export class Files extends CoreEl {
     ) as HTMLDivElement;
 
     if (!childContainer) {
-      childContainer = this._el?.querySelector(".tree") as HTMLDivElement;
-      if (!childContainer) {
-        return;
+      if (parentUri === this._structure.uri) {
+        childContainer = this._el?.querySelector(".tree") as HTMLDivElement;
+        if (!childContainer) {
+          return;
+        }
       }
     }
 

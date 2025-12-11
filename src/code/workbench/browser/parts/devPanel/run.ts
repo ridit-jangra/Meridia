@@ -5,6 +5,7 @@ import { CoreEl } from "../core.js";
 import { _xtermManager } from "../../../common/devPanel/spawnXterm.js";
 import { registerStandalone } from "../../../common/class.js";
 import { getFileIcon, getRunCommand } from "../../../common/utils.js";
+import { select } from "../../../common/store/selector.js";
 
 const path = window.path;
 const storage = window.storage;
@@ -195,6 +196,7 @@ export class Run extends CoreEl {
   public async _run(_path: string) {
     const norm = _path.replace(/\\/g, "/");
     const existing = this._tabs.find((t) => t.uri === _path);
+    const project_details = select((s) => s.main.project_details);
     let tabId: string;
 
     if (!existing) {
@@ -228,7 +230,17 @@ export class Run extends CoreEl {
     const container = await _xtermManager._spawn(tabId);
     runArea.appendChild(container!);
 
-    const command = `${getRunCommand(_path)} "${_path}"`;
+    let process = getRunCommand(_path);
+
+    if (
+      process === "python" &&
+      project_details.venv &&
+      project_details.venv.python
+    ) {
+      process = project_details.venv.python;
+    }
+
+    const command = `"${process}" "${_path}"`;
 
     await _xtermManager._run(tabId, command, path.dirname(_path));
     this._set(tabId, "running");

@@ -10,6 +10,7 @@ import { _xtermManager } from "../../../common/devPanel/spawnXterm.js";
 import { select } from "../../../common/store/selector.js";
 import { dispatch } from "../../../common/store/store.js";
 import { update_panel_state } from "../../../common/store/slice.js";
+import { _packageManager } from "./packageManager.js";
 
 const storage = window.storage;
 
@@ -111,7 +112,7 @@ export class DevPanelTabs extends CoreEl {
       };
 
       const icon = document.createElement("span");
-      icon.className = "icon";
+      icon.className = `icon ${tab.id}`;
       icon.innerHTML = tab.icon ?? getThemeIcon("terminal");
 
       const name = document.createElement("span");
@@ -138,6 +139,8 @@ export class DevPanelTabs extends CoreEl {
         panel = _run;
       } else if (tab.id === "problem") {
         panel = _problem;
+      } else if (tab.id === "package-manager") {
+        panel = _packageManager;
       }
 
       this._panels.set(tab.id, panel);
@@ -146,9 +149,7 @@ export class DevPanelTabs extends CoreEl {
     this._contentEl.appendChild(panel.getDomElement()!);
 
     setTimeout(() => {
-      if (panel === _terminal) _terminal._render();
-      else if (panel === _run) _run._render();
-      else if (panel === _problem) _problem._render();
+      panel._render();
     }, 10);
   }
 

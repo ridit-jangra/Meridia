@@ -3,3 +3,4 @@ out
 dist
 build
 .env
+.venv

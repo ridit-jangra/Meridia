@@ -16,10 +16,11 @@
   width: 80%;
   padding: 8px 0;
   border-radius: 6px;
-  background: var(--workbench-secondary-button-background);
+  border: 1px solid var(--workbench-border-foreground);
+  background: none;
   color: var(--workbench-secondary-button-foreground);
-  border: none;
   cursor: pointer;
+  margin-bottom: 8px;
 }
 
 .code .files .empty-state .open-folder:hover,
@@ -109,10 +110,7 @@
 .code .files .tree .child-nodes {
   display: flex;
   flex-direction: column;
-  transition:
-    height 0.25s ease,
-    opacity 0.25s ease,
-    visibility 0.25s ease;
+  transition: height 0.25s ease, opacity 0.25s ease, visibility 0.25s ease;
   overflow-x: visible;
   overflow-y: hidden;
 }
