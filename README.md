@@ -1,10 +1,8 @@
 # Meridia
 
-### Still under development
+<img src="./resources/whole.png" style="border-radius: 8px" />
 
 Meridia is a next-gen code editor that blends coding, debugging, and customizable.
-
-![Meridia Screenshot](./resources/whole.jpg)
 
 Visit [meridia.dev](https://meridia.dev) for more info.
 
