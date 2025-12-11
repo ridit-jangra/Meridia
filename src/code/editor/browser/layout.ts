@@ -146,7 +146,7 @@ export class Editor extends CoreEl {
   private _renderPreviewTabs(tabs: IPreviewTab[]) {
     const activeTab = tabs.find((t) => t.active);
 
-    if (tabs.length === 0) {
+    if (!tabs || tabs.length === 0) {
       this._splitter._collapsePanel(1);
       this._previewTabs.style.display = "none";
       this._previewArea.style.display = "none";
