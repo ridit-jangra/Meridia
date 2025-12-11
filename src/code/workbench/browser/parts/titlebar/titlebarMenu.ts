@@ -66,20 +66,6 @@ export const menuItems: Menuitems[] = [
         label: "",
         separator: true,
       },
-      // {
-      //   label: "Copy",
-      //   action: "workbench.copy",
-      //   shortcut: ["ctrl", "c"],
-      // },
-      // {
-      //   label: "Paste",
-      //   action: "workbench.paste",
-      //   shortcut: ["ctrl", "v"],
-      // },
-      {
-        label: "",
-        separator: true,
-      },
       {
         label: "Find",
         action: "workbench.find",
@@ -99,6 +85,20 @@ export const menuItems: Menuitems[] = [
         label: "Command Palette",
         action: "workbench.command.palette",
         shortcut: ["ctrl", "shift", "p"],
+      },
+      {
+        label: "",
+        separator: true,
+      },
+      {
+        label: "Zoom In",
+        shortcut: ["ctrl", "shift", "+"],
+        action: "workbench.zoom",
+      },
+      {
+        label: "Zoom Out",
+        shortcut: ["ctrl", "-"],
+        action: "workbench.zoomout",
       },
       {
         label: "",

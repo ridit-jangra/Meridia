@@ -27,5 +27,9 @@ document.addEventListener("workbench.workspace.toggle.action", (_event) => {
       const _model = _editor._editor.getModel();
       _editor._save(_model?.uri.path!);
     }
+  } else if (_action === "workbench.zoom") {
+    ipcRenderer.invoke("workbench.zoom");
+  } else if (_action === "workbench.zoomout") {
+    ipcRenderer.invoke("workbench.zoomout");
   }
 });

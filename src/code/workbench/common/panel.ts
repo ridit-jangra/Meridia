@@ -1,6 +1,6 @@
 import { Splitter } from "../browser/parts/splitter/splitter.js";
 import { getStandalone, registerStandalone } from "../common/class.js";
-import { changePanelOptionsWidth } from "./panelOptions.js";
+import { changePanelOptionsWidth } from "./panel-options.js";
 
 export function togglePanelVisibilty(_panel: HTMLElement) {
   const _data = { message: _panel, userId: Date.now() };

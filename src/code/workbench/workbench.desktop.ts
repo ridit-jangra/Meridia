@@ -14,7 +14,7 @@ import "./common/statusbar.js";
 import "./browser/parts/mira/mira.js";
 import "../platform/extension/extension.js";
 import "../editor/editors/editor.js";
-import { changePanelOptionsWidth } from "./common/panelOptions.js";
+import { changePanelOptionsWidth } from "./common/panel-options.js";
 import { _xtermManager } from "./common/devPanel/spawnXterm.js";
 import { watch } from "./common/store/selector.js";
 import { setPanelVisibilty } from "./common/panel.js";

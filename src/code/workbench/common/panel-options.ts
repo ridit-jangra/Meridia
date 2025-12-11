@@ -1,4 +1,4 @@
-import { registerStandalone } from "../common/class.js";
+import { registerStandalone } from "./class.js";
 
 export function changePanelOptionsWidth() {
   const _data = { userId: Date.now() };
