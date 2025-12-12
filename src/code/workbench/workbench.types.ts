@@ -301,6 +301,14 @@ export interface IStatusBarAction {
   _condition: "workbench.editor.open" | "workbench.editor.open.file" | "none";
 }
 
+export interface IExtension {
+  name: string;
+  version: string;
+  author: string;
+  readme: string;
+  description: string;
+}
+
 export interface IExtensionModule {
   activate?(api: any): void;
 }

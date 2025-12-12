@@ -34,6 +34,12 @@ export class DevPanelTabs extends CoreEl {
       active: false,
       icon: getThemeIcon("problem"),
     },
+    {
+      id: "package-manager",
+      name: "Package Manager",
+      active: false,
+      icon: getThemeIcon("packageManager"),
+    },
   ];
 
   private _contentEl: HTMLElement;

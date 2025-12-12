@@ -2,12 +2,16 @@ import { IConnection } from "vscode-ws-jsonrpc/server";
 import { ServerOptions } from "ws";
 import { ILanguageServerConfig } from "../types";
 import { registerLanguageServer } from "../../editor/languages";
+import { select } from "../../../workbench/common/store/selector";
 
 export const api = {
   workbench: {
     workspace: {
       workspaceFolder: () => {
         return window.node.workspaceFolder();
+      },
+      workspaceDetails: () => {
+        return select((s) => s.main.project_details);
       },
       node: {
         createWebSocketServer: (options?: ServerOptions) => {

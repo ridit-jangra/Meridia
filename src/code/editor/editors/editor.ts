@@ -478,34 +478,6 @@ export class Editor {
     const _languages = languages.keys();
 
     _languages.forEach((_lang) => {
-      const languageId = extensionToLanguage(_lang);
-
-      if (!languageId) {
-        return;
-      }
-
-      monaco.languages.registerDocumentFormattingEditProvider(
-        extensionToLanguage(_lang)!,
-        {
-          provideDocumentFormattingEdits: function (model, options, token) {
-            const range = model.getFullModelRange();
-            const text = model.getValue();
-            const langauge = model.getModeId();
-            const path = model.uri.path;
-
-            const formattedText = (this as any)._format(langauge, text, path);
-            return [
-              {
-                range: range,
-                text: formattedText,
-              },
-            ];
-          },
-        }
-      );
-    });
-
-    _languages.forEach((_lang) => {
       monaco.languages.registerHoverProvider(extensionToLanguage(_lang)!, {
         provideHover: (model, position) => {
           const word = model.getWordAtPosition(position);
@@ -760,15 +732,17 @@ export class Editor {
     switch (extension) {
       case "py":
         return {
-          python: {
-            analysis: {
-              autoSearchPaths: true,
-              useLibraryCodeForTypes: true,
-              diagnosticMode: "workspace",
-              typeCheckingMode: "basic",
-            },
+          workspaceFolders: [{ uri: workspaceRoot, name: "Meridia Workspace" }],
+          rootUri: workspaceRoot,
+          configurationSources: ["pyflakes"],
+          plugins: {
+            pyflakes: { enabled: true },
+            pycodestyle: { enabled: false },
+            mccabe: { enabled: false },
+            flake8: { enabled: false },
           },
         };
+
       case "ts":
       case "js":
         return {

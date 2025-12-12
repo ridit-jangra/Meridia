@@ -10,7 +10,14 @@ ipcMain.handle(
     const fullPath = path.join(location, name);
     if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath, { recursive: true });
 
-    if (main) fs.writeFileSync(path.join(fullPath, "main.py"), "");
+    if (main)
+      fs.writeFileSync(
+        path.join(fullPath, "main.py"),
+        `# Start a new adventure!!!
+
+if  __name__ == "__main__":
+    print("Hello, Meridia!")`
+      );
 
     const meridiaPath = path.join(fullPath, ".meridia");
     if (!fs.existsSync(meridiaPath))
@@ -76,7 +83,13 @@ ipcMain.handle(
       fs.mkdirSync(fullPath, { recursive: true });
     }
 
-    if (main) fs.writeFileSync(path.join(fullPath, "main.ts"), "");
+    if (main)
+      fs.writeFileSync(
+        path.join(fullPath, "main.ts"),
+        `# Start a new adventure!!!
+
+console.log("Hello, Meridia!")`
+      );
 
     const meridiaPath = path.join(fullPath, ".meridia");
     if (!fs.existsSync(meridiaPath)) {
@@ -110,7 +123,13 @@ ipcMain.handle(
       fs.mkdirSync(fullPath, { recursive: true });
     }
 
-    if (main) fs.writeFileSync(path.join(fullPath, "main.js"), "");
+    if (main)
+      fs.writeFileSync(
+        path.join(fullPath, "main.js"),
+        `# Start a new adventure!!!
+
+console.log("Hello, Meridia!")`
+      );
 
     const meridiaPath = path.join(fullPath, ".meridia");
     if (!fs.existsSync(meridiaPath)) {

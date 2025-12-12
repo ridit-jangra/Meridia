@@ -1,0 +1,39 @@
+.code .extensions {
+  height: 100%;
+}
+
+.code .extensions .tree {
+  height: 100%;
+}
+
+.code .extensions .tree .extension {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.code .extensions .tree .extension:hover {
+  background: var(--workbench-hover-background);
+}
+
+.code .extensions .tree .extension span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.code .extensions .tree .extension .name {
+  font-size: 18px;
+}
+
+.code .extensions .tree .extension .description {
+  font-size: 14px;
+  color: var(--workbench-secondary-foreground);
+}
+
+.code .extensions .tree .extension .author {
+  font-size: 15px;
+  font-weight: bold;
+}
