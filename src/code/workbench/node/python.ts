@@ -9,7 +9,9 @@ ipcMain.handle(
       const process = spawn(
         project_details.venv.python,
         ["-m", "pip", "show", _package],
-        { stdio: ["ignore", "pipe", "pipe"] }
+        {
+          stdio: ["ignore", "pipe", "pipe"],
+        }
       );
 
       let output = "";
@@ -24,7 +26,9 @@ ipcMain.handle(
       });
 
       process.on("close", (code) => {
-        if (code === 0 && output.includes(`Name: ${_package}`)) {
+        const hasNameLine = output.toLowerCase().includes(`name: ${_package}`);
+
+        if (code === 0 && hasNameLine) {
           resolve(true);
         } else {
           resolve(false);
