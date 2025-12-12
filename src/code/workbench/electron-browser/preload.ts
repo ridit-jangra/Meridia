@@ -15,7 +15,7 @@ import { WebSocketServer, ServerOptions } from "ws";
 import { Storage } from "../node/storage.js";
 import { _xtermManager } from "../common/devPanel/spawnXterm.js";
 import { IWebSocket } from "@codingame/monaco-jsonrpc";
-import { IFolderStructure, IPyPIPackage } from "../workbench.types.js";
+import { IFolderStructure } from "../workbench.types.js";
 
 const storage = Storage;
 
@@ -429,6 +429,12 @@ export const pypiBridge = {
   },
 };
 
+export const workbenchBridge = {
+  reload: () => {
+    ipcRenderer.invoke("workbench.reload");
+  },
+};
+
 window.addEventListener("beforeunload", () => {
   activeWatchers.forEach((watcher, path) => {
     try {
@@ -460,4 +466,5 @@ contextBridge.exposeInMainWorld("node", nodeBridge);
 contextBridge.exposeInMainWorld("url", urlBridge);
 contextBridge.exposeInMainWorld("electron", electronBridge);
 contextBridge.exposeInMainWorld("pypi", pypiBridge);
+contextBridge.exposeInMainWorld("workbench", workbenchBridge);
 contextBridge.exposeInMainWorld("xlsx", xlsx);

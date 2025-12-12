@@ -520,7 +520,6 @@ export class Files extends CoreEl {
   }
 
   private _calculateDepth(container: HTMLElement): number {
-    console.log(container);
     if (container.className === "tree") return 0;
     let parent = container.previousElementSibling as HTMLDivElement;
 

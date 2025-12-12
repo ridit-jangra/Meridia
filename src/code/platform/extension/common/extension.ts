@@ -39,7 +39,6 @@ export class Extension {
 
           try {
             const module: IExtensionModule = await import(fileUrl);
-
             this._extensionsModules.push(module);
             this._activate(module);
           } catch (error) {
@@ -47,7 +46,9 @@ export class Extension {
           }
         }
       }
-    } catch (err) {}
+    } catch (err) {
+      console.error("extension load error", err);
+    }
   }
 
   _activate(ext: IExtensionModule) {
@@ -59,8 +60,14 @@ export class Extension {
   _execute(name: string) {
     if (commands.get(name)) {
       commands.get(name)!();
-    } else {
     }
+  }
+
+  async restart() {
+    this._extensions = [];
+    this._extensionsModules = [];
+
+    await this._load();
   }
 }
 

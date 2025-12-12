@@ -122,6 +122,7 @@ export const ThemeColors = [
   "workbench.terminal.black",
   "workbench.terminal.red",
   "workbench.terminal.green",
+  "workbench.terminal.darkgreen",
   "workbench.terminal.yellow",
   "workbench.terminal.blue",
   "workbench.terminal.magenta",

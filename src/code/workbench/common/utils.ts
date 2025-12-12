@@ -84,6 +84,7 @@ export const tokensToCssVariables: Record<IThemeColors, string> = {
   "workbench.terminal.black": "--workbench-terminal-color0",
   "workbench.terminal.red": "--workbench-terminal-color1",
   "workbench.terminal.green": "--workbench-terminal-color2",
+  "workbench.terminal.darkgreen": "--workbench-terminal-color16",
   "workbench.terminal.yellow": "--workbench-terminal-color3",
   "workbench.terminal.blue": "--workbench-terminal-color4",
   "workbench.terminal.magenta": "--workbench-terminal-color5",
