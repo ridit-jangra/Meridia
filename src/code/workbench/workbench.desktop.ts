@@ -6,6 +6,7 @@ import "./common/extension-listener.js";
 import "./common/project-details.js";
 import "./common/tabs.js";
 import "./common/titlebar.js";
+import "./common/pylsp.js";
 import "./common/resources.js";
 import "./common/class.js";
 import "./common/command.js";

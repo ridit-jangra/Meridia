@@ -11,8 +11,10 @@ import "../node/pty.js";
 import "../node/project.js";
 import "../node/storage.js";
 import "../node/utils.js";
+import "../node/python.js";
 import "../node/watcher.js";
 import "../browser/window/new-project/node/project-creator.js";
+import "../../platform/messagebox/node/message.js";
 
 dotenv.config();
 
@@ -35,6 +37,10 @@ export const MAIN_HTML_PATH =
     : path.join(__dirname, "..", "common", "renderer", "code.html");
 
 export let workbench: BrowserWindow;
+
+ipcMain.handle("workbench.reload", () => {
+  workbench.webContents.reload();
+});
 
 ipcMain.handle("workbench.zoom", () => {
   const current = workbench.webContents.getZoomFactor();

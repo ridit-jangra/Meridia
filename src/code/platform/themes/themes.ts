@@ -40,7 +40,7 @@ export const Light: ITheme = {
 
     "workbench.panel.background": "#ffffff",
     "workbench.panel.options.hover.background": "#f3f3f3",
-    "workbench.panel.options.active.background": "#e8e8e8",
+    "workbench.panel.options.active.background": "#bfbfbf",
     "workbench.panel.options.active.border.foreground": "#d4d4d4",
 
     "workbench.dialog.background": "#ffffff",
@@ -92,6 +92,7 @@ export const Light: ITheme = {
     "workbench.terminal.black": "#333333",
     "workbench.terminal.red": "#d73a49",
     "workbench.terminal.green": "#22863a",
+    "workbench.terminal.darkgreen": "#90EE90",
     "workbench.terminal.yellow": "#b08800",
     "workbench.terminal.blue": "#0366d6",
     "workbench.terminal.magenta": "#6f42c1",
@@ -235,8 +236,9 @@ export const Dark: ITheme = {
     "workbench.terminal.cursor.foreground": "#fffff1",
     "workbench.terminal.selection.background": "#152639",
     "workbench.terminal.black": "#090909",
-    "workbench.terminal.red": "#b82d46",
-    "workbench.terminal.green": "#1f392d",
+    "workbench.terminal.red": "#d63855",
+    "workbench.terminal.green": "#4b9f78",
+    "workbench.terminal.darkgreen": "#254738",
     "workbench.terminal.yellow": "#E5C07B",
     "workbench.terminal.blue": "#61AFEF",
     "workbench.terminal.magenta": "#c678dd",

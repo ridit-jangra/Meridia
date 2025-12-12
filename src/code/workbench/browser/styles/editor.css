@@ -458,7 +458,7 @@
 }
 
 .code .editor .details .none-div {
-  background: var(--workbench-terminal-color2);
+  background: var(--workbench-terminal-color16);
   width: 90%;
   height: 90%;
   border-radius: 8px;
