@@ -5,10 +5,6 @@ import { IProjectDetails } from "../workbench.types";
 ipcMain.handle(
   "workbench.workspace.python.project.check.package",
   (_, project_details: IProjectDetails, _package: string) => {
-    if (!project_details?.venv?.python) {
-      return { installed: false, reason: "No venv python path" };
-    }
-
     return new Promise<boolean>((resolve) => {
       const process = spawn(
         project_details.venv.python,
