@@ -1427,6 +1427,36 @@ export class Files extends CoreEl {
       this._structure
     );
     dispatch(update_folder_structure(this._structure));
+
+    const tabs = select((s) => s.main.editor_tabs);
+
+    if (tabs) {
+      const normalizedUri = this._normalizeUri(nodeUri);
+      const currentTabs: IEditorTab[] = Array.isArray(tabs)
+        ? tabs
+        : Object.values(tabs as Record<string, IEditorTab>);
+
+      const tabIndex = currentTabs.findIndex((t) => t.uri === normalizedUri);
+      if (tabIndex === -1) return;
+
+      const closingTab = currentTabs[tabIndex]!;
+      const isClosingActiveTab = closingTab.active;
+
+      let updatedTabs = currentTabs.filter((t) => t.uri !== normalizedUri);
+
+      if (isClosingActiveTab && updatedTabs.length > 0) {
+        const newActiveIndex =
+          tabIndex < updatedTabs.length ? tabIndex : updatedTabs.length - 1;
+
+        const tabToActivate = updatedTabs[newActiveIndex]!;
+        updatedTabs[newActiveIndex] = {
+          ...tabToActivate,
+          active: true,
+        } as IEditorTab;
+      }
+
+      dispatch(update_editor_tabs(updatedTabs));
+    }
   }
 
   private _isUriDuplicate(node: IFolderStructure, targetUri: string): boolean {

@@ -22,6 +22,7 @@ import { ImageViewer } from "../../editor/editors/imageViewer.js";
 import { FontViewer } from "../../editor/editors/fontViewer.js";
 import { getThemeIcon } from "./media/icons.js";
 import { _newProject } from "./window/new-project/browser/new-project.js";
+import { Extensions } from "./extensions.js";
 
 export class Layout {
   constructor() {
@@ -37,6 +38,7 @@ export class Layout {
     const files = new Files().getDomElement()!;
     const mira = new Mira().getDomElement()!;
     const structure = new Structure().getDomElement()!;
+    const extensions = new Extensions().getDomElement()!;
 
     const devPanel = new DevPanel();
     registerStandalone("dev-panel", devPanel);
@@ -52,7 +54,7 @@ export class Layout {
     );
     const extensionOption = new PanelOption(
       "Extensions",
-      mira,
+      extensions,
       () => {},
       getThemeIcon("extension")
     );
@@ -70,7 +72,27 @@ export class Layout {
     const rightPanel = document.createElement("div");
     rightPanel.className = "right-panel";
 
+    const miraOption = new PanelOption(
+      "Mira",
+      mira,
+      () => {},
+      getThemeIcon("mira")
+    );
+
+    const structureOption = new PanelOption(
+      "Structure",
+      structure,
+      () => {},
+      getThemeIcon("structure")
+    );
+
     const rightPanelContent = new Panel("right-panel-content").getDomElement()!;
+    const rightPanelOptions = new PanelOptions(
+      [miraOption, structureOption],
+      rightPanelContent,
+      "right-panel-options",
+      "right-panel-options"
+    ).getDomElement()!;
 
     leftPanel.appendChild(leftPanelContent);
     rightPanel.appendChild(rightPanelContent);
@@ -101,9 +123,9 @@ export class Layout {
     middlePanel.appendChild(splitterVertical.getDomElement()!);
 
     const splitterHorizontal = new Splitter(
-      [leftPanel, middlePanel],
+      [leftPanel, middlePanel, rightPanel],
       "horizontal",
-      [30, 70],
+      [20, 60, 20],
       () => {
         changePanelOptionsWidth();
         _xtermManager._update();
@@ -118,6 +140,9 @@ export class Layout {
     const activityBarLeft = document.createElement("div");
     activityBarLeft.className = "activity-bar left";
 
+    const activityBarRight = document.createElement("div");
+    activityBarRight.className = "activity-bar right";
+
     const splitterContainerEl = document.createElement("div");
     splitterContainerEl.className = "splitter-container";
 
@@ -128,7 +153,10 @@ export class Layout {
       splitterContainerEl.firstChild
     );
 
+    splitterContainerEl.appendChild(activityBarRight);
+
     activityBarLeft.appendChild(leftPanelOptions);
+    activityBarRight.appendChild(rightPanelOptions);
 
     codeEl.appendChild(titlebar);
     codeEl.appendChild(splitterContainerEl);

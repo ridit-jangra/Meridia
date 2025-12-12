@@ -1,0 +1,7 @@
+{
+  "name": "Rust Analyzer",
+  "version": "1.0.0",
+  "author": "MNovus",
+  "readme": "",
+  "description": "a very powerful language server"
+}
