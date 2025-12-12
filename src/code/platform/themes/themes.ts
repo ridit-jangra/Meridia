@@ -69,9 +69,9 @@ export const Light: ITheme = {
     "workbench.mira.chatbox.active.border.foreground": "#007acc",
     "workbench.mira.voice.caption.active.background": "#ff7800",
 
-    "workbench.activitybar.background": "#e6e6e6",
+    "workbench.activitybar.background": "#f0f0f0",
     "workbench.activitybar.hover.background": "#dedede",
-    "workbench.activitybar.active.background": "#dcdcdc",
+    "workbench.activitybar.active.background": "#d4d4d4",
 
     "workbench.titlebar.background": "#f0f0f0",
     "workbench.titlebar.foreground": "#1e1e1e",
@@ -218,9 +218,9 @@ export const Dark: ITheme = {
     "workbench.mira.chatbox.border.foreground": "#37383a",
     "workbench.mira.chatbox.active.border.foreground": "#0e5098",
     "workbench.mira.voice.caption.active.background": "#ff7800",
-    "workbench.activitybar.background": "#131416",
+    "workbench.activitybar.background": "#121315",
     "workbench.activitybar.hover.background": "#18191b",
-    "workbench.activitybar.active.background": "#121315",
+    "workbench.activitybar.active.background": "#131416",
     "workbench.titlebar.background": "#121315",
     "workbench.titlebar.foreground": "#fffff1",
     "workbench.titlebar.item.hover.background": "#363739",

@@ -1,4 +1,5 @@
 import { FitAddon } from "@xterm/addon-fit";
+import { ClipboardAddon } from "@xterm/addon-clipboard";
 import { Terminal as XTerm } from "@xterm/xterm";
 import { IXTermInstance } from "../../workbench.types.js";
 import { getStandalone } from "../class.js";
@@ -62,6 +63,12 @@ class XtermManager {
 
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
+
+    const clipboardAddon = new ClipboardAddon({
+      writeText: (data) => window.workbench.clipboard.writeText(data),
+      readText: () => window.workbench.clipboard.readText(),
+    });
+    term.loadAddon(clipboardAddon);
 
     setTimeout(() => {
       fitAddon.fit();
@@ -141,6 +148,8 @@ class XtermManager {
         project_details.venv.activate + "\r"
       );
     }
+
+    this._update();
 
     return _container;
   }
@@ -232,6 +241,12 @@ class XtermManager {
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
     fitAddon.fit();
+
+    const clipboardAddon = new ClipboardAddon({
+      writeText: (data) => window.workbench.clipboard.writeText(data),
+      readText: () => window.workbench.clipboard.readText(),
+    });
+    term.loadAddon(clipboardAddon);
 
     const _theme = getStandalone("theme") as Theme;
     term.options.theme = {
