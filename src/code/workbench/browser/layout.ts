@@ -23,7 +23,6 @@ import { FontViewer } from "../../editor/editors/fontViewer.js";
 import { getThemeIcon } from "./media/icons.js";
 import { _newProject } from "./window/new-project/browser/new-project.js";
 import { Extensions } from "./extensions.js";
-import { showDownloadBox } from "../../platform/messagebox/common/messagebox.js";
 
 export class Layout {
   constructor() {
@@ -190,9 +189,10 @@ export class Layout {
       }
 
       _drawboard._updateCanvasSize();
-      _xtermManager._update();
 
       _editorLayout.rerender();
+
+      _xtermManager._update();
     }, 300);
   }
 }

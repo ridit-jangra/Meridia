@@ -93,7 +93,6 @@ export class DevPanelTabs extends CoreEl {
 
     const tabsContainer = document.createElement("div");
     tabsContainer.className = "tabs";
-    new PerfectScrollbar(tabsContainer);
 
     if (!tabsContainer) return;
 
@@ -131,6 +130,9 @@ export class DevPanelTabs extends CoreEl {
     });
 
     this._el!.appendChild(tabsContainer);
+    new PerfectScrollbar(tabsContainer, {
+      suppressScrollY: true,
+    });
   }
 
   private _open(tab: IDevTab) {

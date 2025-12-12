@@ -67,6 +67,15 @@ export const menuItems: Menuitems[] = [
         separator: true,
       },
       {
+        label: "Reload window",
+        action: "workbench.reload",
+        shortcut: ["ctrl", "alt", "shift", "r"],
+      },
+      {
+        label: "",
+        separator: true,
+      },
+      {
         label: "Find",
         action: "workbench.find",
         shortcut: ["ctrl", "f"],
