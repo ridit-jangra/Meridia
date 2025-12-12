@@ -8,7 +8,8 @@ export class Download extends Message {
     private title: string,
     private message: string,
     private command: string,
-    private args?: string[]
+    private args?: string[],
+    private onCompleteCallback?: Function
   ) {
     super();
     this._createEl();
@@ -90,6 +91,7 @@ export class Download extends Message {
       (buttonWrapper.lastChild as HTMLSpanElement)!.onclick = () => {
         this._hide();
         this._el!.remove();
+        this.onCompleteCallback!();
       };
     });
 

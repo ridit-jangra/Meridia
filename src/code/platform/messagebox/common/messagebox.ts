@@ -5,9 +5,10 @@ export function showDownloadBox(
   title: string,
   message: string,
   command: string,
-  args?: string[]
+  args?: string[],
+  onCompleteCallback?: Function
 ) {
-  const el = new Download(title, message, command, args);
+  const el = new Download(title, message, command, args, onCompleteCallback);
   el._show();
   document.body.appendChild(el.getDomElement()!);
   return el;
