@@ -4,31 +4,28 @@ export function activate(context: context) {
   try {
     const _port = 9712;
 
-    const _serverCli = "pylsp";
+    const _win = context.workbench.workspace.utils.platform === "win32";
 
-    let pythonPath;
+    const _winPath = context.workbench.workspace.utils.path.join(
+      "win32",
+      "pylsp.exe"
+    );
+    const _otherPath = context.workbench.workspace.utils.path.join(
+      "linux",
+      "pylsp"
+    );
 
-    const projectDetails = context.workbench.workspace.workspaceDetails();
-
-    if (projectDetails && projectDetails.venv.python) {
-      pythonPath = projectDetails.venv.python;
-    } else {
-      pythonPath = "python";
-    }
-
-    const pylspPath = context.workbench.workspace.utils.path.join(
+    const _serverCli = context.workbench.workspace.utils.path.join(
       context.workbench.workspace.utils.path.__dirname,
       "extensions",
       "languages",
       "python",
       "server",
-      "pylsp.pyz"
+      _win ? _winPath : _otherPath
     );
 
-    const command = `${pythonPath} ${pylspPath}`;
-
     const _server = context.workbench.workspace.language.createLanguageServer(
-      command,
+      "pylsp",
       "py",
       _port,
       "-v",
