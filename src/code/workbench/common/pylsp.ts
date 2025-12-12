@@ -9,10 +9,11 @@ async function check() {
   if (project_details?.venv?.python) {
     const result = await window.ipc.invoke(
       "workbench.workspace.python.project.check.package",
+      project_details,
       "python-lsp-server"
     );
 
-    console.log(project_details);
+    console.log(result, "venv");
 
     if (!result) {
       showDownloadBox(
@@ -30,6 +31,7 @@ async function check() {
       "workbench.workspace.python.check.package",
       "python-lsp-server"
     );
+    console.log(result, "no venv");
 
     const arg =
       window.node.platform === "linux" ? "--break-system-packages" : "-v";
