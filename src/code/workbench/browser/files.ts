@@ -520,27 +520,28 @@ export class Files extends CoreEl {
   }
 
   private _calculateDepth(container: HTMLElement): number {
-    if (container.className === "tree") return 0;
-    let parent = container.previousElementSibling as HTMLDivElement;
+    if (container.classList.contains("tree")) return 0;
 
-    if (parent && parent.classList.contains("node")) {
-      const parentDepth = parent.dataset.depth;
-      if (parentDepth) {
-        const depth = parseInt(parentDepth) + 1;
-        return depth;
+    const prevSibling = container.previousElementSibling;
+    if (
+      prevSibling instanceof HTMLElement &&
+      prevSibling.classList.contains("node")
+    ) {
+      const parentDepth = prevSibling.dataset.depth;
+      if (parentDepth !== undefined) {
+        return parseInt(parentDepth, 10) + 1;
       }
     }
 
-    parent = container.parentElement as HTMLDivElement;
-    while (parent && !parent.classList.contains("tree")) {
+    let parent: HTMLElement | null = container.parentElement;
+    while (parent !== null && !parent.classList.contains("tree")) {
       if (parent.classList.contains("node")) {
         const parentDepth = parent.dataset.depth;
-        if (parentDepth) {
-          const depth = parseInt(parentDepth) + 1;
-          return depth;
+        if (parentDepth !== undefined) {
+          return parseInt(parentDepth, 10) + 1;
         }
       }
-      parent = parent.parentElement as HTMLDivElement;
+      parent = parent.parentElement;
     }
 
     return 0;
@@ -669,7 +670,8 @@ export class Files extends CoreEl {
     };
 
     const deleteHandler = () => {
-      this._removeNode(node.uri);
+      if (node.type === "file") fs.deleteFile(node.uri);
+      else fs.deleteFolder(node.uri);
       this._contextMenuEl!.style.display = "none";
     };
 
@@ -769,7 +771,9 @@ export class Files extends CoreEl {
     tempLi.appendChild(icon);
     tempLi.appendChild(input);
 
-    const depth = this._calculateDepth(childContainer);
+    const depth = childContainer.classList.contains("tree")
+      ? 0
+      : this._calculateDepth(childContainer);
     tempLi.style.paddingLeft = `${depth * 1.4}rem`;
     childContainer.insertBefore(tempLi, childContainer.firstChild);
 
@@ -1265,18 +1269,20 @@ export class Files extends CoreEl {
     ) as HTMLDivElement;
 
     if (!childContainer) {
-      if (parentUri === this._structure.uri) {
+      if (
+        parentUri.replace(/[\/\\]/g, "") ===
+        this._structure.uri.replace(/[\/\\]/g, "")
+      ) {
         childContainer = this._el?.querySelector(".tree") as HTMLDivElement;
-        if (!childContainer) {
-          return;
-        }
+        if (!childContainer) return;
       }
     }
 
-    const newNodeEl = this._createNodeElement(
-      newNode,
-      this._calculateDepth(childContainer)
-    );
+    const depth = childContainer.classList.contains("tree")
+      ? 0
+      : this._calculateDepth(childContainer);
+
+    const newNodeEl = this._createNodeElement(newNode, depth);
 
     const insertPosition = this._findInsertPositionAlphabetically(
       childContainer,
@@ -1372,35 +1378,25 @@ export class Files extends CoreEl {
     return null;
   }
 
-  private _getParentUri(_uri: string) {
-    const normalizedUri = this._normalizeUri(_uri);
-
-    const findParent = (node: IFolderStructure): string | null => {
-      if (!node.children) return null;
-
-      for (const child of node.children) {
-        if (this._normalizeUri(child.uri) === normalizedUri) {
-          return this._normalizeUri(node.uri);
-        }
-
-        const found = findParent(child);
-        if (found) return found;
-      }
-
-      return null;
-    };
-
-    return findParent(this._structure);
-  }
-
   private async _removeNode(nodeUri: string) {
-    if (this._isRenamingInProgress) {
+    if (this._isRenamingInProgress) return;
+
+    const slashlessNodeUri = nodeUri.replace(/[\/\\]/g, "");
+
+    let normalizedUri = null;
+    for (const [key, nodeEl] of this._renderedNodes) {
+      if (key.replace(/[\/\\]/g, "") === slashlessNodeUri) {
+        normalizedUri = key;
+        break;
+      }
+    }
+
+    if (!normalizedUri) {
       return;
     }
 
-    const normalizedUri = this._normalizeUri(nodeUri);
-
     const nodeEl = this._renderedNodes.get(normalizedUri);
+
     if (!nodeEl) return;
     nodeEl.remove();
     this._renderedNodes.delete(normalizedUri);
