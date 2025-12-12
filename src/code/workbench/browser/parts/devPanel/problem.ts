@@ -47,7 +47,7 @@ export class Problem extends CoreEl {
     this._el.className = "error-container";
 
     this._listEl = document.createElement("div");
-    this._listEl.className = "problems-list scrollbar-container";
+    this._listEl.className = "problems-list scrollbar-container x-disable";
     this._el.appendChild(this._listEl);
 
     watch(
