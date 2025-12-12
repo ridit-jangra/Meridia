@@ -33,14 +33,18 @@ export class Extension {
             const manifestRaw = await fs.readFile(manifestPath, "utf-8");
             const manifestContent = JSON.parse(manifestRaw) as IExtension;
             this._extensions.push(manifestContent);
-          } catch (err) {}
+          } catch (error) {
+            console.error("extension loading manifest error", error);
+          }
 
           try {
             const module: IExtensionModule = await import(fileUrl);
 
             this._extensionsModules.push(module);
             this._activate(module);
-          } catch (error) {}
+          } catch (error) {
+            console.error("extension running error", error);
+          }
         }
       }
     } catch (err) {}

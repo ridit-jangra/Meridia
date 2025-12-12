@@ -11,7 +11,10 @@ export const api = {
         return window.node.workspaceFolder();
       },
       workspaceDetails: () => {
-        return select((s) => s.main.project_details);
+        const details = select((s) => s.main.project_details);
+
+        if (!details) return null;
+        return details;
       },
       node: {
         createWebSocketServer: (options?: ServerOptions) => {
