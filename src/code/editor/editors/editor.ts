@@ -732,14 +732,19 @@ export class Editor {
     switch (extension) {
       case "py":
         return {
-          workspaceFolders: [{ uri: workspaceRoot, name: "Meridia Workspace" }],
-          rootUri: workspaceRoot,
-          configurationSources: ["pyflakes"],
-          plugins: {
-            pyflakes: { enabled: true },
-            pycodestyle: { enabled: false },
-            mccabe: { enabled: false },
-            flake8: { enabled: false },
+          pylsp: {
+            plugins: {
+              pyflakes: { enabled: true },
+              yapf: { enabled: true },
+              pycodestyle: { enabled: false },
+              pydocstyle: { enabled: false },
+              mccabe: { enabled: false },
+              pylint: { enabled: false },
+              mypy: { enabled: false },
+              "rope-completion": { enabled: false },
+              rope: { enabled: false },
+              autopep8: { enabled: false },
+            },
           },
         };
 
