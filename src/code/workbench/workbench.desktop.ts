@@ -1,9 +1,9 @@
 import "./browser/web.js";
+import "./common/project-details.js";
 import "./common/theme.js";
 import "./common/scrollbar.js";
 import "./common/state.js";
 import "./common/extension-listener.js";
-import "./common/project-details.js";
 import "./common/tabs.js";
 import "./common/titlebar.js";
 import "./common/pylsp.js";
