@@ -26,19 +26,15 @@ export const api = {
           name: string,
           language: string,
           _port: number,
-          _serverCli: string,
-          _type: "node" | "cli",
-          _websocketOptions?: ServerOptions,
-          _args?: string[],
-          _cliPath?: string
+          _server: string,
+          _websocketOptions: ServerOptions,
+          _args: string[]
         ) => {
           const _process = window.node.createLanguageServer(
             _port,
-            _serverCli,
-            _websocketOptions!,
-            _args!,
-            _type,
-            _cliPath
+            _server,
+            _websocketOptions,
+            _args
           );
 
           return {
@@ -57,6 +53,7 @@ export const api = {
       },
       utils: {
         platform: window.node.platform,
+        nodePath: window.node._processExecPath,
       },
     },
   },

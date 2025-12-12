@@ -25,16 +25,12 @@ export function activate(context: context) {
     );
 
     const _server = context.workbench.workspace.language.createLanguageServer(
-      "rust",
+      "rust-analyzer",
       "rs",
       _port,
-      "-v",
-      "cli",
-      {
-        port: _port,
-      },
-      ["-v"],
-      _serverCli
+      _serverCli,
+      { port: _port },
+      []
     );
 
     context.workbench.workspace.language.registerLanguageServer(_server);

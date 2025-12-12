@@ -25,14 +25,12 @@ export function activate(context: context) {
     );
 
     const _server = context.workbench.workspace.language.createLanguageServer(
-      "html",
+      "superhtml",
       "html",
       _port,
-      "lsp",
-      "cli",
+      _serverCli,
       { port: _port },
-      ["lsp"],
-      _serverCli
+      []
     );
 
     context.workbench.workspace.language.registerLanguageServer(_server);

@@ -2,7 +2,9 @@ import { context } from "../../../src/code/platform/extension/common/context.js"
 
 export function activate(context: context) {
   try {
-    const _port = 3216;
+    const _port = 8161;
+
+    const node = context.workbench.workspace.utils.nodePath;
 
     const _serverCli = context.workbench.workspace.utils.path.join(
       context.workbench.workspace.utils.path.__dirname,
@@ -17,12 +19,9 @@ export function activate(context: context) {
       "javascript",
       "js",
       _port,
-      _serverCli,
-      "node",
-      {
-        port: _port,
-      },
-      ["--stdio"]
+      node,
+      { port: _port },
+      [_serverCli]
     );
 
     context.workbench.workspace.language.registerLanguageServer(_server);

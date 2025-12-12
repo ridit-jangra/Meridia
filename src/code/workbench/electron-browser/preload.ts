@@ -343,13 +343,55 @@ export const nodeBridge = {
   forward: (_client: IConnection, _server: IConnection) => {
     return forward(_client, _server);
   },
+  // createLanguageServer: (
+  //   _port: number,
+  //   _nodeCliPath: string,
+  //   _websocketOptions: ServerOptions,
+  //   _args: string[],
+  //   _type: "node" | "cli",
+  //   _cliPath?: string
+  // ) => {
+  //   let _process: IConnection | undefined;
+  //   const _websocket = new WebSocketServer(_websocketOptions);
+  //   _websocket.on("connection", (webSocket) => {
+  //     const socket = {
+  //       send: (content: any) => webSocket.send(content),
+  //       onMessage: (cb: any) => webSocket.on("message", cb),
+  //       onError: (cb: any) => webSocket.on("error", cb),
+  //       onClose: (cb: any) => webSocket.on("close", cb),
+  //       dispose: () => webSocket.close(),
+  //     };
+
+  //     const connection = createWebSocketConnection(socket);
+
+  //     _process = createServerProcess(
+  //       "Language Server",
+  //       _type === "node" ? process.execPath : _cliPath!,
+  //       _type === "node" ? [_nodeCliPath, ..._args] : _args,
+  //       {
+  //         stdio: ["pipe", "pipe", "pipe"],
+  //         env:
+  //           _type === "node"
+  //             ? {
+  //                 ...process.env,
+  //                 ELECTRON_RUN_AS_NODE: "1",
+  //               }
+  //             : process.env,
+  //       }
+  //     );
+
+  //     forward(connection, _process!);
+
+  //     webSocket.on("close", () => {});
+  //   });
+
+  //   return _process;
+  // },
   createLanguageServer: (
     _port: number,
-    _nodeCliPath: string,
+    _server: string,
     _websocketOptions: ServerOptions,
-    _args: string[],
-    _type: "node" | "cli",
-    _cliPath?: string
+    _args: string[]
   ) => {
     let _process: IConnection | undefined;
     const _websocket = new WebSocketServer(_websocketOptions);
@@ -364,21 +406,13 @@ export const nodeBridge = {
 
       const connection = createWebSocketConnection(socket);
 
-      _process = createServerProcess(
-        "Language Server",
-        _type === "node" ? process.execPath : _cliPath!,
-        _type === "node" ? [_nodeCliPath, ..._args] : _args,
-        {
-          stdio: ["pipe", "pipe", "pipe"],
-          env:
-            _type === "node"
-              ? {
-                  ...process.env,
-                  ELECTRON_RUN_AS_NODE: "1",
-                }
-              : process.env,
-        }
-      );
+      _process = createServerProcess("Language Server", _server, _args, {
+        stdio: ["pipe", "pipe", "pipe"],
+        env: {
+          ...process.env,
+          ELECTRON_RUN_AS_NODE: "1",
+        },
+      });
 
       forward(connection, _process!);
 
@@ -387,6 +421,7 @@ export const nodeBridge = {
 
     return _process;
   },
+  _processExecPath: process.execPath,
   platform: os.platform(),
   workspaceFolder: () => {
     let cwd;
