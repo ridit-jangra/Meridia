@@ -31,5 +31,7 @@ document.addEventListener("workbench.workspace.toggle.action", (_event) => {
     ipcRenderer.invoke("workbench.zoom");
   } else if (_action === "workbench.zoomout") {
     ipcRenderer.invoke("workbench.zoomout");
+  } else if (_action === "workbench.reload") {
+    ipcRenderer.invoke("workbench.reload");
   }
 });

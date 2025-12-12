@@ -100,30 +100,50 @@ export class PanelOptions extends CoreEl {
             this._parentEl.innerHTML = "";
             this._options.forEach((opt) => opt._toggleActive(false));
             storage.store(this._getStorageKey(), -1);
-          } else if (
-            this._lastValidIndex >= 0 &&
-            this._lastValidIndex < this._options.length
-          ) {
-            const lastActiveOption = this._options[this._lastValidIndex]!;
-            this._updateContent(lastActiveOption._content!);
-            this._options.forEach((opt, i) => {
-              opt._toggleActive(i === this._lastValidIndex);
-            });
+          } else {
+            if (
+              this._lastValidIndex >= 0 &&
+              this._lastValidIndex < this._options.length
+            ) {
+              const lastActiveOption = this._options[this._lastValidIndex]!;
+              this._updateContent(lastActiveOption._content!);
+              this._options.forEach((opt, i) => {
+                opt._toggleActive(i === this._lastValidIndex);
+              });
+            } else if (this._options.length > 0) {
+              this._lastValidIndex = 0;
+              const firstOption = this._options[0]!;
+              this._updateContent(firstOption._content!);
+              this._options.forEach((opt, i) => {
+                opt._toggleActive(i === 0);
+              });
+              storage.store(this._getStorageKey(), 0);
+            }
           }
         } else if (this._id?.startsWith("right")) {
           if (!_state.right) {
             this._parentEl.innerHTML = "";
             this._options.forEach((opt) => opt._toggleActive(false));
             storage.store(this._getStorageKey(), -1);
-          } else if (
-            this._lastValidIndex >= 0 &&
-            this._lastValidIndex < this._options.length
-          ) {
-            const lastActiveOption = this._options[this._lastValidIndex]!;
-            this._updateContent(lastActiveOption._content!);
-            this._options.forEach((opt, i) => {
-              opt._toggleActive(i === this._lastValidIndex);
-            });
+          } else {
+            if (
+              this._lastValidIndex >= 0 &&
+              this._lastValidIndex < this._options.length
+            ) {
+              const lastActiveOption = this._options[this._lastValidIndex]!;
+              this._updateContent(lastActiveOption._content!);
+              this._options.forEach((opt, i) => {
+                opt._toggleActive(i === this._lastValidIndex);
+              });
+            } else if (this._options.length > 0) {
+              this._lastValidIndex = 0;
+              const firstOption = this._options[0]!;
+              this._updateContent(firstOption._content!);
+              this._options.forEach((opt, i) => {
+                opt._toggleActive(i === 0);
+              });
+              storage.store(this._getStorageKey(), 0);
+            }
           }
         }
       }

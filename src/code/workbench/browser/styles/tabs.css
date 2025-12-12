@@ -5,6 +5,7 @@
   padding: 10px;
   gap: 10px;
   overscroll-behavior: contain;
+  overflow: hidden;
   outline: none;
 }
 

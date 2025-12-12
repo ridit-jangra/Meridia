@@ -45,3 +45,7 @@ watch(
 
 export const _drawboard = new Drawboard();
 _addContent("tab://drawboard", _drawboard.getDomElement()!);
+
+setTimeout(() => {
+  _xtermManager._update();
+}, 600);
