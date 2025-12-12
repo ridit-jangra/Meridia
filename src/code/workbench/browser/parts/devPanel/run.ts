@@ -240,7 +240,15 @@ export class Run extends CoreEl {
       process = project_details.venv.python;
     }
 
-    const command = `"${process}" "${_path}"`;
+    const platform = window.node.platform;
+
+    let command;
+
+    if (platform === "win32") {
+      command = `& "${process}" "${_path}"`;
+    } else {
+      command = `"${process}" "${_path}"`;
+    }
 
     await _xtermManager._run(tabId, command, path.dirname(_path));
     this._set(tabId, "running");

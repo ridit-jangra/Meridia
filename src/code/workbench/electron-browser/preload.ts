@@ -4,7 +4,7 @@ import os from "os";
 import url from "url";
 import xlsx from "xlsx";
 import { spawn, SpawnOptions, SpawnOptionsWithoutStdio } from "child_process";
-import { contextBridge, ipcRenderer, shell } from "electron";
+import { clipboard, contextBridge, ipcRenderer, shell } from "electron";
 import {
   createServerProcess,
   forward,
@@ -343,50 +343,6 @@ export const nodeBridge = {
   forward: (_client: IConnection, _server: IConnection) => {
     return forward(_client, _server);
   },
-  // createLanguageServer: (
-  //   _port: number,
-  //   _nodeCliPath: string,
-  //   _websocketOptions: ServerOptions,
-  //   _args: string[],
-  //   _type: "node" | "cli",
-  //   _cliPath?: string
-  // ) => {
-  //   let _process: IConnection | undefined;
-  //   const _websocket = new WebSocketServer(_websocketOptions);
-  //   _websocket.on("connection", (webSocket) => {
-  //     const socket = {
-  //       send: (content: any) => webSocket.send(content),
-  //       onMessage: (cb: any) => webSocket.on("message", cb),
-  //       onError: (cb: any) => webSocket.on("error", cb),
-  //       onClose: (cb: any) => webSocket.on("close", cb),
-  //       dispose: () => webSocket.close(),
-  //     };
-
-  //     const connection = createWebSocketConnection(socket);
-
-  //     _process = createServerProcess(
-  //       "Language Server",
-  //       _type === "node" ? process.execPath : _cliPath!,
-  //       _type === "node" ? [_nodeCliPath, ..._args] : _args,
-  //       {
-  //         stdio: ["pipe", "pipe", "pipe"],
-  //         env:
-  //           _type === "node"
-  //             ? {
-  //                 ...process.env,
-  //                 ELECTRON_RUN_AS_NODE: "1",
-  //               }
-  //             : process.env,
-  //       }
-  //     );
-
-  //     forward(connection, _process!);
-
-  //     webSocket.on("close", () => {});
-  //   });
-
-  //   return _process;
-  // },
   createLanguageServer: (
     _port: number,
     _server: string,
@@ -467,6 +423,10 @@ export const pypiBridge = {
 export const workbenchBridge = {
   reload: () => {
     ipcRenderer.invoke("workbench.reload");
+  },
+  clipboard: {
+    writeText: (text: string) => clipboard.writeText(text),
+    readText: () => clipboard.readText(),
   },
 };
 
