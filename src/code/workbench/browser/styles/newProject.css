@@ -12,6 +12,7 @@
   );
   z-index: 50;
   transform: translate(-50%, -50%);
+  border: 1px solid var(--workbench-border-foreground);
   border-radius: 12px;
   overflow: hidden;
 }

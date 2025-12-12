@@ -101,7 +101,7 @@ export const Light: ITheme = {
     "workbench.terminal.bright.black": "#6a737d",
     "workbench.terminal.bright.red": "#cb2431",
     "workbench.terminal.bright.green": "#28a745",
-    "workbench.terminal.bright.yellow": "#dbab09",
+    "workbench.terminal.bright.yellow": "#bf9405",
     "workbench.terminal.bright.blue": "#2188ff",
     "workbench.terminal.bright.magenta": "#8a63d2",
     "workbench.terminal.bright.cyan": "#0397d3",
