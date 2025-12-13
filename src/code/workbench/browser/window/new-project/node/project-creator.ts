@@ -61,12 +61,6 @@ if  __name__ == "__main__":
     const configFile = path.join(meridiaPath, "editor.json");
     fs.writeFileSync(configFile, JSON.stringify(config, null, 2), "utf8");
 
-    if (venv) {
-      child_process.execSync(
-        "python -m venv " + `"${path.join(fullPath, ".venv")}"`
-      );
-    }
-
     workbench.webContents.send(
       "workbench.workspace.project.python.empty.complete",
       fullPath

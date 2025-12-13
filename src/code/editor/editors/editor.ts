@@ -1016,7 +1016,33 @@ export class Editor {
     } catch (err) {}
   }
 
-  public _close(uriString: string) {
+  async restart() {
+    console.log("Restarting editor language servers...");
+
+    this._clients.forEach((client, port) => {
+      try {
+        client.stop();
+        console.log(`Stopped LSP client on port ${port}`);
+      } catch (error) {
+        console.error(`Error stopping client ${port}:`, error);
+      }
+    });
+    this._clients.clear();
+
+    this._previousMarkers.clear();
+
+    const openTabs = this._tabs.filter((tab) => !tab.uri.endsWith(".md"));
+    for (const tab of openTabs) {
+      const extension = path.extname(tab.uri).substring(1);
+      await this._setupClientForLanguage(extension);
+    }
+
+    this._updateProblemCount();
+
+    console.log("Editor language servers restarted");
+  }
+
+  _close(uriString: string) {
     const key = this._normalizePath(uriString);
     const model = this._models.get(key);
     if (!model) return;

@@ -311,7 +311,8 @@ export interface IExtension {
 }
 
 export interface IExtensionModule {
-  activate?(api: any): void;
+  activate(context: any): void;
+  deactivate(context: any): void;
 }
 
 export interface IPoint {

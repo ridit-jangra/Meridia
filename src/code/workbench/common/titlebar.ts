@@ -3,8 +3,37 @@ import { select } from "./store/selector.js";
 import { update_panel_state } from "./store/slice.js";
 import { getStandalone } from "./class.js";
 import { Editor } from "../../editor/editors/editor.js";
+import { getThemeIcon } from "../browser/media/icons.js";
 
 const ipcRenderer = window.ipc;
+
+export function addInformation(title: string) {
+  const titlebar = document.querySelector(".titlebar.top") as HTMLDivElement;
+  const informationSection = titlebar.querySelector(
+    ".information-section"
+  ) as HTMLDivElement;
+
+  const el = document.createElement("div");
+  el.className = "section";
+
+  const loadingIcon = document.createElement("span");
+  loadingIcon.className = "loading";
+  loadingIcon.innerHTML = getThemeIcon("loader");
+
+  const titleEl = document.createElement("span");
+  titleEl.textContent = title;
+
+  el.appendChild(loadingIcon);
+  el.appendChild(titleEl);
+
+  informationSection.appendChild(el);
+
+  return el;
+}
+
+export function removeInformation(el: HTMLDivElement) {
+  el.remove();
+}
 
 document.addEventListener("workbench.workspace.toggle.action", (_event) => {
   const _customEvent = _event as CustomEvent;

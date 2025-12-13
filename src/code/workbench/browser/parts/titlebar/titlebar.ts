@@ -32,7 +32,7 @@ export class Titlebar extends CoreEl {
 
   private _createEl(): void {
     this._el = document.createElement("div");
-    this._el.className = "titlebar";
+    this._el.className = "titlebar top";
 
     const leftPanelSection = document.createElement("div");
     leftPanelSection.className = "left-panel-section";
@@ -96,6 +96,9 @@ export class Titlebar extends CoreEl {
 
     const menuOptionsContainer = document.createElement("div");
     menuOptionsContainer.className = "menu-options-container";
+
+    const informationSection = document.createElement("div");
+    informationSection.className = "information-section";
 
     const settings = new PanelOption(
       null as any,
@@ -183,6 +186,7 @@ export class Titlebar extends CoreEl {
     menuOptionsContainer.appendChild(debugOption.getDomElement()!);
     menuOptionsContainer.appendChild(settings.getDomElement()!);
 
+    rightControlsSection.appendChild(informationSection);
     rightControlsSection.appendChild(menuOptionsContainer);
 
     this._el.appendChild(leftPanelSection);

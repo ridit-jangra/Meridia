@@ -246,6 +246,45 @@
   height: auto;
 }
 
+.code .titlebar .right-panel-section .information-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.code .titlebar .right-panel-section .information-section .section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  border-radius: 6px;
+  gap: 4px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.code .titlebar .right-panel-section .information-section .section svg {
+  display: flex;
+  width: 18px;
+  height: auto;
+  animation: spin 1.5s linear infinite;
+  animation-direction: reverse;
+  transform-origin: center;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.code .titlebar .right-panel-section .information-section .section:hover {
+  background: var(--workbench-titlebar-item-hover-background);
+}
+
 .code .titlebar .right-panel-section .menu-options-container {
   display: flex;
   align-items: center;

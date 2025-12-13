@@ -6,6 +6,7 @@ import { Theme } from "../common/theme.js";
 import "../node/files.js";
 import "../node/filesCreate.js";
 import "../node/format.js";
+import "../node/node.js";
 import "../node/init.js";
 import "../node/pty.js";
 import "../node/project.js";
