@@ -253,6 +253,7 @@
 }
 
 .code .titlebar .right-panel-section .information-section .section {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -260,6 +261,9 @@
   border-radius: 6px;
   gap: 4px;
   font-size: 16px;
+}
+
+.code .titlebar .right-panel-section .information-section .section .title {
   cursor: pointer;
 }
 
@@ -283,6 +287,32 @@
 
 .code .titlebar .right-panel-section .information-section .section:hover {
   background: var(--workbench-titlebar-item-hover-background);
+}
+
+.code
+  .titlebar
+  .right-panel-section
+  .information-section
+  .section
+  .log-container {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 4px;
+  background: color-mix(
+    in srgb,
+    var(--workbench-panel-background) 98%,
+    white 2%
+  );
+  box-shadow: 0px 8px 30px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--workbench-border-foreground);
+  border-radius: 6px;
+  padding: 8px;
+  width: 30vw;
+  height: 30vh;
+  z-index: 1000;
+  visibility: visible;
 }
 
 .code .titlebar .right-panel-section .menu-options-container {

@@ -35,10 +35,6 @@ ipcMain.handle(
         "workbench.workspace.install.log",
         error.message
       );
-      workbench.webContents.send(
-        "workbench.workspace.install.complete",
-        error.message
-      );
     });
   }
 );

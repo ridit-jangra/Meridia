@@ -21,10 +21,21 @@ export function addInformation(title: string) {
   loadingIcon.innerHTML = getThemeIcon("loader");
 
   const titleEl = document.createElement("span");
+  titleEl.className = "title";
   titleEl.textContent = title;
+
+  const logContainer = document.createElement("div");
+  logContainer.className = "log-container scrollbar-container x-disable";
 
   el.appendChild(loadingIcon);
   el.appendChild(titleEl);
+  el.appendChild(logContainer);
+
+  titleEl.onclick = () => {
+    if (logContainer.style.visibility === "hidden")
+      logContainer.style.visibility = "visible";
+    else logContainer.style.visibility = "hidden";
+  };
 
   informationSection.appendChild(el);
 
