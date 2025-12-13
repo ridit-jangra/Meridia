@@ -1,4 +1,7 @@
 import { context } from "../../../src/code/platform/extension/common/context.js";
+import { ILanguageServerConfig } from "../../../src/code/platform/extension/types.js";
+
+let _server: ILanguageServerConfig;
 
 export function activate(context: context) {
   try {
@@ -24,7 +27,7 @@ export function activate(context: context) {
       _win ? _winPath : _otherPath
     );
 
-    const _server = context.workbench.workspace.language.createLanguageServer(
+    _server = context.workbench.workspace.language.createLanguageServer(
       "rust-analyzer",
       "rs",
       _port,
@@ -35,4 +38,8 @@ export function activate(context: context) {
 
     context.workbench.workspace.language.registerLanguageServer(_server);
   } catch (err) {}
+}
+
+export function deactivate(context: context) {
+  context.workbench.workspace.language.stopLanguageServer(_server.connection);
 }

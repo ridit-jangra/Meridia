@@ -77,12 +77,9 @@ export class Download extends Message {
       ".button-wrapper"
     ) as HTMLDivElement;
 
-    window.ipc.on(
-      "workbench.workspace.install.log",
-      (_: any, log: { type: string; message: string }) => {
-        this._appendLog(log);
-      }
-    );
+    window.ipc.on("workbench.workspace.install.log", (_: any, log: string) => {
+      this._appendLog(log);
+    });
 
     window.ipc.on("workbench.workspace.install.complete", () => {
       buttonWrapper.style.display = "flex";
@@ -108,17 +105,17 @@ export class Download extends Message {
     window.ipc.invoke("workbench.workspace.install", this.command, this.args);
   }
 
-  private _appendLog(log: { type: string; message: string }) {
+  private _appendLog(log: string) {
     if (!this.logContainer) return;
 
     const logEntry = document.createElement("div");
-    logEntry.className = `log-entry log-${log.type}`;
+    logEntry.className = `log-entry`;
 
     const timestamp = new Date().toLocaleTimeString();
 
     logEntry.innerHTML = `
       <span class="log-time">[${timestamp}]</span>
-      <span class="log-message">${this._escapeHtml(log.message)}</span>
+      <span class="log-message">${this._escapeHtml(log)}</span>
     `;
 
     this.logContainer.appendChild(logEntry);

@@ -57,6 +57,12 @@ export class Extension {
     }
   }
 
+  _deactivate(ext: IExtensionModule) {
+    if (ext.deactivate) {
+      ext.deactivate(_context);
+    }
+  }
+
   _execute(name: string) {
     if (commands.get(name)) {
       commands.get(name)!();
@@ -64,6 +70,11 @@ export class Extension {
   }
 
   async restart() {
+    console.log("restarting");
+    this._extensionsModules.forEach((module) => {
+      this._deactivate(module);
+    });
+
     this._extensions = [];
     this._extensionsModules = [];
 

@@ -1,7 +1,10 @@
 import { IConnection } from "vscode-ws-jsonrpc/server";
 import { ServerOptions } from "ws";
 import { ILanguageServerConfig } from "../types";
-import { registerLanguageServer } from "../../editor/languages";
+import {
+  getLanguageServer,
+  registerLanguageServer,
+} from "../../editor/languages";
 import { select } from "../../../workbench/common/store/selector";
 
 export const api = {

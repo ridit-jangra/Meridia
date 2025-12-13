@@ -1,4 +1,7 @@
 import { context } from "../../../src/code/platform/extension/common/context.js";
+import { ILanguageServerConfig } from "../../../src/code/platform/extension/types.js";
+
+let _server: ILanguageServerConfig;
 
 export function activate(context: context) {
   try {
@@ -19,7 +22,7 @@ export function activate(context: context) {
       "server.py"
     );
 
-    const _server = context.workbench.workspace.language.createLanguageServer(
+    _server = context.workbench.workspace.language.createLanguageServer(
       "pylsp",
       "py",
       _port,
@@ -34,4 +37,8 @@ export function activate(context: context) {
   } catch (err) {
     console.error("extension error", err);
   }
+}
+
+export function deactivate(context: context) {
+  context.workbench.workspace.language.stopLanguageServer(_server.connection);
 }
