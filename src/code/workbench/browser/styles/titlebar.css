@@ -295,6 +295,8 @@
   .information-section
   .section
   .log-container {
+  display: flex;
+  flex-direction: column;
   position: absolute;
   top: 100%;
   left: 50%;
@@ -312,7 +314,7 @@
   width: 30vw;
   height: 30vh;
   z-index: 1000;
-  visibility: visible;
+  visibility: hidden;
 }
 
 .code .titlebar .right-panel-section .menu-options-container {
