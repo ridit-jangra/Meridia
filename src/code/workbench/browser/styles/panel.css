@@ -23,7 +23,7 @@
   align-items: center;
   justify-content: center;
   width: 100% !important;
-  gap: 4px;
+  gap: 8px;
   margin: 10px 0;
   overflow: hidden;
 }
@@ -34,13 +34,13 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 6px;
+  padding: 3px;
   border-radius: 9px;
 }
 
 .left-panel-options span.active,
 .right-panel-options span.active {
-  background: var(--workbench-panel-options-active-background);
+  background: var(--workbench-activitybar-active-background);
   font-weight: 600;
 }
 
@@ -52,7 +52,7 @@
 
 .code .left-panel-options span:not(.active):hover,
 .code .right-panel-options span:not(.active):hover {
-  background: var(--workbench-panel-options-hover-background);
+  background: var(--workbench-activitybar-hover-background);
 }
 
 .code .panel.bottom-panel {
