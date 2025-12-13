@@ -38,7 +38,7 @@ async function _init() {
       "Virtual enviornment is being created..."
     );
 
-    const information = addInformation("Creatial virtual env");
+    const information = addInformation("Creating virtual env");
 
     runCommand(
       command,

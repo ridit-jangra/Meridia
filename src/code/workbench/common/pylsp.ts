@@ -1,6 +1,7 @@
 import { _editor } from "../../editor/editors/editor.js";
 import { _extensions } from "../../platform/extension/common/extension.js";
 import { IProjectDetails } from "../workbench.types.js";
+import { _xtermManager } from "./devPanel/spawnXterm.js";
 import { runInstall } from "./process.js";
 import { addInformation, removeInformation } from "./titlebar.js";
 
@@ -14,6 +15,9 @@ export async function install(project_details: IProjectDetails) {
 
     if (!result) {
       const informationEl = addInformation("Installing pylsp");
+      const logContainer = informationEl.querySelector(
+        ".log-container"
+      ) as HTMLDivElement;
 
       runInstall(
         project_details.venv.python,
@@ -23,7 +27,11 @@ export async function install(project_details: IProjectDetails) {
           await _editor.restart();
           removeInformation(informationEl);
         },
-        () => {}
+        (log: string) => {
+          const logEl = document.createElement("span");
+          logEl.textContent = log;
+          logContainer.appendChild(logEl);
+        }
       );
     }
   } else {
@@ -37,6 +45,9 @@ export async function install(project_details: IProjectDetails) {
 
     if (!result) {
       const informationEl = addInformation("Installing pylsp");
+      const logContainer = informationEl.querySelector(
+        ".log-container"
+      ) as HTMLDivElement;
 
       runInstall(
         "python",
@@ -46,7 +57,11 @@ export async function install(project_details: IProjectDetails) {
           await _editor.restart();
           removeInformation(informationEl);
         },
-        () => {}
+        (log: string) => {
+          const logEl = document.createElement("span");
+          logEl.textContent = log;
+          logContainer.appendChild(logEl);
+        }
       );
     }
   }
@@ -63,5 +78,6 @@ document.addEventListener(
     );
 
     await install(project_details);
+    _xtermManager._update();
   }
 );
