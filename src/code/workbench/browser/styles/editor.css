@@ -14,6 +14,11 @@
   overflow: hidden;
 }
 
+.code .editor .editor-area .code-editor {
+  height: 100%;
+  width: 100%;
+}
+
 .code .editor .preview-area .preview-content {
   height: 100%;
   width: 100%;

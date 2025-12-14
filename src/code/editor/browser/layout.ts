@@ -26,6 +26,7 @@ export class Editor extends CoreEl {
   private _editorTabs!: HTMLDivElement;
   private _previewTabs!: HTMLDivElement;
   private _editorArea!: HTMLDivElement;
+  private _codeEditor!: HTMLDivElement;
   private _previewArea!: HTMLDivElement;
   private _emptyState!: HTMLDivElement;
   private _contentArea!: HTMLDivElement;
@@ -218,9 +219,15 @@ export class Editor extends CoreEl {
     const extEditor = getStandaloneForExtension(
       window.path.extname(activeTab.uri)
     );
+
+    standalones.forEach((v) => {
+      v._setVisiblity(false);
+    });
+
+    console.log(extEditor, standalones);
+
     if (extEditor) {
       if (editor) editor._visibility(false);
-      standalones.forEach((v) => v._setVisiblity(false));
       extEditor._setVisiblity(true);
       extEditor._open(activeTab.uri);
 
@@ -347,6 +354,9 @@ export class Editor extends CoreEl {
     this._editorArea = document.createElement("div");
     this._editorArea.className = "editor-area";
 
+    this._codeEditor = document.createElement("div");
+    this._codeEditor.className = "code-editor";
+
     this._previewArea = document.createElement("div");
     this._previewArea.className = "preview-area";
 
@@ -357,6 +367,7 @@ export class Editor extends CoreEl {
     this._contentArea.className = "content-area";
 
     this._editorArea.appendChild(this._contentArea);
+    this._editorArea.appendChild(this._codeEditor);
 
     const _editorTabsState = select((s) => s.main.editor_tabs);
 

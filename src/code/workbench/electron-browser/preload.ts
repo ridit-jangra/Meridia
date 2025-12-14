@@ -16,6 +16,8 @@ import { Storage } from "../node/storage.js";
 import { _xtermManager } from "../common/devPanel/spawnXterm.js";
 import { IWebSocket } from "@codingame/monaco-jsonrpc";
 import { IFolderStructure } from "../workbench.types.js";
+import { IKernelConnection } from "@jupyterlab/services/lib/kernel/kernel.js";
+import { ISessionConnection } from "@jupyterlab/services/lib/session/session.js";
 
 const storage = Storage;
 
@@ -430,6 +432,33 @@ export const workbenchBridge = {
   },
 };
 
+// preload/bridge.ts
+export const jupyterBridge = {
+  startKernel: async () => {
+    return await ipcRenderer.invoke("workbench.workspace.start.kernel");
+  },
+  connectToKernel: async (): Promise<{
+    sessionId: string;
+    kernelId: string;
+    status: string;
+  }> => {
+    return await ipcRenderer.invoke("workbench.workspace.connect.kernel");
+  },
+  executeToKernel: async (sessionId: string, code: string) => {
+    return await ipcRenderer.invoke(
+      "workbench.workspace.execute.kernel",
+      sessionId,
+      code
+    );
+  },
+  shutdownSession: async (sessionId: string) => {
+    return await ipcRenderer.invoke(
+      "workbench.workspace.shutdown.session",
+      sessionId
+    );
+  },
+};
+
 window.addEventListener("beforeunload", () => {
   activeWatchers.forEach((watcher, path) => {
     try {
@@ -462,4 +491,5 @@ contextBridge.exposeInMainWorld("url", urlBridge);
 contextBridge.exposeInMainWorld("electron", electronBridge);
 contextBridge.exposeInMainWorld("pypi", pypiBridge);
 contextBridge.exposeInMainWorld("workbench", workbenchBridge);
+contextBridge.exposeInMainWorld("jupyter", jupyterBridge);
 contextBridge.exposeInMainWorld("xlsx", xlsx);

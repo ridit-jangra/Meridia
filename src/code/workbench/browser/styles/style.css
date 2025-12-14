@@ -6,6 +6,7 @@
 @import url("./xterm.css");
 @import url("./widget.css");
 @import url("./editor.css");
+@import url("./jupyter.css");
 @import url("./problem.css");
 @import url("./splitter.css");
 @import url("./titlebar.css");

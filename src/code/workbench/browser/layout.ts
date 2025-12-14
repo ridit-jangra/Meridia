@@ -1,5 +1,6 @@
 import "../../editor/editors/imageViewer.js";
 import "../../editor/editors/fontViewer.js";
+import "../../editor/editors/jupyter/browser/notebook.js";
 import { getStandalone, registerStandalone } from "../common/class.js";
 import { Editor as EditorLayout } from "../../editor/browser/layout.js";
 import { Files } from "./files.js";
@@ -23,6 +24,7 @@ import { FontViewer } from "../../editor/editors/fontViewer.js";
 import { getThemeIcon } from "./media/icons.js";
 import { _newProject } from "./window/new-project/browser/new-project.js";
 import { Extensions } from "./extensions.js";
+import { Notebook } from "../../editor/editors/jupyter/browser/notebook.js";
 
 export class Layout {
   constructor() {
@@ -186,6 +188,11 @@ export class Layout {
       const _fontViewer = getStandalone("font-viewer") as FontViewer;
       if (_fontViewer) {
         _fontViewer._mount();
+      }
+
+      const _notebook = getStandalone("jupyter-notebook") as Notebook;
+      if (_notebook) {
+        _notebook._mount();
       }
 
       _drawboard._updateCanvasSize();

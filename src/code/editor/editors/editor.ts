@@ -27,10 +27,10 @@ import {
 } from "../../workbench/common/class.js";
 import { DevPanelTabs } from "../../workbench/browser/parts/devPanel/tabs.js";
 import { getThemeIcon } from "../../workbench/browser/media/icons.js";
+import { _clients } from "../common/langserver.js";
 
 const fs = window.fs;
 const path = window.path;
-const python = window.python;
 
 Object.assign(window, {
   MonacoEnvironment: {
@@ -55,12 +55,11 @@ MonacoServices.install(monaco as any);
 export class Editor {
   private _tabs: IEditorTab[] = [];
   public _editor!: monaco.editor.IStandaloneCodeEditor;
-  private _layout = document.querySelector(".editor-area") as HTMLElement;
+  private _layout = document.querySelector(".code-editor") as HTMLElement;
   private _preview!: HTMLDivElement;
   private _detailsElement?: HTMLElement;
   private _problemsCountElement?: HTMLElement;
 
-  private _clients = new Map<number, MonacoLanguageClient>();
   private _models = new Map<string, monaco.editor.ITextModel>();
   private _watchers = new Map<string, any>();
   private _updating = false;
@@ -335,8 +334,8 @@ export class Editor {
         const ext = model.uri.path.split(".").pop() || "";
         const port = getLanguageServer(ext);
 
-        if (port && this._clients.has(port)) {
-          const client = this._clients.get(port)!;
+        if (port && _clients.has(port)) {
+          const client = _clients.get(port)!;
 
           const definitions = (await client.sendRequest(
             "textDocument/definition",
@@ -391,12 +390,64 @@ export class Editor {
   }
 
   private _ensure() {
-    const editorElement = document.querySelector(".monaco-editor");
+    const editorElement = this._layout.querySelector(".monaco-editor");
     const needsMount = !this._editor || !this._mounted || !editorElement;
 
     if (needsMount) {
       this._mount();
     }
+  }
+
+  private _cleanupLayoutElements() {
+    const existingPreviews = this._layout.querySelectorAll(".preview");
+    existingPreviews.forEach((el) => el.remove());
+
+    const existingDetails = this._layout.querySelectorAll(".details");
+    existingDetails.forEach((el) => el.remove());
+
+    const noneDivs = this._layout.querySelectorAll(".none-div");
+    noneDivs.forEach((el) => el.remove());
+
+    this._preview = undefined as any;
+    this._detailsElement = undefined as any;
+    this._problemsCountElement = undefined as any;
+  }
+
+  private _createLayoutElements() {
+    // Details container
+    const _detail = document.createElement("div");
+    _detail.className = "details";
+    this._detailsElement = _detail;
+
+    // Problems counter
+    const _problems = document.createElement("div");
+    _problems.className = "problems";
+    _problems.onclick = () => {
+      const _tabs = getStandalone(
+        "workbench.workspace.dev.tab"
+      ) as DevPanelTabs;
+      if (_tabs) _tabs._set("problem");
+    };
+    this._problemsCountElement = _problems;
+    _detail.appendChild(_problems);
+
+    // Preview button
+    this._preview = document.createElement("div");
+    this._preview.className = "preview";
+    this._preview.innerHTML = getThemeIcon("preview");
+    this._preview.onclick = () => {
+      const _tabs = select((s) => s.main.editor_tabs);
+      const _active = _tabs.find((t) => t.active);
+      if (_active) _previewManager._open(_active, this._editor);
+    };
+
+    this._layout.appendChild(_detail);
+    this._layout.appendChild(this._preview);
+  }
+
+  private _togglePreviewVisibility(uri: string) {
+    if (!this._preview) return;
+    this._preview.style.display = uri.endsWith(".md") ? "flex" : "none";
   }
 
   _mount() {
@@ -407,8 +458,10 @@ export class Editor {
       } catch (e) {}
     }
 
+    this._cleanupLayoutElements();
+
     this._editor = monaco.editor.create(this._layout, {
-      theme: "meridia-theme",
+      theme: "meridia-editor-theme",
       automaticLayout: true,
       fontSize: 20,
       fontFamily: "Jetbrains Mono",
@@ -429,36 +482,7 @@ export class Editor {
       codeLens: true,
     });
 
-    const _detail = document.createElement("div");
-    _detail.className = "details";
-
-    const _problems = document.createElement("div");
-    _problems.className = "problems";
-
-    _problems.onclick = () => {
-      const _tabs = getStandalone(
-        "workbench.workspace.dev.tab"
-      ) as DevPanelTabs;
-      if (_tabs) _tabs._set("problem");
-    };
-
-    _detail.appendChild(_problems);
-
-    this._preview = document.createElement("div");
-    this._preview.className = "preview";
-    this._preview.innerHTML = getThemeIcon("preview");
-
-    this._preview.onclick = () => {
-      const _tabs = select((s) => s.main.editor_tabs);
-      const _active = _tabs.find((t) => t.active);
-      if (_active) _previewManager._open(_active, this._editor);
-    };
-
-    this._layout.appendChild(_detail);
-    this._layout.appendChild(this._preview);
-
-    this._detailsElement = _detail;
-    this._problemsCountElement = _problems;
+    this._createLayoutElements();
 
     this._mounted = true;
     this._visibility(false);
@@ -520,12 +544,7 @@ export class Editor {
   }
 
   _visibility(visible: boolean) {
-    const editorElement = document.querySelector(
-      ".monaco-editor"
-    ) as HTMLDivElement;
-    if (editorElement) {
-      editorElement.style.display = visible ? "flex" : "none";
-    }
+    this._layout.style.display = visible ? "flex" : "none";
   }
 
   private _updateProblemCount() {
@@ -623,7 +642,7 @@ export class Editor {
     if (!port) {
       return;
     }
-    if (this._clients.has(port)) {
+    if (_clients.has(port)) {
       return;
     }
 
@@ -700,9 +719,9 @@ export class Editor {
             const disposable = client.start();
             connection.onClose(() => {
               disposable.dispose();
-              this._clients.delete(port);
+              _clients.delete(port);
             });
-            this._clients.set(port, client);
+            _clients.set(port, client);
           } catch (error) {}
         },
       });
@@ -799,8 +818,8 @@ export class Editor {
 
     const ext = model.uri.path.split(".").pop() || "";
     const port = getLanguageServer(ext);
-    if (!port || !this._clients.has(port)) return null;
-    const client = this._clients.get(port)!;
+    if (!port || !_clients.has(port)) return null;
+    const client = _clients.get(port)!;
 
     try {
       const symbols = (await client.sendRequest("textDocument/documentSymbol", {
@@ -1019,7 +1038,7 @@ export class Editor {
   async restart() {
     console.log("Restarting editor language servers...");
 
-    this._clients.forEach((client, port) => {
+    _clients.forEach((client, port) => {
       try {
         client.stop();
         console.log(`Stopped LSP client on port ${port}`);
@@ -1027,7 +1046,7 @@ export class Editor {
         console.error(`Error stopping client ${port}:`, error);
       }
     });
-    this._clients.clear();
+    _clients.clear();
 
     this._previousMarkers.clear();
 
@@ -1110,12 +1129,12 @@ export class Editor {
     this._actionsDisposable?.dispose();
     this._markerChangeListener?.dispose();
 
-    this._clients.forEach((client) => {
+    _clients.forEach((client) => {
       try {
         client.stop();
       } catch {}
     });
-    this._clients.clear();
+    _clients.clear();
 
     this._previousMarkers.clear();
 

@@ -124,6 +124,11 @@ export const Light: ITheme = {
     "workbench.drawboard.tools.tool.active.background": "#007acc",
     "workbench.drawboard.tools.tool.hover.background": "#e1f4ff",
     "workbench.drawboard.tools.tool.active.border.foreground": "#005a9e",
+
+    "workbench.jupyter.notebook.background": "#f3f3f3",
+    "workbench.jupyter.notebook.tools.background": "#f3f3f3",
+    "workbench.jupyter.notebook.tools.hover.background": "#e0e0e0",
+    "workbench.jupyter.notebook.active.cell.border.foreground": "#2188ff",
   },
   tokenColors: {
     default: "#333333",
@@ -267,6 +272,9 @@ export const Dark: ITheme = {
     "workbench.drawboard.tools.tool.active.background": "#0e5098",
     "workbench.drawboard.tools.tool.hover.background": "#142f4d",
     "workbench.drawboard.tools.tool.active.border.foreground": "#0a3a73",
+    "workbench.jupyter.notebook.background": "#131416",
+    "workbench.jupyter.notebook.tools.background": "#252629",
+    "workbench.jupyter.notebook.tools.hover.background": "#363739",
   },
   tokenColors: {
     default: "#abb2bf",
