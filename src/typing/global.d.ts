@@ -17,6 +17,7 @@ import xlsx, {
   electronBridge,
   pypiBridge,
   workbenchBridge,
+  jupyterBridge,
 } from "../code/workbench/electron-browser/preload.js";
 
 declare global {
@@ -36,6 +37,7 @@ declare global {
     electron: typeof electronBridge;
     pypi: typeof pypiBridge;
     workbench: typeof workbenchBridge;
+    jupyter: typeof jupyterBridge;
     xlsx: typeof xlsx;
   }
 }

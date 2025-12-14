@@ -150,6 +150,14 @@ export const tokensToCssVariables: Record<IThemeColors, string> = {
     "--workbench-drawboard-tools-tool-hover-background",
   "workbench.drawboard.tools.tool.active.border.foreground":
     "--workbench-drawboard-tools-tool-active-border-foreground",
+  "workbench.jupyter.notebook.background":
+    "--workbench-jupyter-notebook-background",
+  "workbench.jupyter.notebook.tools.background":
+    "--workbench-jupyter-notebook-tools-background",
+  "workbench.jupyter.notebook.tools.hover.background":
+    "--workbench-jupyter-notebook-tools-hover-background",
+  "workbench.jupyter.notebook.active.cell.border.foreground":
+    "--workbench-jupyter-notebook-active-cell-border-foreground",
 };
 
 export function parseTokensToCssVariables(

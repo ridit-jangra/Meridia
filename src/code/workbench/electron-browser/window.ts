@@ -16,6 +16,7 @@ import "../node/python.js";
 import "../node/watcher.js";
 import "../browser/window/new-project/node/project-creator.js";
 import "../../platform/messagebox/node/message.js";
+import "../../editor/editors/jupyter/node/kernel.js";
 
 dotenv.config();
 

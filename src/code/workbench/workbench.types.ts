@@ -148,6 +148,10 @@ export const ThemeColors = [
   "workbench.drawboard.tools.tool.active.border.foreground",
   "workbench.drawboard.canvas.grid.background",
   "workbench.drawboard.canvas.stroke.foreground",
+  "workbench.jupyter.notebook.background",
+  "workbench.jupyter.notebook.tools.background",
+  "workbench.jupyter.notebook.tools.hover.background",
+  "workbench.jupyter.notebook.active.cell.border.foreground",
 ] as const;
 
 export type IThemeColors = (typeof ThemeColors)[number];
@@ -367,4 +371,9 @@ export interface IPyPIPackage {
   version: string;
   downloads: number;
   readme: string;
+}
+
+export interface INotebookSection {
+  code: string;
+  output: string;
 }
