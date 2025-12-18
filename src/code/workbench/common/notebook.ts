@@ -26,7 +26,6 @@ export async function install(project_details: IProjectDetails) {
         (log: string) => {
           const logEl = document.createElement("span");
           logEl.textContent = log;
-          console.log(log);
           logContainer.appendChild(logEl);
         }
       );

@@ -141,3 +141,25 @@
 .code .jupyter-notebook .book .cell-tree .cell .cell-tools span:hover {
   background: var(--workbench-jupyter-notebook-tools-hover-background);
 }
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .cell-editor
+  .view-overlays
+  .current-line {
+  background-color: var(--workbench-editor-background) !important;
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .cell-editor
+  .margin-view-overlays
+  .current-line-margin {
+  background-color: var(--workbench-editor-background) !important;
+}

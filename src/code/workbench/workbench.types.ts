@@ -1,3 +1,4 @@
+import monaco from "../editor/common/utils.js";
 import { Terminal as XTerm } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 
@@ -376,4 +377,76 @@ export interface IPyPIPackage {
 export interface INotebookSection {
   code: string;
   output: string;
+}
+
+export interface ICell {
+  cell_type: "markdown" | "code";
+  id: string;
+  metadata: Record<string, any>;
+  source: string[];
+  outputs?: IOutput[];
+  execution_count?: number | null;
+}
+
+export interface IOutput {
+  output_type: "stream" | "display_data" | "execute_result" | "error";
+
+  name?: "stdout" | "stderr";
+  text?: string | string[];
+
+  data?: {
+    "text/plain"?: string | string[];
+    "text/html"?: string | string[];
+    "text/markdown"?: string | string[];
+    "text/latex"?: string | string[];
+    "application/json"?: any;
+    "application/javascript"?: string | string[];
+    "image/png"?: string;
+    "image/jpeg"?: string;
+    "image/svg+xml"?: string | string[];
+    "application/pdf"?: string;
+    [mimeType: string]: any;
+  };
+  metadata?: Record<string, any>;
+  execution_count?: number | null;
+
+  ename?: string;
+  evalue?: string;
+  traceback?: string[];
+}
+
+export interface INotebook {
+  cells: ICell[];
+  metadata: {
+    kernelspec?: {
+      display_name: string;
+      language: string;
+      name: string;
+    };
+    language_info?: {
+      name: string;
+      version?: string;
+      mimetype?: string;
+      file_extension?: string;
+      pygments_lexer?: string;
+      codemirror_mode?: {
+        name: string;
+        version?: number;
+      };
+      nbconvert_exporter?: string;
+    };
+    [key: string]: any;
+  };
+  nbformat: 4;
+  nbformat_minor: 4 | 5;
+}
+
+export interface ISelectedCell {
+  cell: ICell;
+  editor: monaco.editor.IStandaloneCodeEditor;
+  cellEl: HTMLDivElement;
+  editorEl: HTMLDivElement;
+  outputEl: HTMLDivElement;
+  previewEl: HTMLDivElement;
+  index: number;
 }

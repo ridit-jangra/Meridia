@@ -17,32 +17,24 @@ export class Notebook extends Standalone {
 
     const _layout = document.querySelector(".editor-area") as HTMLElement;
     if (!_layout) {
-      console.error("Editor area not found!");
       return;
     }
 
     this._notebook = document.createElement("div");
     this._notebook.className = "jupyter-notebook";
-    this._notebook.style.display = "none"; // ✅ Start hidden
+    this._notebook.style.display = "none";
 
     _layout.appendChild(this._notebook);
 
-    // ✅ Register AFTER creating the element
     addStandaloneForExtension(this._extensions, this);
 
     this._isMounted = true;
-
-    console.log("✅ Notebook mounted and hidden");
   }
 
   async _open(filePath: string) {
-    // ✅ Ensure mounted before opening
     if (!this._isMounted) {
-      console.warn("Notebook not mounted, mounting now...");
       await this._mount();
     }
-
-    console.log("📖 Opening notebook:", filePath);
 
     this._notebook.innerHTML = "";
 
@@ -52,40 +44,28 @@ export class Notebook extends Standalone {
 
     if (existingBook) {
       book = existingBook;
-      console.log("Using existing book");
     } else {
       book = new Book(filePath);
       await book.mount();
       this.books.set(filePath, book);
-      console.log("Created new book");
     }
 
     this._notebook.appendChild(book.getElement());
   }
 
   _close() {
-    console.log("❌ Closing notebook");
     this._notebook.innerHTML = "";
   }
 
   _setVisiblity(visible: boolean) {
     if (!this._isMounted || !this._notebook) {
-      console.warn(
-        "⚠️ Notebook element not initialized, cannot set visibility"
-      );
       return;
     }
-
-    console.log(
-      `👁️ Setting notebook visibility: ${visible ? "VISIBLE" : "HIDDEN"}`
-    );
 
     this._notebook.style.display = visible ? "flex" : "none";
   }
 
   dispose() {
-    console.log("🗑️ Disposing notebook");
-
     this.books.forEach((book) => {
       book.dispose();
     });
