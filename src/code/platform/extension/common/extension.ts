@@ -70,7 +70,6 @@ export class Extension {
   }
 
   async restart() {
-    console.log("restarting");
     this._extensionsModules.forEach((module) => {
       this._deactivate(module);
     });

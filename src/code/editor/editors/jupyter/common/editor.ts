@@ -1,33 +1,19 @@
 import monaco from "../../../common/utils.js";
 import "../../../common/icons.js";
-import {
-  CloseAction,
-  createConnection,
-  ErrorAction,
-  MonacoLanguageClient,
-  MonacoServices,
-} from "monaco-languageclient";
-import { listen } from "@codingame/monaco-jsonrpc";
-import { registerTheme } from "../../../common/theme.js";
 import { getLanguage } from "../../../../workbench/common/utils.js";
-import { getLanguageServer } from "../../../../platform/editor/languages.js";
-import { _clients } from "../../../common/langserver.js";
+import { NotebookLSP } from "./notebookLsp.js";
 
 const path = window.path;
 
-MonacoServices.install(monaco as any);
-
 export class CellEditor {
   public _editor!: monaco.editor.IStandaloneCodeEditor;
-
   private _models = new Map<string, monaco.editor.ITextModel>();
-
   private _mounted = false;
-  private _registeredProviders = new Map<string, monaco.IDisposable>();
+  private _cellId?: string;
+  private _cellIndex?: number;
+  private _modelChangeListener?: monaco.IDisposable;
 
-  constructor(private _layout: HTMLDivElement) {
-    registerTheme(monaco);
-  }
+  constructor(private _layout: HTMLDivElement) {}
 
   private _normalizePath(p: string) {
     return p.toLowerCase().replace(/\//g, "\\");
@@ -70,80 +56,18 @@ export class CellEditor {
       codeLens: true,
       scrollBeyondLastLine: false,
       wordWrap: "on",
+      extraEditorClassName: "cell-editor",
     });
 
     this._mounted = true;
   }
 
-  private async _setupClientForLanguage(extension: string) {
-    const port = getLanguageServer(extension);
-
-    if (!port) {
-      return;
-    }
-    if (_clients.has(port)) {
-      return;
-    }
-
-    try {
-      const webSocket = new WebSocket(`ws://localhost:${port}`);
-
-      listen({
-        webSocket,
-        onConnection: (connection) => {
-          const monacoLanguageId = getLanguage(extension);
-
-          const client = new MonacoLanguageClient({
-            name: `Language Client for ${extension} (port ${port})`,
-            clientOptions: {
-              documentSelector: [{ language: monacoLanguageId }],
-              errorHandler: {
-                error: () => ErrorAction.Continue,
-                closed: () => CloseAction.DoNotRestart,
-              },
-              initializationOptions: {
-                pylsp: {
-                  plugins: {
-                    pyflakes: { enabled: true },
-                    pycodestyle: { enabled: false },
-                    pydocstyle: { enabled: false },
-                  },
-                },
-              },
-            },
-            connectionProvider: {
-              get: (errorHandler, closeHandler) =>
-                Promise.resolve(
-                  createConnection(connection, errorHandler, closeHandler)
-                ),
-            },
-          });
-
-          client
-            .onReady()
-            .then(() => {
-              this._editor.updateOptions({ readOnly: false });
-            })
-            .catch((error) => {
-              this._editor.updateOptions({ readOnly: false });
-            });
-
-          try {
-            const disposable = client.start();
-            connection.onClose(() => {
-              disposable.dispose();
-              _clients.delete(port);
-            });
-            _clients.set(port, client);
-          } catch (error) {}
-        },
-      });
-    } catch (error) {
-      this._editor.updateOptions({ readOnly: false });
-    }
-  }
-
-  async _open(_uri: string, content: string) {
+  async _open(
+    _uri: string,
+    content: string,
+    cellId?: string,
+    cellIndex?: number
+  ) {
     this._ensure();
 
     const key = this._normalizePath(_uri);
@@ -167,10 +91,42 @@ export class CellEditor {
       }
 
       this._models.set(key, model);
+      this._cellId = cellId!;
+      this._cellIndex = cellIndex!;
+
+      if (cellId !== undefined) {
+        (model as any)._cellId = cellId;
+        (model as any)._cellIndex = cellIndex;
+      }
+
+      if (
+        monacoLanguageId === "python" &&
+        cellId !== undefined &&
+        cellIndex !== undefined
+      ) {
+        NotebookLSP.registerCell(cellId, content, cellIndex);
+
+        if (this._modelChangeListener) {
+          this._modelChangeListener.dispose();
+        }
+
+        this._modelChangeListener = model.onDidChangeContent(() => {
+          const newContent = model!.getValue();
+          NotebookLSP.updateCell(cellId, newContent);
+        });
+      }
 
       setTimeout(async () => {
-        await this._setupClientForLanguage(extension);
-      }, 1000);
+        await NotebookLSP.ensureLSPClient(extension);
+      }, 500);
+    } else {
+      this._cellId = cellId!;
+      this._cellIndex = cellIndex!;
+
+      if (cellId !== undefined) {
+        (model as any)._cellId = cellId;
+        (model as any)._cellIndex = cellIndex;
+      }
     }
 
     if (!model.isDisposed()) {
@@ -181,43 +137,37 @@ export class CellEditor {
     return model;
   }
 
-  async restart(extension: string) {
-    _clients.forEach((client, port) => {
-      try {
-        client.stop();
-      } catch (error) {}
-    });
-    _clients.clear();
-
-    await this._setupClientForLanguage(extension);
+  updateCellOrder(cellId: string, newIndex: number) {
+    if (this._cellId === cellId) {
+      this._cellIndex = newIndex;
+      NotebookLSP.updateCellIndex(cellId, newIndex);
+    }
   }
 
   dispose() {
-    this._registeredProviders.forEach((disposable) => {
-      try {
-        disposable.dispose();
-      } catch (error) {}
-    });
-    this._registeredProviders.clear();
+    if (this._modelChangeListener) {
+      this._modelChangeListener.dispose();
+      this._modelChangeListener = undefined as any;
+    }
 
-    this._models.forEach((model) => {
+    if (this._cellId) {
+      NotebookLSP.removeCell(this._cellId);
+    }
+
+    this._models.forEach((model, key) => {
+      delete (model as any)._cellId;
+      delete (model as any)._cellIndex;
+
       if (!model.isDisposed()) {
         model.dispose();
       }
     });
     this._models.clear();
 
-    _clients.forEach((client) => {
-      try {
-        client.stop();
-      } catch {}
-    });
-    _clients.clear();
-
     if (this._editor) {
       try {
         this._editor.dispose();
-      } catch {}
+      } catch (error) {}
     }
 
     this._mounted = false;

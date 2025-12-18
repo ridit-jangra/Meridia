@@ -126,7 +126,7 @@ export class Editor extends CoreEl {
     if (!Array.isArray(tabs) || tabs.length === 0) {
       this._showEmptyEditor();
       if (editor) editor._visibility(false);
-      console.log("hiding", tabs);
+
       return;
     }
 
@@ -223,8 +223,6 @@ export class Editor extends CoreEl {
     standalones.forEach((v) => {
       v._setVisiblity(false);
     });
-
-    console.log(extEditor, standalones);
 
     if (extEditor) {
       if (editor) editor._visibility(false);

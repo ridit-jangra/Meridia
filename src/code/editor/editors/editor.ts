@@ -1,5 +1,6 @@
 import monaco from "../common/utils.js";
 import "monaco-languages";
+import "../common/theme.js";
 import "../common/icons.js";
 import {
   CloseAction,
@@ -10,7 +11,6 @@ import {
 } from "monaco-languageclient";
 import { listen } from "@codingame/monaco-jsonrpc";
 import { IEditorTab, IPreviewTab } from "../../workbench/workbench.types.js";
-import { registerTheme } from "../common/theme.js";
 import { extensionToLanguage } from "../common/utils.js";
 import { _preview as _previewManager } from "../common/preview.js";
 import { getLanguage } from "../../workbench/common/utils.js";
@@ -71,8 +71,6 @@ export class Editor {
   private _previousMarkers = new Map<string, monaco.editor.IMarker[]>();
 
   constructor() {
-    registerTheme(monaco);
-
     this._setupMarkerListener();
   }
 
@@ -461,7 +459,7 @@ export class Editor {
     this._cleanupLayoutElements();
 
     this._editor = monaco.editor.create(this._layout, {
-      theme: "meridia-editor-theme",
+      theme: "meridia-theme",
       automaticLayout: true,
       fontSize: 20,
       fontFamily: "Jetbrains Mono",
@@ -1036,15 +1034,10 @@ export class Editor {
   }
 
   async restart() {
-    console.log("Restarting editor language servers...");
-
     _clients.forEach((client, port) => {
       try {
         client.stop();
-        console.log(`Stopped LSP client on port ${port}`);
-      } catch (error) {
-        console.error(`Error stopping client ${port}:`, error);
-      }
+      } catch (error) {}
     });
     _clients.clear();
 
@@ -1057,8 +1050,6 @@ export class Editor {
     }
 
     this._updateProblemCount();
-
-    console.log("Editor language servers restarted");
   }
 
   _close(uriString: string) {

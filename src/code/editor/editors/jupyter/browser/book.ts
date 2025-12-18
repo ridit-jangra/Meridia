@@ -1,88 +1,16 @@
-import monaco from "../../../common/utils.js";
-import { marked } from "marked";
-import { markedHighlight } from "marked-highlight";
-import hljs from "highlight.js";
-import { baseUrl } from "marked-base-url";
 import { getThemeIcon } from "../../../../workbench/browser/media/icons.js";
-import { CellEditor } from "../common/editor.js";
 import { select } from "../../../../workbench/common/store/selector.js";
 import { dispatch } from "../../../../workbench/common/store/store.js";
 import { update_editor_tabs } from "../../../../workbench/common/store/slice.js";
+import {
+  ICell,
+  INotebook,
+  ISelectedCell,
+} from "../../../../workbench/workbench.types.js";
+import { NotebookCell } from "./cell.js";
 
 const fs = window.fs;
 const jupyter = window.jupyter;
-
-interface ICell {
-  cell_type: "markdown" | "code";
-  id: string;
-  metadata: Record<string, any>;
-  source: string[];
-  outputs?: IOutput[];
-  execution_count?: number | null;
-}
-
-interface IOutput {
-  output_type: "stream" | "display_data" | "execute_result" | "error";
-
-  name?: "stdout" | "stderr";
-  text?: string | string[];
-
-  data?: {
-    "text/plain"?: string | string[];
-    "text/html"?: string | string[];
-    "text/markdown"?: string | string[];
-    "text/latex"?: string | string[];
-    "application/json"?: any;
-    "application/javascript"?: string | string[];
-    "image/png"?: string;
-    "image/jpeg"?: string;
-    "image/svg+xml"?: string | string[];
-    "application/pdf"?: string;
-    [mimeType: string]: any;
-  };
-  metadata?: Record<string, any>;
-  execution_count?: number | null;
-
-  ename?: string;
-  evalue?: string;
-  traceback?: string[];
-}
-
-interface INotebook {
-  cells: ICell[];
-  metadata: {
-    kernelspec?: {
-      display_name: string;
-      language: string;
-      name: string;
-    };
-    language_info?: {
-      name: string;
-      version?: string;
-      mimetype?: string;
-      file_extension?: string;
-      pygments_lexer?: string;
-      codemirror_mode?: {
-        name: string;
-        version?: number;
-      };
-      nbconvert_exporter?: string;
-    };
-    [key: string]: any;
-  };
-  nbformat: 4;
-  nbformat_minor: 4 | 5;
-}
-
-interface ISelectedCell {
-  cell: ICell;
-  editor: monaco.editor.IStandaloneCodeEditor;
-  cellEl: HTMLDivElement;
-  editorEl: HTMLDivElement;
-  outputEl: HTMLDivElement;
-  previewEl: HTMLDivElement;
-  index: number;
-}
 
 export class Book {
   public _root!: HTMLDivElement;
@@ -91,10 +19,11 @@ export class Book {
   private _cellType!: HTMLSelectElement;
   private _selectedCell!: ISelectedCell | undefined;
   private _cells!: ICell[];
-  private _cellTypeChanges: Map<string, string> = new Map();
-  private _renderedCells: Map<string, ISelectedCell> = new Map();
+  private _notebookCells: Map<string, NotebookCell> = new Map();
   private _sessionId: string | null = null;
   private _isKernelReady: boolean = false;
+  private _intersectionObserver?: IntersectionObserver;
+  private _pendingCells: Map<string, { cellEl: HTMLDivElement }> = new Map();
 
   constructor(private filePath: string) {
     try {
@@ -133,7 +62,31 @@ export class Book {
   private _hasCell(cellId: string): boolean {
     return (
       this._cells.some((c) => c.id === cellId) ||
-      this._renderedCells.has(cellId)
+      this._notebookCells.has(cellId)
+    );
+  }
+
+  private _initIntersectionObserver() {
+    this._intersectionObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const cellId = entry.target.getAttribute("data-cell-id");
+            if (cellId && this._pendingCells.has(cellId)) {
+              const pending = this._pendingCells.get(cellId)!;
+              const notebookCell = this._notebookCells.get(cellId);
+              if (notebookCell) {
+                this._initializeCellEditor(notebookCell, pending.cellEl);
+              }
+            }
+          }
+        });
+      },
+      {
+        root: this._tree,
+        rootMargin: "300px",
+        threshold: 0.01,
+      }
     );
   }
 
@@ -141,19 +94,10 @@ export class Book {
     this._root = document.createElement("div");
     this._root.className = "book";
 
-    try {
-      console.log("Starting Jupyter kernel...");
-      await jupyter.startKernel();
+    this._initIntersectionObserver();
 
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      const { sessionId } = await jupyter.connectToKernel();
-      this._sessionId = sessionId;
-      this._isKernelReady = true;
-      console.log("Kernel ready, session:", sessionId);
-    } catch (err) {
-      console.error("Failed to start kernel:", err);
-    }
+    
+    this._startKernelAsync();
 
     this._tools = document.createElement("div");
     this._tools.className = "tools";
@@ -162,6 +106,7 @@ export class Book {
       this.save();
       this.scroll();
     });
+
     const addTool = this._iconButton("add", async () => {
       const cell: ICell = {
         cell_type: "code",
@@ -179,6 +124,7 @@ export class Book {
       this.scroll();
       this._update(this.filePath, true);
     });
+
     const cutTool = this._iconButton("cut", () => {
       const freshSelected = this._tree.querySelector(".cell.selected") as any;
       if (freshSelected?._selectedCell) {
@@ -188,7 +134,9 @@ export class Book {
       this._update(this.filePath, true);
       this.scroll();
     });
+
     const copyTool = this._iconButton("copy", () => {});
+
     const runTool = this._iconButton("run", () => {
       if (this._selectedCell) {
         this.runCell(this._selectedCell);
@@ -196,10 +144,15 @@ export class Book {
       }
       this.scroll();
     });
+
     const stopTool = this._iconButton("stop", () => {});
+
     const runAllTool = this._iconButton("runAll", () => {
-      this._renderedCells.forEach((cell) => {
-        this.runCell(cell);
+      this._notebookCells.forEach((notebookCell) => {
+        const selectedCell = notebookCell.getSelectedCell();
+        if (selectedCell) {
+          this.runCell(selectedCell);
+        }
       });
       this._update(this.filePath, true);
       this.scroll();
@@ -211,35 +164,23 @@ export class Book {
     this._cellType.value = "code";
 
     this._cellType.onchange = async (event) => {
-      const newType = (event.target as HTMLSelectElement).value;
+      const newType = (event.target as HTMLSelectElement).value as
+        | "markdown"
+        | "code";
       const active = this._selectedCell;
 
       if (active) {
-        const cellIndex = this._cells.findIndex((c) => c.id === active.cell.id);
-        if (cellIndex !== -1) {
-          this._cells[cellIndex]!.cell_type = newType as "markdown" | "code";
+        const notebookCell = this._notebookCells.get(active.cell.id);
+        if (notebookCell) {
+          notebookCell.updateCellType(newType);
+
+          const cellIndex = this._cells.findIndex(
+            (c) => c.id === active.cell.id
+          );
+          if (cellIndex !== -1) {
+            this._cells[cellIndex]!.cell_type = newType;
+          }
         }
-
-        active.cell.cell_type = newType as "markdown" | "code";
-
-        monaco.editor.setModelLanguage(
-          active.editor.getModel()!,
-          newType === "markdown" ? "markdown" : "python"
-        );
-
-        if (newType === "markdown") {
-          active.cellEl.ondblclick = () => {
-            active.cellEl.classList.remove("executed");
-            active.previewEl.style.display = "none";
-            active.editorEl.style.display = "flex";
-            active.editorEl.focus();
-          };
-        }
-
-        active.cellEl.className = `cell ${newType}`;
-        this._cellTypeChanges.set(active.cell.id, newType);
-
-        this._resizeEditor(active, active.editor.getModel()!);
       }
       this._update(this.filePath, true);
       this.scroll();
@@ -271,10 +212,30 @@ export class Book {
       };
       await this.addCell(firstCell);
     } else {
-      await Promise.all(this._cells.map((cell) => this.addCell(cell)));
+      
+      const fragment = document.createDocumentFragment();
+      for (let i = 0; i < this._cells.length; i++) {
+        const cellEl = await this._renderSingleCell(this._cells[i]!, i);
+        fragment.appendChild(cellEl);
+      }
+      this._tree.appendChild(fragment);
     }
 
     return this._root;
+  }
+
+  private async _startKernelAsync() {
+    try {
+      console.log("Starting Jupyter kernel...");
+      await jupyter.startKernel();
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+      const { sessionId } = await jupyter.connectToKernel();
+      this._sessionId = sessionId;
+      this._isKernelReady = true;
+      console.log("Kernel ready, session:", sessionId);
+    } catch (err) {
+      console.error("Failed to start kernel:", err);
+    }
   }
 
   save() {
@@ -321,16 +282,20 @@ export class Book {
       this._isKernelReady = false;
     }
 
-    this._renderedCells.forEach((cell) => {
-      cell.editor.dispose();
-      if ((cell as any).contentListener)
-        (cell as any).contentListener.dispose();
-      if ((cell as any).resizeObserver)
-        (cell as any).resizeObserver.disconnect();
+    
+    this._notebookCells.forEach((notebookCell) => {
+      notebookCell.dispose();
     });
+    this._notebookCells.clear();
+
+    
+    if (this._intersectionObserver) {
+      this._intersectionObserver.disconnect();
+      this._intersectionObserver = undefined as any;
+    }
+
     this._cells = [];
-    this._renderedCells.clear();
-    this._cellTypeChanges.clear();
+    this._pendingCells.clear();
     this._root?.remove();
   }
 
@@ -357,8 +322,12 @@ export class Book {
         this._tree.insertBefore(cell.cellEl, cellElements[cellElIndex - 1]!);
       }
 
-      cell.index = index - 1;
-      cell.cellEl.dataset.cellIndex = (index - 1).toString();
+      
+      const notebookCell = this._notebookCells.get(cell.cell.id);
+      if (notebookCell) {
+        notebookCell.updateIndex(index - 1);
+      }
+
       this._update(this.filePath, true);
       this.scroll();
     }
@@ -379,8 +348,12 @@ export class Book {
         this._tree.insertBefore(cellElements[cellElIndex + 1]!, cell.cellEl);
       }
 
-      cell.index = index + 1;
-      cell.cellEl.dataset.cellIndex = (index + 1).toString();
+      
+      const notebookCell = this._notebookCells.get(cell.cell.id);
+      if (notebookCell) {
+        notebookCell.updateIndex(index + 1);
+      }
+
       this._update(this.filePath, true);
       this.scroll();
     }
@@ -437,48 +410,101 @@ export class Book {
   private async _renderAllCells(selectCellId?: string) {
     const targetSelectId = selectCellId || this._selectedCell?.cell.id;
 
-    this._renderedCells.forEach((cell) => {
-      cell.editor.dispose();
-      if ((cell as any).contentListener)
-        (cell as any).contentListener.dispose();
-      if ((cell as any).resizeObserver)
-        (cell as any).resizeObserver.disconnect();
+    
+    this._notebookCells.forEach((notebookCell) => {
+      notebookCell.dispose();
     });
 
     this._tree.innerHTML = "";
-    this._renderedCells.clear();
+    this._notebookCells.clear();
+    this._pendingCells.clear();
 
+    const fragment = document.createDocumentFragment();
     for (let i = 0; i < this._cells.length; i++) {
-      const cell = this._cells[i]!;
-      await this._renderSingleCell(cell, i);
+      const cellEl = await this._renderSingleCell(this._cells[i]!, i);
+      fragment.appendChild(cellEl);
     }
+    this._tree.appendChild(fragment);
 
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    if (targetSelectId && this._renderedCells.has(targetSelectId)) {
-      const cellToSelect = this._renderedCells.get(targetSelectId)!;
-      this._selectCell(cellToSelect);
-      cellToSelect.editor.focus();
-    } else if (this._renderedCells.size > 0) {
-      const firstCell = Array.from(this._renderedCells.values())[0];
-      this._selectCell(firstCell!);
-      firstCell!.editor.focus();
+    if (targetSelectId && this._notebookCells.has(targetSelectId)) {
+      const notebookCell = this._notebookCells.get(targetSelectId)!;
+      const selectedCell = notebookCell.getSelectedCell();
+      if (selectedCell) {
+        this._selectCell(selectedCell);
+        if (selectedCell.editor) selectedCell.editor.focus();
+      }
+    } else if (this._notebookCells.size > 0) {
+      const firstNotebookCell = Array.from(this._notebookCells.values())[0];
+      const firstCell = firstNotebookCell!.getSelectedCell();
+      if (firstCell) {
+        this._selectCell(firstCell);
+        if (firstCell.editor) firstCell.editor.focus();
+      }
     }
   }
 
   private async _renderSingleCell(
     cell: ICell,
     index: number
-  ): Promise<ISelectedCell> {
-    if (this._renderedCells.has(cell.id)) {
-      console.warn(`🚫 Skipping duplicate cell render: ${cell.id}`);
-      throw new Error(`Duplicate cell detected: ${cell.id}`);
+  ): Promise<HTMLDivElement> {
+    const cellTools = this._createCellTools();
+
+    const notebookCell = new NotebookCell(
+      cell,
+      index,
+      this.filePath,
+      (cellId: string, content: string[]) => {
+        const cellIndex = this._cells.findIndex((c) => c.id === cellId);
+        if (cellIndex !== -1) {
+          this._cells[cellIndex]!.source = content;
+        }
+      },
+      () => this._update(this.filePath, true)
+    );
+
+    this._notebookCells.set(cell.id, notebookCell);
+
+    const cellEl = await notebookCell.render(cellTools, () => this.scroll());
+
+    
+    this._setupCellSelection(cellEl, notebookCell);
+
+    
+    this._pendingCells.set(cell.id, { cellEl });
+
+    
+    if (this._intersectionObserver) {
+      this._intersectionObserver.observe(cellEl);
     }
 
-    const cellEl = document.createElement("div");
-    cellEl.className = `cell ${cell.cell_type}`;
-    cellEl.tabIndex = 0;
+    
+    if (index < 3) {
+      await this._initializeCellEditor(notebookCell, cellEl);
+    }
 
+    return cellEl;
+  }
+
+  private async _initializeCellEditor(
+    notebookCell: NotebookCell,
+    cellEl: HTMLDivElement
+  ) {
+    const selectedCell = await notebookCell.initializeEditor(cellEl);
+
+    
+    this._pendingCells.delete(notebookCell.getCell().id);
+
+    
+    if (this._intersectionObserver) {
+      this._intersectionObserver.unobserve(cellEl);
+    }
+
+    return selectedCell;
+  }
+
+  private _createCellTools(): HTMLDivElement {
     const cellTools = document.createElement("div");
     cellTools.className = "cell-tools";
 
@@ -491,7 +517,6 @@ export class Book {
     const addCellAboveTool = this._iconButton("mergeCellAbove", () => {
       if (this._selectedCell) this.addCellAbove(this._selectedCell);
     });
-
     const addCellBelowTool = this._iconButton("mergeCellBelow", () => {
       if (this._selectedCell) this.addCellBelow(this._selectedCell);
     });
@@ -505,212 +530,52 @@ export class Book {
     cellTools.appendChild(addCellBelowTool);
     cellTools.appendChild(deleteTool);
 
-    cellEl.appendChild(cellTools);
-
-    const previewEl = document.createElement("div");
-    previewEl.className = "preview-el";
-    cellEl.appendChild(previewEl);
-
-    const editorEl = document.createElement("div");
-    editorEl.className = "editor";
-    cellEl.appendChild(editorEl);
-
-    const outputEl = document.createElement("div");
-    outputEl.className = "output";
-    outputEl.style.display = "none";
-    cellEl.appendChild(outputEl);
-
-    this._tree.appendChild(cellEl);
-
-    const id = Date.now() + Math.random().toString(36).slice(2);
-    const ext = cell.cell_type === "code" ? "py" : "md";
-    const uri = `workspace:///notebook-cell-${id}.${ext}`;
-
-    const fusedSource = cell.source
-      .map((line) => line.replace(/^\s*\n?$/, ""))
-      .filter((line) => line.length > 0)
-      .join("\n");
-
-    if (cell.cell_type === "markdown") {
-      marked.use(
-        markedHighlight({
-          langPrefix: "hljs language-",
-          highlight(code: string, lang: string) {
-            const language = hljs.getLanguage(lang) ? lang : "plaintext";
-            return hljs.highlight(code, { language }).value;
-          },
-        })
-      );
-
-      const baseUrlPath = this.filePath.startsWith("/")
-        ? `file://${this.filePath}/`
-        : `file:///${this.filePath}/`;
-
-      marked.use(baseUrl(baseUrlPath));
-
-      const html = await marked.parse(fusedSource);
-      previewEl.innerHTML = html;
-      cellEl.classList.add("executed");
-
-      editorEl.style.display = "none";
-
-      cellEl.ondblclick = () => {
-        cellEl.classList.remove("executed");
-        previewEl.style.display = "none";
-        editorEl.style.display = "flex";
-        editorEl.focus();
-      };
-    }
-
-    if (cell.cell_type === "code" && cell.outputs && cell.outputs.length > 0) {
-      this._renderOutputs(cell.outputs, outputEl);
-      outputEl.style.display = "block";
-    }
-
-    const editor = new CellEditor(editorEl);
-    editor._mount();
-    const model = await editor._open(uri, fusedSource);
-
-    const lineCount = model.getLineCount();
-    const lineHeight = 24;
-    const padding = 40;
-    const correctHeight = Math.max(
-      80,
-      Math.min(450, lineCount * lineHeight + padding)
-    );
-
-    editorEl.style.height = `${correctHeight}px`;
-    cellEl.style.height = `${correctHeight}px`;
-
-    model.onDidChangeContent(() => {
-      this._update(this.filePath, true);
-
-      const content = model.getValue();
-      const lines = content.split("\n").map((line) => line + "\n");
-
-      const cellIndex = this._cells.findIndex((c) => c.id === cell.id);
-      if (cellIndex !== -1) {
-        this._cells[cellIndex]!.source = lines;
-      }
-
-      const selectedCell = this._selectedCell;
-      if (selectedCell && selectedCell.cell.id === cell.id) {
-        this._resizeEditor(selectedCell, model);
-        this.scroll();
-        editor._editor.focus();
-      }
-    });
-
-    const selectedCell: ISelectedCell = {
-      cell: cell,
-      editor: editor._editor,
-      editorEl,
-      cellEl,
-      outputEl,
-      previewEl,
-      index: index,
-    };
-
-    this._cellTypeChanges.set(cell.id, cell.cell_type);
-
-    cellEl.dataset.cellIndex = index.toString();
-    cellEl.dataset.cellId = cell.id;
-    (cellEl as any)._selectedCell = selectedCell;
-
-    this._setupCellSelection(cellEl, selectedCell);
-    this._setupAutoGrow(selectedCell, model);
-    this._renderedCells.set(cell.id, selectedCell);
-
-    return selectedCell;
-  }
-
-  private _renderOutputs(outputs: any[], outputEl: HTMLDivElement) {
-    outputEl.innerHTML = "";
-
-    for (const output of outputs) {
-      if (output.output_type === "stream") {
-        const streamEl = document.createElement("pre");
-        streamEl.className = "output-stream";
-        const text = Array.isArray(output.text)
-          ? output.text.join("")
-          : output.text;
-        streamEl.textContent = text;
-        outputEl.appendChild(streamEl);
-      } else if (output.output_type === "execute_result") {
-        const resultEl = document.createElement("pre");
-        resultEl.className = "output-result";
-
-        const data = output.data;
-        if (data["text/plain"]) {
-          resultEl.textContent = data["text/plain"];
-        } else if (data["text/html"]) {
-          resultEl.innerHTML = data["text/html"];
-        } else if (data["image/png"]) {
-          const img = document.createElement("img");
-          img.src = `data:image/png;base64,${data["image/png"]}`;
-          resultEl.appendChild(img);
-        } else {
-          resultEl.textContent = JSON.stringify(data, null, 2);
-        }
-
-        outputEl.appendChild(resultEl);
-      } else if (output.output_type === "error") {
-        const errorEl = document.createElement("pre");
-        errorEl.className = "output-error";
-        const traceback = Array.isArray(output.traceback)
-          ? output.traceback.join("\n")
-          : `${output.ename}: ${output.evalue}`;
-        errorEl.textContent = traceback;
-        outputEl.appendChild(errorEl);
-      } else if (output.output_type === "display_data") {
-        const displayEl = document.createElement("div");
-        displayEl.className = "output-display";
-
-        const data = output.data;
-        if (data["image/png"]) {
-          const img = document.createElement("img");
-          img.src = `data:image/png;base64,${data["image/png"]}`;
-          displayEl.appendChild(img);
-        } else if (data["text/html"]) {
-          displayEl.innerHTML = data["text/html"];
-        } else if (data["text/plain"]) {
-          const pre = document.createElement("pre");
-          pre.textContent = data["text/plain"];
-          displayEl.appendChild(pre);
-        }
-
-        outputEl.appendChild(displayEl);
-      }
-    }
+    return cellTools;
   }
 
   async addCell(cell: ICell) {
-    let cellId = cell.id;
-    if (!cellId || this._hasCell(cellId)) {
-      do {
-        cellId = crypto.randomUUID();
-      } while (this._hasCell(cellId));
-    }
+    return new Promise<ISelectedCell | null>((resolve) => {
+      requestAnimationFrame(async () => {
+        let cellId = cell.id;
+        if (!cellId || this._hasCell(cellId)) {
+          do {
+            cellId = crypto.randomUUID();
+          } while (this._hasCell(cellId));
+        }
 
-    const safeCell: ICell = { ...cell, id: cellId };
+        const safeCell: ICell = { ...cell, id: cellId };
 
-    if (this._hasCell(safeCell.id)) {
-      console.error("🚫 Cannot add cell - ID collision after all checks");
-      return null;
-    }
+        if (this._hasCell(safeCell.id)) {
+          console.error("🚫 Cannot add cell - ID collision after all checks");
+          resolve(null);
+          return;
+        }
 
-    const index = this._cells.length;
-    this._cells.push(safeCell);
+        const index = this._cells.length;
+        this._cells.push(safeCell);
 
-    const created = await this._renderSingleCell(safeCell, index);
-    if (created) {
-      if (this._cells.length === 1) {
-        this._selectedCell = created;
-        this._selectCell(created);
-      }
-      this.scroll();
-    }
-    return created;
+        const cellEl = await this._renderSingleCell(safeCell, index);
+        this._tree.appendChild(cellEl);
+
+        
+        const notebookCell = this._notebookCells.get(safeCell.id);
+        if (notebookCell) {
+          const created = await this._initializeCellEditor(
+            notebookCell,
+            cellEl
+          );
+
+          if (this._cells.length === 1) {
+            this._selectedCell = created;
+            this._selectCell(created);
+          }
+          this.scroll();
+          resolve(created);
+        } else {
+          resolve(null);
+        }
+      });
+    });
   }
 
   private scroll() {
@@ -728,25 +593,6 @@ export class Book {
     });
   }
 
-  private _setupAutoGrow(cell: ISelectedCell, model: monaco.editor.ITextModel) {
-    const contentListener = model.onDidChangeContent(() => {
-      this._resizeEditor(cell, model);
-    });
-
-    const resizeObserver = new ResizeObserver(() => {
-      if (cell.editor) {
-        cell.editor.layout();
-      }
-    });
-    resizeObserver.observe(cell.cellEl);
-    resizeObserver.observe(cell.editorEl);
-
-    this._resizeEditor(cell, model);
-
-    (cell as any).contentListener = contentListener;
-    (cell as any).resizeObserver = resizeObserver;
-  }
-
   private _normalizePath(p: string) {
     return p.toLowerCase().replace(/\//g, "\\");
   }
@@ -762,164 +608,29 @@ export class Book {
   }
 
   async runCell(selectedCell: ISelectedCell) {
-    const cell = selectedCell.cell;
+    const notebookCell = this._notebookCells.get(selectedCell.cell.id);
+    if (!notebookCell) return;
+
+    
+    if (!selectedCell.editor) {
+      await this._initializeCellEditor(notebookCell, selectedCell.cellEl);
+    }
+
+    const cell = notebookCell.getCell();
 
     if (cell.cell_type === "markdown") {
-      const html = await marked.parse(selectedCell.editor.getValue());
-      selectedCell.previewEl.innerHTML = html;
-
-      selectedCell.cellEl.classList.add("executed");
-
-      selectedCell.previewEl.style.display = "block";
-      selectedCell.editorEl.style.display = "none";
+      await notebookCell.executeMarkdown();
     } else {
-      const code = selectedCell.editor.getValue();
-
-      if (!this._isKernelReady || !this._sessionId) {
-        selectedCell.outputEl.innerHTML = "";
-        const errorEl = document.createElement("pre");
-        errorEl.className = "output-error";
-        errorEl.textContent = "Kernel not ready. Please wait...";
-        selectedCell.outputEl.appendChild(errorEl);
-        selectedCell.outputEl.style.display = "block";
-        return;
-      }
-
-      selectedCell.outputEl.innerHTML = "";
-      selectedCell.outputEl.style.display = "none";
-
-      const loadingEl = document.createElement("div");
-      loadingEl.className = "output-loading";
-      loadingEl.textContent = "Running...";
-      selectedCell.outputEl.appendChild(loadingEl);
-      selectedCell.outputEl.style.display = "block";
-
-      if (!selectedCell.cellEl.contains(selectedCell.outputEl)) {
-        selectedCell.cellEl.appendChild(selectedCell.outputEl);
-      }
-
-      try {
-        const { output, result, error } = await jupyter.executeToKernel(
-          this._sessionId,
-          code
-        );
-
-        selectedCell.outputEl.innerHTML = "";
-
-        const outputs: any[] = [];
-
-        if (error) {
-          const errorEl = document.createElement("pre");
-          errorEl.className = "output-error";
-          errorEl.textContent = error;
-          selectedCell.outputEl.appendChild(errorEl);
-
-          outputs.push({
-            output_type: "error",
-            ename: error.split(":")[0]?.trim() || "Error",
-            evalue: error.split(":").slice(1).join(":").trim(),
-            traceback: [error],
-          });
-        }
-
-        if (output) {
-          const outputEl = document.createElement("pre");
-          outputEl.className = "output-stream";
-          outputEl.textContent = output;
-          selectedCell.outputEl.appendChild(outputEl);
-
-          outputs.push({
-            name: "stdout",
-            output_type: "stream",
-            text: output.split("\n").map((line: string) => line + "\n"),
-          });
-        }
-
-        if (result) {
-          const resultEl = document.createElement("pre");
-          resultEl.className = "output-result";
-
-          if (result["text/plain"]) {
-            resultEl.textContent = result["text/plain"];
-          } else if (result["text/html"]) {
-            resultEl.innerHTML = result["text/html"];
-          } else if (result["image/png"]) {
-            const img = document.createElement("img");
-            img.src = `data:image/png;base64,${result["image/png"]}`;
-            resultEl.appendChild(img);
-          } else {
-            resultEl.textContent = JSON.stringify(result, null, 2);
-          }
-
-          selectedCell.outputEl.appendChild(resultEl);
-
-          outputs.push({
-            output_type: "execute_result",
-            data: result,
-            execution_count: (cell.execution_count || 0) + 1,
-          });
-        }
-
-        const cellIndex = this._cells.findIndex((c) => c.id === cell.id);
-        if (cellIndex !== -1) {
-          this._cells[cellIndex]!.outputs = outputs;
-          this._cells[cellIndex]!.execution_count =
-            (this._cells[cellIndex]!.execution_count || 0) + 1;
-        }
-
-        if (output || result || error) {
-          selectedCell.outputEl.style.display = "block";
-        } else {
-          selectedCell.outputEl.style.display = "none";
-        }
-
-        this._update(this.filePath, true);
-        this.scroll();
-      } catch (err) {
-        selectedCell.outputEl.innerHTML = "";
-        const errorEl = document.createElement("pre");
-        errorEl.className = "output-error";
-        errorEl.textContent = `Failed to execute: ${err}`;
-        selectedCell.outputEl.appendChild(errorEl);
-        selectedCell.outputEl.style.display = "block";
-
-        const cellIndex = this._cells.findIndex((c) => c.id === cell.id);
-        if (cellIndex !== -1) {
-          this._cells[cellIndex]!.outputs = [
-            {
-              output_type: "error",
-              ename: "ExecutionError",
-              evalue: String(err),
-              traceback: [String(err)],
-            },
-          ];
-        }
-      }
-    }
-  }
-
-  private _resizeEditor(cell: ISelectedCell, model: monaco.editor.ITextModel) {
-    const lineCount = model.getLineCount();
-    const lineHeight = 24;
-    const padding = 40;
-
-    let editorHeight = Math.max(
-      80,
-      Math.min(450, lineCount * lineHeight + padding)
-    );
-
-    cell.editorEl.style.height = `${editorHeight}px`;
-
-    if (cell.editor) {
-      cell.editor.layout();
+      await notebookCell.executeCode(
+        this._sessionId!,
+        this._isKernelReady,
+        (sessionId: string, code: string) =>
+          jupyter.executeToKernel(sessionId, code)
+      );
     }
 
-    const visibleHeight =
-      cell.editorEl.style.display !== "none"
-        ? cell.editorEl.offsetHeight
-        : cell.previewEl.offsetHeight;
-
-    cell.cellEl.style.height = `${visibleHeight}px`;
+    this._update(this.filePath, true);
+    this.scroll();
   }
 
   async removeCell(sel: ISelectedCell) {
@@ -931,13 +642,15 @@ export class Book {
     const removedId = sel.cell.id;
     const removedIndex = sel.index;
 
-    sel.editor.dispose();
-    if ((sel as any).contentListener) (sel as any).contentListener.dispose();
-    if ((sel as any).resizeObserver) (sel as any).resizeObserver.disconnect();
+    const notebookCell = this._notebookCells.get(removedId);
+    if (notebookCell) {
+      notebookCell.dispose();
+    }
+
     sel.cellEl.remove();
 
-    this._cellTypeChanges.delete(removedId);
-    this._renderedCells.delete(removedId);
+    this._notebookCells.delete(removedId);
+    this._pendingCells.delete(removedId);
     this._cells = this._cells.filter((c) => c.id !== removedId);
 
     let targetSelectId: string | undefined;
@@ -957,14 +670,23 @@ export class Book {
     this.scroll();
   }
 
-  private _setupCellSelection(cellEl: HTMLDivElement, cell: ISelectedCell) {
+  private _setupCellSelection(
+    cellEl: HTMLDivElement,
+    notebookCell: NotebookCell
+  ) {
     cellEl.addEventListener("focusin", () => {
-      this._selectCell(cell);
+      const selectedCell = notebookCell.getSelectedCell();
+      if (selectedCell) {
+        this._selectCell(selectedCell);
+      }
     });
 
     cellEl.addEventListener("click", (e) => {
       if (!(e.target as HTMLElement).closest(".editor")) {
-        this._selectCell(cell);
+        const selectedCell = notebookCell.getSelectedCell();
+        if (selectedCell) {
+          this._selectCell(selectedCell);
+        }
       }
     });
   }
@@ -986,8 +708,7 @@ export class Book {
     if (canonicalCellIndex !== -1) {
       currentType = this._cells[canonicalCellIndex]!.cell_type;
     } else {
-      currentType = (this._cellTypeChanges.get(cell.cell.id) ||
-        cell.cell.cell_type) as "markdown" | "code";
+      currentType = cell.cell.cell_type as "markdown" | "code";
     }
 
     this._cellType.value = currentType;

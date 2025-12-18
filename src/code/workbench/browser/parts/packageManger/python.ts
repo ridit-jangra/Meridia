@@ -37,8 +37,6 @@ export class Python extends CoreEl {
 
     const splitter = new Splitter([sidebar, content], "horizontal", [30, 70]);
 
-    console.log(await pypi.getPackagesList("panads"));
-
     this._el.appendChild(splitter.getDomElement()!);
   }
 }

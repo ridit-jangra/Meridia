@@ -1,4 +1,3 @@
-// main/kernel.ts
 import {
   KernelManager,
   SessionManager,
@@ -20,7 +19,6 @@ import { ipcMain } from "electron";
 const port = 9186;
 let jupyterProcess: ChildProcess | null = null;
 
-// Store sessions by ID - keeps objects in main process
 const sessions = new Map<
   string,
   {
@@ -109,7 +107,6 @@ export async function connectToKernel() {
 
     const sessionId = session.id;
 
-    // Store in main process
     sessions.set(sessionId, {
       kernel,
       session,
@@ -117,7 +114,6 @@ export async function connectToKernel() {
       sessionManager,
     });
 
-    // Return only serializable data
     return {
       sessionId,
       kernelId: kernel.id,
@@ -179,7 +175,6 @@ export async function shutdownSession(sessionId: string) {
   sessions.delete(sessionId);
 }
 
-// IPC Handlers
 ipcMain.handle("workbench.workspace.start.kernel", () => {
   return startKernel();
 });
