@@ -96,7 +96,6 @@ export class Book {
 
     this._initIntersectionObserver();
 
-    
     this._startKernelAsync();
 
     this._tools = document.createElement("div");
@@ -212,7 +211,6 @@ export class Book {
       };
       await this.addCell(firstCell);
     } else {
-      
       const fragment = document.createDocumentFragment();
       for (let i = 0; i < this._cells.length; i++) {
         const cellEl = await this._renderSingleCell(this._cells[i]!, i);
@@ -226,15 +224,19 @@ export class Book {
 
   private async _startKernelAsync() {
     try {
-      console.log("Starting Jupyter kernel...");
-      await jupyter.startKernel();
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      const { sessionId } = await jupyter.connectToKernel();
+      console.log("[Book] Starting Jupyter kernel...");
+      const ok = await jupyter.startKernel();
+      console.log("[Book] startKernel result:", ok);
+
+      const { sessionId, status } = await jupyter.connectToKernel();
+      console.log("[Book] connectToKernel:", sessionId, status);
+
       this._sessionId = sessionId;
       this._isKernelReady = true;
-      console.log("Kernel ready, session:", sessionId);
     } catch (err) {
-      console.error("Failed to start kernel:", err);
+      console.error("[Book] Failed to start/connect kernel:", err);
+      this._sessionId = null;
+      this._isKernelReady = false;
     }
   }
 
@@ -282,13 +284,11 @@ export class Book {
       this._isKernelReady = false;
     }
 
-    
     this._notebookCells.forEach((notebookCell) => {
       notebookCell.dispose();
     });
     this._notebookCells.clear();
 
-    
     if (this._intersectionObserver) {
       this._intersectionObserver.disconnect();
       this._intersectionObserver = undefined as any;
@@ -322,7 +322,6 @@ export class Book {
         this._tree.insertBefore(cell.cellEl, cellElements[cellElIndex - 1]!);
       }
 
-      
       const notebookCell = this._notebookCells.get(cell.cell.id);
       if (notebookCell) {
         notebookCell.updateIndex(index - 1);
@@ -348,7 +347,6 @@ export class Book {
         this._tree.insertBefore(cellElements[cellElIndex + 1]!, cell.cellEl);
       }
 
-      
       const notebookCell = this._notebookCells.get(cell.cell.id);
       if (notebookCell) {
         notebookCell.updateIndex(index + 1);
@@ -410,7 +408,6 @@ export class Book {
   private async _renderAllCells(selectCellId?: string) {
     const targetSelectId = selectCellId || this._selectedCell?.cell.id;
 
-    
     this._notebookCells.forEach((notebookCell) => {
       notebookCell.dispose();
     });
@@ -468,18 +465,14 @@ export class Book {
 
     const cellEl = await notebookCell.render(cellTools, () => this.scroll());
 
-    
     this._setupCellSelection(cellEl, notebookCell);
 
-    
     this._pendingCells.set(cell.id, { cellEl });
 
-    
     if (this._intersectionObserver) {
       this._intersectionObserver.observe(cellEl);
     }
 
-    
     if (index < 3) {
       await this._initializeCellEditor(notebookCell, cellEl);
     }
@@ -493,10 +486,8 @@ export class Book {
   ) {
     const selectedCell = await notebookCell.initializeEditor(cellEl);
 
-    
     this._pendingCells.delete(notebookCell.getCell().id);
 
-    
     if (this._intersectionObserver) {
       this._intersectionObserver.unobserve(cellEl);
     }
@@ -557,7 +548,6 @@ export class Book {
         const cellEl = await this._renderSingleCell(safeCell, index);
         this._tree.appendChild(cellEl);
 
-        
         const notebookCell = this._notebookCells.get(safeCell.id);
         if (notebookCell) {
           const created = await this._initializeCellEditor(
@@ -611,7 +601,6 @@ export class Book {
     const notebookCell = this._notebookCells.get(selectedCell.cell.id);
     if (!notebookCell) return;
 
-    
     if (!selectedCell.editor) {
       await this._initializeCellEditor(notebookCell, selectedCell.cellEl);
     }

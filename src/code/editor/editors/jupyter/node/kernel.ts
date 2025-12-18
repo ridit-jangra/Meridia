@@ -1,9 +1,13 @@
+// jupyterKernel.ts (main process)
+
 import {
   KernelManager,
   SessionManager,
   ServerConnection,
   type KernelMessage,
 } from "@jupyterlab/services";
+import { IKernelConnection } from "@jupyterlab/services/lib/kernel/kernel";
+import { ISessionConnection } from "@jupyterlab/services/lib/session/session";
 import { Storage } from "../../../../workbench/node/storage";
 import {
   IFolderStructure,
@@ -12,12 +16,11 @@ import {
 import fs from "fs";
 import path from "path";
 import { ChildProcess, spawn } from "child_process";
-import { IKernelConnection } from "@jupyterlab/services/lib/kernel/kernel";
-import { ISessionConnection } from "@jupyterlab/services/lib/session/session";
 import { ipcMain } from "electron";
 
-const port = 9186;
+const DEFAULT_PORT = 9186;
 let jupyterProcess: ChildProcess | null = null;
+let jupyterPort: number = DEFAULT_PORT;
 
 const sessions = new Map<
   string,
@@ -29,11 +32,19 @@ const sessions = new Map<
   }
 >();
 
-export function startKernel() {
+function getJupyterPort(): number {
+  const stored =
+    (Storage.get("workbench.jupyter.port") as number | undefined) ??
+    jupyterPort ??
+    DEFAULT_PORT;
+  return stored;
+}
+
+export function startKernel(): Promise<boolean> {
   const folder_structure = Storage.get(
     "workbench.workspace.folder.structure"
   ) as IFolderStructure;
-  if (!folder_structure) return false;
+  if (!folder_structure) return Promise.resolve(false);
 
   const uri = folder_structure.uri;
   let data: IProjectDetails;
@@ -50,24 +61,75 @@ export function startKernel() {
 
   const pythonPath = data?.venv?.python || "python";
 
-  jupyterProcess = spawn(
-    pythonPath,
-    [
-      "-m",
-      "notebook",
-      "--port=" + port.toString(),
-      "--IdentityProvider.token=",
-      "--ServerApp.disable_check_xsrf=True",
-      "--ServerApp.allow_origin=*",
-      "--no-browser",
-    ],
-    {
-      cwd: uri,
-      stdio: ["ignore", "pipe", "pipe"],
+  return new Promise((resolve, reject) => {
+    if (jupyterProcess) {
+      return resolve(true);
     }
-  );
 
-  return true;
+    jupyterPort = DEFAULT_PORT;
+
+    jupyterProcess = spawn(
+      pythonPath,
+      [
+        "-m",
+        "notebook",
+        `--port=${DEFAULT_PORT}`,
+        "--no-browser",
+        "--IdentityProvider.token=",
+        "--ServerApp.disable_check_xsrf=True",
+        "--ServerApp.allow_origin=*",
+      ],
+      {
+        cwd: uri,
+        stdio: ["pipe", "pipe", "pipe"],
+      }
+    );
+
+    let settled = false;
+
+    const ok = () => {
+      if (!settled) {
+        settled = true;
+        Storage.store("workbench.jupyter.port", jupyterPort);
+        resolve(true);
+      }
+    };
+
+    const fail = (err: Error) => {
+      if (!settled) {
+        settled = true;
+        jupyterProcess = null;
+        reject(err);
+      }
+    };
+
+    jupyterProcess.stdout?.on("data", (data) => {
+      const msg = data.toString();
+      console.log("[jupyter]", msg);
+      const m = msg.match(/http:\/\/localhost:(\d+)\/tree/);
+      if (m) {
+        jupyterPort = Number(m[1]);
+        console.log("[jupyter] detected port", jupyterPort);
+        ok();
+      }
+    });
+
+    jupyterProcess.stderr?.on("data", (data) => {
+      const msg = data.toString();
+      console.error("[jupyter:stderr]", msg);
+      if (/Traceback|Error/i.test(msg)) {
+        fail(new Error("Failed to start Jupyter: " + msg));
+      }
+    });
+
+    jupyterProcess.on("exit", (code) => {
+      console.log("[jupyter] exited with code", code);
+      jupyterProcess = null;
+      if (!settled) {
+        fail(new Error("Jupyter exited with code " + code));
+      }
+    });
+  });
 }
 
 export function stopKernel() {
@@ -78,6 +140,7 @@ export function stopKernel() {
 }
 
 export async function connectToKernel() {
+  const port = getJupyterPort();
   const baseUrl = `http://localhost:${port}`;
 
   const serverSettings = ServerConnection.makeSettings({
@@ -100,7 +163,6 @@ export async function connectToKernel() {
     });
 
     const kernel = session.kernel;
-
     if (!kernel) {
       throw new Error("No kernel available");
     }
@@ -118,6 +180,7 @@ export async function connectToKernel() {
       sessionId,
       kernelId: kernel.id,
       status: kernel.status,
+      port,
     };
   } catch (error) {
     kernelManager.dispose();
@@ -174,6 +237,8 @@ export async function shutdownSession(sessionId: string) {
   kernelManager.dispose();
   sessions.delete(sessionId);
 }
+
+// IPC bindings – call these from your main entry once
 
 ipcMain.handle("workbench.workspace.start.kernel", () => {
   return startKernel();

@@ -432,7 +432,6 @@ export const workbenchBridge = {
   },
 };
 
-// preload/bridge.ts
 export const jupyterBridge = {
   startKernel: async () => {
     return await ipcRenderer.invoke("workbench.workspace.start.kernel");
