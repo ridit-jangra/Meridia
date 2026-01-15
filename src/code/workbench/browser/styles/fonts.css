@@ -5,133 +5,34 @@
 }
 
 @font-face {
-  font-family: "Droid Sans";
-  src: url("../media/fonts/DroidSans.ttf");
-}
-@font-face {
-  font-family: "Droid Sans";
-  font-weight: bold;
-  src: url("../media/fonts/DroidSans-Bold.ttf");
-}
-
-@font-face {
-  font-family: "Droid Sans Mono";
-  src: url("../media/fonts/DroidSansMono.ttf");
-}
-@font-face {
-  font-family: "Droid Sans Mono Dotted";
-  src: url("../media/fonts/DroidSansMonoDotted.ttf");
-}
-@font-face {
-  font-family: "Droid Sans Mono Slashed";
-  src: url("../media/fonts/DroidSansMonoSlashed.ttf");
-}
-
-@font-face {
-  font-family: "Droid Serif";
-  src: url("../media/fonts/DroidSerif-Regular.ttf");
-}
-@font-face {
-  font-family: "Droid Serif";
-  font-weight: bold;
-  src: url("../media/fonts/DroidSerif-Bold.ttf");
-}
-@font-face {
-  font-family: "Droid Serif";
-  font-style: italic;
-  src: url("../media/fonts/DroidSerif-Italic.ttf");
-}
-@font-face {
-  font-family: "Droid Serif";
-  font-weight: bold;
-  font-style: italic;
-  src: url("../media/fonts/DroidSerif-BoldItalic.ttf");
-}
-
-@font-face {
-  font-family: "Fira Code";
-  src: url("../media/fonts/FiraCode-Regular.ttf");
-}
-@font-face {
-  font-family: "Fira Code";
-  font-weight: 300;
-  src: url("../media/fonts/FiraCode-Light.ttf");
-}
-@font-face {
-  font-family: "Fira Code";
-  font-weight: 500;
-  src: url("../media/fonts/FiraCode-Medium.ttf");
-}
-@font-face {
-  font-family: "Fira Code";
-  font-weight: 700;
-  src: url("../media/fonts/FiraCode-Bold.ttf");
-}
-@font-face {
-  font-family: "Fira Code";
-  font-weight: 350;
-  src: url("../media/fonts/FiraCode-Retina.ttf");
-}
-
-@font-face {
-  font-family: "Inconsolata";
-  src: url("../media/fonts/Inconsolata.ttf");
+  font-family: "AtkinsonHyperlegible";
+  src: url("../media/fonts/AtkinsonHyperlegible-Regular.ttf");
+  font-weight: normal;
 }
 
 @font-face {
   font-family: "Inter";
   src: url("../media/fonts/Inter-Regular.otf");
 }
+
 @font-face {
   font-family: "Inter";
   font-weight: 600;
-  src: url("../media/fonts/Inter-SemiBold.otf");
-}
-@font-face {
-  font-family: "Inter";
-  font-style: italic;
-  src: url("../media/fonts/Inter-Italic.otf");
-}
-@font-face {
-  font-family: "Inter";
-  font-weight: 600;
-  font-style: italic;
-  src: url("../media/fonts/Inter-SemiBoldItalic.otf");
+  src: url("../media/fonts/Inter-Medium.ttf");
 }
 
 @font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-Thin.ttf");
-  font-weight: 100;
+  font-family: "Inter";
+  font-weight: 800;
+  src: url("../media/fonts/Inter-SemiBold.otf");
 }
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-ThinItalic.ttf");
-  font-weight: 100;
-  font-style: italic;
-}
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-ExtraLight.ttf");
-  font-weight: 200;
-}
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-ExtraLightItalic.ttf");
-  font-weight: 200;
-  font-style: italic;
-}
+
 @font-face {
   font-family: "JetBrains Mono";
   src: url("../media/fonts/JetBrainsMono-Light.ttf");
   font-weight: 300;
 }
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-LightItalic.ttf");
-  font-weight: 300;
-  font-style: italic;
-}
+
 @font-face {
   font-family: "JetBrains Mono";
   src: url("../media/fonts/JetBrainsMono-Regular.ttf");
@@ -148,74 +49,15 @@
   src: url("../media/fonts/JetBrainsMono-Medium.ttf");
   font-weight: 500;
 }
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-MediumItalic.ttf");
-  font-weight: 500;
-  font-style: italic;
-}
+
 @font-face {
   font-family: "JetBrains Mono";
   src: url("../media/fonts/JetBrainsMono-SemiBold.ttf");
   font-weight: 600;
 }
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-SemiBoldItalic.ttf");
-  font-weight: 600;
-  font-style: italic;
-}
+
 @font-face {
   font-family: "JetBrains Mono";
   src: url("../media/fonts/JetBrainsMono-Bold.ttf");
   font-weight: 700;
-}
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-BoldItalic.ttf");
-  font-weight: 700;
-  font-style: italic;
-}
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-ExtraBold.ttf");
-  font-weight: 800;
-}
-@font-face {
-  font-family: "JetBrains Mono";
-  src: url("../media/fonts/JetBrainsMono-ExtraBoldItalic.ttf");
-  font-weight: 800;
-  font-style: italic;
-}
-
-@font-face {
-  font-family: "Roboto";
-  font-weight: 100;
-  src: url("../media/fonts/Roboto-Thin.ttf");
-}
-@font-face {
-  font-family: "Roboto";
-  font-weight: 300;
-  src: url("../media/fonts/Roboto-Light.ttf");
-}
-
-@font-face {
-  font-family: "Source Code Pro";
-  src: url("../media/fonts/SourceCodePro-Regular.ttf");
-}
-@font-face {
-  font-family: "Source Code Pro";
-  font-style: italic;
-  src: url("../media/fonts/SourceCodePro-It.ttf");
-}
-@font-face {
-  font-family: "Source Code Pro";
-  font-weight: bold;
-  src: url("../media/fonts/SourceCodePro-Bold.ttf");
-}
-@font-face {
-  font-family: "Source Code Pro";
-  font-weight: bold;
-  font-style: italic;
-  src: url("../media/fonts/SourceCodePro-BoldIt.ttf");
 }

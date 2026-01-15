@@ -55,7 +55,7 @@ export function startKernel(): Promise<boolean> {
     data = JSON.parse(
       fs.readFileSync(configFile, { encoding: "utf-8" })
     ) as IProjectDetails;
-  } catch {
+  } catch (err) {
     data = {} as IProjectDetails;
   }
 
@@ -105,25 +105,24 @@ export function startKernel(): Promise<boolean> {
 
     jupyterProcess.stdout?.on("data", (data) => {
       const msg = data.toString();
-      console.log("[jupyter]", msg);
+
       const m = msg.match(/http:\/\/localhost:(\d+)\/tree/);
       if (m) {
         jupyterPort = Number(m[1]);
-        console.log("[jupyter] detected port", jupyterPort);
+
         ok();
       }
     });
 
     jupyterProcess.stderr?.on("data", (data) => {
       const msg = data.toString();
-      console.error("[jupyter:stderr]", msg);
+
       if (/Traceback|Error/i.test(msg)) {
         fail(new Error("Failed to start Jupyter: " + msg));
       }
     });
 
     jupyterProcess.on("exit", (code) => {
-      console.log("[jupyter] exited with code", code);
       jupyterProcess = null;
       if (!settled) {
         fail(new Error("Jupyter exited with code " + code));
@@ -185,6 +184,7 @@ export async function connectToKernel() {
   } catch (error) {
     kernelManager.dispose();
     sessionManager.dispose();
+    console.error("connecting error", error);
     throw error;
   }
 }
@@ -237,8 +237,6 @@ export async function shutdownSession(sessionId: string) {
   kernelManager.dispose();
   sessions.delete(sessionId);
 }
-
-// IPC bindings – call these from your main entry once
 
 ipcMain.handle("workbench.workspace.start.kernel", () => {
   return startKernel();

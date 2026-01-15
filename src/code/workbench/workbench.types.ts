@@ -367,6 +367,20 @@ export interface IProjectTree {
   children: IProjectTreeItem[];
 }
 
+export interface ISettingsTreeItem {
+  name: string;
+  content: string;
+  key: string;
+  icon: string;
+}
+
+export interface ISettingsTree {
+  name: string;
+  key: string;
+  icon: string;
+  children: ISettingsTreeItem[];
+}
+
 export interface IPyPIPackage {
   name: string;
   version: string;

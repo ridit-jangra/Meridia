@@ -9,6 +9,7 @@
 @import url("./jupyter.css");
 @import url("./problem.css");
 @import url("./splitter.css");
+@import url("./settings.css");
 @import url("./titlebar.css");
 @import url("./miraChat.css");
 @import url("./terminal.css");
@@ -42,8 +43,11 @@
 body {
   margin: 0;
   padding: 0;
-  font-family: "Inconsolata";
-  font-size: 16px;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.7px;
+  line-height: 1.4rem;
+  font-size: 14px;
   background: var(--workbench-background);
   color: var(--workbench-foreground);
   height: 100vh;
@@ -180,5 +184,5 @@ kbd {
 }
 
 input {
-  font-family: "Inconsolata";
+  font-family: "AtkinsonHyperlegible";
 }

@@ -1,10 +1,10 @@
-.code .files {
+.code {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-.code .files .empty-state {
+.code .empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,7 +12,7 @@
   height: 100%;
 }
 
-.code .files .empty-state .open-folder {
+.code .empty-state .open-folder {
   width: 80%;
   padding: 8px 0;
   border-radius: 6px;
@@ -23,24 +23,24 @@
   margin-bottom: 8px;
 }
 
-.code .files .empty-state .open-folder:hover,
+.code .empty-state .open-folder:hover,
 .hovered {
   background: var(--workbench-secondary-button-hover-background);
 }
 
-.code .files .empty-state p {
+.code .empty-state p {
   text-wrap: wrap;
   text-align: center;
 }
 
-.code .files .tree {
+.code .tree {
   display: flex;
   flex-direction: column;
   align-items: center;
   position: relative;
 }
 
-.code .files .root {
+.code .root {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -50,7 +50,7 @@
   align-self: center;
 }
 
-.code .files .root .title {
+.code .root .title {
   font-size: 18px;
   font-weight: 600;
   margin-left: 12px;
@@ -59,7 +59,7 @@
   white-space: nowrap;
 }
 
-.code .files .root .options {
+.code .root .options {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,33 +67,33 @@
   margin-right: 12px;
 }
 
-.code .files .root .options span {
+.code .root .options span {
   padding: 2px;
   border-radius: 6px;
   cursor: pointer;
 }
 
-.code .files .root .options span:hover {
+.code .root .options span:hover {
   background: var(--workbench-hover-background);
 }
 
-.code .files .root .options span svg {
+.code .root .options span svg {
   width: 22px;
   height: auto;
 }
 
-.code .files .tree-container {
+.code .tree-container {
   height: 100%;
 }
 
-.code .files .tree .node,
-.code .files .tree .child-nodes {
+.code .tree .node,
+.code .tree .child-nodes {
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
 }
 
-.code .files .tree .node {
+.code .tree .node {
   display: flex;
   align-items: center;
   padding: 5px 0;
@@ -107,7 +107,7 @@
   width: 96%;
 }
 
-.code .files .tree .child-nodes {
+.code .tree .child-nodes {
   display: flex;
   flex-direction: column;
   transition: height 0.25s ease, opacity 0.25s ease, visibility 0.25s ease;
@@ -115,31 +115,31 @@
   overflow-y: hidden;
 }
 
-.code .files .tree .child-nodes:not(.expanded) {
+.code .tree .child-nodes:not(.expanded) {
   height: 0;
   opacity: 0;
   pointer-events: none;
   visibility: hidden;
 }
 
-.code .files .tree .child-nodes.expanded {
+.code .tree .child-nodes.expanded {
   height: auto;
   opacity: 1;
   pointer-events: auto;
   visibility: visible;
 }
 
-.code .files .tree .node:hover {
+.code .tree .node:hover {
   background: var(--workbench-hover-background);
 }
 
-.code .files .tree .node .icon,
-.code .files .tree .node .name {
+.code .tree .node .icon,
+.code .tree .node .name {
   position: relative;
   z-index: 1;
 }
 
-.code .files .tree .node .icon {
+.code .tree .node .icon {
   margin: 0 3px;
   margin-left: 10px;
   flex-shrink: 0;
@@ -147,21 +147,21 @@
   transition: transform 0.2s ease;
 }
 
-.code .files .tree .node .icon.expanded {
+.code .tree .node .icon.expanded {
   transform: rotate(90deg);
 }
 
-.code .files .tree .node .icon svg {
+.code .tree .node .icon svg {
   display: flex;
   width: 18px;
   height: auto;
 }
 
-.code .files .tree .node .icon.toggle svg {
+.code .tree .node .icon.toggle svg {
   width: 19px !important;
 }
 
-.code .files .tree .node .name {
+.code .tree .node .name {
   flex: 1;
   min-width: 0;
   overflow: hidden;
@@ -169,49 +169,49 @@
   white-space: nowrap;
 }
 
-.code .files .tree .child-nodes.transitioning {
+.code .tree .child-nodes.transitioning {
   pointer-events: none;
   visibility: visible;
 }
 
-.code .files .tree .child-nodes:not(.expanded) * {
+.code .tree .child-nodes:not(.expanded) * {
   pointer-events: none;
 }
 
-.code .files .tree .child-nodes.expanded * {
+.code .tree .child-nodes.expanded * {
   pointer-events: auto;
 }
 
-.code .files .tree .child-nodes.expanded .node {
+.code .tree .child-nodes.expanded .node {
   pointer-events: auto;
 }
 
-.code .files .tree .child-nodes.expanded .node .icon,
-.code .files .tree .child-nodes.expanded .node .name {
+.code .tree .child-nodes.expanded .node .icon,
+.code .tree .child-nodes.expanded .node .name {
   pointer-events: auto;
 }
 
-.code .files .tree .node.rename:hover::before {
+.code .tree .node.rename:hover::before {
   background: none !important;
 }
 
-.code .files .tree .node .temp-node {
+.code .tree .node .temp-node {
   display: flex;
   align-items: center;
 }
 
-.code .files .tree .node.active {
+.code .tree .node.active {
   background: var(--workbench-tabs-active-background);
   color: var(--workbench-tabs-active-foreground);
 }
 
-.code .files .tree .temp-node span svg {
+.code .tree .temp-node span svg {
   width: 18px;
   height: auto;
   margin: 0 10px;
 }
 
-.code .files .tree .inline-editor-input {
+.code .tree .inline-editor-input {
   width: 100%;
   background: none;
   color: var(--workbench-panel-foreground);
@@ -221,10 +221,10 @@
   padding: 0 5px;
 }
 
-.code .files .tree .inline-editor-input:hover {
+.code .tree .inline-editor-input:hover {
   cursor: text;
 }
 
-.code .files .tree .inline-editor-input:focus {
+.code .tree .inline-editor-input:focus {
   outline-color: var(--workbench-input-active-outline);
 }

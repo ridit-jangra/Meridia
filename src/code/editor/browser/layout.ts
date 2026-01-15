@@ -208,6 +208,10 @@ export class Editor extends CoreEl {
     if (details) details.style.display = "none";
     if (preview) preview.style.display = "none";
 
+    standalones.forEach((v) => {
+      v._setVisiblity(false);
+    });
+
     this._contentArea.innerHTML = "";
     const content = _getContent(activeTab.uri);
     if (content) this._contentArea.appendChild(content);
