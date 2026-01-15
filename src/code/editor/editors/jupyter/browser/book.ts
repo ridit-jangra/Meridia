@@ -21,7 +21,6 @@ export class Book {
   private _cells!: ICell[];
   private _notebookCells: Map<string, NotebookCell> = new Map();
   private _sessionId: string | null = null;
-  private _isKernelReady: boolean = false;
   private _intersectionObserver?: IntersectionObserver;
   private _pendingCells: Map<string, { cellEl: HTMLDivElement }> = new Map();
 
@@ -232,11 +231,9 @@ export class Book {
       console.log("[Book] connectToKernel:", sessionId, status);
 
       this._sessionId = sessionId;
-      this._isKernelReady = true;
     } catch (err) {
       console.error("[Book] Failed to start/connect kernel:", err);
       this._sessionId = null;
-      this._isKernelReady = false;
     }
   }
 
@@ -281,7 +278,6 @@ export class Book {
     if (this._sessionId) {
       jupyter.shutdownSession(this._sessionId).catch(console.error);
       this._sessionId = null;
-      this._isKernelReady = false;
     }
 
     this._notebookCells.forEach((notebookCell) => {
@@ -612,7 +608,6 @@ export class Book {
     } else {
       await notebookCell.executeCode(
         this._sessionId!,
-        this._isKernelReady,
         (sessionId: string, code: string) =>
           jupyter.executeToKernel(sessionId, code)
       );

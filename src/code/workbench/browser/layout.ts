@@ -63,7 +63,7 @@ export class Layout {
 
     const leftPanelContent = new Panel("left-panel-content").getDomElement()!;
     const leftPanelOptions = new PanelOptions(
-      [explorerOption, extensionOption],
+      [explorerOption],
       leftPanelContent,
       "left-panel-options",
       "left-panel-options"
@@ -90,7 +90,7 @@ export class Layout {
 
     const rightPanelContent = new Panel("right-panel-content").getDomElement()!;
     const rightPanelOptions = new PanelOptions(
-      [miraOption, structureOption],
+      [structureOption],
       rightPanelContent,
       "right-panel-options",
       "right-panel-options"

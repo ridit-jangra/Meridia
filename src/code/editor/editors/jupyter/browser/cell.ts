@@ -278,22 +278,11 @@ export class NotebookCell {
 
   async executeCode(
     sessionId: string,
-    isKernelReady: boolean,
     jupyterExecute: (sessionId: string, code: string) => Promise<any>
   ): Promise<void> {
     if (!this._selectedCell) return;
 
     const code = this._selectedCell.editor.getValue();
-
-    if (!isKernelReady || !sessionId) {
-      this._selectedCell.outputEl.innerHTML = "";
-      const errorEl = document.createElement("pre");
-      errorEl.className = "output-error";
-      errorEl.textContent = "Kernel not ready. Please wait...";
-      this._selectedCell.outputEl.appendChild(errorEl);
-      this._selectedCell.outputEl.style.display = "block";
-      return;
-    }
 
     this._selectedCell.outputEl.innerHTML = "";
     this._selectedCell.outputEl.style.display = "none";
