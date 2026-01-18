@@ -8,7 +8,6 @@
   height: 40px;
   width: 100%;
   padding: 0 10px;
-  font-family: "Jetbrains Mono";
 }
 
 .code .statusbar .item-section {
@@ -30,6 +29,7 @@
 
 .code .statusbar .breadcrumb-container .breadcrumb-item {
   cursor: pointer;
+  font-family: "Jetbrains Mono";
 }
 
 .code .statusbar .breadcrumb-container .breadcrumb-item:hover,

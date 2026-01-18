@@ -38,6 +38,7 @@ const NODE_BUILTINS = [
   "node:stream",
   "node:child_process",
   "node:net",
+  "tty",
 ];
 
 const platformConfigs = {
