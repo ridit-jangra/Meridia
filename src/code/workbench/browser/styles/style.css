@@ -184,5 +184,8 @@ kbd {
 }
 
 input {
-  font-family: "AtkinsonHyperlegible";
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.7px;
+  line-height: 1.4rem;
 }
