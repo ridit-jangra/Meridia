@@ -23,6 +23,10 @@ export class Book {
   private _sessionId: string | null = null;
   private _intersectionObserver?: IntersectionObserver;
   private _pendingCells: Map<string, { cellEl: HTMLDivElement }> = new Map();
+  private _stdinHandlers = new Map<
+    string,
+    (prompt: string) => Promise<string>
+  >();
 
   constructor(private filePath: string) {
     try {
@@ -221,11 +225,61 @@ export class Book {
     return this._root;
   }
 
+  // Add this method to set up stdin listener (call it in mount() or constructor):
+  private _setupStdinListener() {
+    const ipcRenderer = (window as any).ipcRenderer;
+    if (ipcRenderer) {
+      ipcRenderer.on(
+        "jupyter-stdin-request",
+        async (_: any, data: { requestId: string; prompt: string }) => {
+          const { requestId, prompt } = data;
+
+          // Find the currently executing cell and show input UI
+          const currentCell = this._selectedCell;
+          if (currentCell) {
+            const notebookCell = this._notebookCells.get(currentCell.cell.id);
+            if (notebookCell) {
+              const handler = this._stdinHandlers.get(currentCell.cell.id);
+              if (handler) {
+                const value = await handler(prompt);
+                // Send response back to main process
+                ipcRenderer.invoke(
+                  "workbench.workspace.stdin.response",
+                  requestId,
+                  value
+                );
+              }
+            }
+          }
+        }
+      );
+    }
+  }
+
+  private async _ensureValidSession(): Promise<boolean> {
+    if (!this._sessionId) {
+      console.log("[Book] No session, connecting...");
+      try {
+        const { sessionId } = await jupyter.connectToKernel();
+        this._sessionId = sessionId;
+        console.log("[Book] Connected with session:", sessionId);
+        return true;
+      } catch (err) {
+        console.error("[Book] Failed to connect:", err);
+        return false;
+      }
+    }
+    return true;
+  }
+
   private async _startKernelAsync() {
     try {
       console.log("[Book] Starting Jupyter kernel...");
       const ok = await jupyter.startKernel();
       console.log("[Book] startKernel result:", ok);
+
+      // Add a small delay to ensure kernel is ready
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       const { sessionId, status } = await jupyter.connectToKernel();
       console.log("[Book] connectToKernel:", sessionId, status);
@@ -234,6 +288,18 @@ export class Book {
     } catch (err) {
       console.error("[Book] Failed to start/connect kernel:", err);
       this._sessionId = null;
+
+      // Retry once after a delay
+      console.log("[Book] Retrying kernel connection in 2 seconds...");
+      setTimeout(async () => {
+        try {
+          const { sessionId, status } = await jupyter.connectToKernel();
+          console.log("[Book] Retry successful:", sessionId, status);
+          this._sessionId = sessionId;
+        } catch (retryErr) {
+          console.error("[Book] Retry failed:", retryErr);
+        }
+      }, 2000);
     }
   }
 
@@ -284,6 +350,7 @@ export class Book {
       notebookCell.dispose();
     });
     this._notebookCells.clear();
+    this._stdinHandlers.clear(); // Add this line
 
     if (this._intersectionObserver) {
       this._intersectionObserver.disconnect();
@@ -606,6 +673,96 @@ export class Book {
     if (cell.cell_type === "markdown") {
       await notebookCell.executeMarkdown();
     } else {
+      // Create stdin handler for this cell
+      const stdinHandler = (prompt: string) => {
+        return new Promise<string>((resolve) => {
+          const outputEl = selectedCell.outputEl;
+
+          const inputContainer = document.createElement("div");
+          inputContainer.className = "output-input-container";
+          inputContainer.style.cssText = `
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px;
+          background: var(--vscode-input-background);
+          border: 1px solid var(--vscode-input-border);
+          border-radius: 4px;
+          margin: 4px 0;
+        `;
+
+          const label = document.createElement("span");
+          label.className = "output-input-label";
+          label.textContent = prompt || "Input: ";
+          label.style.cssText = `
+          color: var(--vscode-input-foreground);
+          white-space: nowrap;
+        `;
+
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "output-input-field";
+          input.placeholder = "Enter value...";
+          input.style.cssText = `
+          flex: 1;
+          padding: 4px 8px;
+          background: var(--vscode-input-background);
+          color: var(--vscode-input-foreground);
+          border: 1px solid var(--vscode-input-border);
+          border-radius: 2px;
+          outline: none;
+        `;
+
+          const submitBtn = document.createElement("button");
+          submitBtn.className = "output-input-submit";
+          submitBtn.textContent = "Submit";
+          submitBtn.style.cssText = `
+          padding: 4px 12px;
+          background: var(--vscode-button-background);
+          color: var(--vscode-button-foreground);
+          border: none;
+          border-radius: 2px;
+          cursor: pointer;
+        `;
+
+          const handleSubmit = () => {
+            const value = input.value;
+            inputContainer.remove();
+
+            // Show the submitted value
+            const submittedEl = document.createElement("div");
+            submittedEl.className = "output-input-submitted";
+            submittedEl.textContent = `${prompt}${value}`;
+            submittedEl.style.cssText = `
+            padding: 4px 8px;
+            color: var(--vscode-editor-foreground);
+            font-family: monospace;
+          `;
+            outputEl.appendChild(submittedEl);
+
+            this._stdinHandlers.delete(selectedCell.cell.id);
+            resolve(value);
+          };
+
+          submitBtn.onclick = handleSubmit;
+          input.onkeydown = (e) => {
+            if (e.key === "Enter") {
+              handleSubmit();
+            }
+          };
+
+          inputContainer.appendChild(label);
+          inputContainer.appendChild(input);
+          inputContainer.appendChild(submitBtn);
+          outputEl.appendChild(inputContainer);
+
+          // Focus the input
+          setTimeout(() => input.focus(), 100);
+        });
+      };
+
+      this._stdinHandlers.set(selectedCell.cell.id, stdinHandler);
+
       await notebookCell.executeCode(
         this._sessionId!,
         (sessionId: string, code: string) =>
