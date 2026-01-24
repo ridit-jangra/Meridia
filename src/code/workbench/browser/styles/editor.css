@@ -298,6 +298,7 @@
 .monaco-editor .suggest-details {
   border-radius: 6px !important;
   border: 2px solid var(--workbench-border-foreground) !important;
+  font-weight: normal !important;
 }
 
 .monaco-editor .suggest-details a {
@@ -307,6 +308,10 @@
 
 .monaco-editor .suggest-details a:hover {
   text-decoration: underline !important;
+}
+
+.monaco-editor .monaco-menu * {
+  font-weight: normal !important;
 }
 
 .monaco-editor .monaco-menu {

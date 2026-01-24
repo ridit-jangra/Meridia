@@ -73,6 +73,10 @@
   background: var(--workbench-titlebar-item-hover-background);
 }
 
+.code .title .menu-button:hover {
+  background: var(--workbench-titlebar-item-hover-background);
+}
+
 .code .titlebar .hamburger-menu {
   position: absolute;
   top: calc(100% + 8px);
@@ -117,13 +121,9 @@
   position: relative;
   cursor: pointer;
   width: 95%;
-  margin: 0 auto;
-  height: auto;
-  min-height: 32px;
   display: flex;
   align-items: center;
   border-radius: 6px;
-  margin-bottom: 2px;
 }
 
 .code .titlebar .menu-item:last-child {

@@ -16,7 +16,8 @@ import {
 import fs from "fs";
 import path from "path";
 import { ChildProcess, spawn } from "child_process";
-import { ipcMain } from "electron";
+import { ipcMain, BrowserWindow } from "electron";
+import { IHeader } from "@jupyterlab/services/lib/kernel/messages";
 
 const DEFAULT_PORT = 9186;
 let jupyterProcess: ChildProcess | null = null;
@@ -29,6 +30,15 @@ const sessions = new Map<
     session: ISessionConnection;
     kernelManager: KernelManager;
     sessionManager: SessionManager;
+  }
+>();
+
+// Store pending stdin requests
+const pendingStdinRequests = new Map<
+  string,
+  {
+    resolve: (value: string) => void;
+    prompt: string;
   }
 >();
 
@@ -189,7 +199,11 @@ export async function connectToKernel() {
   }
 }
 
-export async function executeToKernel(sessionId: string, code: string) {
+export async function executeToKernel(
+  sessionId: string,
+  code: string,
+  mainWindow?: BrowserWindow
+) {
   const connection = sessions.get(sessionId);
   if (!connection) {
     throw new Error("Session not found");
@@ -199,7 +213,7 @@ export async function executeToKernel(sessionId: string, code: string) {
 
   const future = kernel.requestExecute({
     code,
-    allow_stdin: false,
+    allow_stdin: true, // Enable stdin
   });
 
   let output = "";
@@ -216,6 +230,34 @@ export async function executeToKernel(sessionId: string, code: string) {
     } else if (msg.header.msg_type === "error") {
       const errorMsg = msg as KernelMessage.IErrorMsg;
       error = errorMsg.content.ename + ": " + errorMsg.content.evalue;
+    }
+  };
+
+  // Handle stdin requests
+  future.onStdin = async (msg) => {
+    if (msg.header.msg_type === "input_request") {
+      const inputMsg = msg as KernelMessage.IInputRequestMsg;
+      const prompt = inputMsg.content.prompt || "";
+
+      // Send request to renderer process
+      if (mainWindow) {
+        const requestId = `stdin-${Date.now()}-${Math.random()}`;
+
+        // Wait for user input from renderer
+        const userInput = await new Promise<string>((resolve) => {
+          pendingStdinRequests.set(requestId, { resolve, prompt });
+          mainWindow.webContents.send("jupyter-stdin-request", {
+            requestId,
+            prompt,
+          });
+        });
+
+        // Send the input back to the kernel
+        kernel.sendInputReply(
+          { value: userInput, status: "ok" },
+          msg.header as IHeader<"input_request">
+        );
+      }
     }
   };
 
@@ -248,8 +290,9 @@ ipcMain.handle("workbench.workspace.connect.kernel", async () => {
 
 ipcMain.handle(
   "workbench.workspace.execute.kernel",
-  async (_, sessionId: string, code: string) => {
-    return await executeToKernel(sessionId, code);
+  async (event, sessionId: string, code: string) => {
+    const mainWindow = BrowserWindow.fromWebContents(event.sender);
+    return await executeToKernel(sessionId, code, mainWindow || undefined);
   }
 );
 
@@ -257,5 +300,17 @@ ipcMain.handle(
   "workbench.workspace.shutdown.session",
   async (_, sessionId: string) => {
     return await shutdownSession(sessionId);
+  }
+);
+
+// Handle stdin response from renderer
+ipcMain.handle(
+  "workbench.workspace.stdin.response",
+  async (_, requestId: string, value: string) => {
+    const request = pendingStdinRequests.get(requestId);
+    if (request) {
+      request.resolve(value);
+      pendingStdinRequests.delete(requestId);
+    }
   }
 );

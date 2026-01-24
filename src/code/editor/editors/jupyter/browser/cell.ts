@@ -12,6 +12,7 @@ export class NotebookCell {
   private _disposables: monaco.IDisposable[] = [];
   private _contentListener?: monaco.IDisposable;
   private _resizeObserver?: ResizeObserver;
+  private _inputResolve?: (value: string) => void;
 
   constructor(
     private cell: ICell,
@@ -218,20 +219,44 @@ export class NotebookCell {
         streamEl.textContent = text;
         outputEl.appendChild(streamEl);
       } else if (output.output_type === "execute_result") {
-        const resultEl = document.createElement("pre");
+        const resultEl = document.createElement("div");
         resultEl.className = "output-result";
 
         const data = output.data;
-        if (data["text/plain"]) {
-          resultEl.textContent = data["text/plain"];
-        } else if (data["text/html"]) {
-          resultEl.innerHTML = data["text/html"];
-        } else if (data["image/png"]) {
+
+        // Handle HTML output (raw rendering)
+        if (data["text/html"]) {
+          const htmlContainer = document.createElement("div");
+          htmlContainer.className = "output-html";
+          htmlContainer.innerHTML = data["text/html"];
+          resultEl.appendChild(htmlContainer);
+        }
+        // Handle images
+        else if (data["image/png"]) {
           const img = document.createElement("img");
           img.src = `data:image/png;base64,${data["image/png"]}`;
           resultEl.appendChild(img);
-        } else {
-          resultEl.textContent = JSON.stringify(data, null, 2);
+        } else if (data["image/jpeg"]) {
+          const img = document.createElement("img");
+          img.src = `data:image/jpeg;base64,${data["image/jpeg"]}`;
+          resultEl.appendChild(img);
+        } else if (data["image/svg+xml"]) {
+          const svgContainer = document.createElement("div");
+          svgContainer.className = "output-svg";
+          svgContainer.innerHTML = data["image/svg+xml"];
+          resultEl.appendChild(svgContainer);
+        }
+        // Handle plain text
+        else if (data["text/plain"]) {
+          const pre = document.createElement("pre");
+          pre.textContent = data["text/plain"];
+          resultEl.appendChild(pre);
+        }
+        // Fallback for unknown formats
+        else {
+          const pre = document.createElement("pre");
+          pre.textContent = JSON.stringify(data, null, 2);
+          resultEl.appendChild(pre);
         }
 
         outputEl.appendChild(resultEl);
@@ -248,12 +273,26 @@ export class NotebookCell {
         displayEl.className = "output-display";
 
         const data = output.data;
-        if (data["image/png"]) {
+
+        // Handle HTML in display_data
+        if (data["text/html"]) {
+          const htmlContainer = document.createElement("div");
+          htmlContainer.className = "output-html";
+          htmlContainer.innerHTML = data["text/html"];
+          displayEl.appendChild(htmlContainer);
+        } else if (data["image/png"]) {
           const img = document.createElement("img");
           img.src = `data:image/png;base64,${data["image/png"]}`;
           displayEl.appendChild(img);
-        } else if (data["text/html"]) {
-          displayEl.innerHTML = data["text/html"];
+        } else if (data["image/jpeg"]) {
+          const img = document.createElement("img");
+          img.src = `data:image/jpeg;base64,${data["image/jpeg"]}`;
+          displayEl.appendChild(img);
+        } else if (data["image/svg+xml"]) {
+          const svgContainer = document.createElement("div");
+          svgContainer.className = "output-svg";
+          svgContainer.innerHTML = data["image/svg+xml"];
+          displayEl.appendChild(svgContainer);
         } else if (data["text/plain"]) {
           const pre = document.createElement("pre");
           pre.textContent = data["text/plain"];
@@ -276,9 +315,64 @@ export class NotebookCell {
     this._selectedCell.editorEl.style.display = "none";
   }
 
+  private _handleStdinRequest(
+    prompt: string,
+    outputEl: HTMLDivElement
+  ): Promise<string> {
+    return new Promise((resolve) => {
+      const inputContainer = document.createElement("div");
+      inputContainer.className = "output-input-container";
+
+      const label = document.createElement("span");
+      label.className = "output-input-label";
+      label.textContent = prompt || "Input: ";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "output-input-field";
+      input.placeholder = "Enter value...";
+
+      const submitBtn = document.createElement("button");
+      submitBtn.className = "output-input-submit";
+      submitBtn.textContent = "Submit";
+
+      const handleSubmit = () => {
+        const value = input.value;
+        inputContainer.remove();
+
+        // Show the submitted value
+        const submittedEl = document.createElement("div");
+        submittedEl.className = "output-input-submitted";
+        submittedEl.textContent = `${prompt}${value}`;
+        outputEl.appendChild(submittedEl);
+
+        resolve(value);
+      };
+
+      submitBtn.onclick = handleSubmit;
+      input.onkeydown = (e) => {
+        if (e.key === "Enter") {
+          handleSubmit();
+        }
+      };
+
+      inputContainer.appendChild(label);
+      inputContainer.appendChild(input);
+      inputContainer.appendChild(submitBtn);
+      outputEl.appendChild(inputContainer);
+
+      // Focus the input
+      setTimeout(() => input.focus(), 100);
+    });
+  }
+
   async executeCode(
     sessionId: string,
-    jupyterExecute: (sessionId: string, code: string) => Promise<any>
+    jupyterExecute: (
+      sessionId: string,
+      code: string,
+      onStdin?: (prompt: string) => Promise<string>
+    ) => Promise<any>
   ): Promise<void> {
     if (!this._selectedCell) return;
 
@@ -297,8 +391,14 @@ export class NotebookCell {
       this._selectedCell.cellEl.appendChild(this._selectedCell.outputEl);
     }
 
+    const outputEl = this._selectedCell.outputEl;
+
     try {
-      const { output, result, error } = await jupyterExecute(sessionId, code);
+      const { output, result, error } = await jupyterExecute(
+        sessionId,
+        code,
+        (prompt: string) => this._handleStdinRequest(prompt, outputEl)
+      );
 
       this._selectedCell.outputEl.innerHTML = "";
 
@@ -332,19 +432,42 @@ export class NotebookCell {
       }
 
       if (result) {
-        const resultEl = document.createElement("pre");
+        const resultEl = document.createElement("div");
         resultEl.className = "output-result";
 
-        if (result["text/plain"]) {
-          resultEl.textContent = result["text/plain"];
-        } else if (result["text/html"]) {
-          resultEl.innerHTML = result["text/html"];
-        } else if (result["image/png"]) {
+        // Handle HTML output (raw rendering)
+        if (result["text/html"]) {
+          const htmlContainer = document.createElement("div");
+          htmlContainer.className = "output-html";
+          htmlContainer.innerHTML = result["text/html"];
+          resultEl.appendChild(htmlContainer);
+        }
+        // Handle images
+        else if (result["image/png"]) {
           const img = document.createElement("img");
           img.src = `data:image/png;base64,${result["image/png"]}`;
           resultEl.appendChild(img);
-        } else {
-          resultEl.textContent = JSON.stringify(result, null, 2);
+        } else if (result["image/jpeg"]) {
+          const img = document.createElement("img");
+          img.src = `data:image/jpeg;base64,${result["image/jpeg"]}`;
+          resultEl.appendChild(img);
+        } else if (result["image/svg+xml"]) {
+          const svgContainer = document.createElement("div");
+          svgContainer.className = "output-svg";
+          svgContainer.innerHTML = result["image/svg+xml"];
+          resultEl.appendChild(svgContainer);
+        }
+        // Handle plain text
+        else if (result["text/plain"]) {
+          const pre = document.createElement("pre");
+          pre.textContent = result["text/plain"];
+          resultEl.appendChild(pre);
+        }
+        // Fallback
+        else {
+          const pre = document.createElement("pre");
+          pre.textContent = JSON.stringify(result, null, 2);
+          resultEl.appendChild(pre);
         }
 
         this._selectedCell.outputEl.appendChild(resultEl);
