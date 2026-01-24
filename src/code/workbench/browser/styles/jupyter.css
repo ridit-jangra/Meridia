@@ -30,6 +30,9 @@
   padding: 2px 6px;
   border-radius: 4px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .code .jupyter-notebook .book .tools span:hover {
@@ -46,6 +49,8 @@
   padding: 6px 8px;
   border-radius: 6px;
   cursor: pointer;
+  background: transparent;
+  color: inherit;
 }
 
 .code .jupyter-notebook .book .tools select:hover {
@@ -62,6 +67,7 @@
   padding: 0 30px;
   height: 100%;
   gap: 12px;
+  overflow-y: auto;
 }
 
 .code .jupyter-notebook .book .cell-tree .cell {
@@ -105,41 +111,32 @@
 .code .jupyter-notebook .book .cell-tree .cell .editor {
   height: 100%;
   width: 100%;
+  overflow: hidden !important;
 }
 
-.code .jupyter-notebook .book .cell-tree .cell.selected > .cell-tools {
-  display: flex;
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .editor
+  .monaco-scrollable-element {
+  overflow: hidden !important;
 }
 
-.code .jupyter-notebook .book .cell-tree .cell .cell-tools {
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: var(--workbench-editor-background);
-  margin-bottom: 10px;
-  margin-left: auto;
-  gap: 6px;
-  position: absolute;
-  top: 10px;
-  right: 30px;
-  height: 32px;
-  z-index: 5;
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .editor
+  .monaco-scrollable-element
+  > .scrollbar {
+  display: none !important;
 }
 
-.code .jupyter-notebook .book .cell-tree .cell .cell-tools span {
-  padding: 2px 6px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.code .jupyter-notebook .book .cell-tree .cell .cell-tools span svg {
-  display: flex;
-  width: 20px;
-  height: auto;
-}
-
-.code .jupyter-notebook .book .cell-tree .cell .cell-tools span:hover {
-  background: var(--workbench-jupyter-notebook-tools-hover-background);
+.code .jupyter-notebook .book .cell-tree .cell .editor .overflow-guard {
+  overflow: hidden !important;
 }
 
 .code
@@ -164,61 +161,366 @@
   background-color: var(--workbench-editor-background) !important;
 }
 
-/* Add these styles to your notebook CSS file */
+.code .jupyter-notebook .book .cell-tree .cell.selected > .cell-tools {
+  display: flex;
+}
 
-/* HTML Output Container */
-.output-html {
+.code .jupyter-notebook .book .cell-tree .cell .cell-tools {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--workbench-editor-background);
+  margin-bottom: 10px;
+  margin-left: auto;
+  gap: 6px;
+  position: absolute;
+  top: 10px;
+  right: 30px;
+  height: 32px;
+  z-index: 5;
+  border-radius: 4px;
+  padding: 2px;
+}
+
+.code .jupyter-notebook .book .cell-tree .cell .cell-tools span {
+  padding: 2px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.code .jupyter-notebook .book .cell-tree .cell .cell-tools span svg {
+  display: flex;
+  width: 20px;
+  height: auto;
+}
+
+.code .jupyter-notebook .book .cell-tree .cell .cell-tools span:hover {
+  background: var(--workbench-jupyter-notebook-tools-hover-background);
+}
+
+.code .jupyter-notebook .book .cell-tree .cell .output {
+  margin-top: 8px;
+}
+
+.code .jupyter-notebook .book .cell-tree .cell .output .output-result {
   padding: 8px;
-  background: var(--vscode-editor-background);
+  background: var(--workbench-editor-background);
+  border-radius: 4px;
+  margin: 4px 0;
+}
+
+.code .jupyter-notebook .book .cell-tree .cell .output .output-result img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+}
+
+.code .jupyter-notebook .book .cell-tree .cell .output .output-result pre {
+  margin: 0;
+  padding: 8px;
+  background: var(--workbench-preview-markdown-code-background);
+  border-radius: 3px;
+  overflow-x: auto;
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html {
+  padding: 8px;
+  background: var(--workbench-editor-background);
   border-radius: 4px;
   overflow: auto;
   max-width: 100%;
 }
 
-.output-html table {
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  > div {
+  overflow-x: auto;
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  table {
   border-collapse: collapse;
   width: 100%;
   margin: 8px 0;
+  font-size: 13px;
+  background: var(--workbench-background);
 }
 
-.output-html th,
-.output-html td {
-  border: 1px solid var(--vscode-panel-border);
-  padding: 6px 12px;
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  table
+  thead {
+  background: var(--workbench-editor-line-highlight-background);
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  table
+  thead
+  tr {
+  background: var(--workbench-editor-line-highlight-background);
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  table
+  thead
+  th {
+  border: 1px solid var(--workbench-border-foreground);
+  padding: 10px 14px;
   text-align: left;
-}
-
-.output-html th {
-  background: var(--vscode-editor-lineHighlightBackground);
   font-weight: 600;
+  color: var(--workbench-foreground);
+  background: var(--workbench-editor-background);
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
-.output-html tr:hover {
-  background: var(--vscode-list-hoverBackground);
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  table
+  tbody {
+  background: var(--workbench-background);
 }
 
-/* SVG Output */
-.output-svg {
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  table
+  tbody
+  tr {
+  transition: background-color 0.15s ease;
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  table
+  tbody
+  tr:nth-child(even) {
+  background: var(--workbench-editor-background);
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  table
+  tbody
+  tr:hover {
+  background: var(--workbench-editor-line-highlight-background);
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  table
+  tbody
+  th {
+  border: 1px solid var(--workbench-border-foreground);
+  padding: 8px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--workbench-foreground);
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  table
+  tbody
+  td {
+  border: 1px solid var(--workbench-border-foreground);
+  padding: 8px 14px;
+  text-align: left;
+  color: var(--workbench-foreground);
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  table
+  caption {
   padding: 8px;
-  background: var(--vscode-editor-background);
+  font-weight: 600;
+  text-align: left;
+  color: var(--workbench-foreground);
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  .dataframe {
+  border: none;
+  border-radius: 12px;
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  .dataframe
+  tbody
+  tr
+  th:only-of-type {
+  vertical-align: middle;
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  .dataframe
+  tbody
+  tr
+  th {
+  vertical-align: top;
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-html
+  .dataframe
+  thead
+  th {
+  text-align: left;
+  vertical-align: bottom;
+}
+
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-svg {
+  padding: 8px;
+  background: var(--workbench-editor-background);
   border-radius: 4px;
   overflow: auto;
   max-width: 100%;
 }
 
-.output-svg svg {
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-result
+  .output-svg
+  svg {
   max-width: 100%;
   height: auto;
 }
 
-/* Input Container */
-.output-input-container {
+.code .jupyter-notebook .book .cell-tree .cell .output .output-input-container {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 12px;
-  background: var(--vscode-input-background);
-  border: 1px solid var(--vscode-input-border);
+  background: var(--workbench-input-background);
+  border: 1px solid var(--workbench-input-border-foreground);
   border-radius: 4px;
   margin: 8px 0;
   animation: slideIn 0.2s ease-out;
@@ -235,103 +537,124 @@
   }
 }
 
-.output-input-label {
-  color: var(--vscode-input-foreground);
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-input-container
+  .output-input-label {
+  color: var(--workbench-input-foreground);
   white-space: nowrap;
   font-weight: 500;
-  font-family: var(--vscode-font-family);
 }
 
-.output-input-field {
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-input-container
+  .output-input-field {
   flex: 1;
   padding: 6px 12px;
-  background: var(--vscode-input-background);
-  color: var(--vscode-input-foreground);
-  border: 1px solid var(--vscode-input-border);
+  background: var(--workbench-input-background);
+  color: var(--workbench-input-foreground);
+  border: 1px solid var(--workbench-input-border-foreground);
   border-radius: 3px;
   outline: none;
-  font-family: var(--vscode-font-family);
   font-size: 13px;
   transition: border-color 0.2s;
 }
 
-.output-input-field:focus {
-  border-color: var(--vscode-focusBorder);
-  box-shadow: 0 0 0 1px var(--vscode-focusBorder);
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-input-container
+  .output-input-field:focus {
+  border-color: var(--workbench-input-active-outline);
+  box-shadow: 0 0 0 1px var(--workbench-input-active-outline);
 }
 
-.output-input-field::placeholder {
-  color: var(--vscode-input-placeholderForeground);
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-input-container
+  .output-input-field::placeholder {
+  color: var(--workbench-secondary-foreground);
 }
 
-.output-input-submit {
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-input-container
+  .output-input-submit {
   padding: 6px 16px;
-  background: var(--vscode-button-background);
-  color: var(--vscode-button-foreground);
+  background: var(--workbench-primary-button-background);
+  color: var(--workbench-primary-button-foreground);
   border: none;
   border-radius: 3px;
   cursor: pointer;
-  font-family: var(--vscode-font-family);
   font-size: 13px;
   font-weight: 500;
   transition: background-color 0.2s;
   white-space: nowrap;
 }
 
-.output-input-submit:hover {
-  background: var(--vscode-button-hoverBackground);
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-input-container
+  .output-input-submit:hover {
+  background: var(--workbench-primary-button-background);
+  opacity: 0.9;
 }
 
-.output-input-submit:active {
+.code
+  .jupyter-notebook
+  .book
+  .cell-tree
+  .cell
+  .output
+  .output-input-container
+  .output-input-submit:active {
   transform: translateY(1px);
 }
 
-.output-input-submitted {
+.code .jupyter-notebook .book .cell-tree .cell .output .output-input-submitted {
   padding: 6px 12px;
-  color: var(--vscode-editor-foreground);
+  color: var(--workbench-editor-foreground);
   font-family: "Courier New", monospace;
   font-size: 13px;
-  background: var(--vscode-editor-lineHighlightBackground);
-  border-left: 3px solid var(--vscode-textLink-foreground);
+  background: var(--workbench-editor-line-highlight-background);
+  border-left: 3px solid
+    var(--workbench-jupyter-notebook-active-cell-border-foreground);
   margin: 4px 0;
   border-radius: 2px;
 }
 
-/* Improve output result styling */
-.output-result {
+.code .jupyter-notebook .book .cell-tree .cell .output .output-display {
   padding: 8px;
-  background: var(--vscode-editor-background);
+  background: var(--workbench-editor-background);
   border-radius: 4px;
   margin: 4px 0;
 }
 
-.output-result img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 4px;
-  display: block;
-}
-
-.output-result pre {
-  margin: 0;
-  padding: 8px;
-  background: var(--vscode-textCodeBlock-background);
-  border-radius: 3px;
-  overflow-x: auto;
-  font-family: "Courier New", monospace;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-/* Display data styling */
-.output-display {
-  padding: 8px;
-  background: var(--vscode-editor-background);
-  border-radius: 4px;
-  margin: 4px 0;
-}
-
-.output-display img {
+.code .jupyter-notebook .book .cell-tree .cell .output .output-display img {
   max-width: 100%;
   height: auto;
   border-radius: 4px;
@@ -339,31 +662,11 @@
   margin: 4px 0;
 }
 
-/* Loading state */
-.output-loading {
+.code .jupyter-notebook .book .cell-tree .cell .output .output-error {
   padding: 12px;
-  color: var(--vscode-descriptionForeground);
-  font-style: italic;
-  text-align: center;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-/* Error styling improvements */
-.output-error {
-  padding: 12px;
-  background: var(--vscode-inputValidation-errorBackground);
-  color: var(--vscode-inputValidation-errorForeground);
-  border-left: 3px solid var(--vscode-inputValidation-errorBorder);
+  background: var(--workbench-background);
+  color: var(--workbench-terminal-red);
+  border-left: 3px solid var(--workbench-terminal-red);
   border-radius: 4px;
   margin: 4px 0;
   font-family: "Courier New", monospace;
@@ -372,11 +675,10 @@
   overflow-x: auto;
 }
 
-/* Stream output improvements */
-.output-stream {
+.code .jupyter-notebook .book .cell-tree .cell .output .output-stream {
   padding: 12px;
-  background: var(--vscode-textCodeBlock-background);
-  color: var(--vscode-editor-foreground);
+  background: var(--workbench-preview-markdown-code-background);
+  color: var(--workbench-editor-foreground);
   border-radius: 4px;
   margin: 4px 0;
   font-family: "Courier New", monospace;

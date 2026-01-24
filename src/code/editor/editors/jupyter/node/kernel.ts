@@ -1,5 +1,3 @@
-// jupyterKernel.ts (main process)
-
 import {
   KernelManager,
   SessionManager,
@@ -52,7 +50,7 @@ function getJupyterPort(): number {
 
 export function startKernel(): Promise<boolean> {
   const folder_structure = Storage.get(
-    "workbench.workspace.folder.structure"
+    "workbench.workspace.folder.structure",
   ) as IFolderStructure;
   if (!folder_structure) return Promise.resolve(false);
 
@@ -63,7 +61,7 @@ export function startKernel(): Promise<boolean> {
     const meridiaUri = path.join(uri, ".meridia");
     const configFile = path.join(meridiaUri, "editor.json");
     data = JSON.parse(
-      fs.readFileSync(configFile, { encoding: "utf-8" })
+      fs.readFileSync(configFile, { encoding: "utf-8" }),
     ) as IProjectDetails;
   } catch (err) {
     data = {} as IProjectDetails;
@@ -92,7 +90,7 @@ export function startKernel(): Promise<boolean> {
       {
         cwd: uri,
         stdio: ["pipe", "pipe", "pipe"],
-      }
+      },
     );
 
     let settled = false;
@@ -202,7 +200,7 @@ export async function connectToKernel() {
 export async function executeToKernel(
   sessionId: string,
   code: string,
-  mainWindow?: BrowserWindow
+  mainWindow?: BrowserWindow,
 ) {
   const connection = sessions.get(sessionId);
   if (!connection) {
@@ -255,7 +253,7 @@ export async function executeToKernel(
         // Send the input back to the kernel
         kernel.sendInputReply(
           { value: userInput, status: "ok" },
-          msg.header as IHeader<"input_request">
+          msg.header as IHeader<"input_request">,
         );
       }
     }
@@ -293,14 +291,14 @@ ipcMain.handle(
   async (event, sessionId: string, code: string) => {
     const mainWindow = BrowserWindow.fromWebContents(event.sender);
     return await executeToKernel(sessionId, code, mainWindow || undefined);
-  }
+  },
 );
 
 ipcMain.handle(
   "workbench.workspace.shutdown.session",
   async (_, sessionId: string) => {
     return await shutdownSession(sessionId);
-  }
+  },
 );
 
 // Handle stdin response from renderer
@@ -312,5 +310,5 @@ ipcMain.handle(
       request.resolve(value);
       pendingStdinRequests.delete(requestId);
     }
-  }
+  },
 );

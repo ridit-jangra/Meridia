@@ -1,3 +1,4 @@
+import { getThemeIcon } from "./media/icons.js";
 import { CoreEl } from "./parts/core.js";
 import { SidebarTree } from "./parts/settings/sidebar-tree.js";
 import { Splitter } from "./parts/splitter/splitter.js";
@@ -20,8 +21,13 @@ export class Settings extends CoreEl {
 
     const searchInput = document.createElement("input");
     searchInput.type = "text";
+    searchInput.placeholder = "Search settings...";
+
+    const searchIcon = document.createElement("span");
+    searchIcon.innerHTML = getThemeIcon("search");
 
     searchBox.appendChild(searchInput);
+    searchBox.appendChild(searchIcon);
 
     header.appendChild(searchBox);
 

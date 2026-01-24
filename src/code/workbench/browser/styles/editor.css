@@ -234,7 +234,9 @@
 .code .editor .monaco-editor .monaco-menu {
   border: 2px solid var(--workbench-border-foreground) !important;
   border-radius: 12px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }
 
 .monaco-editor .margin-view-overlays .current-line {
@@ -331,12 +333,14 @@
 
 .monaco-editor .rename-input {
   border-radius: 8px !important;
+  font-weight: normal !important;
   border: 2px solid var(--workbench-border-foreground) !important;
   color: var(--workbench-editor-foreground) !important;
 }
 
 .monaco-editor .quick-input-widget {
   font-size: 16px !important;
+  font-weight: normal !important;
 }
 
 .monaco-editor .monaco-hover {
@@ -373,6 +377,7 @@
   border-radius: 8px !important;
   margin-bottom: 5px !important;
   box-shadow: 0 0 2px 2px var(--workbench-input-active-outline) !important;
+  font-weight: normal !important;
 }
 
 .monaco-editor .monaco-inputbox input {
@@ -386,6 +391,7 @@
   font-family: "Jetbrains Mono" !important;
   color: var(--workbench-input-foreground) !important;
   padding: 0 10px !important;
+  font-weight: normal !important;
 }
 
 .monaco-editor .monaco-inputbox input:focus {

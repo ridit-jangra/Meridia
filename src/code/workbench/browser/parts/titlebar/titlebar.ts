@@ -1,14 +1,15 @@
 import { menuItems } from "./titlebarMenu.js";
 import { dispatch } from "../../../common/store/store.js";
-import { select } from "../../../common/store/selector.js";
+import { select, watch } from "../../../common/store/selector.js";
 import { update_panel_state } from "../../../common/store/slice.js";
 import { getIcon, openTab } from "../../../common/utils.js";
 import { IEditorTab, Menuitems } from "../../../workbench.types.js";
 import {
   bottomPanelIcon,
   leftPanelIcon,
-  rightPanelIcon,
   getThemeIcon,
+  leftPanelIconOff,
+  bottomPanelIconOff,
 } from "../../media/icons.js";
 import { CoreEl } from "../core.js";
 import { runCommand } from "../../../common/command.js";
@@ -55,12 +56,16 @@ export class Titlebar extends CoreEl {
       dispatch(update_panel_state({ ..._state, bottom: !_state.bottom }));
     };
 
-    const rightPanel = document.createElement("span");
-    rightPanel.innerHTML = rightPanelIcon;
-    rightPanel.onclick = () => {
-      const _state = select((s) => s.main.panel_state);
-      dispatch(update_panel_state({ ..._state, right: !_state.right }));
-    };
+    watch(
+      (s) => s.main.panel_state,
+      (v) => {
+        if (v.left) leftPanel.innerHTML = leftPanelIcon;
+        else leftPanel.innerHTML = leftPanelIconOff;
+
+        if (v.bottom) bottomPanel.innerHTML = bottomPanelIcon;
+        else bottomPanel.innerHTML = bottomPanelIconOff;
+      },
+    );
 
     this.hamburgerContainer = document.createElement("span");
     this.hamburgerContainer.className = "menu-button menu-container";
@@ -75,6 +80,7 @@ export class Titlebar extends CoreEl {
 
     const newProject = document.createElement("span");
     newProject.innerHTML = getThemeIcon("add");
+    newProject.className = "command-option";
     newProject.style.marginLeft = "5px";
     newProject.onclick = () => {
       _newProject._show();
@@ -87,7 +93,6 @@ export class Titlebar extends CoreEl {
     leftPanelSection.appendChild(actionEl);
     actionEl.appendChild(leftPanel);
     actionEl.appendChild(bottomPanel);
-    actionEl.appendChild(rightPanel);
     leftPanelSection.appendChild(this.hamburgerContainer);
     leftPanelSection.appendChild(newProject);
 
@@ -114,7 +119,7 @@ export class Titlebar extends CoreEl {
 
         openTab(_tab);
       },
-      getThemeIcon("settings")
+      getThemeIcon("settings"),
     );
 
     const runOption = new PanelOption(
@@ -126,7 +131,7 @@ export class Titlebar extends CoreEl {
 
         if (_active) runCommand("workbench.editor.run", [_active.uri]);
       },
-      getThemeIcon("run")
+      getThemeIcon("run"),
     );
 
     const debugOption = new PanelOption(
@@ -138,7 +143,7 @@ export class Titlebar extends CoreEl {
 
         if (_active) runCommand("workbench.editor.debug", [_active.uri]);
       },
-      getThemeIcon("debug")
+      getThemeIcon("debug"),
     );
 
     const stopOption = new PanelOption(
@@ -150,7 +155,7 @@ export class Titlebar extends CoreEl {
 
         if (_active) runCommand("workbench.editor.stop", [_active.uri]);
       },
-      getThemeIcon("stop")
+      getThemeIcon("stop"),
     );
 
     document.addEventListener("workbench.editor.run.disable", () => {
@@ -204,7 +209,7 @@ export class Titlebar extends CoreEl {
   private _build(
     container: HTMLElement,
     items: Menuitems[],
-    level: number
+    level: number,
   ): void {
     items.forEach((item) => {
       if (item.separator) {
