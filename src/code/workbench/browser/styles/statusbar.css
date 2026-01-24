@@ -30,6 +30,7 @@
 .code .statusbar .breadcrumb-container .breadcrumb-item {
   cursor: pointer;
   font-family: "Jetbrains Mono";
+  font-size: 17px;
 }
 
 .code .statusbar .breadcrumb-container .breadcrumb-item:hover,
