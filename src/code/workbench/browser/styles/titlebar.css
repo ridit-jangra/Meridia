@@ -43,8 +43,7 @@
   align-items: center;
   justify-content: center;
   padding: 2px;
-  height: 70%;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
@@ -69,11 +68,11 @@
   gap: 4px;
 }
 
-.code .titlebar .left-panel-section .action span:hover {
+.code .titlebar .left-panel-section .command-option:hover {
   background: var(--workbench-titlebar-item-hover-background);
 }
 
-.code .title .menu-button:hover {
+.code .titlebar .left-panel-section .action span:hover {
   background: var(--workbench-titlebar-item-hover-background);
 }
 

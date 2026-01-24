@@ -128,7 +128,7 @@ export class Files extends CoreEl {
           parentUri: string;
           nodeName: string;
           nodeType: "file" | "folder";
-        }
+        },
       ) => {
         const _node: IFolderStructure = {
           name: data.nodeName,
@@ -139,7 +139,7 @@ export class Files extends CoreEl {
         };
 
         this._addNode(data.parentUri, _node);
-      }
+      },
     );
 
     ipcRender.on(
@@ -148,10 +148,10 @@ export class Files extends CoreEl {
         _: any,
         data: {
           nodeUri: string;
-        }
+        },
       ) => {
         this._removeNode(data.nodeUri);
-      }
+      },
     );
 
     ipcRender.on(
@@ -162,10 +162,10 @@ export class Files extends CoreEl {
           oldUri: string;
           newUri: string;
           newName: string;
-        }
+        },
       ) => {
         this._renameNode(data.oldUri, data.newName);
-      }
+      },
     );
   }
 
@@ -196,14 +196,14 @@ export class Files extends CoreEl {
           this._loadedFolders.add(folderUri);
           window.storage.store(
             "workbench.workspace.folder.structure",
-            this._structure
+            this._structure,
           );
         }
       } catch (error) {
         this._expandedFolders.delete(folderUri);
         window.storage.store(
           "files-expanded-folder",
-          Array.from(this._expandedFolders)
+          Array.from(this._expandedFolders),
         );
       }
     }
@@ -364,7 +364,7 @@ export class Files extends CoreEl {
   private _render(
     nodes: IFolderStructure[],
     container: HTMLElement,
-    depth: number = 0
+    depth: number = 0,
   ) {
     if (!Array.isArray(nodes)) {
       return;
@@ -394,7 +394,7 @@ export class Files extends CoreEl {
 
   private _createNodeElement(
     node: IFolderStructure,
-    depth: number
+    depth: number,
   ): HTMLElement {
     const _nodeEl = document.createElement("div");
     _nodeEl.className = "node";
@@ -498,7 +498,7 @@ export class Files extends CoreEl {
         this._structure = result.structure;
         window.storage.store(
           "workbench.workspace.folder.structure",
-          this._structure
+          this._structure,
         );
         this._loadedFolders.add(folderUri);
 
@@ -608,7 +608,7 @@ export class Files extends CoreEl {
 
     window.storage.store(
       "files-expanded-folder",
-      Array.from(this._expandedFolders)
+      Array.from(this._expandedFolders),
     );
   }
 
@@ -620,19 +620,19 @@ export class Files extends CoreEl {
     this._contextMenuEl.style.display = "block";
 
     const openItem = this._contextMenuEl.querySelector(
-      ".cm-open"
+      ".cm-open",
     ) as HTMLElement;
     const renameItem = this._contextMenuEl.querySelector(
-      ".cm-rename"
+      ".cm-rename",
     ) as HTMLElement;
     const newFileItem = this._contextMenuEl.querySelector(
-      ".cm-new-file"
+      ".cm-new-file",
     ) as HTMLElement;
     const newFolderItem = this._contextMenuEl.querySelector(
-      ".cm-new-folder"
+      ".cm-new-folder",
     ) as HTMLElement;
     const deleteItem = this._contextMenuEl.querySelector(
-      ".cm-delete"
+      ".cm-delete",
     ) as HTMLElement;
 
     if (node.type === "file") {
@@ -823,7 +823,7 @@ export class Files extends CoreEl {
     const normalizedParentUri = this._normalizeUri(parentUri);
     const parentNode = this._findNodeByUri(
       this._structure,
-      normalizedParentUri
+      normalizedParentUri,
     );
 
     if (!parentNode || !parentNode.children) {
@@ -831,7 +831,7 @@ export class Files extends CoreEl {
     }
 
     return parentNode.children.some(
-      (child) => child.name.toLowerCase() === name.toLowerCase()
+      (child) => child.name.toLowerCase() === name.toLowerCase(),
     );
   }
 
@@ -854,7 +854,7 @@ export class Files extends CoreEl {
   private _updateChildUris(
     node: IFolderStructure,
     oldParentUri: string,
-    newParentUri: string
+    newParentUri: string,
   ) {
     if (node.children) {
       node.children.forEach((child) => {
@@ -869,7 +869,7 @@ export class Files extends CoreEl {
 
   private _findNodeByUri(
     node: IFolderStructure,
-    targetUri: string
+    targetUri: string,
   ): IFolderStructure | null {
     if (!node || !targetUri) {
       return null;
@@ -926,7 +926,7 @@ export class Files extends CoreEl {
         this._structure.children,
         treeContainer,
         0,
-        changedNodes
+        changedNodes,
       );
     }
 
@@ -938,7 +938,7 @@ export class Files extends CoreEl {
     nodes: IFolderStructure[],
     container: HTMLElement,
     depth: number,
-    changedNodes?: Set<string>
+    changedNodes?: Set<string>,
   ) {
     if (!Array.isArray(nodes)) return;
 
@@ -988,7 +988,7 @@ export class Files extends CoreEl {
           const insertPosition = this._findInsertPosition(
             container,
             index,
-            "node"
+            "node",
           );
 
           if (insertPosition.nextSibling) {
@@ -1004,13 +1004,13 @@ export class Files extends CoreEl {
             const childInsertPos = this._findInsertPosition(
               container,
               index,
-              "child-nodes"
+              "child-nodes",
             );
 
             if (childInsertPos.nextSibling) {
               container.insertBefore(
                 childContainer,
-                childInsertPos.nextSibling
+                childInsertPos.nextSibling,
               );
             } else {
               container.appendChild(childContainer);
@@ -1030,7 +1030,7 @@ export class Files extends CoreEl {
             node.children,
             childContainer,
             depth + 1,
-            changedNodes
+            changedNodes,
           );
 
           const isExpanded = this._expandedFolders.has(nodeId);
@@ -1043,7 +1043,7 @@ export class Files extends CoreEl {
   private _updateExistingNode(
     node: IFolderStructure,
     element: HTMLElement,
-    depth: number
+    depth: number,
   ) {
     element.dataset.depth = depth.toString();
     element.style.setProperty("--nesting-depth", depth.toString());
@@ -1072,7 +1072,7 @@ export class Files extends CoreEl {
 
   private _updateChildContainerVisibility(
     container: HTMLElement,
-    isExpanded: boolean
+    isExpanded: boolean,
   ) {
     if (isExpanded) {
       this._showChildContainer(container);
@@ -1083,7 +1083,7 @@ export class Files extends CoreEl {
 
   private _hasNodeChanged(
     node: IFolderStructure,
-    element: HTMLElement
+    element: HTMLElement,
   ): boolean {
     const nameSpan = element.querySelector(".name") as HTMLElement;
     return nameSpan?.textContent !== node.name;
@@ -1092,7 +1092,7 @@ export class Files extends CoreEl {
   private _findInsertPosition(
     container: HTMLElement,
     index: number,
-    type: "node" | "child-nodes"
+    type: "node" | "child-nodes",
   ): { nextSibling: Element | null } {
     const children = Array.from(container.children);
     let nodeCount = 0;
@@ -1198,7 +1198,7 @@ export class Files extends CoreEl {
         this._expandedFolders.add(newUri);
         window.storage.store(
           "files-expanded-folder",
-          Array.from(this._expandedFolders)
+          Array.from(this._expandedFolders),
         );
       }
 
@@ -1210,7 +1210,7 @@ export class Files extends CoreEl {
       this._lastStructureHash = this._generateStructureHash(this._structure);
       window.storage.store(
         "workbench.workspace.folder.structure",
-        this._structure
+        this._structure,
       );
       dispatch(update_folder_structure(this._structure));
 
@@ -1244,7 +1244,7 @@ export class Files extends CoreEl {
     });
 
     const hasChanged = updatedTabs.some(
-      (tab, index) => tab.uri !== currentTabs[index]?.uri
+      (tab, index) => tab.uri !== currentTabs[index]?.uri,
     );
 
     if (hasChanged) {
@@ -1265,7 +1265,7 @@ export class Files extends CoreEl {
     const cssEscapedUri = CSS.escape(escapedUri);
 
     let childContainer = document.querySelector(
-      `.child-nodes[data-node-id="${cssEscapedUri}"]`
+      `.child-nodes[data-node-id="${cssEscapedUri}"]`,
     ) as HTMLDivElement;
 
     if (!childContainer) {
@@ -1286,7 +1286,7 @@ export class Files extends CoreEl {
 
     const insertPosition = this._findInsertPositionAlphabetically(
       childContainer,
-      newNode
+      newNode,
     );
 
     if (insertPosition) {
@@ -1313,7 +1313,7 @@ export class Files extends CoreEl {
     const normalizedParentUri = this._normalizeUri(parentUri);
     const parentNode = this._findNodeByUri(
       this._structure,
-      normalizedParentUri
+      normalizedParentUri,
     );
     if (parentNode) {
       if (!parentNode.children) {
@@ -1334,14 +1334,14 @@ export class Files extends CoreEl {
 
     window.storage.store(
       "workbench.workspace.folder.structure",
-      this._structure
+      this._structure,
     );
     dispatch(update_folder_structure(this._structure));
   }
 
   private _findInsertPositionAlphabetically(
     container: HTMLElement,
-    newNode: IFolderStructure
+    newNode: IFolderStructure,
   ): HTMLElement | null {
     const children = Array.from(container.children);
     const newNodeName = newNode.name.toLowerCase();
@@ -1421,7 +1421,7 @@ export class Files extends CoreEl {
 
     window.storage.store(
       "workbench.workspace.folder.structure",
-      this._structure
+      this._structure,
     );
     dispatch(update_folder_structure(this._structure));
 
@@ -1463,7 +1463,7 @@ export class Files extends CoreEl {
 
     if (node.children) {
       return node.children.some((child) =>
-        this._isUriDuplicate(child, targetUri)
+        this._isUriDuplicate(child, targetUri),
       );
     }
 
@@ -1483,14 +1483,14 @@ export class Files extends CoreEl {
 
   private _removeNodeRecursively(
     node: IFolderStructure,
-    targetUri: string
+    targetUri: string,
   ): boolean {
     if (!node.children) return false;
 
     const normalize = (uri: string) => uri.replace(/\\/g, "/");
 
     const index = node.children.findIndex(
-      (child) => normalize(child.uri) === normalize(targetUri)
+      (child) => normalize(child.uri) === normalize(targetUri),
     );
 
     if (index >= 0) {
@@ -1499,7 +1499,7 @@ export class Files extends CoreEl {
     }
 
     return node.children.some((child) =>
-      this._removeNodeRecursively(child, targetUri)
+      this._removeNodeRecursively(child, targetUri),
     );
   }
 }

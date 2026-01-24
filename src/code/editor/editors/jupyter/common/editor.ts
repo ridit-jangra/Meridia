@@ -66,7 +66,7 @@ export class CellEditor {
     _uri: string,
     content: string,
     cellId?: string,
-    cellIndex?: number
+    cellIndex?: number,
   ) {
     this._ensure();
 

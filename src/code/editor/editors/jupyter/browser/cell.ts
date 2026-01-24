@@ -20,12 +20,12 @@ export class NotebookCell {
     private filePath: string,
     private onContentChange: (cellId: string, content: string[]) => void,
     private onCellUpdate: () => void,
-    private kernelConnection?: any
+    private kernelConnection?: any,
   ) {}
 
   async render(
     cellTools: HTMLElement,
-    onScroll: () => void
+    onScroll: () => void,
   ): Promise<HTMLDivElement> {
     const cellEl = document.createElement("div");
     cellEl.className = `cell ${this.cell.cell_type}`;
@@ -94,7 +94,7 @@ export class NotebookCell {
       uri,
       fusedSource,
       this.cell.id,
-      this.index
+      this.index,
     );
 
     this._resizeEditor(editorEl, cellEl, model);
@@ -132,7 +132,7 @@ export class NotebookCell {
     source: string,
     previewEl: HTMLDivElement,
     editorEl: HTMLDivElement,
-    cellEl: HTMLDivElement
+    cellEl: HTMLDivElement,
   ) {
     marked.use(
       markedHighlight({
@@ -141,7 +141,7 @@ export class NotebookCell {
           const language = hljs.getLanguage(lang) ? lang : "plaintext";
           return hljs.highlight(code, { language }).value;
         },
-      })
+      }),
     );
 
     const baseUrlPath = this.filePath.startsWith("/")
@@ -167,7 +167,7 @@ export class NotebookCell {
   private _resizeEditor(
     editorEl: HTMLDivElement,
     cellEl: HTMLDivElement,
-    model: monaco.editor.ITextModel
+    model: monaco.editor.ITextModel,
   ) {
     const lineCount = model.getLineCount();
     const lineHeight = 24;
@@ -175,7 +175,7 @@ export class NotebookCell {
 
     const editorHeight = Math.max(
       80,
-      Math.min(450, lineCount * lineHeight + padding)
+      Math.min(450, lineCount * lineHeight + padding),
     );
 
     editorEl.style.height = `${editorHeight}px`;
@@ -195,7 +195,7 @@ export class NotebookCell {
   private _setupAutoGrow(
     editorEl: HTMLDivElement,
     cellEl: HTMLDivElement,
-    editor: monaco.editor.IStandaloneCodeEditor
+    editor: monaco.editor.IStandaloneCodeEditor,
   ) {
     this._resizeObserver = new ResizeObserver(() => {
       if (editor) {
@@ -208,6 +208,8 @@ export class NotebookCell {
 
   renderOutputs(outputs: any[], outputEl: HTMLDivElement) {
     outputEl.innerHTML = "";
+
+    console.log(outputs);
 
     for (const output of outputs) {
       if (output.output_type === "stream") {
@@ -224,15 +226,12 @@ export class NotebookCell {
 
         const data = output.data;
 
-        // Handle HTML output (raw rendering)
         if (data["text/html"]) {
           const htmlContainer = document.createElement("div");
           htmlContainer.className = "output-html";
           htmlContainer.innerHTML = data["text/html"];
           resultEl.appendChild(htmlContainer);
-        }
-        // Handle images
-        else if (data["image/png"]) {
+        } else if (data["image/png"]) {
           const img = document.createElement("img");
           img.src = `data:image/png;base64,${data["image/png"]}`;
           resultEl.appendChild(img);
@@ -245,15 +244,11 @@ export class NotebookCell {
           svgContainer.className = "output-svg";
           svgContainer.innerHTML = data["image/svg+xml"];
           resultEl.appendChild(svgContainer);
-        }
-        // Handle plain text
-        else if (data["text/plain"]) {
+        } else if (data["text/plain"]) {
           const pre = document.createElement("pre");
           pre.textContent = data["text/plain"];
           resultEl.appendChild(pre);
-        }
-        // Fallback for unknown formats
-        else {
+        } else {
           const pre = document.createElement("pre");
           pre.textContent = JSON.stringify(data, null, 2);
           resultEl.appendChild(pre);
@@ -274,7 +269,6 @@ export class NotebookCell {
 
         const data = output.data;
 
-        // Handle HTML in display_data
         if (data["text/html"]) {
           const htmlContainer = document.createElement("div");
           htmlContainer.className = "output-html";
@@ -317,7 +311,7 @@ export class NotebookCell {
 
   private _handleStdinRequest(
     prompt: string,
-    outputEl: HTMLDivElement
+    outputEl: HTMLDivElement,
   ): Promise<string> {
     return new Promise((resolve) => {
       const inputContainer = document.createElement("div");
@@ -340,7 +334,6 @@ export class NotebookCell {
         const value = input.value;
         inputContainer.remove();
 
-        // Show the submitted value
         const submittedEl = document.createElement("div");
         submittedEl.className = "output-input-submitted";
         submittedEl.textContent = `${prompt}${value}`;
@@ -361,7 +354,6 @@ export class NotebookCell {
       inputContainer.appendChild(submitBtn);
       outputEl.appendChild(inputContainer);
 
-      // Focus the input
       setTimeout(() => input.focus(), 100);
     });
   }
@@ -371,8 +363,8 @@ export class NotebookCell {
     jupyterExecute: (
       sessionId: string,
       code: string,
-      onStdin?: (prompt: string) => Promise<string>
-    ) => Promise<any>
+      onStdin?: (prompt: string) => Promise<string>,
+    ) => Promise<any>,
   ): Promise<void> {
     if (!this._selectedCell) return;
 
@@ -397,7 +389,7 @@ export class NotebookCell {
       const { output, result, error } = await jupyterExecute(
         sessionId,
         code,
-        (prompt: string) => this._handleStdinRequest(prompt, outputEl)
+        (prompt: string) => this._handleStdinRequest(prompt, outputEl),
       );
 
       this._selectedCell.outputEl.innerHTML = "";
@@ -435,15 +427,12 @@ export class NotebookCell {
         const resultEl = document.createElement("div");
         resultEl.className = "output-result";
 
-        // Handle HTML output (raw rendering)
         if (result["text/html"]) {
           const htmlContainer = document.createElement("div");
           htmlContainer.className = "output-html";
           htmlContainer.innerHTML = result["text/html"];
           resultEl.appendChild(htmlContainer);
-        }
-        // Handle images
-        else if (result["image/png"]) {
+        } else if (result["image/png"]) {
           const img = document.createElement("img");
           img.src = `data:image/png;base64,${result["image/png"]}`;
           resultEl.appendChild(img);
@@ -456,15 +445,11 @@ export class NotebookCell {
           svgContainer.className = "output-svg";
           svgContainer.innerHTML = result["image/svg+xml"];
           resultEl.appendChild(svgContainer);
-        }
-        // Handle plain text
-        else if (result["text/plain"]) {
+        } else if (result["text/plain"]) {
           const pre = document.createElement("pre");
           pre.textContent = result["text/plain"];
           resultEl.appendChild(pre);
-        }
-        // Fallback
-        else {
+        } else {
           const pre = document.createElement("pre");
           pre.textContent = JSON.stringify(result, null, 2);
           resultEl.appendChild(pre);
@@ -540,7 +525,7 @@ export class NotebookCell {
       if (this._selectedCell.editor) {
         monaco.editor.setModelLanguage(
           this._selectedCell.editor.getModel()!,
-          newType === "markdown" ? "markdown" : "python"
+          newType === "markdown" ? "markdown" : "python",
         );
 
         if (newType === "markdown") {
@@ -555,7 +540,7 @@ export class NotebookCell {
         this._resizeEditor(
           this._selectedCell.editorEl,
           this._selectedCell.cellEl,
-          this._selectedCell.editor.getModel()!
+          this._selectedCell.editor.getModel()!,
         );
       }
     }

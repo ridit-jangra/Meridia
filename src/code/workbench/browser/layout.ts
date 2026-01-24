@@ -52,13 +52,13 @@ export class Layout {
       "Explorer",
       files,
       () => {},
-      getThemeIcon("explorer")
+      getThemeIcon("explorer"),
     );
     const extensionOption = new PanelOption(
       "Extensions",
       extensions,
       () => {},
-      getThemeIcon("extension")
+      getThemeIcon("extension"),
     );
 
     const leftPanelContent = new Panel("left-panel-content").getDomElement()!;
@@ -66,7 +66,7 @@ export class Layout {
       [explorerOption],
       leftPanelContent,
       "left-panel-options",
-      "left-panel-options"
+      "left-panel-options",
     ).getDomElement()!;
 
     const middlePanel = new Panel("split-panel").getDomElement()!;
@@ -78,14 +78,14 @@ export class Layout {
       "Mira",
       mira,
       () => {},
-      getThemeIcon("mira")
+      getThemeIcon("mira"),
     );
 
     const structureOption = new PanelOption(
       "Structure",
       structure,
       () => {},
-      getThemeIcon("structure")
+      getThemeIcon("structure"),
     );
 
     const rightPanelContent = new Panel("right-panel-content").getDomElement()!;
@@ -93,7 +93,7 @@ export class Layout {
       [structureOption],
       rightPanelContent,
       "right-panel-options",
-      "right-panel-options"
+      "right-panel-options",
     ).getDomElement()!;
 
     leftPanel.appendChild(leftPanelContent);
@@ -117,7 +117,7 @@ export class Layout {
       () => {
         _xtermManager._update();
         _drawboard._updateCanvasSize();
-      }
+      },
     );
 
     registerStandalone("panel-splitter-vertical", splitterVertical);
@@ -125,16 +125,16 @@ export class Layout {
     middlePanel.appendChild(splitterVertical.getDomElement()!);
 
     const splitterHorizontal = new Splitter(
-      [leftPanel, middlePanel, rightPanel],
+      [leftPanel, middlePanel],
       "horizontal",
-      [20, 60, 20],
+      [20, 80],
       () => {
         changePanelOptionsWidth();
         _xtermManager._update();
         _drawboard._updateCanvasSize();
       },
       "layout-splitter",
-      "layout-splitter"
+      "layout-splitter",
     );
 
     registerStandalone("panel-splitter-horizontal", splitterHorizontal);
@@ -152,10 +152,10 @@ export class Layout {
 
     splitterContainerEl.insertBefore(
       activityBarLeft,
-      splitterContainerEl.firstChild
+      splitterContainerEl.firstChild,
     );
 
-    splitterContainerEl.appendChild(activityBarRight);
+    // splitterContainerEl.appendChild(activityBarRight);
 
     activityBarLeft.appendChild(leftPanelOptions);
     activityBarRight.appendChild(rightPanelOptions);

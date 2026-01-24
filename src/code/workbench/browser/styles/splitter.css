@@ -11,12 +11,13 @@
 
 .splitter-container {
   display: flex;
-  height: calc(100% - 80px);
+  height: 100%;
+  max-height: calc(100% - 80px);
 }
 
 .splitter-container .layout-splitter {
-  max-width: calc(100vw - 80px) !important;
-  min-width: calc(100vw - 80px) !important;
+  max-width: calc(100vw - 41px) !important;
+  min-width: calc(100vw - 41px) !important;
 }
 
 .splitter-vertical {
