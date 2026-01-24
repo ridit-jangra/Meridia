@@ -7,7 +7,6 @@
   overscroll-behavior: contain;
   overflow: hidden;
   outline: none;
-  font-family: "AtkinsonHyperlegible", sans-serif;
 }
 
 .code .tabs.vertical {

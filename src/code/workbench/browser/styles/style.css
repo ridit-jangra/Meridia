@@ -147,8 +147,9 @@ code,
 pre,
 kbd,
 samp {
-  font-family: "JetBrains Mono", "Fira Code", "Source Code Pro",
-    "Droid Sans Mono", "Inter", Consolas, Monaco, "Courier New", monospace;
+  font-family:
+    "JetBrains Mono", "Fira Code", "Source Code Pro", "Droid Sans Mono",
+    "Inter", Consolas, Monaco, "Courier New", monospace;
   font-weight: 400;
 }
 
@@ -184,5 +185,8 @@ kbd {
 }
 
 input {
-  font-family: "AtkinsonHyperlegible";
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.7px;
+  line-height: 1.4rem;
 }
