@@ -1,5 +1,6 @@
 import { getThemeIcon } from "./media/icons.js";
 import { CoreEl } from "./parts/core.js";
+import { Content } from "./parts/settings/content.js";
 import { SidebarTree } from "./parts/settings/sidebar-tree.js";
 import { Splitter } from "./parts/splitter/splitter.js";
 
@@ -34,14 +35,19 @@ export class Settings extends CoreEl {
     const sidebar = document.createElement("div");
     sidebar.className = "sidebar";
 
-    const tree = new SidebarTree((key: string) => Function).getDomElement()!;
+    const content = new Content();
+
+    const tree = new SidebarTree((key: string) =>
+      content.changeContent(key),
+    ).getDomElement()!;
 
     sidebar.appendChild(tree);
 
-    const content = document.createElement("div");
-    content.className = "content";
-
-    const splitter = new Splitter([sidebar, content], "horizontal", [30, 70]);
+    const splitter = new Splitter(
+      [sidebar, content.getDomElement()!],
+      "horizontal",
+      [30, 70],
+    );
 
     this._el.appendChild(header);
     this._el.appendChild(splitter.getDomElement()!);

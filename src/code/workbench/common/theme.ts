@@ -13,10 +13,10 @@ export class Theme {
 
     this.registerThemes([Dark, Light]);
 
-    this._active = this.registeredThemes.get("Light")!;
+    this._active = this.registeredThemes.get("Dark")!;
 
     if (!this._mainProcess) {
-      this.setTheme("Light");
+      this.setTheme("Dark");
     }
   }
 
