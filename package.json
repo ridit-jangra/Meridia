@@ -15,7 +15,7 @@
     "postinstall": "npm run rebuild"
   },
   "keywords": [],
-  "author": "",
+  "author": "Ridit Jangra",
   "license": "MIT",
   "type": "commonjs",
   "dependencies": {

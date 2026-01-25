@@ -24,7 +24,7 @@ export class SidebarTree extends CoreEl {
   private _persistExpanded() {
     window.storage?.store(
       "settings-expanded-nodes",
-      Array.from(this.expandedNodes)
+      Array.from(this.expandedNodes),
     );
   }
 

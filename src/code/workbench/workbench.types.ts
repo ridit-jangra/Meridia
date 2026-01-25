@@ -464,3 +464,73 @@ export interface ISelectedCell {
   previewEl: HTMLDivElement;
   index: number;
 }
+
+export type ISettingType =
+  | "input"
+  | "text"
+  | "number"
+  | "select"
+  | "checkbox"
+  | "radio"
+  | "range";
+
+export interface ISettingBase {
+  parentKey: string;
+  key: string;
+  label: string;
+  description: string;
+}
+
+export interface ISettingSelect extends ISettingBase {
+  type: "select";
+  options: string[];
+  default: string;
+}
+
+export interface ISettingInput extends ISettingBase {
+  type: "input";
+  default: string;
+  placeholder?: string;
+}
+
+export interface ISettingNumber extends ISettingBase {
+  type: "number";
+  default: number;
+  min?: number;
+  max?: number;
+  step?: number;
+}
+
+export interface ISettingCheckbox extends ISettingBase {
+  type: "checkbox";
+  default: boolean;
+}
+
+export interface ISettingRadio extends ISettingBase {
+  type: "radio";
+  options: string[];
+  default: string;
+}
+
+export interface ISettingRange extends ISettingBase {
+  type: "range";
+  default: number;
+  min: number;
+  max: number;
+  step: number;
+}
+
+export type ISetting =
+  | ISettingSelect
+  | ISettingInput
+  | ISettingNumber
+  | ISettingCheckbox
+  | ISettingRadio
+  | ISettingRange;
+
+export interface ISettings {
+  settings: {
+    key: string;
+    content: ISetting[];
+  }[];
+}
