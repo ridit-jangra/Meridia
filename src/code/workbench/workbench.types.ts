@@ -249,6 +249,7 @@ export interface IMainState {
   panel_state: IPanelState;
   folder_structure: IFolderStructure;
   project_details: IProjectDetails;
+  settings: ISettings;
 }
 
 export interface IProjectDetails {
@@ -529,8 +530,54 @@ export type ISetting =
   | ISettingRange;
 
 export interface ISettings {
-  settings: {
-    key: string;
-    content: ISetting[];
-  }[];
+  // Editor Text
+  "editor.fontFamily": string;
+  "editor.fontSize": number;
+  "editor.lineHeight": number;
+  "editor.fontWeight": string;
+
+  // Editor Tab Size
+  "editor.tabSize": number;
+  "editor.insertSpaces": boolean;
+  "editor.detectIndentation": boolean;
+
+  // Editor Word Wrap
+  "editor.wordWrap": string;
+  "editor.wordWrapColumn": number;
+
+  // Editor Auto Save
+  "editor.autoSave": boolean;
+  "editor.autoSaveDelay": number;
+
+  // Editor Cursor
+  "editor.cursorStyle": string;
+  "editor.cursorBlinking": string;
+  "editor.smoothCaretAnimation": boolean;
+
+  // Appearance Theme
+  "appearance.colorTheme": string;
+  "appearance.iconTheme": string;
+
+  // Appearance Font Size
+  "appearance.uiFontSize": number;
+  "appearance.terminalFontSize": number;
+
+  // Appearance Zoom
+  "appearance.zoomLevel": number;
+
+  // Terminal Shell
+  "terminal.shell.path": string;
+  "terminal.shell.args": string;
+
+  // Terminal Font
+  "terminal.font.family": string;
+  "terminal.font.size": number;
+
+  // Files Auto Save
+  "files.autoSave": boolean;
+  "files.autoSaveAfterDelay": boolean;
+
+  // Files Encoding
+  "files.encoding": string;
+  "files.autoGuessEncoding": boolean;
 }
