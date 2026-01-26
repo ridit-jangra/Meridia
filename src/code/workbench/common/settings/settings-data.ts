@@ -1,4 +1,4 @@
-import { ISettings, ISettingsTree } from "../../workbench.types.js";
+import { ISetting, ISettingsTree } from "../../workbench.types.js";
 import { getThemeIcon } from "../../browser/media/icons.js";
 
 export const settingsTree: ISettingsTree[] = [
@@ -104,14 +104,20 @@ export const settingsTree: ISettingsTree[] = [
   },
 ];
 
-export const settingsContent: ISettings = {
+export const settingsContent: {
+  settings: {
+    key: string;
+    content: ISetting[];
+  }[];
+} = {
   settings: [
+    // ===== EDITOR TEXT SETTINGS =====
     {
       key: "editorText",
       content: [
         {
           parentKey: "editorText",
-          key: "editorText.fontFamily",
+          key: "editor.fontFamily",
           label: "Font Family",
           description: "Controls the font family used in the editor.",
           type: "select",
@@ -121,11 +127,13 @@ export const settingsContent: ISettings = {
             "Fira Code, monospace",
             "Consolas, monospace",
             "Monaco, monospace",
+            "Courier New, monospace",
+            "Source Code Pro, monospace",
           ],
         },
         {
           parentKey: "editorText",
-          key: "editorText.fontSize",
+          key: "editor.fontSize",
           label: "Font Size",
           description: "Controls the font size in pixels.",
           type: "number",
@@ -136,7 +144,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "editorText",
-          key: "editorText.lineHeight",
+          key: "editor.lineHeight",
           label: "Line Height",
           description:
             "Controls the line height. Use 0 to compute automatically.",
@@ -148,7 +156,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "editorText",
-          key: "editorText.fontWeight",
+          key: "editor.fontWeight",
           label: "Font Weight",
           description: "Controls the font weight.",
           type: "select",
@@ -169,12 +177,14 @@ export const settingsContent: ISettings = {
         },
       ],
     },
+
+    // ===== EDITOR TAB SIZE SETTINGS =====
     {
       key: "editorTabSize",
       content: [
         {
           parentKey: "editorTabSize",
-          key: "editorTabSize.size",
+          key: "editor.tabSize",
           label: "Tab Size",
           description: "The number of spaces a tab is equal to.",
           type: "number",
@@ -185,7 +195,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "editorTabSize",
-          key: "editorTabSize.insertSpaces",
+          key: "editor.insertSpaces",
           label: "Insert Spaces",
           description: "Insert spaces when pressing Tab.",
           type: "checkbox",
@@ -193,7 +203,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "editorTabSize",
-          key: "editorTabSize.detectIndentation",
+          key: "editor.detectIndentation",
           label: "Detect Indentation",
           description: "Automatically detect indentation from file content.",
           type: "checkbox",
@@ -201,12 +211,14 @@ export const settingsContent: ISettings = {
         },
       ],
     },
+
+    // ===== EDITOR WORD WRAP SETTINGS =====
     {
       key: "editorWordWrap",
       content: [
         {
           parentKey: "editorWordWrap",
-          key: "editorWordWrap.mode",
+          key: "editor.wordWrap",
           label: "Word Wrap",
           description: "Controls how lines should wrap.",
           type: "select",
@@ -215,7 +227,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "editorWordWrap",
-          key: "editorWordWrap.column",
+          key: "editor.wordWrapColumn",
           label: "Word Wrap Column",
           description:
             "Controls the wrapping column when wordWrap is 'wordWrapColumn'.",
@@ -227,12 +239,14 @@ export const settingsContent: ISettings = {
         },
       ],
     },
+
+    // ===== EDITOR AUTO SAVE SETTINGS =====
     {
       key: "editorAutoSave",
       content: [
         {
           parentKey: "editorAutoSave",
-          key: "editorAutoSave.enabled",
+          key: "editor.autoSave",
           label: "Auto Save",
           description: "Enable auto save of dirty files.",
           type: "checkbox",
@@ -240,7 +254,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "editorAutoSave",
-          key: "editorAutoSave.delay",
+          key: "editor.autoSaveDelay",
           label: "Auto Save Delay",
           description:
             "Delay in milliseconds after which an editor is saved automatically.",
@@ -252,12 +266,14 @@ export const settingsContent: ISettings = {
         },
       ],
     },
+
+    // ===== EDITOR CURSOR SETTINGS =====
     {
       key: "editorCursor",
       content: [
         {
           parentKey: "editorCursor",
-          key: "editorCursor.style",
+          key: "editor.cursorStyle",
           label: "Cursor Style",
           description: "Controls the cursor style.",
           type: "select",
@@ -273,7 +289,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "editorCursor",
-          key: "editorCursor.blinking",
+          key: "editor.cursorBlinking",
           label: "Cursor Blinking",
           description: "Controls the cursor animation style.",
           type: "select",
@@ -282,7 +298,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "editorCursor",
-          key: "editorCursor.smoothCaretAnimation",
+          key: "editor.smoothCaretAnimation",
           label: "Smooth Caret Animation",
           description: "Enable smooth caret animation.",
           type: "checkbox",
@@ -290,12 +306,14 @@ export const settingsContent: ISettings = {
         },
       ],
     },
+
+    // ===== APPEARANCE THEME SETTINGS =====
     {
       key: "appearanceTheme",
       content: [
         {
           parentKey: "appearanceTheme",
-          key: "appearanceTheme.colorTheme",
+          key: "appearance.colorTheme",
           label: "Color Theme",
           description: "Specifies the color theme used in the workbench.",
           type: "select",
@@ -304,7 +322,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "appearanceTheme",
-          key: "appearanceTheme.iconTheme",
+          key: "appearance.iconTheme",
           label: "Icon Theme",
           description: "Specifies the icon theme used in the workbench.",
           type: "select",
@@ -313,12 +331,14 @@ export const settingsContent: ISettings = {
         },
       ],
     },
+
+    // ===== APPEARANCE FONT SIZE SETTINGS =====
     {
       key: "appearanceFontSize",
       content: [
         {
           parentKey: "appearanceFontSize",
-          key: "appearanceFontSize.ui",
+          key: "appearance.uiFontSize",
           label: "UI Font Size",
           description: "Controls the font size of the UI in pixels.",
           type: "range",
@@ -329,7 +349,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "appearanceFontSize",
-          key: "appearanceFontSize.terminal",
+          key: "appearance.terminalFontSize",
           label: "Terminal Font Size",
           description: "Controls the font size of the terminal in pixels.",
           type: "number",
@@ -340,12 +360,14 @@ export const settingsContent: ISettings = {
         },
       ],
     },
+
+    // ===== APPEARANCE ZOOM SETTINGS =====
     {
       key: "appearanceZoom",
       content: [
         {
           parentKey: "appearanceZoom",
-          key: "appearanceZoom.level",
+          key: "appearance.zoomLevel",
           label: "Zoom Level",
           description:
             "Adjust the zoom level of the window. The default is 0 and each increment increases the zoom by 20%.",
@@ -357,12 +379,14 @@ export const settingsContent: ISettings = {
         },
       ],
     },
+
+    // ===== TERMINAL SHELL SETTINGS =====
     {
       key: "terminalShell",
       content: [
         {
           parentKey: "terminalShell",
-          key: "terminalShell.path",
+          key: "terminal.shell.path",
           label: "Shell Path",
           description: "The path of the shell to use in the terminal.",
           type: "input",
@@ -371,7 +395,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "terminalShell",
-          key: "terminalShell.args",
+          key: "terminal.shell.args",
           label: "Shell Arguments",
           description: "Arguments to pass to the shell.",
           type: "input",
@@ -380,12 +404,14 @@ export const settingsContent: ISettings = {
         },
       ],
     },
+
+    // ===== TERMINAL FONT SETTINGS =====
     {
       key: "terminalFont",
       content: [
         {
           parentKey: "terminalFont",
-          key: "terminalFont.family",
+          key: "terminal.font.family",
           label: "Font Family",
           description: "Controls the font family of the terminal.",
           type: "select",
@@ -395,11 +421,13 @@ export const settingsContent: ISettings = {
             "Fira Code, monospace",
             "Consolas, monospace",
             "Monaco, monospace",
+            "Courier New, monospace",
+            "Source Code Pro, monospace",
           ],
         },
         {
           parentKey: "terminalFont",
-          key: "terminalFont.size",
+          key: "terminal.font.size",
           label: "Font Size",
           description: "Controls the font size in pixels of the terminal.",
           type: "number",
@@ -410,12 +438,14 @@ export const settingsContent: ISettings = {
         },
       ],
     },
+
+    // ===== FILES AUTO SAVE SETTINGS =====
     {
       key: "filesAutoSave",
       content: [
         {
           parentKey: "filesAutoSave",
-          key: "filesAutoSave.enabled",
+          key: "files.autoSave",
           label: "Auto Save",
           description: "Controls auto save of dirty files.",
           type: "checkbox",
@@ -423,7 +453,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "filesAutoSave",
-          key: "filesAutoSave.afterDelay",
+          key: "files.autoSaveAfterDelay",
           label: "Auto Save After Delay",
           description: "Save files after a configured delay.",
           type: "checkbox",
@@ -431,12 +461,14 @@ export const settingsContent: ISettings = {
         },
       ],
     },
+
+    // ===== FILES ENCODING SETTINGS =====
     {
       key: "filesEncoding",
       content: [
         {
           parentKey: "filesEncoding",
-          key: "filesEncoding.default",
+          key: "files.encoding",
           label: "Default Encoding",
           description: "The default character set encoding to use.",
           type: "select",
@@ -452,7 +484,7 @@ export const settingsContent: ISettings = {
         },
         {
           parentKey: "filesEncoding",
-          key: "filesEncoding.autoGuess",
+          key: "files.autoGuessEncoding",
           label: "Auto Guess Encoding",
           description:
             "When enabled, will attempt to guess the character set encoding.",

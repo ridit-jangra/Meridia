@@ -121,7 +121,7 @@ export class Editor {
           marker.message,
           languageName,
           marker.code?.toString(),
-          marker.source
+          marker.source,
         );
       }
     });
@@ -144,7 +144,7 @@ export class Editor {
             marker.message,
             languageName,
             marker.code?.toString(),
-            marker.source
+            marker.source,
           );
         }
       }
@@ -179,7 +179,7 @@ export class Editor {
     message: string,
     languageName: string,
     code?: string,
-    source?: string
+    source?: string,
   ) {
     const eventName =
       eventType === "error"
@@ -202,7 +202,7 @@ export class Editor {
           languageName,
           timestamp: Date.now(),
         },
-      })
+      }),
     );
   }
 
@@ -217,7 +217,7 @@ export class Editor {
     message: string,
     languageName: string,
     code?: string,
-    source?: string
+    source?: string,
   ) {
     const eventName =
       eventType === "error"
@@ -240,13 +240,13 @@ export class Editor {
           languageName,
           timestamp: Date.now(),
         },
-      })
+      }),
     );
   }
 
   private async _openFile(
     _path: string,
-    position?: { line: number; column: number }
+    position?: { line: number; column: number },
   ) {
     const _clean = monaco.Uri.parse(_path).path;
     const stateValue = select((s) => s.main.editor_tabs);
@@ -343,7 +343,7 @@ export class Editor {
                 line: position.lineNumber - 1,
                 character: position.column - 1,
               },
-            }
+            },
           )) as any[];
 
           if (definitions && definitions.length > 0) {
@@ -422,7 +422,7 @@ export class Editor {
     _problems.className = "problems";
     _problems.onclick = () => {
       const _tabs = getStandalone(
-        "workbench.workspace.dev.tab"
+        "workbench.workspace.dev.tab",
       ) as DevPanelTabs;
       if (_tabs) _tabs._set("problem");
     };
@@ -514,7 +514,7 @@ export class Editor {
               position.lineNumber,
               word.startColumn,
               position.lineNumber,
-              word.endColumn
+              word.endColumn,
             ),
             contents: [
               { value: `**Symbol**: ${word.word}` },
@@ -554,10 +554,10 @@ export class Editor {
 
     const markers = monaco.editor.getModelMarkers({ resource: model.uri });
     const errorCount = markers.filter(
-      (m) => m.severity === monaco.MarkerSeverity.Error
+      (m) => m.severity === monaco.MarkerSeverity.Error,
     ).length;
     const warningCount = markers.filter(
-      (m) => m.severity === monaco.MarkerSeverity.Warning
+      (m) => m.severity === monaco.MarkerSeverity.Warning,
     ).length;
 
     const totalProblems = errorCount + warningCount;
@@ -582,7 +582,7 @@ export class Editor {
       noneDiv.innerHTML = getThemeIcon("check");
       noneDiv.addEventListener("click", () => {
         const _tabs = getStandalone(
-          "workbench.workspace.dev.tab"
+          "workbench.workspace.dev.tab",
         ) as DevPanelTabs;
         if (_tabs) _tabs._set("problem");
       });
@@ -624,12 +624,12 @@ export class Editor {
 
       const symbols = await this._getDocumentSymbols(
         model,
-        this._editor.getPosition()?.lineNumber!
+        this._editor.getPosition()?.lineNumber!,
       );
       document.dispatchEvent(
         new CustomEvent("statusbar.update.referenace.path", {
           detail: { message: symbols, userId: Date.now() },
-        })
+        }),
       );
     });
   }
@@ -664,13 +664,13 @@ export class Editor {
               },
               initializationOptions: this._getInitializationOptions(
                 extension,
-                workspaceRoot
+                workspaceRoot,
               ),
             },
             connectionProvider: {
               get: (errorHandler, closeHandler) =>
                 Promise.resolve(
-                  createConnection(connection, errorHandler, closeHandler)
+                  createConnection(connection, errorHandler, closeHandler),
                 ),
             },
           });
@@ -684,7 +684,7 @@ export class Editor {
               if (model) {
                 const markers = diagnostics.map((diagnostic: any) => ({
                   severity: this._convertLSPSeverityToMonaco(
-                    diagnostic.severity
+                    diagnostic.severity,
                   ),
                   startLineNumber: diagnostic.range.start.line + 1,
                   startColumn: diagnostic.range.start.character + 1,
@@ -698,10 +698,10 @@ export class Editor {
                 monaco.editor.setModelMarkers(
                   model,
                   `lsp-${extension}`,
-                  markers
+                  markers,
                 );
               }
-            }
+            },
           );
 
           client
@@ -729,7 +729,7 @@ export class Editor {
   }
 
   private _convertLSPSeverityToMonaco(
-    lspSeverity: number
+    lspSeverity: number,
   ): monaco.MarkerSeverity {
     switch (lspSeverity) {
       case 1:
@@ -810,7 +810,7 @@ export class Editor {
 
   private async _getDocumentSymbols(
     model: monaco.editor.ITextModel,
-    lineNumber: number
+    lineNumber: number,
   ) {
     if (model.isDisposed()) return null;
 
@@ -875,7 +875,7 @@ export class Editor {
         model = monaco.editor.createModel(
           fs.readFile(tab.uri),
           monacoLanguageId,
-          uri
+          uri,
         );
       }
 
@@ -914,7 +914,7 @@ export class Editor {
       const watcher = fs.watchFile(
         uri.fsPath,
         { persistent: true, interval: 1000 },
-        () => this._external(uriString)
+        () => this._external(uriString),
       );
       this._watchers.set(key, watcher);
     } catch {}
@@ -951,7 +951,7 @@ export class Editor {
         [editOperation],
         (inverseEditOperations) => {
           return savedSelection ? [savedSelection] : null;
-        }
+        },
       );
 
       if (this._editor && this._editor.getModel() === model && savedPosition) {
@@ -974,13 +974,13 @@ export class Editor {
     this._tabs = this._tabs.map((tab) =>
       this._normalizePath(tab.uri) === this._normalizePath(uriString)
         ? { ...tab, is_touched: _touched }
-        : tab
+        : tab,
     );
 
     const _updated = select((s) => s.main.editor_tabs).map((tab) =>
       this._normalizePath(tab.uri) === this._normalizePath(uriString)
         ? { ...tab, is_touched: _touched }
-        : tab
+        : tab,
     );
 
     dispatch(update_editor_tabs(_updated));
@@ -1010,7 +1010,7 @@ export class Editor {
           marker.message,
           languageName,
           marker.code?.toString(),
-          marker.source
+          marker.source,
         );
       }
     });
@@ -1076,7 +1076,7 @@ export class Editor {
     this._previousMarkers.delete(uriString);
 
     this._tabs = this._tabs.filter(
-      (tab) => this._normalizePath(tab.uri) !== key
+      (tab) => this._normalizePath(tab.uri) !== key,
     );
 
     if (this._editor && this._editor.getModel() === model) {

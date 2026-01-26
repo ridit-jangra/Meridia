@@ -107,7 +107,8 @@
   width: 30%;
   padding: 4px 7px;
   border-radius: 8px;
-  background: var(--workbench-hover-background);
+  background: var(--workbench-input-background);
+  border: 1px solid var(--workbench-input-border-foreground);
   color: var(--workbench-foreground);
 }
 
