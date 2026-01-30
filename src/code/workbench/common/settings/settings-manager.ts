@@ -77,7 +77,6 @@ class SettingsManager {
       this.saveSettings();
       this.notifyListeners(key, value);
 
-      // Emit global event for settings change
       document.dispatchEvent(
         new CustomEvent("settings.changed", {
           detail: { key, value },
@@ -95,10 +94,8 @@ class SettingsManager {
     }
     this.listeners.get(key)!.add(callback as any);
 
-    // Call immediately with current value
     callback(this.settings[key]);
 
-    // Return unsubscribe function
     return () => {
       this.listeners.get(key)?.delete(callback as any);
     };

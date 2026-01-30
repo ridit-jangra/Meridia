@@ -18,7 +18,7 @@ export class Splitter extends CoreEl {
     sizes?: number[],
     onSizeChangeCallback?: Function,
     storageKey?: string,
-    private className?: string
+    private className?: string,
   ) {
     super();
     this._panels = panels;
@@ -281,7 +281,7 @@ export class Splitter extends CoreEl {
         const middleCurrentSize = currentSizes[middleIndex]!;
         const newMiddleSize = Math.max(
           this._minSize,
-          middleCurrentSize - restoredSize
+          middleCurrentSize - restoredSize,
         );
 
         this._sizes[toggledIndex] = restoredSize;
@@ -332,7 +332,7 @@ export class Splitter extends CoreEl {
       } else {
         const equalSize = 100 / visibleCount;
         this._sizes = this._panelsVisible.map((visible) =>
-          visible ? equalSize : 0
+          visible ? equalSize : 0,
         );
       }
     }
@@ -349,13 +349,18 @@ export class Splitter extends CoreEl {
 
     this._panelsVisible[index] = !wasVisible;
 
+    // Set panel display immediately to ensure proper size calculation
+    if (!wasVisible) {
+      this._panels[index]!.style.display = "flex";
+    } else {
+      this._panels[index]!.style.display = "none";
+    }
+
     this._redistribute(index, !wasVisible);
+    this._applySizes();
     this._save();
 
-    setTimeout(() => {
-      this._applySizes();
-      if (this._onSizeChangeCallback) this._onSizeChangeCallback();
-    }, 10);
+    if (this._onSizeChangeCallback) this._onSizeChangeCallback();
   }
 
   setPanel(index: number, visibility: boolean) {
@@ -413,7 +418,7 @@ export class Splitter extends CoreEl {
         const visibleCount = this._panelsVisible.filter((v) => v).length;
         const equalSize = visibleCount > 0 ? 100 / visibleCount : 0;
         normalizedSizes = this._panelsVisible.map((visible) =>
-          visible ? equalSize : 0
+          visible ? equalSize : 0,
         );
       } else {
         normalizedSizes = newSizes.map((size) => (size / total) * 100);

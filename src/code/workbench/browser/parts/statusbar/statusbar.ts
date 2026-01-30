@@ -28,11 +28,13 @@ export class Statusbar extends CoreEl {
     const _breadcrumbContainer = document.createElement("div");
     _breadcrumbContainer.className = "breadcrumb-container";
 
-    const _editor = getStandalone("editor") as Editor;
-
     document.addEventListener("statusbar.update.referenace.path", (_event) => {
       const _customEvent = _event as CustomEvent;
       const _symbols = _customEvent.detail.message as SymbolInfo | null;
+
+      if (!_symbols === null) {
+        if ((this._currentSymbol = _symbols?.name!)) return;
+      }
 
       if (_symbols === null || !_symbols || !_symbols.name) {
         this._currentSymbol = null;
@@ -67,10 +69,10 @@ export class Statusbar extends CoreEl {
         const relativePath = getRelativePath(_root.uri ?? "", _active.uri);
         const breadcrumbItems = this._createBreadcrumbItems(
           _root.name,
-          relativePath
+          relativePath,
         );
         this._renderBreadcrumb(_breadcrumbContainer, breadcrumbItems);
-      }
+      },
     );
 
     const itemSection = document.createElement("div");
@@ -82,7 +84,7 @@ export class Statusbar extends CoreEl {
 
   private _createBreadcrumbItems(
     rootName: string,
-    relativePath: string
+    relativePath: string,
   ): string[] {
     if (!relativePath || relativePath === "./") {
       return [rootName];
@@ -109,7 +111,7 @@ export class Statusbar extends CoreEl {
       const relativePath = getRelativePath(_root.uri ?? "", _active.uri);
       baseBreadcrumbItems = this._createBreadcrumbItems(
         _root.name,
-        relativePath
+        relativePath,
       );
     }
 
