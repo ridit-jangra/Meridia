@@ -14,7 +14,6 @@ export class Content extends CoreEl {
   public changeContent(key: string) {
     if (!this._el) return;
 
-    // Clean up previous listeners
     this.disposables.forEach((dispose) => dispose());
     this.disposables = [];
 
