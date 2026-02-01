@@ -22,24 +22,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: yarn
+          cache: npm
 
       - name: Setup Python (node-gyp)
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Enable corepack (Yarn)
+      - name: Enable corepack (npm)
         run: corepack enable
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: npm install --frozen-lockfile
 
       - name: Rebuild native modules for Electron
-        run: yarn rebuild
+        run: npm rebuild
 
       - name: Build + Package (electron-builder)
-        run: yarn package
+        run: npm package
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
