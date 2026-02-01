@@ -29,17 +29,13 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Enable corepack (npm)
-        run: corepack enable
-
       - name: Install dependencies
-        run: npm install --frozen-lockfile
-
-      - name: Rebuild native modules for Electron
-        run: npm rebuild
+        run: npm ci
 
       - name: Build + Package (electron-builder)
         run: npm run package
+        env:
+          CI: false
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
