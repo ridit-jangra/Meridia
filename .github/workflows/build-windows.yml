@@ -39,7 +39,7 @@ jobs:
         run: npm rebuild
 
       - name: Build + Package (electron-builder)
-        run: npm package
+        run: npm run package
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
