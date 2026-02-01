@@ -17,6 +17,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Debug ref
+        run: |
+          echo ref=${{ github.ref }}
+          echo ref_name=${{ github.ref_name }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
