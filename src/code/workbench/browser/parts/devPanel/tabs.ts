@@ -82,10 +82,14 @@ export class DevPanelTabs extends CoreEl {
 
   private _render() {
     const existingTabsContainer = this._el!.querySelector(".tabs");
+    const existingOptionsContainer = this._el!.querySelector(".options");
     const existingCollapseIcon = this._el!.querySelector(".collapse");
 
     if (existingTabsContainer) {
       existingTabsContainer.remove();
+    }
+    if (existingOptionsContainer) {
+      existingOptionsContainer.remove();
     }
     if (existingCollapseIcon) {
       existingCollapseIcon.remove();
@@ -94,7 +98,18 @@ export class DevPanelTabs extends CoreEl {
     const tabsContainer = document.createElement("div");
     tabsContainer.className = "tabs";
 
-    if (!tabsContainer) return;
+    const optionsContainer = document.createElement("div");
+    optionsContainer.className = "options";
+
+    const closeOption = document.createElement("span");
+    closeOption.innerHTML = getThemeIcon("close");
+
+    closeOption.onclick = () => {
+      const _state = select((s) => s.main.panel_state);
+      dispatch(update_panel_state({ ..._state, bottom: false }));
+    };
+
+    optionsContainer.appendChild(closeOption);
 
     const activeTab = this._tabs.find((t) => t.active);
     if (activeTab) {
@@ -126,10 +141,12 @@ export class DevPanelTabs extends CoreEl {
 
       tabEl.appendChild(icon);
       tabEl.appendChild(name);
+
       tabsContainer.appendChild(tabEl);
     });
 
     this._el!.appendChild(tabsContainer);
+    this._el!.appendChild(optionsContainer);
     new PerfectScrollbar(tabsContainer, {
       suppressScrollY: true,
     });
@@ -202,7 +219,7 @@ export class DevPanelTabs extends CoreEl {
         update_panel_state({
           ..._state,
           bottom: true,
-        })
+        }),
       );
 
       const targetTab = this._tabs.find((tab) => tab.id === tabId);
@@ -274,7 +291,7 @@ export class DevPanelTabs extends CoreEl {
 
   public async waitForTab(
     tabId: string,
-    timeout: number = 5000
+    timeout: number = 5000,
   ): Promise<boolean> {
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {

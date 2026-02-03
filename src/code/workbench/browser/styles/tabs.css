@@ -125,7 +125,7 @@
   background: var(--workbench-tabs-active-background);
   color: var(--workbench-tabs-active-foreground);
   outline: 2px solid var(--workbench-tabs-active-border-foreground);
-  font-weight: 700;
+  /* font-weight: 700; */
 }
 
 .code .tabs .extra {

@@ -16,8 +16,8 @@
 }
 
 .splitter-container .layout-splitter {
-  max-width: calc(100vw - 41px) !important;
-  min-width: calc(100vw - 41px) !important;
+  max-width: calc(100vw - 46px) !important;
+  min-width: calc(100vw - 46px) !important;
 }
 
 .splitter-vertical {
