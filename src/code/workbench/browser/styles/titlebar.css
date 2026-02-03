@@ -42,7 +42,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px;
+  padding: 3px;
   border-radius: 6px;
   cursor: pointer;
 }
@@ -164,7 +164,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 12px;
+  padding: 4px 12px;
   border-radius: 6px;
   position: relative;
   width: 100%;
@@ -327,13 +327,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2px;
-  height: 70%;
+  padding: 3px;
   border-radius: 8px;
   cursor: pointer;
 }
 
-.code .titlebar .right-panel-section .menu-options-container span:hover,
-.hovered {
+.code .titlebar .right-panel-section .menu-options-container span:hover {
   background: var(--workbench-titlebar-item-hover-background);
 }

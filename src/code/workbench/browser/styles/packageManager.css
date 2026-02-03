@@ -11,7 +11,18 @@
 
 .code .package-container .package-area .package-template {
   height: 100%;
-  border-top: 1px solid var(--workbench-border-foreground);
+  /* border-top: 1px solid var(--workbench-border-foreground); */
+}
+
+.code
+  .package-container
+  .package-area
+  .package-template
+  .splitter-horizontal
+  .gutter {
+  height: 90% !important;
+  align-self: center !important;
+  border-radius: 12px;
 }
 
 .code .package-container .package-area .package-template .sidebar,
@@ -63,6 +74,9 @@
 }
 
 .code .package-container .package-area .package-template .input-wrapper span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 4px;
   border-radius: 4px;
   cursor: pointer;
@@ -70,11 +84,10 @@
   background: none;
 }
 
-.new-project
-  .content
-  .template-wrapper
-  .content
-  .form
+.code
+  .package-container
+  .package-area
+  .package-template
   .input-wrapper
   span:hover {
   background: var(--workbench-secondary-button-hover-background);

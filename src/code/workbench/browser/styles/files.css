@@ -67,7 +67,10 @@
 }
 
 .code .root .options span {
-  padding: 2px;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 6px;
   cursor: pointer;
 }

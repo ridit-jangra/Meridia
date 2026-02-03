@@ -21,11 +21,38 @@
 }
 
 .dev-panel .panel.vertical {
+  display: flex !important;
+  justify-content: space-between !important;
   width: 100% !important;
   height: 50px !important;
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
   overflow: hidden;
+}
+
+.dev-panel .panel.vertical .options {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.dev-panel .panel.vertical .options span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dev-panel .panel.vertical .options span:hover {
+  background: var(--workbench-titlebar-item-hover-background);
+}
+
+.dev-panel .panel.vertical .options span svg {
+  width: 20px;
+  height: auto;
 }
 
 .dev-panel .content {
