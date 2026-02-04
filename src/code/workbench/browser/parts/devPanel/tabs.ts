@@ -139,7 +139,6 @@ export class DevPanelTabs extends CoreEl {
       name.className = "name";
       name.textContent = tab.name;
 
-      tabEl.appendChild(icon);
       tabEl.appendChild(name);
 
       tabsContainer.appendChild(tabEl);
@@ -219,7 +218,7 @@ export class DevPanelTabs extends CoreEl {
         update_panel_state({
           ..._state,
           bottom: true,
-        }),
+        })
       );
 
       const targetTab = this._tabs.find((tab) => tab.id === tabId);
@@ -291,7 +290,7 @@ export class DevPanelTabs extends CoreEl {
 
   public async waitForTab(
     tabId: string,
-    timeout: number = 5000,
+    timeout: number = 5000
   ): Promise<boolean> {
     return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {

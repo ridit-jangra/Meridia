@@ -1,8 +1,6 @@
-import { getStandalone } from "../../../common/class.js";
 import { store } from "../../../common/store/store.js";
 import { select, watch } from "../../../common/store/selector.js";
 import { getRelativePath } from "../../../common/utils.js";
-import { Editor } from "../../../../editor/browser/layout.js";
 import { CoreEl } from "../core.js";
 
 interface SymbolInfo {
@@ -69,10 +67,10 @@ export class Statusbar extends CoreEl {
         const relativePath = getRelativePath(_root.uri ?? "", _active.uri);
         const breadcrumbItems = this._createBreadcrumbItems(
           _root.name,
-          relativePath,
+          relativePath
         );
         this._renderBreadcrumb(_breadcrumbContainer, breadcrumbItems);
-      },
+      }
     );
 
     const itemSection = document.createElement("div");
@@ -84,7 +82,7 @@ export class Statusbar extends CoreEl {
 
   private _createBreadcrumbItems(
     rootName: string,
-    relativePath: string,
+    relativePath: string
   ): string[] {
     if (!relativePath || relativePath === "./") {
       return [rootName];
@@ -93,7 +91,7 @@ export class Statusbar extends CoreEl {
     const pathSegments = relativePath
       .split(/[/\\]/)
       .filter((segment) => segment.length > 0);
-    return [rootName, ...pathSegments];
+    return pathSegments;
   }
 
   private _updateBreadcrumbWithSymbol(container: HTMLElement) {
@@ -111,7 +109,7 @@ export class Statusbar extends CoreEl {
       const relativePath = getRelativePath(_root.uri ?? "", _active.uri);
       baseBreadcrumbItems = this._createBreadcrumbItems(
         _root.name,
-        relativePath,
+        relativePath
       );
     }
 

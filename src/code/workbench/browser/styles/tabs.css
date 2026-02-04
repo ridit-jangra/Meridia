@@ -128,6 +128,10 @@
   /* font-weight: 700; */
 }
 
+.code .tabs .tab.active .dot-icon {
+  background: var(--workbench-tabs-icon-active-foreground);
+}
+
 .code .tabs .extra {
   position: sticky;
   top: 0;
