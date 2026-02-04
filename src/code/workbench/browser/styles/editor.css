@@ -388,7 +388,7 @@
   border: none !important;
   background: transparent !important;
   font-size: 16px !important;
-  font-family: "Jetbrains Mono" !important;
+  /* font-family: "Jetbrains Mono" !important; */
   color: var(--workbench-input-foreground) !important;
   padding: 0 10px !important;
   font-weight: normal !important;

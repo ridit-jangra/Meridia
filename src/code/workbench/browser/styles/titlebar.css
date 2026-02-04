@@ -139,8 +139,7 @@
   color: var(--workbench-titlebar-menu-item-active-foreground) !important;
 }
 
-.code .titlebar .menu-item.active:hover,
-.hovered {
+.code .titlebar .menu-item.active:hover {
   background: var(
     --workbench-titlebar-menu-item-active-hover-background
   ) !important;
@@ -208,11 +207,6 @@
 
 .code .titlebar .menu-item.active .hamburger-menu.submenu.level-2 {
   transform: translateX(0) !important;
-}
-
-.code .titlebar .menu-item.active .menu-item-label {
-  color: var(--workbench-titlebar-menu-item-active-foreground) !important;
-  font-weight: 500;
 }
 
 .code .titlebar .menu-submenu-arrow svg {
