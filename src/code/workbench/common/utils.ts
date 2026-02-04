@@ -62,6 +62,8 @@ export const tokensToCssVariables: Record<IThemeColors, string> = {
   "workbench.tabs.background": "--workbench-tabs-background",
   "workbench.tabs.foreground": "--workbench-tabs-foreground",
   "workbench.tabs.icon.foreground": "--workbench-tabs-icon-foreground",
+  "workbench.tabs.icon.active.foreground":
+    "--workbench-tabs-icon-active-foreground",
   "workbench.tabs.hover.background": "--workbench-tabs-hover-background",
   "workbench.tabs.hover.foreground": "--workbench-tabs-hover-foreground",
   "workbench.tabs.active.background": "--workbench-tabs-active-background",

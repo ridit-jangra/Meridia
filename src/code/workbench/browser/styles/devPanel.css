@@ -22,12 +22,17 @@
 
 .dev-panel .panel.vertical {
   display: flex !important;
+  align-items: center;
   justify-content: space-between !important;
   width: 100% !important;
   height: 50px !important;
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
   overflow: hidden;
+}
+
+.dev-panel .panel.vertical .tabs .tab .name {
+  font-size: 16px;
 }
 
 .dev-panel .panel.vertical .options {
@@ -41,7 +46,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3px;
+  padding: 6px;
   border-radius: 8px;
   cursor: pointer;
 }
