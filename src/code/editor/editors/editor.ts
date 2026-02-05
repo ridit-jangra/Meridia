@@ -462,7 +462,7 @@ export class Editor {
       theme: "meridia-theme",
       automaticLayout: true,
       fontSize: 18,
-      fontFamily: "Jetbrains Mono, monospace",
+      fontFamily: "Jetbrains, monospace",
       cursorBlinking: "smooth",
       cursorSmoothCaretAnimation: true,
       minimap: { enabled: false },
