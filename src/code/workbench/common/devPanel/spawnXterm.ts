@@ -149,7 +149,9 @@ class XtermManager {
       );
     }
 
-    this._update();
+    setTimeout(() => {
+      this._update();
+    }, 100);
 
     return _container;
   }
@@ -176,7 +178,7 @@ class XtermManager {
           const _height =
             instance._container.parentElement!.parentElement!.parentElement!
               .clientHeight -
-            11 +
+            7 +
             "px";
 
           instance._container.style.height = _height;
@@ -207,6 +209,10 @@ class XtermManager {
     this._completionCallbacks.delete(id);
 
     ipcRenderer.invoke("workbench.terminal.kill", id);
+
+    setTimeout(() => {
+      this._update();
+    }, 100);
   }
 
   async _run(id: string, command: string, _path: string) {
@@ -311,6 +317,10 @@ class XtermManager {
       }
     );
 
+    setTimeout(() => {
+      this._update();
+    }, 100);
+
     return _container;
   }
 
@@ -353,6 +363,10 @@ class XtermManager {
     if (!instance) {
       return false;
     }
+
+    setTimeout(() => {
+      this._update();
+    }, 100);
 
     try {
       await ipcRenderer.invoke(

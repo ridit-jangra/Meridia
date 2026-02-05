@@ -11,6 +11,7 @@ import { select } from "../../../common/store/selector.js";
 import { dispatch } from "../../../common/store/store.js";
 import { update_panel_state } from "../../../common/store/slice.js";
 import { _packageManager } from "./packageManager.js";
+import { Tooltip } from "../tooltip/tooltip.js";
 
 const storage = window.storage;
 
@@ -141,7 +142,9 @@ export class DevPanelTabs extends CoreEl {
 
       tabEl.appendChild(name);
 
-      tabsContainer.appendChild(tabEl);
+      const newTabEl = new Tooltip()._getEl(tabEl, "Terminal");
+
+      tabsContainer.appendChild(newTabEl);
     });
 
     this._el!.appendChild(tabsContainer);

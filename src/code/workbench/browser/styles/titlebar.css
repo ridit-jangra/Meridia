@@ -35,7 +35,7 @@
 }
 
 .code .titlebar .left-panel-section .logo svg path {
-  fill: #3574f0;
+  fill: var(--workbench-icon-foreground);
 }
 
 .code .titlebar .left-panel-section span {

@@ -19,6 +19,35 @@
   width: 100%;
 }
 
+.code .editor .tabs {
+  padding: 0px !important;
+  border-bottom: 2px solid var(--workbench-border-foreground) !important;
+  gap: 0px !important;
+}
+
+.code .editor .tabs .tab {
+  padding: 14px 20px !important;
+  width: min-content !important;
+  border-radius: 0px !important;
+  border-right: 1px solid var(--workbench-border-foreground) !important;
+}
+
+.code .editor .tabs .tab:not(.active):hover {
+  color: var(--workbench-tabs-foreground) !important;
+}
+
+.code .editor .tabs .tab .close-icon {
+  visibility: hidden !important;
+}
+
+.code .editor .tabs .tab:hover .close-icon {
+  visibility: visible !important;
+}
+
+.code .editor .tabs .tab.active .close-icon {
+  visibility: visible !important;
+}
+
 .code .editor .preview-area .preview-content {
   height: 100%;
   width: 100%;
@@ -217,6 +246,12 @@
   max-width: 100%;
 }
 
+.code .editor .monaco-editor * {
+  font-weight: normal;
+  letter-spacing: normal;
+  line-height: normal;
+}
+
 .code .editor .monaco-editor .monaco-hover-content a {
   color: var(--workbench-terminal-color4) !important;
   text-decoration: none !important;
@@ -282,7 +317,7 @@
 .monaco-editor .suggest-widget {
   padding: 6px !important;
   border: 2px solid var(--workbench-border-foreground) !important;
-  overflow: hidden !important;
+  /* overflow: hidden !important; */
 }
 
 .monaco-editor .suggest-widget .monaco-list-row {
