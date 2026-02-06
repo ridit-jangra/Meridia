@@ -3,7 +3,7 @@ import "../../editor/editors/fontViewer.js";
 import "../../editor/editors/jupyter/browser/notebook.js";
 import { getStandalone, registerStandalone } from "../common/class.js";
 import { Editor as EditorLayout } from "../../editor/browser/layout.js";
-import { Files } from "./files.js";
+import { files } from "./files.js";
 import { Panel } from "./parts/panel/panel.js";
 import { PanelOptions } from "./parts/panel/panelOptions.js";
 import { PanelOption } from "./parts/panel/panelOption.js";
@@ -25,6 +25,7 @@ import { getThemeIcon } from "./media/icons.js";
 import { _newProject } from "./window/new-project/browser/new-project.js";
 import { Extensions } from "./extensions.js";
 import { Notebook } from "../../editor/editors/jupyter/browser/notebook.js";
+import { Git } from "./git.js";
 
 export class Layout {
   constructor() {
@@ -37,7 +38,7 @@ export class Layout {
 
     const titlebar = new Titlebar().getDomElement()!;
 
-    const files = new Files().getDomElement()!;
+    const git = new Git().getDomElement()!;
     const mira = new Mira().getDomElement()!;
     const structure = new Structure().getDomElement()!;
     const extensions = new Extensions().getDomElement()!;
@@ -50,9 +51,15 @@ export class Layout {
 
     const explorerOption = new PanelOption(
       "Explorer",
-      files,
+      files.getDomElement(),
       () => {},
       getThemeIcon("explorer"),
+    );
+    const gitOption = new PanelOption(
+      "Git",
+      git,
+      () => {},
+      getThemeIcon("git"),
     );
     const extensionOption = new PanelOption(
       "Extensions",
@@ -63,7 +70,7 @@ export class Layout {
 
     const leftPanelContent = new Panel("left-panel-content").getDomElement()!;
     const leftPanelOptions = new PanelOptions(
-      [explorerOption],
+      [explorerOption, gitOption],
       leftPanelContent,
       "left-panel-options",
       "left-panel-options",

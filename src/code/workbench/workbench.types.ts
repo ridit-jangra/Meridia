@@ -154,6 +154,12 @@ export const ThemeColors = [
   "workbench.jupyter.notebook.tools.background",
   "workbench.jupyter.notebook.tools.hover.background",
   "workbench.jupyter.notebook.active.cell.border.foreground",
+  "workbench.files.default.foreground",
+  "workbench.files.icon.foreground",
+  "workbench.files.modified.foreground",
+  "workbench.files.untracked.foreground",
+  "workbench.files.ignored.foreground",
+  "workbench.files.error.foreground",
 ] as const;
 
 export type IThemeColors = (typeof ThemeColors)[number];

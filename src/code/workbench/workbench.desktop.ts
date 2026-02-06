@@ -6,6 +6,7 @@ import "./common/notebook.js";
 import "./common/theme.js";
 import "./common/scrollbar.js";
 import "./common/state.js";
+import "./common/git/git.js";
 import "./common/extension-listener.js";
 import "./common/tabs.js";
 import "./common/titlebar.js";
@@ -42,7 +43,7 @@ watch(
     setPanelVisibilty(_leftEl, next.left);
     setPanelVisibilty(_rightEl, next.right);
     setPanelVisibilty(_bottomEl, next.bottom);
-  }
+  },
 );
 
 export const _drawboard = new Drawboard();

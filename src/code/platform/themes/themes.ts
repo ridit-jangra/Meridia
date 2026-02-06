@@ -129,6 +129,13 @@ export const Light: ITheme = {
     "workbench.jupyter.notebook.tools.background": "#f3f3f3",
     "workbench.jupyter.notebook.tools.hover.background": "#e0e0e0",
     "workbench.jupyter.notebook.active.cell.border.foreground": "#2188ff",
+
+    // NEW COLORS - Derived from terminal colors
+    "workbench.files.default.foreground": "#1e1e1e",
+    "workbench.files.modified.foreground": "#b08800", // terminal.yellow
+    "workbench.files.untracked.foreground": "#22863a", // terminal.green
+    "workbench.files.ignored.foreground": "#6a737d", // terminal.bright.black
+    "workbench.files.error.foreground": "#d73a49", // terminal.red
   },
   tokenColors: {
     default: "#333333",
@@ -276,6 +283,13 @@ export const Dark: ITheme = {
     "workbench.jupyter.notebook.background": "#141414",
     "workbench.jupyter.notebook.tools.background": "#141414",
     "workbench.jupyter.notebook.tools.hover.background": "#2A2A2A99",
+
+    "workbench.files.default.foreground": "#808080",
+    "workbench.files.icon.foreground": "#808080",
+    "workbench.files.modified.foreground": "#EBCB8B",
+    "workbench.files.untracked.foreground": "#A3BE8C",
+    "workbench.files.ignored.foreground": "#505050",
+    "workbench.files.error.foreground": "#BF616A",
   },
   tokenColors: {
     default: "#d6d6dd",

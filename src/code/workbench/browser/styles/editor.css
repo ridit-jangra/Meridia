@@ -26,8 +26,9 @@
 }
 
 .code .editor .tabs .tab {
-  padding: 14px 20px !important;
-  width: min-content !important;
+  padding: 14px 10px !important;
+  gap: 12px !important;
+  /* width: min-content !important; */
   border-radius: 0px !important;
   border-right: 1px solid var(--workbench-border-foreground) !important;
 }
@@ -269,7 +270,9 @@
 .code .editor .monaco-editor .monaco-menu {
   border: 2px solid var(--workbench-border-foreground) !important;
   border-radius: 12px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 4px 16px rgba(0, 0, 0, 0.08) !important;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.15),
+    0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }
 
 .monaco-editor .margin-view-overlays .current-line {
@@ -317,7 +320,7 @@
 .monaco-editor .suggest-widget {
   padding: 6px !important;
   border: 2px solid var(--workbench-border-foreground) !important;
-  /* overflow: hidden !important; */
+  overflow: hidden !important;
 }
 
 .monaco-editor .suggest-widget .monaco-list-row {

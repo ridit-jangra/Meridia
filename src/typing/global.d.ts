@@ -18,6 +18,7 @@ import xlsx, {
   pypiBridge,
   workbenchBridge,
   jupyterBridge,
+  gitBridge,
 } from "../code/workbench/electron-browser/preload.js";
 
 declare global {
@@ -39,5 +40,6 @@ declare global {
     workbench: typeof workbenchBridge;
     jupyter: typeof jupyterBridge;
     xlsx: typeof xlsx;
+    git: typeof gitBridge;
   }
 }

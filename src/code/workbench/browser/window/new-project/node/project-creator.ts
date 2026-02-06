@@ -16,7 +16,7 @@ ipcMain.handle(
         `# Start a new adventure!!!
 
 if  __name__ == "__main__":
-    print("Hello, Meridia!")`
+    print("Hello, Meridia!")`,
       );
 
     const meridiaPath = path.join(fullPath, ".meridia");
@@ -61,11 +61,15 @@ if  __name__ == "__main__":
     const configFile = path.join(meridiaPath, "editor.json");
     fs.writeFileSync(configFile, JSON.stringify(config, null, 2), "utf8");
 
+    child_process.execSync("git init", {
+      cwd: fullPath,
+    });
+
     workbench.webContents.send(
       "workbench.workspace.project.python.empty.complete",
-      fullPath
+      fullPath,
     );
-  }
+  },
 );
 
 ipcMain.handle(
@@ -82,7 +86,7 @@ ipcMain.handle(
         path.join(fullPath, "main.ts"),
         `# Start a new adventure!!!
 
-console.log("Hello, Meridia!")`
+console.log("Hello, Meridia!")`,
       );
 
     const meridiaPath = path.join(fullPath, ".meridia");
@@ -101,11 +105,15 @@ console.log("Hello, Meridia!")`
       cwd: fullPath,
     });
 
+    child_process.execSync("git init", {
+      cwd: fullPath,
+    });
+
     workbench.webContents.send(
       "workbench.workspace.project.typescript.empty.complete",
-      fullPath
+      fullPath,
     );
-  }
+  },
 );
 
 ipcMain.handle(
@@ -122,7 +130,7 @@ ipcMain.handle(
         path.join(fullPath, "main.js"),
         `# Start a new adventure!!!
 
-console.log("Hello, Meridia!")`
+console.log("Hello, Meridia!")`,
       );
 
     const meridiaPath = path.join(fullPath, ".meridia");
@@ -139,9 +147,9 @@ console.log("Hello, Meridia!")`
 
     workbench.webContents.send(
       "workbench.workspace.project.javascript.empty.complete",
-      fullPath
+      fullPath,
     );
-  }
+  },
 );
 
 ipcMain.handle(
@@ -157,7 +165,7 @@ ipcMain.handle(
     reactIcons: boolean,
     srcDir: boolean,
     alias: boolean,
-    swcMinify: boolean
+    swcMinify: boolean,
   ) => {
     const fullPath = path.join(location, name);
 
@@ -180,8 +188,8 @@ ipcMain.handle(
           tabSize: 2,
         },
         null,
-        2
-      )
+        2,
+      ),
     );
 
     const nextArgs = [
@@ -210,7 +218,7 @@ ipcMain.handle(
 
     workbench.webContents.send(
       "workbench.workspace.project.typescript.nextjs.complete",
-      fullPath
+      fullPath,
     );
-  }
+  },
 );
