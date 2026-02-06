@@ -183,7 +183,7 @@ export const Dark: ITheme = {
 
     "workbench.primary.button.background": "#81A1C1",
     "workbench.primary.button.foreground": "#191c22",
-    "workbench.secondary.button.background": "#565656",
+    "workbench.secondary.button.background": "#2A2A2A99",
     "workbench.secondary.button.foreground": "#ececec",
 
     "workbench.button.border": "#2A2A2A",
@@ -247,7 +247,7 @@ export const Dark: ITheme = {
     "workbench.activitybar.hover.background": "#2A2A2A99",
     "workbench.activitybar.icon.foreground": "#424242",
     "workbench.activitybar.icon.active.foreground": "#e6e6e6",
-    "workbench.activitybar.active.background": "#2f2f2f",
+    "workbench.activitybar.active.background": "#2A2A2A99",
 
     "workbench.titlebar.background": "#141414",
     "workbench.titlebar.foreground": "#e6e6e682",
@@ -260,7 +260,7 @@ export const Dark: ITheme = {
 
     "workbench.titlebar.menu.background": "#141414",
     "workbench.titlebar.menu.foreground": "#e6e6e6",
-    "workbench.titlebar.menu.item.hover.background": "#e6e6e633",
+    "workbench.titlebar.menu.item.hover.background": "#2A2A2A99",
 
     "workbench.terminal.background": "#141414",
     "workbench.terminal.foreground": "#e6e6e6cc",
