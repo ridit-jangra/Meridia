@@ -36,6 +36,7 @@
   flex-direction: column;
   align-items: center;
   position: relative;
+  /* height: 100%; */
 }
 
 .code .root {
@@ -56,12 +57,17 @@
   white-space: nowrap;
 }
 
+.code .files:hover .options {
+  visibility: visible;
+}
+
 .code .root .options {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
   margin-right: 12px;
+  visibility: hidden;
 }
 
 .code .root .options span {
@@ -204,8 +210,7 @@
 }
 
 .code .tree .node.active {
-  background: var(--workbench-tabs-active-background);
-  color: var(--workbench-tabs-active-foreground);
+  background: var(--workbench-hover-background);
 }
 
 .code .tree .node {
@@ -248,5 +253,5 @@
 }
 
 .code .tree .inline-editor-input:focus {
-  outline: 1px solid var(--workbench-border-foreground);
+  outline: 2px solid var(--workbench-border-foreground);
 }

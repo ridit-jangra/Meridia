@@ -14,6 +14,7 @@ export class FileRenderer {
     string,
     Set<"untracked" | "modified" | "ignored">
   > = new Map();
+  _activeNodeUri: string | null = null;
 
   constructor(
     private onToggleFolder: (uri: string, nodeEl: HTMLElement) => void,
@@ -28,6 +29,7 @@ export class FileRenderer {
   clear() {
     this._renderedNodes.clear();
     this._renderedChildContainers.clear();
+    this._activeNodeUri = null;
   }
 
   renderTree(
@@ -97,6 +99,7 @@ export class FileRenderer {
 
       icon.onclick = (e) => {
         e.stopPropagation();
+        this.setActiveNode(node.uri);
         this.onToggleFolder(node.uri, nodeEl);
       };
     }
@@ -114,6 +117,7 @@ export class FileRenderer {
       name.style.cursor = "pointer";
       name.onclick = (e) => {
         e.stopPropagation();
+        this.setActiveNode(node.uri);
         this.onToggleFolder(node.uri, nodeEl);
       };
     }
@@ -123,6 +127,7 @@ export class FileRenderer {
 
     nodeEl.onclick = (e) => {
       e.stopPropagation();
+      this.setActiveNode(node.uri);
       if (node.type === "folder") {
         this.onToggleFolder(node.uri, nodeEl);
       } else {
@@ -132,6 +137,7 @@ export class FileRenderer {
 
     nodeEl.addEventListener("contextmenu", (e) => {
       e.preventDefault();
+      this.setActiveNode(node.uri);
       this.onContextMenu(e.clientX, e.clientY, node);
     });
 
@@ -222,6 +228,11 @@ export class FileRenderer {
       this._renderedChildContainers.delete(oldUri);
       this._renderedChildContainers.set(newUri, childContainer);
     }
+
+    // Update active node URI if it was the renamed node
+    if (this._activeNodeUri === oldUri) {
+      this._activeNodeUri = newUri;
+    }
   }
 
   removeNode(uri: string) {
@@ -235,6 +246,11 @@ export class FileRenderer {
     if (childContainer) {
       childContainer.remove();
       this._renderedChildContainers.delete(uri);
+    }
+
+    // Clear active node if it was the removed node
+    if (this._activeNodeUri === uri) {
+      this._activeNodeUri = null;
     }
   }
 
@@ -400,6 +416,47 @@ export class FileRenderer {
         icon.classList.remove("expanded");
       }
     }
+  }
+
+  /**
+   * Set the active node by URI. Only one node can be active at a time.
+   * Adds "active" class to the node element and removes it from the previously active node.
+   */
+  setActiveNode(uri: string) {
+    // Remove active class from previously active node
+    if (this._activeNodeUri !== null) {
+      const previousActiveNode = this._renderedNodes.get(this._activeNodeUri);
+      if (previousActiveNode) {
+        previousActiveNode.classList.remove("active");
+      }
+    }
+
+    // Set new active node
+    this._activeNodeUri = uri;
+    const newActiveNode = this._renderedNodes.get(uri);
+    if (newActiveNode) {
+      newActiveNode.classList.add("active");
+    }
+  }
+
+  /**
+   * Clear the active node state
+   */
+  clearActiveNode() {
+    if (this._activeNodeUri !== null) {
+      const activeNode = this._renderedNodes.get(this._activeNodeUri);
+      if (activeNode) {
+        activeNode.classList.remove("active");
+      }
+      this._activeNodeUri = null;
+    }
+  }
+
+  /**
+   * Get the URI of the currently active node
+   */
+  getActiveNodeUri(): string | null {
+    return this._activeNodeUri;
   }
 
   private buildFolderStatusMap(

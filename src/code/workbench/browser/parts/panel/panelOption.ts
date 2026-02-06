@@ -24,7 +24,7 @@ export class PanelOption extends CoreEl {
       this.position,
     );
     if (this._icon) this._el.innerHTML = this._icon;
-    else this._el.innerHTML = this._name!;
+    else this._el.textContent = this._name!;
 
     this._el.onclick = () => {
       if (this._onClickCallback) this._onClickCallback();
