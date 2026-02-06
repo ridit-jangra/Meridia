@@ -30,7 +30,7 @@ function copyTypescript() {
     base: "node_modules/typescript-language-server/lib",
     allowEmpty: true,
     encoding: false,
-  }).pipe(dest("build/language/typescript/server"));
+  }).pipe(dest("build/extensions/languages/typescript/server"));
 }
 
 const build = series(parallel(copyFiles, copyExtensions, copyTypescript));
