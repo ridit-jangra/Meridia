@@ -27,7 +27,7 @@
 
 .code .editor .tabs .tab {
   padding: 14px 10px !important;
-  width: min-content !important;
+  width: max-content !important;
   overflow: hidden !important;
   border-radius: 0px !important;
   border-right: 1px solid var(--workbench-border-foreground) !important;
