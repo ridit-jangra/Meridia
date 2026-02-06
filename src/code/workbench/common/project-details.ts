@@ -13,14 +13,15 @@ function sendEvent() {
     "workbench.workspace.virtual.env.complete",
     {
       detail: { action: "detaitls" },
-    }
+    },
   );
+  console.log("virtual env send event");
   document.dispatchEvent(menuEvent);
 }
 
 async function _init() {
   const project_details = (await window.ipc.invoke(
-    "workbench.workspace.details"
+    "workbench.workspace.details",
   )) as IProjectDetails;
 
   if (!project_details) return;
@@ -34,8 +35,8 @@ async function _init() {
     const args = ["-m", "venv", path];
 
     const loadingBox = showLoadingBox(
-      "Making virtual environment",
-      "Virtual enviornment is being created..."
+      "Creating virtual environment",
+      "Virtual enviornment is being created...",
     );
 
     const information = addInformation("Creating virtual env");
@@ -48,7 +49,7 @@ async function _init() {
         removeInformation(information);
         sendEvent();
       },
-      () => {}
+      () => {},
     );
   } else {
     sendEvent();
@@ -61,13 +62,13 @@ async function _init() {
     { persistent: true, interval: 1000 },
     async () => {
       const project_details = (await window.ipc.invoke(
-        "workbench.workspace.details"
+        "workbench.workspace.details",
       )) as IProjectDetails;
 
       if (!project_details) return;
 
       dispatch(update_project_details(project_details));
-    }
+    },
   );
 }
 

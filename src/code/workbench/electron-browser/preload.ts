@@ -1,479 +1,52 @@
-import fs from "fs";
-import path from "path";
-import os from "os";
-import url from "url";
+import { contextBridge, ipcRenderer } from "electron";
 import xlsx from "xlsx";
-import { spawn, SpawnOptions, SpawnOptionsWithoutStdio } from "child_process";
-import { clipboard, contextBridge, ipcRenderer, shell } from "electron";
-import {
-  createServerProcess,
-  forward,
-  IConnection,
-} from "vscode-ws-jsonrpc/server";
-import { createWebSocketConnection } from "vscode-ws-jsonrpc/server";
-import { WebSocketServer, ServerOptions } from "ws";
-import { Storage } from "../node/storage.js";
-import { _xtermManager } from "../common/devPanel/spawnXterm.js";
-import { IWebSocket } from "@codingame/monaco-jsonrpc";
-import { IFolderStructure } from "../workbench.types.js";
-import { IKernelConnection } from "@jupyterlab/services/lib/kernel/kernel.js";
-import { ISessionConnection } from "@jupyterlab/services/lib/session/session.js";
+import { storageBridge } from "./bridges/storage.js";
+import { fsBridge } from "./bridges/fs.js";
+import { pathBridge } from "./bridges/path.js";
+import { filesBridge } from "./bridges/files.js";
+import { ipcBridge } from "./bridges/ipc.js";
+import { miraBridge } from "./bridges/mira.js";
+import { pythonBridge } from "./bridges/python.js";
+import { childprocessBridge } from "./bridges/childprocess.js";
+import { spawnBridge } from "./bridges/spawn.js";
+import { editorBridge } from "./bridges/editor.js";
+import { nodeBridge } from "./bridges/node.js";
+import { urlBridge } from "./bridges/url.js";
+import { electronBridge } from "./bridges/electron.js";
+import { pypiBridge } from "./bridges/pypi.js";
+import { workbenchBridge } from "./bridges/workbench.js";
+import { jupyterBridge } from "./bridges/jupyter.js";
+import { gitBridge } from "./bridges/git.js";
+import { cleanupWatchers } from "./utils/cleanup.js";
 
-const storage = Storage;
-
-function readDirRecursive(dirPath: string): string[] {
-  let results: string[] = [];
-  if (!fs.existsSync(dirPath)) return results;
-
-  const list = fs.readdirSync(dirPath, { withFileTypes: true });
-  for (const dirent of list) {
-    const fullPath = path.join(dirPath, dirent.name);
-    if (dirent.isDirectory()) {
-      results = results.concat(readDirRecursive(fullPath));
-    } else if (dirent.isFile()) {
-      results.push(fullPath);
-    }
-  }
-  return results;
-}
-
-export const storageBridge = {
-  store: (_name: string, _value: any) => {
-    storage.store(_name, _value);
-  },
-  update: (_name: string, _value: any) => {
-    storage.update(_name, _value);
-  },
-  get: (_name: string) => {
-    const _val = storage.get(_name);
-    return _val;
-  },
-  remove: (_name: string) => {
-    storage.remove(_name);
-  },
+export {
+  storageBridge,
+  fsBridge,
+  pathBridge,
+  filesBridge,
+  ipcBridge,
+  miraBridge,
+  pythonBridge,
+  childprocessBridge,
+  spawnBridge,
+  editorBridge,
+  nodeBridge,
+  urlBridge,
+  electronBridge,
+  pypiBridge,
+  workbenchBridge,
+  jupyterBridge,
+  gitBridge,
 };
 
-const activeWatchers = new Map<string, fs.FSWatcher>();
-
-export const fsBridge = {
-  readFile: (_path: string, encoding?: fs.EncodingOption) => {
-    return fs.readFileSync(_path, { encoding: encoding as any }).toString();
-  },
-  readFileBuffer: (_path: string, encoding?: fs.EncodingOption) => {
-    return fs.readFileSync(_path, { encoding: encoding as any });
-  },
-  deleteFile: (_path: string) => {
-    if (!fs.existsSync(_path)) {
-      return "";
-    }
-    fs.rmSync(_path);
-  },
-  createFile: (_path: string, _content?: string) => {
-    fs.writeFileSync(_path, _content || "");
-  },
-  createFolder: (_path: string) => {
-    fs.mkdirSync(_path, { recursive: true });
-  },
-  deleteFolder: (_path: string) => {
-    if (!fs.existsSync(_path)) {
-      return "";
-    }
-    fs.rmSync(_path, { recursive: true, force: true });
-  },
-  rename: (_path: string, _new: string) => {
-    if (!fs.existsSync(_path)) {
-      return "";
-    }
-    fs.renameSync(_path, _new);
-  },
-  watchFile: (
-    _path: string,
-    options: any,
-    callback: (curr: fs.Stats, prev: fs.Stats) => void
-  ) => {
-    try {
-      if (activeWatchers.has(_path)) {
-        activeWatchers.get(_path)?.close();
-        activeWatchers.delete(_path);
-      }
-
-      fs.watchFile(_path, options, callback);
-
-      const watcher = fs.watch(_path, (eventType, filename) => {
-        if (eventType === "change") {
-          fs.stat(_path, (err, curr) => {
-            if (!err) {
-              const prev = curr;
-              callback(curr, prev);
-            }
-          });
-        }
-      });
-
-      activeWatchers.set(_path, watcher);
-
-      return watcher;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  unwatchFile: (_path: string) => {
-    try {
-      fs.unwatchFile(_path);
-
-      if (activeWatchers.has(_path)) {
-        activeWatchers.get(_path)?.close();
-        activeWatchers.delete(_path);
-      }
-    } catch (error) {}
-  },
-
-  watch: (_path: string, options?: any) => {
-    try {
-      const watcher = fs.watch(_path, options, (eventType, filename) => {});
-
-      activeWatchers.set(_path, watcher);
-      return watcher;
-    } catch (error) {
-      throw error;
-    }
-  },
-
-  unwatch: (_path: string) => {
-    try {
-      if (activeWatchers.has(_path)) {
-        activeWatchers.get(_path)?.close();
-        activeWatchers.delete(_path);
-      }
-    } catch (error) {}
-  },
-
-  exists: (_path: string): boolean => {
-    try {
-      return fs.existsSync(_path);
-    } catch {
-      return false;
-    }
-  },
-
-  stat: (_path: string): fs.Stats | null => {
-    try {
-      return fs.statSync(_path);
-    } catch {
-      return null;
-    }
-  },
-
-  readDir: (_path: string) => {
-    return readDirRecursive(_path);
-  },
-
-  getExtension: (_path: string): string => {
-    return _path.split(".").pop()?.toLowerCase() || "";
-  },
-
-  joinPath: (...paths: string[]): string => {
-    return path.join(...paths);
-  },
-
-  dirname: (_path: string): string => {
-    return path.dirname(_path);
-  },
-
-  basename: (_path: string): string => {
-    return path.basename(_path);
-  },
-
-  isFolder: (_path: string) => {
-    const _stat = fs.statSync(_path);
-    if (_stat.isFile()) {
-      return false;
-    } else if (_stat.isDirectory()) {
-      return true;
-    }
-  },
-};
-
-export const pathBridge = {
-  __dirname: __dirname,
-  dirname: (_path: string) => {
-    return path.dirname(_path);
-  },
-  basename: (_path: string) => {
-    return path.basename(_path);
-  },
-  resolve: (_path: string[]) => {
-    return path.resolve(..._path);
-  },
-  join: (_paths: string[]) => {
-    return path.join(..._paths);
-  },
-  sep: path.sep,
-  isAbsolute: (_path: string) => {
-    return path.isAbsolute(_path);
-  },
-  normalize: (_path: string) => {
-    return path.normalize(_path);
-  },
-  extname: (_path: string) => {
-    return path.extname(_path);
-  },
-  walkdir: async (_path: string, depth: number = 1) => {
-    return ipcRenderer.invoke("workbench.workspace.walkdir", _path, depth);
-  },
-};
-
-export const filesBridge = {
-  openFolder: () => {
-    ipcRenderer.invoke("workbench.workspace.folder.open");
-  },
-  changeFolder: (path: string) => {
-    ipcRenderer.invoke("workbench.workspace.folder.change", path);
-  },
-  getFolderPath: () => {
-    return ipcRenderer.invoke("workbench.workspace.get.folder.path");
-  },
-  openChildFolder: (_path: string) => {
-    return ipcRenderer.invoke("workbench.workspace.folder.get.child", _path);
-  },
-};
-
-export const ipcBridge = {
-  send: (channel: string, ...args: any) => ipcRenderer.send(channel, ...args),
-
-  invoke: async (channel: string, ...args: any) => {
-    try {
-      return await ipcRenderer.invoke(channel, ...args);
-    } catch (e) {
-      return false;
-    }
-  },
-
-  on: (channel: string, func: Function) =>
-    ipcRenderer.on(channel, (event, ...args) => func(event, ...args)),
-
-  once: (channel: string, func: Function) =>
-    ipcRenderer.once(channel, (event, ...args) => func(event, ...args)),
-
-  removeAllListeners: (channel: string) =>
-    ipcRenderer.removeAllListeners(channel),
-
-  removeListener: (channel: string, listener: any) =>
-    ipcRenderer.removeListener(channel, listener),
-};
-
-export const miraBridge = {};
-
-export const pythonBridge = {
-  executeScript: (
-    scriptPath: string,
-    args: string[] = []
-  ): Promise<string[]> => {
-    return new Promise((resolve, reject) => {
-      const logs: string[] = [];
-
-      // Spawn Python process in background (non-blocking)
-      const python = spawn("python", [scriptPath, ...args], {
-        detached: true,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
-
-      python.stdout?.on("data", (data) => {
-        logs.push(data.toString().trim());
-      });
-
-      python.stderr?.on("data", (data) => {
-        reject(new Error(data.toString()));
-      });
-
-      python.on("close", (code) => {
-        if (code === 0) {
-          resolve(logs);
-        } else {
-          reject(new Error(`Python process exited with code ${code}`));
-        }
-      });
-    });
-  },
-};
-
-export const childprocessBridge = {};
-
-export const spawnBridge = {
-  spawn: (
-    command: string,
-    args: string[] = [],
-    options: SpawnOptionsWithoutStdio = {}
-  ) => {
-    return spawn(command, args, options);
-  },
-};
-
-export const editorBridge = {
-  getFsSuggestions: (currentPath: string) => {
-    try {
-      const resolvedPath = path.resolve(currentPath || ".");
-      const items = fs.readdirSync(resolvedPath, { withFileTypes: true });
-
-      return items.map((item) => ({
-        name: item.name,
-        isDirectory: item.isDirectory(),
-        path: path.join(resolvedPath, item.name),
-      }));
-    } catch (error) {
-      return [];
-    }
-  },
-};
-
-export const nodeBridge = {
-  createWebSocketConnection: (_socket: IWebSocket) => {
-    return createWebSocketConnection(_socket);
-  },
-  createWebSocketServer: (options?: ServerOptions) => {
-    return new WebSocketServer(options);
-  },
-  createServerProcess: (
-    _name: string,
-    _command: string,
-    _args: string[],
-    _options: SpawnOptions
-  ) => {
-    return createServerProcess(_name, _command, _args, _options);
-  },
-  forward: (_client: IConnection, _server: IConnection) => {
-    return forward(_client, _server);
-  },
-  createLanguageServer: (
-    _port: number,
-    _server: string,
-    _websocketOptions: ServerOptions,
-    _args: string[]
-  ) => {
-    let _process: IConnection | undefined;
-    const _websocket = new WebSocketServer(_websocketOptions);
-    _websocket.on("connection", (webSocket) => {
-      const socket = {
-        send: (content: any) => webSocket.send(content),
-        onMessage: (cb: any) => webSocket.on("message", cb),
-        onError: (cb: any) => webSocket.on("error", cb),
-        onClose: (cb: any) => webSocket.on("close", cb),
-        dispose: () => webSocket.close(),
-      };
-
-      const connection = createWebSocketConnection(socket);
-
-      _process = createServerProcess("Language Server", _server, _args, {
-        stdio: ["pipe", "pipe", "pipe"],
-        env: {
-          ...process.env,
-          ELECTRON_RUN_AS_NODE: "1",
-        },
-      });
-
-      forward(connection, _process!);
-
-      webSocket.on("close", () => {});
-    });
-
-    return _process;
-  },
-  _processExecPath: process.execPath,
-  platform: os.platform(),
-  workspaceFolder: () => {
-    let cwd;
-
-    const folder_structure = Storage.get(
-      "workbench.workspace.folder.structure"
-    ) as IFolderStructure;
-
-    if (folder_structure) {
-      cwd = folder_structure.uri;
-    } else {
-      cwd = "/";
-    }
-    return cwd;
-  },
-};
-
-export const urlBridge = {
-  pathToFileURL: (_path: string) => {
-    const _url = url.pathToFileURL(_path);
-    return _url.href;
-  },
-};
-
-export const electronBridge = {
-  shell: {
-    ...shell,
-  },
-};
-
-export const pypiBridge = {
-  async getPackagesList(query: string): Promise<any[]> {
-    try {
-      const packages = [{}];
-      return packages;
-    } catch (error) {
-      console.error("PyPI search failed:", error);
-      return [];
-    }
-  },
-};
-
-export const workbenchBridge = {
-  reload: () => {
-    ipcRenderer.invoke("workbench.reload");
-  },
-  clipboard: {
-    writeText: (text: string) => clipboard.writeText(text),
-    readText: () => clipboard.readText(),
-  },
-};
-
-export const jupyterBridge = {
-  startKernel: async () => {
-    return await ipcRenderer.invoke("workbench.workspace.start.kernel");
-  },
-  connectToKernel: async (): Promise<{
-    sessionId: string;
-    kernelId: string;
-    status: string;
-  }> => {
-    return await ipcRenderer.invoke("workbench.workspace.connect.kernel");
-  },
-  executeToKernel: async (sessionId: string, code: string) => {
-    return await ipcRenderer.invoke(
-      "workbench.workspace.execute.kernel",
-      sessionId,
-      code
-    );
-  },
-  shutdownSession: async (sessionId: string) => {
-    return await ipcRenderer.invoke(
-      "workbench.workspace.shutdown.session",
-      sessionId
-    );
-  },
-};
-
-window.addEventListener("beforeunload", () => {
-  activeWatchers.forEach((watcher, path) => {
-    try {
-      fs.unwatchFile(path);
-      watcher.close();
-    } catch (error) {}
-  });
-  activeWatchers.clear();
-});
+window.addEventListener("beforeunload", cleanupWatchers);
 
 ipcRenderer.on("titlebar-insets", (_, insets) => {
   const el = document.querySelector(".right-panel-section") as HTMLDivElement;
-  el.style.marginRight = `${insets}px`;
+  if (el) {
+    el.style.marginRight = `${insets}px`;
+  }
 });
-
-export default xlsx;
 
 contextBridge.exposeInMainWorld("storage", storageBridge);
 contextBridge.exposeInMainWorld("fs", fsBridge);
@@ -492,3 +65,4 @@ contextBridge.exposeInMainWorld("pypi", pypiBridge);
 contextBridge.exposeInMainWorld("workbench", workbenchBridge);
 contextBridge.exposeInMainWorld("jupyter", jupyterBridge);
 contextBridge.exposeInMainWorld("xlsx", xlsx);
+contextBridge.exposeInMainWorld("git", gitBridge);

@@ -36,6 +36,8 @@ const NODE_BUILTINS = [
   "node:fs",
   "node:path",
   "node:stream",
+  "node:buffer",
+  "node:events",
   "node:child_process",
   "node:net",
   "tty",

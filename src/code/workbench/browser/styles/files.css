@@ -36,7 +36,6 @@
   flex-direction: column;
   align-items: center;
   position: relative;
-  margin: 0 8px;
 }
 
 .code .root {
@@ -98,14 +97,13 @@
 .code .tree .node {
   display: flex;
   align-items: center;
-  padding: 5px 0;
+  padding: 4px 0;
   font-size: 16px;
   align-self: center;
   cursor: pointer;
   position: relative;
   overflow: visible;
-  color: var(--workbench-panel-foreground);
-  border-radius: 6px;
+  /* border-radius: 6px; */
   width: 100%;
   box-sizing: border-box;
 }
@@ -113,7 +111,10 @@
 .code .tree .child-nodes {
   display: flex;
   flex-direction: column;
-  transition: height 0.25s ease, opacity 0.25s ease, visibility 0.25s ease;
+  transition:
+    height 0.25s ease,
+    opacity 0.25s ease,
+    visibility 0.25s ease;
   overflow-x: visible;
   overflow-y: hidden;
 }
@@ -156,12 +157,12 @@
 
 .code .tree .node .icon svg {
   display: flex;
-  width: 18px;
+  width: 17px;
   height: auto;
 }
 
 .code .tree .node .icon.toggle svg {
-  width: 19px !important;
+  width: 18px !important;
 }
 
 .code .tree .node .name {
@@ -206,6 +207,30 @@
 .code .tree .node.active {
   background: var(--workbench-tabs-active-background);
   color: var(--workbench-tabs-active-foreground);
+}
+
+.code .tree .node {
+  color: var(--workbench-files-default-foreground);
+}
+
+.code .tree .node.untracked {
+  color: var(--workbench-files-untracked-foreground);
+}
+
+.code .tree .node.modified {
+  color: var(--workbench-files-modified-foreground);
+}
+
+.code .tree .node.ignored {
+  color: var(--workbench-ignored-untracked-foreground);
+}
+
+.code .tree .node.error {
+  color: var(--workbench-error-untracked-foreground);
+}
+
+.code .tree .node .icon.toggle svg path {
+  stroke: var(--workbench-files-icon-foreground);
 }
 
 .code .tree .temp-node span svg {

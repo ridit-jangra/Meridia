@@ -43,6 +43,7 @@
     "perfect-scrollbar": "^1.5.6",
     "python-shell": "^5.0.0",
     "remove": "^0.1.5",
+    "simple-git": "^3.30.0",
     "typed-rpc": "^6.1.2",
     "vscode-languageserver": "^9.0.1",
     "vscode-ws-jsonrpc": "^3.5.0",

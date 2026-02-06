@@ -160,10 +160,18 @@ export const tokensToCssVariables: Record<IThemeColors, string> = {
     "--workbench-jupyter-notebook-tools-hover-background",
   "workbench.jupyter.notebook.active.cell.border.foreground":
     "--workbench-jupyter-notebook-active-cell-border-foreground",
+  "workbench.files.default.foreground": "--workbench-files-default-foreground",
+  "workbench.files.icon.foreground": "--workbench-files-icon-foreground",
+  "workbench.files.modified.foreground":
+    "--workbench-files-modified-foreground",
+  "workbench.files.untracked.foreground":
+    "--workbench-files-untracked-foreground",
+  "workbench.files.ignored.foreground": "--workbench-files-ignored-foreground",
+  "workbench.files.error.foreground": "--workbench-files-error-foreground",
 };
 
 export function parseTokensToCssVariables(
-  _colors: Partial<Record<IThemeColors, string>>
+  _colors: Partial<Record<IThemeColors, string>>,
 ): Record<string, string> {
   const result: Record<string, string> = {};
   for (const key of ThemeColors) {
@@ -181,7 +189,7 @@ export function getFileIcon(_name: string) {
 
   const specificPatterns = [".d.ts"];
   const hasSpecificPattern = specificPatterns.some((pattern) =>
-    _name.endsWith(pattern)
+    _name.endsWith(pattern),
   );
 
   if (dotCount >= 2 && hasSpecificPattern) {
@@ -371,3 +379,6 @@ export function getRunCommand(_path: string) {
     return `echo -e "\\033[35m[SupprtError]\\033[0m" "\\033[90mExtension not supported\\033[0m"`;
   }
 }
+
+export const normalizePath = (path: string) => path.replace(/\\\\/g, "\\");
+export const unNormalizePath = (path: string) => path.replace(/\\/g, "\\\\");

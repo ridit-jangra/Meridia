@@ -7,6 +7,12 @@ const path = window.path;
 export class FileRenderer {
   private _renderedNodes: Map<string, HTMLElement> = new Map();
   private _renderedChildContainers: Map<string, HTMLElement> = new Map();
+  private _gitStatus: Map<string, "untracked" | "modified" | "ignored"> =
+    new Map();
+  private _folderStatus: Map<
+    string,
+    Set<"untracked" | "modified" | "ignored">
+  > = new Map();
 
   constructor(
     private onToggleFolder: (uri: string, nodeEl: HTMLElement) => void,
@@ -14,8 +20,8 @@ export class FileRenderer {
     private onContextMenu: (
       x: number,
       y: number,
-      node: IFolderStructure
-    ) => void
+      node: IFolderStructure,
+    ) => void,
   ) {}
 
   clear() {
@@ -28,7 +34,7 @@ export class FileRenderer {
     container: HTMLElement,
     depth: number,
     expandedFolders: Set<string>,
-    loadedFolders: Set<string>
+    loadedFolders: Set<string>,
   ) {
     if (!Array.isArray(nodes)) return;
 
@@ -42,7 +48,7 @@ export class FileRenderer {
       if (node.type === "folder") {
         const childContainer = this.createChildContainer(
           node.uri,
-          expandedFolders
+          expandedFolders,
         );
         container.appendChild(childContainer);
         this._renderedChildContainers.set(node.uri, childContainer);
@@ -53,7 +59,7 @@ export class FileRenderer {
             childContainer,
             depth + 1,
             expandedFolders,
-            loadedFolders
+            loadedFolders,
           );
         }
       }
@@ -63,7 +69,7 @@ export class FileRenderer {
   createNodeElement(
     node: IFolderStructure,
     depth: number,
-    expandedFolders: Set<string>
+    expandedFolders: Set<string>,
   ): HTMLElement {
     const nodeEl = document.createElement("div");
     nodeEl.className = "node";
@@ -123,12 +129,29 @@ export class FileRenderer {
       this.onContextMenu(e.clientX, e.clientY, node);
     });
 
+    const normalizePath = (path: string) => path.replace(/\\\\/g, "\\");
+    const normalizedUri = normalizePath(node.uri);
+
+    if (node.type === "file") {
+      const status = this._gitStatus.get(normalizedUri);
+      if (status) {
+        nodeEl.classList.add(status);
+      }
+    } else if (node.type === "folder") {
+      const folderStatuses = this._folderStatus.get(normalizedUri);
+      if (folderStatuses) {
+        folderStatuses.forEach((status) => {
+          nodeEl.classList.add(status);
+        });
+      }
+    }
+
     return nodeEl;
   }
 
   createChildContainer(
     nodeId: string,
-    expandedFolders: Set<string>
+    expandedFolders: Set<string>,
   ): HTMLElement {
     const container = document.createElement("div");
     container.className = "child-nodes";
@@ -213,13 +236,13 @@ export class FileRenderer {
     node: IFolderStructure,
     container: HTMLElement,
     depth: number,
-    expandedFolders: Set<string>
+    expandedFolders: Set<string>,
   ): HTMLElement {
     const nodeElement = this.createNodeElement(node, depth, expandedFolders);
 
     const insertPosition = this.findInsertPositionAlphabetically(
       container,
-      node
+      node,
     );
 
     if (insertPosition) {
@@ -233,7 +256,7 @@ export class FileRenderer {
     if (node.type === "folder") {
       const childContainer = this.createChildContainer(
         node.uri,
-        expandedFolders
+        expandedFolders,
       );
 
       if (nodeElement.nextSibling) {
@@ -250,7 +273,7 @@ export class FileRenderer {
 
   findInsertPositionAlphabetically(
     container: HTMLElement,
-    newNode: IFolderStructure
+    newNode: IFolderStructure,
   ): HTMLElement | null {
     const children = Array.from(container.children);
     const newNodeName = newNode.name.toLowerCase();
@@ -317,7 +340,7 @@ export class FileRenderer {
   animateToggle(
     container: HTMLElement,
     isExpanding: boolean,
-    onComplete?: () => void
+    onComplete?: () => void,
   ) {
     if (isExpanding) {
       container.style.transition = "none";
@@ -371,5 +394,109 @@ export class FileRenderer {
         icon.classList.remove("expanded");
       }
     }
+  }
+
+  private buildFolderStatusMap(
+    notAdded: string[],
+    modified: string[],
+    ignored: string[],
+  ) {
+    const normalizePath = (path: string) => path.replace(/\\\\/g, "\\");
+    this._folderStatus.clear();
+
+    notAdded.forEach((filePath) => {
+      const normalizedPath = normalizePath(filePath);
+      const parts = normalizedPath.split("\\");
+
+      for (let i = 1; i < parts.length; i++) {
+        const folderPath = parts.slice(0, i + 1).join("\\");
+
+        if (!this._folderStatus.has(folderPath)) {
+          this._folderStatus.set(folderPath, new Set());
+        }
+        this._folderStatus.get(folderPath)!.add("untracked");
+      }
+    });
+
+    modified.forEach((filePath) => {
+      const normalizedPath = normalizePath(filePath);
+      const parts = normalizedPath.split("\\");
+
+      for (let i = 1; i < parts.length; i++) {
+        const folderPath = parts.slice(0, i + 1).join("\\");
+
+        if (!this._folderStatus.has(folderPath)) {
+          this._folderStatus.set(folderPath, new Set());
+        }
+        this._folderStatus.get(folderPath)!.add("modified");
+      }
+    });
+
+    ignored.forEach((filePath) => {
+      const normalizedPath = normalizePath(filePath);
+      const parts = normalizedPath.split("\\");
+
+      for (let i = 1; i < parts.length; i++) {
+        const folderPath = parts.slice(0, i + 1).join("\\");
+
+        if (!this._folderStatus.has(folderPath)) {
+          this._folderStatus.set(folderPath, new Set());
+        }
+        this._folderStatus.get(folderPath)!.add("ignored");
+      }
+    });
+  }
+
+  updateGitStatus(notAdded: string[], modified: string[], ignored: string[]) {
+    const normalizePath = (path: string) => path.replace(/\\\\/g, "\\");
+
+    this._gitStatus.clear();
+
+    notAdded.forEach((path) => {
+      this._gitStatus.set(normalizePath(path), "untracked");
+    });
+
+    modified.forEach((path) => {
+      this._gitStatus.set(normalizePath(path), "modified");
+    });
+
+    ignored.forEach((path) => {
+      this._gitStatus.set(normalizePath(path), "ignored");
+    });
+
+    this.buildFolderStatusMap(notAdded, modified, ignored);
+
+    this.applyGitStatusToRenderedNodes();
+  }
+
+  private applyGitStatusToRenderedNodes() {
+    const normalizePath = (path: string) => path.replace(/\\\\/g, "\\");
+
+    this._renderedNodes.forEach((nodeElement, uri) => {
+      const normalizedUri = normalizePath(uri);
+      const nodeType = nodeElement.dataset.nodeType;
+
+      nodeElement.classList.remove("untracked", "modified", "ignored");
+
+      if (nodeType === "file") {
+        const status = this._gitStatus.get(normalizedUri);
+        if (status) {
+          nodeElement.classList.add(status);
+        }
+      } else if (nodeType === "folder") {
+        const folderStatuses = this._folderStatus.get(normalizedUri);
+        if (folderStatuses) {
+          folderStatuses.forEach((status) => {
+            nodeElement.classList.add(status);
+          });
+        }
+      }
+    });
+  }
+
+  clearGitStatus() {
+    this._gitStatus.clear();
+    this._folderStatus.clear();
+    this.applyGitStatusToRenderedNodes();
   }
 }

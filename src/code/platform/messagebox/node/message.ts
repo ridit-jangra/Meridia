@@ -5,36 +5,58 @@ import { workbench } from "../../../workbench/electron-browser/window";
 ipcMain.handle(
   "workbench.workspace.install",
   async (_, command: string, args: string[]) => {
-    const process = spawn(command, args, {
+    const child = spawn(command, args, {
       stdio: ["ignore", "pipe", "pipe"],
+      windowsHide: true,
     });
 
-    process.stdout?.on("data", (data) => {
-      const log = data.toString();
-      workbench.webContents.send("workbench.workspace.install.log", log);
-    });
+    let buffer = "";
+    let flushTimer: NodeJS.Timeout | null = null;
+    let killed = false;
 
-    process.stderr?.on("data", (data) => {
-      const log = data.toString();
-      workbench.webContents.send("workbench.workspace.install.log", log);
-    });
+    const flush = () => {
+      flushTimer = null;
+      if (!buffer) return;
+      workbench.webContents.send("workbench.workspace.install.log", buffer);
+      buffer = "";
+    };
 
-    process.on("close", (code, signal) => {
+    const push = (chunk: Buffer) => {
+      buffer += chunk.toString();
+      if (!flushTimer) flushTimer = setTimeout(flush, 50);
+      if (buffer.length > 200_000) flush();
+    };
+
+    child.stdout?.on("data", push);
+    child.stderr?.on("data", push);
+
+    const cleanup = () => {
+      if (flushTimer) clearTimeout(flushTimer);
+      flush();
+      child.stdout?.removeAllListeners();
+      child.stderr?.removeAllListeners();
+      child.removeAllListeners();
+    };
+
+    child.on("close", (code, signal) => {
+      cleanup();
       workbench.webContents.send(
         "workbench.workspace.install.log",
-        `Process exited with code ${code}${
-          signal ? ` (signal: ${signal})` : ""
-        }`
+        `\nProcess exited with code ${code}${signal ? ` (signal: ${signal})` : ""}\n`,
       );
-
       workbench.webContents.send("workbench.workspace.install.complete");
     });
 
-    process.on("error", (error) => {
+    child.on("error", (err) => {
+      cleanup();
       workbench.webContents.send(
         "workbench.workspace.install.log",
-        error.message
+        `\n${err.message}\n`,
       );
+      workbench.webContents.send("workbench.workspace.install.complete");
     });
-  }
+
+    // optional: return a "cancel" function id pattern if you want
+    return { ok: true };
+  },
 );

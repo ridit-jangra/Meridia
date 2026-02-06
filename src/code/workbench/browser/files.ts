@@ -17,22 +17,22 @@ const fs = window.fs;
 
 export class Files extends CoreEl {
   private _fileStructure: FileStructure;
-  private _renderer: FileRenderer;
-  private _operations: FileOperations;
+  _renderer: FileRenderer;
+  _operations: FileOperations;
   private _pendingOperations: Map<string, Promise<any>> = new Map();
 
   constructor() {
     super();
 
     const storedStructure = window.storage.get(
-      "workbench.workspace.folder.structure"
+      "workbench.workspace.folder.structure",
     );
     this._fileStructure = new FileStructure(storedStructure);
 
     this._renderer = new FileRenderer(
       (uri, nodeEl) => this._handleToggleFolder(uri, nodeEl),
       (uri, name) => this._handleOpenFile(uri, name),
-      (x, y, node) => this._handleContextMenu(x, y, node)
+      (x, y, node) => this._handleContextMenu(x, y, node),
     );
 
     this._operations = new FileOperations();
@@ -121,7 +121,7 @@ export class Files extends CoreEl {
       tree,
       0,
       this._fileStructure.expandedFolders,
-      this._fileStructure.loadedFolders
+      this._fileStructure.loadedFolders,
     );
 
     treeContainer.appendChild(tree);
@@ -157,7 +157,7 @@ export class Files extends CoreEl {
           parentUri: string;
           nodeName: string;
           nodeType: "file" | "folder";
-        }
+        },
       ) => {
         console.log("Watcher: node added", data);
         const newNode: IFolderStructure = {
@@ -168,7 +168,7 @@ export class Files extends CoreEl {
           uri: path.join([data.parentUri, data.nodeName]),
         };
         this._handleWatcherNodeAdded(data.parentUri, newNode);
-      }
+      },
     );
 
     ipc.on("files-node-removed", (_: any, data: { nodeUri: string }) => {
@@ -184,17 +184,17 @@ export class Files extends CoreEl {
           oldUri: string;
           newUri: string;
           newName: string;
-        }
+        },
       ) => {
         console.log("Watcher: node renamed", data);
         this._handleWatcherNodeRenamed(data.oldUri, data.newUri, data.newName);
-      }
+      },
     );
   }
 
   private _handleWatcherNodeAdded(
     parentUri: string,
-    newNode: IFolderStructure
+    newNode: IFolderStructure,
   ) {
     if (this._operations.isRenamingInProgress) return;
 
@@ -219,7 +219,7 @@ export class Files extends CoreEl {
         newNode,
         container,
         depth,
-        this._fileStructure.expandedFolders
+        this._fileStructure.expandedFolders,
       );
       console.log("Node added to UI:", newNode.name);
     } else {
@@ -266,7 +266,7 @@ export class Files extends CoreEl {
   private _handleWatcherNodeRenamed(
     oldUri: string,
     newUri: string,
-    newName: string
+    newName: string,
   ) {
     if (this._operations.isRenamingInProgress) {
       console.log("User rename in progress, ignoring watcher event");
@@ -317,7 +317,7 @@ export class Files extends CoreEl {
             container,
             depth,
             this._fileStructure.expandedFolders,
-            this._fileStructure.loadedFolders
+            this._fileStructure.loadedFolders,
           );
         }
         dispatch(update_folder_structure(this._fileStructure.structure));
@@ -339,7 +339,7 @@ export class Files extends CoreEl {
     }
 
     const existingIndex = currentTabs.findIndex(
-      (tab) => tab.uri === normalizedUri
+      (tab) => tab.uri === normalizedUri,
     );
 
     if (existingIndex !== -1) {
@@ -400,7 +400,7 @@ export class Files extends CoreEl {
         }
 
         console.log("Rename operation completed, waiting for watcher event");
-      }
+      },
     );
   }
 
@@ -446,13 +446,13 @@ export class Files extends CoreEl {
         }
 
         console.log(`${type} created, waiting for watcher event`);
-      }
+      },
     );
   }
 
   private async _handleDelete(node: IFolderStructure) {
     const confirmed = confirm(
-      `Are you sure you want to delete "${node.name}"?`
+      `Are you sure you want to delete "${node.name}"?`,
     );
     if (!confirmed) return;
 
@@ -512,7 +512,7 @@ export class Files extends CoreEl {
         treeContainer as HTMLElement,
         0,
         this._fileStructure.expandedFolders,
-        this._fileStructure.loadedFolders
+        this._fileStructure.loadedFolders,
       );
     }
   }
@@ -520,7 +520,7 @@ export class Files extends CoreEl {
   private _updateTabsForRenamedFile(
     oldUri: string,
     newUri: string,
-    newName: string
+    newName: string,
   ) {
     const stateValue = select((s) => s.main.editor_tabs);
     let currentTabs: IEditorTab[] = [];
@@ -542,7 +542,7 @@ export class Files extends CoreEl {
     });
 
     const hasChanged = updatedTabs.some(
-      (tab, index) => tab.uri !== currentTabs[index]?.uri
+      (tab, index) => tab.uri !== currentTabs[index]?.uri,
     );
 
     if (hasChanged) {
@@ -562,7 +562,7 @@ export class Files extends CoreEl {
 
     const normalizedUri = this._normalizeUri(uri);
     const tabIndex = currentTabs.findIndex(
-      (t) => this._normalizeUri(t.uri) === normalizedUri
+      (t) => this._normalizeUri(t.uri) === normalizedUri,
     );
 
     if (tabIndex === -1) return;
@@ -571,7 +571,7 @@ export class Files extends CoreEl {
     const isClosingActiveTab = closingTab.active;
 
     let updatedTabs = currentTabs.filter(
-      (t) => this._normalizeUri(t.uri) !== normalizedUri
+      (t) => this._normalizeUri(t.uri) !== normalizedUri,
     );
 
     if (isClosingActiveTab && updatedTabs.length > 0) {
@@ -590,3 +590,5 @@ export class Files extends CoreEl {
     return uri.replace(/\\/g, "/");
   }
 }
+
+export const files = new Files();

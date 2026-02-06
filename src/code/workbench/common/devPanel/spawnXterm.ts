@@ -31,7 +31,7 @@ class XtermManager {
 
   _setCompletionCallback(
     id: string,
-    callback: (status: "success" | "error" | "interrupted") => void
+    callback: (status: "success" | "error" | "interrupted") => void,
   ) {
     this._completionCallbacks.set(id, callback);
   }
@@ -83,7 +83,7 @@ class XtermManager {
       term.cols,
       term.rows,
       _cwd,
-      shell
+      shell,
     );
 
     const onPtyData = (_event: any, data: string) => {
@@ -110,7 +110,7 @@ class XtermManager {
       foreground: _theme.getColor("workbench.terminal.foreground"),
       cursor: _theme.getColor("workbench.terminal.cursor.foreground"),
       selectionBackground: _theme.getColor(
-        "workbench.terminal.selection.background"
+        "workbench.terminal.selection.background",
       ),
       black: _theme.getColor("workbench.terminal.black"),
       red: _theme.getColor("workbench.terminal.red"),
@@ -145,7 +145,7 @@ class XtermManager {
       ipcRenderer.invoke(
         "workbench.terminal.data.user",
         id,
-        project_details.venv.activate + "\r"
+        project_details.venv.activate + "\r",
       );
     }
 
@@ -197,7 +197,7 @@ class XtermManager {
 
     ipcRenderer.removeListener(
       `workbench.terminal.data.pty-${id}`,
-      _instance._ptyDataListener
+      _instance._ptyDataListener,
     );
 
     _instance.term.dispose();
@@ -260,7 +260,7 @@ class XtermManager {
       foreground: _theme.getColor("workbench.terminal.foreground"),
       cursor: _theme.getColor("workbench.terminal.cursor.foreground"),
       selectionBackground: _theme.getColor(
-        "workbench.terminal.selection.background"
+        "workbench.terminal.selection.background",
       ),
       black: _theme.getColor("workbench.terminal.black"),
       red: _theme.getColor("workbench.terminal.red"),
@@ -304,7 +304,7 @@ class XtermManager {
       (event: any, data: string) => {
         this._update();
         term.write(data);
-      }
+      },
     );
 
     ipcRenderer.on(
@@ -314,7 +314,7 @@ class XtermManager {
 
         this._dispatch("workbench.editor.run.enable");
         this._dispatch("workbench.editor.stop.disable");
-      }
+      },
     );
 
     setTimeout(() => {
@@ -372,7 +372,7 @@ class XtermManager {
       await ipcRenderer.invoke(
         "workbench.terminal.data.user",
         id,
-        command + "\r"
+        command + "\r",
       );
 
       return true;
@@ -386,4 +386,22 @@ export const _xtermManager = new XtermManager();
 
 ipcRenderer.on("reset-sizes", () => {
   _xtermManager._update();
+});
+
+document.addEventListener("workbench.workspace.virtual.env.complete", () => {
+  console.log("virtual env got event");
+
+  _xtermManager._terminals.forEach((v, i) => {
+    v.term.clear();
+
+    const project_details = select((s) => s.main.project_details);
+
+    if (project_details.venv && project_details.venv.activate) {
+      ipcRenderer.invoke(
+        "workbench.terminal.data.user",
+        i,
+        project_details.venv.activate + "\r",
+      );
+    }
+  });
 });
