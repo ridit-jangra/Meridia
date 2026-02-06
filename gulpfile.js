@@ -25,7 +25,15 @@ function copyExtensions() {
   }).pipe(dest("build/extensions"));
 }
 
-const build = series(parallel(copyFiles, copyExtensions));
+function copyTypescript() {
+  return src("node_modules/typescript-language-server/lib/*", {
+    base: "node_modules/typescript-language-server/lib",
+    allowEmpty: true,
+    encoding: false,
+  }).pipe(dest("build/language/typescript/server"));
+}
+
+const build = series(parallel(copyFiles, copyExtensions, copyTypescript));
 
 function watchSourceFiles() {
   return watch(SOURCE_GLOBS, { ignoreInitial: false }, copyFiles);
