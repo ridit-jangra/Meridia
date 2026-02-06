@@ -1,6 +1,7 @@
 import { IFolderStructure } from "../../workbench.types.js";
 import { getFileIcon } from "../utils.js";
 import { getThemeIcon } from "../../browser/media/icons.js";
+import { Tooltip } from "../../browser/parts/tooltip/tooltip.js";
 
 const path = window.path;
 
@@ -100,7 +101,12 @@ export class FileRenderer {
       };
     }
 
-    const name = document.createElement("span");
+    const name = new Tooltip()._getEl(
+      document.createElement("span"),
+      node.uri,
+      "bottom",
+      500,
+    );
     name.textContent = node.name;
     name.className = "name";
 

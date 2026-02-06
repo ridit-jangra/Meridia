@@ -61,12 +61,6 @@ export class Layout {
       () => {},
       getThemeIcon("git"),
     );
-    const extensionOption = new PanelOption(
-      "Extensions",
-      extensions,
-      () => {},
-      getThemeIcon("extension"),
-    );
 
     const leftPanelContent = new Panel("left-panel-content").getDomElement()!;
     const leftPanelOptions = new PanelOptions(

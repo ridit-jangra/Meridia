@@ -16,6 +16,7 @@ import { runCommand } from "../../../common/command.js";
 import { PanelOption } from "../panel/panelOption.js";
 import { _commandPanel } from "./commandPanel.js";
 import { _newProject } from "../../window/new-project/browser/new-project.js";
+import { Tooltip } from "../tooltip/tooltip.js";
 
 export class Titlebar extends CoreEl {
   private menuVisible: boolean = false;
@@ -42,14 +43,22 @@ export class Titlebar extends CoreEl {
     logo.className = "logo";
     logo.innerHTML = getIcon("../images/logo.svg");
 
-    const leftPanel = document.createElement("span");
+    const leftPanel = new Tooltip()._getEl(
+      document.createElement("span"),
+      "Toggle left panel (Ctrl+B)",
+      "bottom",
+    );
     leftPanel.innerHTML = leftPanelIcon;
     leftPanel.onclick = () => {
       const _state = select((s) => s.main.panel_state);
       dispatch(update_panel_state({ ..._state, left: !_state.left }));
     };
 
-    const bottomPanel = document.createElement("span");
+    const bottomPanel = new Tooltip()._getEl(
+      document.createElement("span"),
+      "Toggle bottom panel (Ctrl+J)",
+      "bottom",
+    );
     bottomPanel.innerHTML = bottomPanelIcon;
     bottomPanel.onclick = () => {
       const _state = select((s) => s.main.panel_state);
@@ -67,7 +76,11 @@ export class Titlebar extends CoreEl {
       },
     );
 
-    this.hamburgerContainer = document.createElement("span");
+    this.hamburgerContainer = new Tooltip()._getEl(
+      document.createElement("span"),
+      "Open menu",
+      "bottom",
+    );
     this.hamburgerContainer.className = "menu-button menu-container";
     this.hamburgerContainer.innerHTML = getThemeIcon("menu");
     this.hamburgerContainer.onclick = (e) => {
@@ -78,7 +91,11 @@ export class Titlebar extends CoreEl {
     this.menuElement = this._createMenuMenu();
     this.hamburgerContainer.appendChild(this.menuElement);
 
-    const newProject = document.createElement("span");
+    const newProject = new Tooltip()._getEl(
+      document.createElement("span"),
+      "Create new project",
+      "bottom",
+    );
     newProject.innerHTML = getThemeIcon("add");
     newProject.className = "command-option";
     newProject.style.marginLeft = "5px";
@@ -123,7 +140,7 @@ export class Titlebar extends CoreEl {
     );
 
     const runOption = new PanelOption(
-      null as any,
+      "Run current file",
       null as any,
       () => {
         const _tabs = select((s) => s.main.editor_tabs);
@@ -132,10 +149,11 @@ export class Titlebar extends CoreEl {
         if (_active) runCommand("workbench.editor.run", [_active.uri]);
       },
       getThemeIcon("run"),
+      "bottom",
     );
 
     const debugOption = new PanelOption(
-      null as any,
+      "Debug current file",
       null as any,
       () => {
         const _tabs = select((s) => s.main.editor_tabs);
@@ -144,10 +162,11 @@ export class Titlebar extends CoreEl {
         if (_active) runCommand("workbench.editor.debug", [_active.uri]);
       },
       getThemeIcon("debug"),
+      "bottom",
     );
 
     const stopOption = new PanelOption(
-      null as any,
+      "Stop running file",
       null as any,
       () => {
         const _tabs = select((s) => s.main.editor_tabs);
@@ -156,6 +175,7 @@ export class Titlebar extends CoreEl {
         if (_active) runCommand("workbench.editor.stop", [_active.uri]);
       },
       getThemeIcon("stop"),
+      "bottom",
     );
 
     document.addEventListener("workbench.editor.run.disable", () => {
@@ -320,7 +340,7 @@ export class Titlebar extends CoreEl {
             if (index < item.shortcut!.length - 1) {
               const plus = document.createElement("span");
               plus.className = "shortcut-separator";
-              plus.innerHTML = getThemeIcon("add");
+              plus.textContent = "+";
               shortcut.appendChild(plus);
             }
           });

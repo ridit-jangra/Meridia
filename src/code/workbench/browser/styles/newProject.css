@@ -49,7 +49,7 @@
 }
 
 .new-project .titlebar .close-icon:hover {
-  background: var(--workbench-secondary-button-hover-background);
+  background: var(--workbench-hover-background);
 }
 
 .new-project .sidebar {
@@ -275,7 +275,7 @@
   .form
   .input-wrapper
   span:hover {
-  background: var(--workbench-secondary-button-hover-background);
+  background: var(--workbench-hover-background);
 }
 
 .new-project .content .template-wrapper .content .form .input-wrapper span svg {
@@ -307,5 +307,5 @@
 }
 
 .new-project .content .template-wrapper .create:hover {
-  background: var(--workbench-secondary-button-hover-background);
+  background: var(--workbench-hover-background);
 }

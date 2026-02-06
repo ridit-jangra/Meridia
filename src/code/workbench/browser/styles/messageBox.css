@@ -38,13 +38,16 @@
 }
 
 .message-box .titlebar .close-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 2px;
   cursor: pointer;
   border-radius: 4px;
 }
 
 .message-box .titlebar .close-icon:hover {
-  background: var(--workbench-secondary-button-hover-background);
+  background: var(--workbench-hover-background);
 }
 
 .message-box .content {
@@ -76,7 +79,7 @@
 }
 
 .message-box .content .button-wrapper span:hover {
-  background: var(--workbench-secondary-button-hover-background);
+  background: var(--workbench-hover-background);
 }
 
 .message-box .content .log-container {

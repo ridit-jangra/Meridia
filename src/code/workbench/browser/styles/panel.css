@@ -34,25 +34,29 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  padding: 4px;
+  padding: 5px;
   border-radius: 9px;
 }
 
 .left-panel-options span.active,
 .right-panel-options span.active {
+  opacity: 1;
   background: var(--workbench-activitybar-active-background);
-  font-weight: 600;
 }
 
-.left-panel-options span svg,
-.right-panel-options span svg {
-  width: 25px;
+.left-panel-options span svg {
+  width: 28px;
   height: auto;
+}
+
+.code .left-panel-options span:not(.active) {
+  opacity: 0.4;
 }
 
 .code .left-panel-options span:not(.active):hover,
 .code .right-panel-options span:not(.active):hover {
   background: var(--workbench-activitybar-hover-background);
+  opacity: 0.8;
 }
 
 .code .panel.bottom-panel {

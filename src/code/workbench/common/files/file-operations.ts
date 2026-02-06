@@ -71,7 +71,7 @@ export class FileOperations {
   startRename(
     nodeUri: string,
     nodeElement: HTMLElement,
-    onComplete: (confirmed: boolean, newName?: string) => void
+    onComplete: (confirmed: boolean, newName?: string) => void,
   ) {
     const nameSpan = nodeElement.querySelector(".name") as HTMLElement;
     if (!nameSpan) return;
@@ -116,7 +116,7 @@ export class FileOperations {
     type: "file" | "folder",
     container: HTMLElement,
     depth: number,
-    onComplete: (confirmed: boolean, name?: string) => void
+    onComplete: (confirmed: boolean, name?: string) => void,
   ) {
     const icon = document.createElement("span");
     icon.className = "icon";
@@ -185,7 +185,7 @@ export class FileOperations {
       onNewFile: () => void;
       onNewFolder: () => void;
       onDelete: () => void;
-    }
+    },
   ): HTMLElement {
     const contextMenu = document.createElement("div");
     contextMenu.className = "context-menu";
@@ -194,8 +194,6 @@ export class FileOperations {
     contextMenu.style.left = `${x}px`;
     contextMenu.style.display = "block";
     contextMenu.style.zIndex = "1000";
-
-    const ul = document.createElement("ul");
 
     const items = [
       {
@@ -232,18 +230,16 @@ export class FileOperations {
 
     items.forEach((item) => {
       if (item.show) {
-        const li = document.createElement("li");
+        const li = document.createElement("span");
         li.textContent = item.text;
         li.className = item.className;
         li.onclick = () => {
           item.handler();
           contextMenu.remove();
         };
-        ul.appendChild(li);
+        contextMenu.appendChild(li);
       }
     });
-
-    contextMenu.appendChild(ul);
 
     const closeHandler = (e: MouseEvent) => {
       if (!contextMenu.contains(e.target as Node)) {
@@ -254,6 +250,10 @@ export class FileOperations {
 
     setTimeout(() => {
       document.addEventListener("click", closeHandler);
+    }, 0);
+
+    setTimeout(() => {
+      document.addEventListener("contextmenu", closeHandler);
     }, 0);
 
     const escapeHandler = (e: KeyboardEvent) => {

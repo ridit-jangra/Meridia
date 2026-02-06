@@ -152,10 +152,9 @@
   padding-right: 10px;
 }
 
-.code .titlebar .menu-item .shortcut .shortcut-separator svg {
-  width: 15px;
-  height: auto;
-  stroke: var(--workbench-titlebar-foreground);
+.code .titlebar .menu-item .shortcut .shortcut-separator {
+  font-size: 22px;
+  font-weight: lighter;
 }
 
 .code .titlebar .menu-item-content {
@@ -303,6 +302,18 @@
   height: 30vh;
   z-index: 1000;
   visibility: hidden;
+}
+
+.code
+  .titlebar
+  .right-panel-section
+  .information-section
+  .section
+  .log-container
+  span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .code .titlebar .right-panel-section .menu-options-container {

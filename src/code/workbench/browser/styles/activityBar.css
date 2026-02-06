@@ -1,7 +1,7 @@
 .code .activity-bar {
   background: var(--workbench-activitybar-background);
   height: 100%;
-  min-width: 45px;
+  min-width: 50px;
 }
 
 .code .activity-bar.left {

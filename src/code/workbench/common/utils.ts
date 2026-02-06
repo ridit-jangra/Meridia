@@ -6,6 +6,7 @@ import { update_editor_tabs } from "./store/slice.js";
 export const tokensToCssVariables: Record<IThemeColors, string> = {
   "workbench.background": "--workbench-background",
   "workbench.foreground": "--workbench-foreground",
+  "workbench.hover.background": "--workbench-hover-background",
   "workbench.secondary.foreground": "--workbench-secondary-foreground",
   "workbench.border.foreground": "--workbench-border-foreground",
   "workbench.icon.foreground": "--workbench-icon-foreground",
@@ -133,6 +134,10 @@ export const tokensToCssVariables: Record<IThemeColors, string> = {
   "workbench.statusbar.item.hover.background":
     "--workbench-statusbar-item-hover-background",
   "workbench.activitybar.background": "--workbench-activitybar-background",
+  "workbench.activitybar.icon.foreground":
+    "--workbench-activitybar-icon-foreground",
+  "workbench.activitybar.icon.active.foreground":
+    "--workbench-activitybar-icon-active-foreground",
   "workbench.activitybar.active.background":
     "--workbench-activitybar-active-background",
   "workbench.activitybar.hover.background":
