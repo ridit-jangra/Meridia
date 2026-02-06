@@ -126,6 +126,26 @@ export class Files extends CoreEl {
     const treeContainer = document.createElement("div");
     treeContainer.className = "tree-container scrollbar-container x-disable";
 
+    treeContainer.addEventListener("click", (e) => {
+      if (e.target === treeContainer) {
+        this._renderer.clearActiveNode();
+      }
+    });
+
+    treeContainer.addEventListener("contextmenu", (e) => {
+      const target = e.target as HTMLElement;
+      if (target === treeContainer || target.classList.contains("tree")) {
+        e.preventDefault();
+        this._handleTreeContainerContextMenu(e.clientX, e.clientY);
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        this._renderer.clearActiveNode();
+      }
+    });
+
     const tree = document.createElement("div");
     tree.className = "tree";
 
@@ -209,7 +229,13 @@ export class Files extends CoreEl {
     parentUri: string,
     newNode: IFolderStructure,
   ) {
-    if (this._operations.isRenamingInProgress) return;
+    if (
+      this._operations.isRenamingInProgress ||
+      this._operations.isAddingInProgress
+    ) {
+      console.log("User operation in progress, ignoring watcher add event");
+      return;
+    }
 
     const added = this._fileStructure.addNode(parentUri, newNode);
     if (!added) {
@@ -388,6 +414,47 @@ export class Files extends CoreEl {
     document.body.appendChild(contextMenu);
   }
 
+  private _handleTreeContainerContextMenu(x: number, y: number) {
+    const contextMenu = document.createElement("div");
+    contextMenu.className = "context-menu";
+    contextMenu.style.position = "fixed";
+    contextMenu.style.left = `${x}px`;
+    contextMenu.style.top = `${y}px`;
+    contextMenu.style.zIndex = "10000";
+
+    const newFileOption = document.createElement("span");
+    newFileOption.textContent = "New File";
+    newFileOption.onclick = () => {
+      this._handleAddNode(this._fileStructure.structure.uri, "file");
+      contextMenu.remove();
+    };
+
+    const newFolderOption = document.createElement("span");
+    newFolderOption.textContent = "New Folder";
+    newFolderOption.onclick = () => {
+      this._handleAddNode(this._fileStructure.structure.uri, "folder");
+      contextMenu.remove();
+    };
+
+    contextMenu.appendChild(newFileOption);
+    contextMenu.appendChild(newFolderOption);
+
+    const removeContextMenu = (e: MouseEvent) => {
+      if (!contextMenu.contains(e.target as Node)) {
+        contextMenu.remove();
+        document.removeEventListener("click", removeContextMenu);
+        document.removeEventListener("contextmenu", removeContextMenu);
+      }
+    };
+
+    setTimeout(() => {
+      document.removeEventListener("contextmenu", removeContextMenu);
+      document.addEventListener("click", removeContextMenu);
+    }, 0);
+
+    document.body.appendChild(contextMenu);
+  }
+
   private _handleRename(nodeUri: string) {
     const nodeElement = this._renderer.getNodeElement(nodeUri);
     if (!nodeElement) return;
@@ -418,35 +485,63 @@ export class Files extends CoreEl {
   }
 
   private _handleAddNode(parentUri: string, type: "file" | "folder") {
-    let container = this._renderer.getChildContainer(parentUri);
+    let actualParentUri = parentUri;
+    const activeNodeUri = this._renderer.getActiveNodeUri();
+
+    if (activeNodeUri) {
+      const activeNode = this._fileStructure.findNodeByUri(activeNodeUri);
+      if (activeNode) {
+        if (activeNode.type === "file") {
+          actualParentUri = path.dirname(activeNodeUri);
+        } else if (activeNode.type === "folder") {
+          actualParentUri = activeNodeUri;
+
+          if (!this._fileStructure.expandedFolders.has(activeNodeUri)) {
+            this._fileStructure.toggleExpanded(activeNodeUri);
+            const nodeElement = this._renderer.getNodeElement(activeNodeUri);
+            if (nodeElement) {
+              this._renderer.updateIconState(nodeElement, true);
+              const container = this._renderer.getChildContainer(activeNodeUri);
+              if (container) {
+                this._renderer.animateToggle(container, true);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    let container = this._renderer.getChildContainer(actualParentUri);
 
     if (!container) {
-      if (parentUri === this._fileStructure.structure.uri) {
+      if (actualParentUri === this._fileStructure.structure.uri) {
         container = this._el!.querySelector(".tree") as HTMLElement;
       }
     }
 
     if (!container) {
-      console.warn("Container not found for parent:", parentUri);
+      console.warn("Container not found for parent:", actualParentUri);
       return;
     }
 
     const depth = this._renderer.calculateDepth(container);
 
     this._operations.startAddNode(
-      parentUri,
+      actualParentUri,
       type,
       container,
       depth,
       async (confirmed, name) => {
         if (!confirmed || !name) return;
 
-        if (this._fileStructure.isDuplicateInParent(parentUri, name)) {
+        if (this._fileStructure.isDuplicateInParent(actualParentUri, name)) {
           alert(`A ${type} named "${name}" already exists in this location.`);
           return;
         }
 
-        const uri = path.join([parentUri, name]);
+        const uri = path.join([actualParentUri, name]);
+
+        this._operations.setAddingInProgress(true);
 
         const success =
           type === "file"
@@ -454,11 +549,16 @@ export class Files extends CoreEl {
             : await this._operations.createFolder(uri);
 
         if (!success) {
+          this._operations.setAddingInProgress(false);
           alert(`Failed to create ${type}.`);
           return;
         }
 
         console.log(`${type} created, waiting for watcher event`);
+
+        setTimeout(() => {
+          this._operations.setAddingInProgress(false);
+        }, 500);
       },
     );
   }

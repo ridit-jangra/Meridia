@@ -7,9 +7,18 @@ const fs = window.fs;
 
 export class FileOperations {
   private _isRenamingInProgress = false;
+  private _isAddingInProgress = false;
 
   get isRenamingInProgress(): boolean {
     return this._isRenamingInProgress;
+  }
+
+  get isAddingInProgress(): boolean {
+    return this._isAddingInProgress;
+  }
+
+  setAddingInProgress(value: boolean) {
+    this._isAddingInProgress = value;
   }
 
   async createFile(uri: string): Promise<boolean> {
