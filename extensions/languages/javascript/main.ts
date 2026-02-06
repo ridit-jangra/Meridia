@@ -13,9 +13,9 @@ export function activate(context: context) {
       context.workbench.workspace.utils.path.__dirname,
       "extensions",
       "languages",
-      "javascript",
+      "typescript",
       "server",
-      "cli.mjs"
+      "cli.mjs",
     );
 
     _server = context.workbench.workspace.language.createLanguageServer(
@@ -24,7 +24,7 @@ export function activate(context: context) {
       _port,
       node,
       { port: _port },
-      [_serverCli]
+      [_serverCli],
     );
 
     context.workbench.workspace.language.registerLanguageServer(_server);
