@@ -54,12 +54,14 @@ export class Layout {
       files.getDomElement(),
       () => {},
       getThemeIcon("explorer"),
+      "top",
     );
     const gitOption = new PanelOption(
       "Git",
       git,
       () => {},
       getThemeIcon("git"),
+      "top",
     );
 
     const leftPanelContent = new Panel("left-panel-content").getDomElement()!;
@@ -97,6 +99,7 @@ export class Layout {
       "right-panel-options",
     ).getDomElement()!;
 
+    leftPanel.appendChild(leftPanelOptions);
     leftPanel.appendChild(leftPanelContent);
     rightPanel.appendChild(rightPanelContent);
 
@@ -140,26 +143,10 @@ export class Layout {
 
     registerStandalone("panel-splitter-horizontal", splitterHorizontal);
 
-    const activityBarLeft = document.createElement("div");
-    activityBarLeft.className = "activity-bar left";
-
-    const activityBarRight = document.createElement("div");
-    activityBarRight.className = "activity-bar right";
-
     const splitterContainerEl = document.createElement("div");
     splitterContainerEl.className = "splitter-container";
 
     splitterContainerEl.appendChild(splitterHorizontal.getDomElement()!);
-
-    splitterContainerEl.insertBefore(
-      activityBarLeft,
-      splitterContainerEl.firstChild,
-    );
-
-    // splitterContainerEl.appendChild(activityBarRight);
-
-    activityBarLeft.appendChild(leftPanelOptions);
-    activityBarRight.appendChild(rightPanelOptions);
 
     codeEl.appendChild(titlebar);
     codeEl.appendChild(splitterContainerEl);

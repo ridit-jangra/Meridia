@@ -44,13 +44,11 @@
   padding: 4px 8px;
   /* gap: 14px; */
   cursor: pointer;
-  border-radius: 4px;
-  flex-shrink: 0;
 }
 
 .code .tabs .tab .name {
   margin-right: 14px;
-  margin-left: 10px;
+  margin-left: 8px;
 }
 
 .code .tabs .tab svg,
@@ -61,7 +59,7 @@
 }
 
 .code .tabs .tab .close-icon svg {
-  width: 16px !important;
+  width: 18px !important;
 }
 
 .code .tabs .tab .name {

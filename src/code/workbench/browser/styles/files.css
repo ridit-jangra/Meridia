@@ -49,8 +49,7 @@
 }
 
 .code .root .title {
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 16px;
   margin-left: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -79,7 +78,7 @@
 }
 
 .code .root .options span svg {
-  width: 22px;
+  width: 20px;
   height: auto;
 }
 

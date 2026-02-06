@@ -26,11 +26,15 @@
 }
 
 .code .editor .tabs .tab {
-  padding: 14px 10px !important;
+  padding: 12px 10px !important;
   width: max-content !important;
   overflow: hidden !important;
   border-radius: 0px !important;
   border-right: 1px solid var(--workbench-border-foreground) !important;
+}
+
+.code .editor .tabs .tab .name {
+  font-size: 17px !important;
 }
 
 .code .editor .tabs .tab.active {
