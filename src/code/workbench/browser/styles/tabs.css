@@ -38,14 +38,19 @@
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   background: var(--workbench-tabs-background);
   color: var(--workbench-tabs-foreground);
   padding: 4px 8px;
-  gap: 14px;
+  /* gap: 14px; */
   cursor: pointer;
   border-radius: 4px;
   flex-shrink: 0;
+}
+
+.code .tabs .tab .name {
+  margin-right: 14px;
+  margin-left: 10px;
 }
 
 .code .tabs .tab svg,
@@ -79,7 +84,7 @@
   justify-content: center;
   top: 50%;
   left: 50%;
-  padding: 5px;
+  padding: 3px;
   border-radius: 8px;
   transform: translate(-50%, -50%);
 }
@@ -143,7 +148,7 @@
 }
 
 .code .tabs .tab .close-icon:hover {
-  background: var(--workbench-secondary-button-hover-background);
+  background: var(--workbench-titlebar-item-hover-background);
 }
 
 .code .tabs .extra {

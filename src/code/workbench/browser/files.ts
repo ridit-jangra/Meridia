@@ -11,6 +11,7 @@ import { _newProject } from "./window/new-project/browser/new-project.js";
 import { FileStructure } from "../common/files/file-structure.js";
 import { FileRenderer } from "../common/files/file-renderer.js";
 import { FileOperations } from "../common/files/file-operations.js";
+import { Tooltip } from "./parts/tooltip/tooltip.js";
 
 const path = window.path;
 const fs = window.fs;
@@ -89,17 +90,29 @@ export class Files extends CoreEl {
     const options = document.createElement("div");
     options.className = "options";
 
-    const addFile = document.createElement("span");
+    const addFile = new Tooltip()._getEl(
+      document.createElement("span"),
+      "Add new file",
+      "top",
+    );
     addFile.innerHTML = getThemeIcon("addFile");
     addFile.onclick = () =>
       this._handleAddNode(this._fileStructure.structure.uri, "file");
 
-    const addFolder = document.createElement("span");
+    const addFolder = new Tooltip()._getEl(
+      document.createElement("span"),
+      "Add new folder",
+      "top",
+    );
     addFolder.innerHTML = getThemeIcon("addDirectory");
     addFolder.onclick = () =>
       this._handleAddNode(this._fileStructure.structure.uri, "folder");
 
-    const refresh = document.createElement("span");
+    const refresh = new Tooltip()._getEl(
+      document.createElement("span"),
+      "Refresh tree",
+      "top",
+    );
     refresh.innerHTML = getThemeIcon("refresh");
     refresh.onclick = () => this._handleRefresh();
 

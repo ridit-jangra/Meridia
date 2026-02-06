@@ -9,6 +9,9 @@ export const pathBridge = {
   basename: (_path: string) => {
     return path.basename(_path);
   },
+  relative: (_path: string, _path2: string) => {
+    return path.relative(_path, _path2);
+  },
   resolve: (_path: string[]) => {
     return path.resolve(..._path);
   },

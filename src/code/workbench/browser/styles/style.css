@@ -8,6 +8,7 @@
 @import url("./editor.css");
 @import url("./jupyter.css");
 @import url("./problem.css");
+@import url("./tooltip.css");
 @import url("./splitter.css");
 @import url("./settings.css");
 @import url("./titlebar.css");
@@ -27,7 +28,7 @@
 @import url("./packageManager.css");
 
 :root {
-  --workbench-secondary-button-hover-background: color-mix(
+  --workbench-hover-background: color-mix(
     in srgb,
     var(--workbench-secondary-button-background),
     black 20%
@@ -143,8 +144,9 @@ code,
 pre,
 kbd,
 samp {
-  font-family: "JetBrains Mono", "Fira Code", "Source Code Pro",
-    "Droid Sans Mono", "Inter", Consolas, Monaco, "Courier New", monospace;
+  font-family:
+    "JetBrains Mono", "Fira Code", "Source Code Pro", "Droid Sans Mono",
+    "Inter", Consolas, Monaco, "Courier New", monospace;
   font-weight: 400;
 }
 

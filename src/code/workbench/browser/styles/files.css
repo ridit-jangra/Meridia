@@ -23,7 +23,7 @@
 
 .code .empty-state .open-folder:hover,
 .hovered {
-  background: var(--workbench-secondary-button-hover-background);
+  background: var(--workbench-hover-background);
 }
 
 .code .empty-state p {
@@ -103,7 +103,7 @@
   cursor: pointer;
   position: relative;
   overflow: visible;
-  /* border-radius: 6px; */
+  z-index: 99;
   width: 100%;
   box-sizing: border-box;
 }
@@ -236,7 +236,6 @@
 .code .tree .temp-node span svg {
   width: 18px;
   height: auto;
-  margin: 0 10px;
 }
 
 .code .tree .inline-editor-input {
@@ -249,10 +248,6 @@
   padding: 0 5px;
 }
 
-.code .tree .inline-editor-input:hover {
-  cursor: text;
-}
-
 .code .tree .inline-editor-input:focus {
-  outline-color: var(--workbench-input-active-outline);
+  outline: 1px solid var(--workbench-border-foreground);
 }

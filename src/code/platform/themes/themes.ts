@@ -130,12 +130,11 @@ export const Light: ITheme = {
     "workbench.jupyter.notebook.tools.hover.background": "#e0e0e0",
     "workbench.jupyter.notebook.active.cell.border.foreground": "#2188ff",
 
-    // NEW COLORS - Derived from terminal colors
     "workbench.files.default.foreground": "#1e1e1e",
-    "workbench.files.modified.foreground": "#b08800", // terminal.yellow
-    "workbench.files.untracked.foreground": "#22863a", // terminal.green
-    "workbench.files.ignored.foreground": "#6a737d", // terminal.bright.black
-    "workbench.files.error.foreground": "#d73a49", // terminal.red
+    "workbench.files.modified.foreground": "#b08800",
+    "workbench.files.untracked.foreground": "#22863a",
+    "workbench.files.ignored.foreground": "#6a737d",
+    "workbench.files.error.foreground": "#d73a49",
   },
   tokenColors: {
     default: "#333333",
@@ -175,79 +174,99 @@ export const Dark: ITheme = {
   kind: "dark",
   colors: {
     "workbench.background": "#141414",
-    "workbench.foreground": "#FFFFFF",
-    "workbench.secondary.foreground": "#CCCCCC99",
-    "workbench.border.foreground": "#FFFFFF0D",
-    "workbench.icon.foreground": "#CCCCCC99",
+    "workbench.foreground": "#e6e6e6",
+    "workbench.hover.background": "#2A2A2A99",
+    "workbench.secondary.foreground": "#e6e6e699",
+    "workbench.border.foreground": "#e6e6e60D",
+    "workbench.icon.foreground": "#e6e6e699",
     "workbench.item.hover.background": "#2A2A2A99",
+
     "workbench.primary.button.background": "#81A1C1",
     "workbench.primary.button.foreground": "#191c22",
     "workbench.secondary.button.background": "#565656",
     "workbench.secondary.button.foreground": "#ececec",
+
     "workbench.button.border": "#2A2A2A",
     "workbench.button.separator": "#2A2A2A",
     "workbench.secondary.button.border": "#2A2A2A",
+
     "workbench.input.background": "#2A2A2A55",
-    "workbench.input.foreground": "#FFFFFF",
-    "workbench.input.active.outline": "#FFFFFF",
+    "workbench.input.foreground": "#e6e6e6",
+    "workbench.input.active.outline": "#e6e6e6",
     "workbench.input.outline": "#2A2A2A",
-    "workbench.input.icon.foreground": "#FFFFFF99",
+    "workbench.input.icon.foreground": "#e6e6e699",
+
     "workbench.tabs.background": "#141414",
     "workbench.tabs.foreground": "#505050",
     "workbench.tabs.icon.foreground": "#505050",
-    "workbench.tabs.icon.active.foreground": "#FFFFFF",
-    "workbench.tabs.hover.background": "#FFFFFF00",
-    "workbench.tabs.hover.foreground": "#FFFFFF",
-    "workbench.tabs.active.background": "#181818",
-    "workbench.tabs.active.foreground": "#FFFFFF",
+    "workbench.tabs.icon.active.foreground": "#e6e6e6",
+    "workbench.tabs.hover.background": "#e6e6e600",
+    "workbench.tabs.active.background": "#222222",
+    "workbench.tabs.active.foreground": "#e6e6e6",
     "workbench.tabs.active.border.foreground": "#1a1a1a",
+
     "workbench.scrollbar.background": "#00000000",
     "workbench.scrollbar.thumb.foreground": "#40404055",
     "workbench.scrollbar.thumb.hover.foreground": "#40404055",
     "workbench.scrollbar.thumb.active.foreground": "#60606055",
+
     "workbench.panel.background": "#141414",
     "workbench.panel.options.hover.background": "#2A2A2AB3",
     "workbench.panel.options.active.background": "#404040",
-    "workbench.panel.options.active.border.foreground": "#FFFFFF00",
+    "workbench.panel.options.active.border.foreground": "#e6e6e600",
+
     "workbench.dialog.background": "#141414",
-    "workbench.dialog.foreground": "#FFFFFF",
+    "workbench.dialog.foreground": "#e6e6e6",
     "workbench.dialog.hover.background": "#2A2A2A99",
-    "workbench.dialog.hover.foreground": "#FFFFFF",
+    "workbench.dialog.hover.foreground": "#e6e6e6",
+
     "workbench.editor.background": "#181818",
     "workbench.editor.foreground": "#D8DEE9",
-    "workbench.editor.cursor.foreground": "#FFFFFF",
+    "workbench.editor.cursor.foreground": "#e6e6e6",
     "workbench.editor.suggestion.active.background": "#404040",
     "workbench.editor.widget.background": "#141414",
     "workbench.editor.line.highlight.background": "#292929",
+
     "workbench.preview.markdown.code.background": "#181818",
+
     "workbench.mira.message.user.background": "#2A2A2A99",
-    "workbench.mira.message.user.foreground": "#FFFFFF",
+    "workbench.mira.message.user.foreground": "#e6e6e6",
     "workbench.mira.message.user.border.foreground": "#81A1C1",
     "workbench.mira.message.ai.background": "#141414",
-    "workbench.mira.message.ai.foreground": "#CCCCCC99",
+    "workbench.mira.message.ai.foreground": "#e6e6e699",
     "workbench.mira.message.ai.border.foreground": "#2A2A2A",
+
     "workbench.mira.chatbox.background": "#2A2A2A55",
-    "workbench.mira.chatbox.foreground": "#FFFFFF99",
+    "workbench.mira.chatbox.foreground": "#e6e6e699",
     "workbench.mira.chatbox.border.foreground": "#2A2A2A",
-    "workbench.mira.chatbox.active.border.foreground": "#FFFFFF",
+    "workbench.mira.chatbox.active.border.foreground": "#e6e6e6",
+
     "workbench.mira.voice.caption.active.background": "#ff7800",
+
     "workbench.activitybar.background": "#141414",
     "workbench.activitybar.hover.background": "#2A2A2A99",
-    "workbench.activitybar.active.background": "#404040",
+    "workbench.activitybar.icon.foreground": "#424242",
+    "workbench.activitybar.icon.active.foreground": "#e6e6e6",
+    "workbench.activitybar.active.background": "#2f2f2f",
+
     "workbench.titlebar.background": "#141414",
-    "workbench.titlebar.foreground": "#cccccc82",
+    "workbench.titlebar.foreground": "#e6e6e682",
     "workbench.titlebar.item.hover.background": "#2A2A2A99",
     "workbench.titlebar.window.controls.circle.foreground": "#505050",
+
     "workbench.titlebar.search.background": "#2A2A2A55",
-    "workbench.titlebar.search.foreground": "#FFFFFF",
-    "workbench.titlebar.search.hover.outline": "#FFFFFF",
+    "workbench.titlebar.search.foreground": "#e6e6e6",
+    "workbench.titlebar.search.hover.outline": "#e6e6e6",
+
     "workbench.titlebar.menu.background": "#141414",
-    "workbench.titlebar.menu.foreground": "#CCCCCC",
-    "workbench.titlebar.menu.item.hover.background": "#CCCCCC33",
+    "workbench.titlebar.menu.foreground": "#e6e6e6",
+    "workbench.titlebar.menu.item.hover.background": "#e6e6e633",
+
     "workbench.terminal.background": "#141414",
-    "workbench.terminal.foreground": "#FFFFFFcc",
-    "workbench.terminal.cursor.foreground": "#FFFFFF",
+    "workbench.terminal.foreground": "#e6e6e6cc",
+    "workbench.terminal.cursor.foreground": "#e6e6e6",
     "workbench.terminal.selection.background": "#636262dd",
+
     "workbench.terminal.black": "#2A2A2A",
     "workbench.terminal.red": "#BF616A",
     "workbench.terminal.green": "#A3BE8C",
@@ -256,7 +275,8 @@ export const Dark: ITheme = {
     "workbench.terminal.blue": "#81A1C1",
     "workbench.terminal.magenta": "#B48EAD",
     "workbench.terminal.cyan": "#88C0D0",
-    "workbench.terminal.white": "#FFFFFF",
+    "workbench.terminal.white": "#e6e6e6",
+
     "workbench.terminal.bright.black": "#505050",
     "workbench.terminal.bright.red": "#BF616A",
     "workbench.terminal.bright.green": "#A3BE8C",
@@ -264,22 +284,27 @@ export const Dark: ITheme = {
     "workbench.terminal.bright.blue": "#81A1C1",
     "workbench.terminal.bright.magenta": "#B48EAD",
     "workbench.terminal.bright.cyan": "#88C0D0",
-    "workbench.terminal.bright.white": "#FFFFFF",
+    "workbench.terminal.bright.white": "#e6e6e6",
+
     "workbench.mira.voice.color.violet": "0, 20, 255",
     "workbench.mira.voice.color.orange": "255, 120, 0",
     "workbench.mira.voice.color.black": "10, 10, 10",
-    "workbench.mira.voice.color.white": "255, 255, 255",
+    "workbench.mira.voice.color.white": "230, 230, 230",
+
     "workbench.statusbar.background": "#141414",
-    "workbench.statusbar.foreground": "#cccccc82",
+    "workbench.statusbar.foreground": "#e6e6e682",
     "workbench.statusbar.item.hover.background": "#404040",
+
     "workbench.drawboard.background": "#141414",
     "workbench.drawboard.canvas.background": "#1a1a1a",
     "workbench.drawboard.canvas.grid.background": "#2A2A2A",
     "workbench.drawboard.canvas.stroke.foreground": "#88C0D0",
+
     "workbench.drawboard.tools.background": "#141414",
     "workbench.drawboard.tools.tool.active.background": "#81A1C1",
     "workbench.drawboard.tools.tool.hover.background": "#2A2A2A99",
     "workbench.drawboard.tools.tool.active.border.foreground": "#81A1C1",
+
     "workbench.jupyter.notebook.background": "#141414",
     "workbench.jupyter.notebook.tools.background": "#141414",
     "workbench.jupyter.notebook.tools.hover.background": "#2A2A2A99",
@@ -291,6 +316,7 @@ export const Dark: ITheme = {
     "workbench.files.ignored.foreground": "#505050",
     "workbench.files.error.foreground": "#BF616A",
   },
+
   tokenColors: {
     default: "#d6d6dd",
     keyword: "#83d6c5",
@@ -320,7 +346,7 @@ export const Dark: ITheme = {
     "identifier.interface": "#87c3ff",
     "identifier.type.class": "#87c3ff",
     comment: "#707070",
-    "comment.parameter": "#FFFFFF5C",
+    "comment.parameter": "#e6e6e65C",
     punctuation: "#d6d6dd",
   },
 };

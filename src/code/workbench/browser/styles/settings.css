@@ -53,7 +53,7 @@
 }
 
 .code .settings .header .search-box span:hover {
-  background: var(--workbench-secondary-button-hover-background);
+  background: var(--workbench-hover-background);
 }
 
 .code .settings .header .search-box span svg {

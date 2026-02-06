@@ -46,6 +46,7 @@ export const ThemeColors = [
   "workbench.background",
   "workbench.foreground",
   "workbench.secondary.foreground",
+  "workbench.hover.background",
   "workbench.border.foreground",
   "workbench.icon.foreground",
   "workbench.item.hover.background",
@@ -95,6 +96,8 @@ export const ThemeColors = [
   "workbench.activitybar.background",
   "workbench.activitybar.hover.background",
   "workbench.activitybar.active.background",
+  "workbench.activitybar.icon.foreground",
+  "workbench.activitybar.icon.active.foreground",
   "workbench.editor.background",
   "workbench.editor.foreground",
   "workbench.editor.cursor.foreground",
@@ -537,54 +540,42 @@ export type ISetting =
   | ISettingRange;
 
 export interface ISettings {
-  // Editor Text
   "editor.fontFamily": string;
   "editor.fontSize": number;
   "editor.lineHeight": number;
   "editor.fontWeight": string;
 
-  // Editor Tab Size
   "editor.tabSize": number;
   "editor.insertSpaces": boolean;
   "editor.detectIndentation": boolean;
 
-  // Editor Word Wrap
   "editor.wordWrap": string;
   "editor.wordWrapColumn": number;
 
-  // Editor Auto Save
   "editor.autoSave": boolean;
   "editor.autoSaveDelay": number;
 
-  // Editor Cursor
   "editor.cursorStyle": string;
   "editor.cursorBlinking": string;
   "editor.smoothCaretAnimation": boolean;
 
-  // Appearance Theme
   "appearance.colorTheme": string;
   "appearance.iconTheme": string;
 
-  // Appearance Font Size
   "appearance.uiFontSize": number;
   "appearance.terminalFontSize": number;
 
-  // Appearance Zoom
   "appearance.zoomLevel": number;
 
-  // Terminal Shell
   "terminal.shell.path": string;
   "terminal.shell.args": string;
 
-  // Terminal Font
   "terminal.font.family": string;
   "terminal.font.size": number;
 
-  // Files Auto Save
   "files.autoSave": boolean;
   "files.autoSaveAfterDelay": boolean;
 
-  // Files Encoding
   "files.encoding": string;
   "files.autoGuessEncoding": boolean;
 }

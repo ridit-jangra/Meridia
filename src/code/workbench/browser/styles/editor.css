@@ -27,10 +27,14 @@
 
 .code .editor .tabs .tab {
   padding: 14px 10px !important;
-  gap: 12px !important;
-  /* width: min-content !important; */
+  width: min-content !important;
+  overflow: hidden !important;
   border-radius: 0px !important;
   border-right: 1px solid var(--workbench-border-foreground) !important;
+}
+
+.code .editor .tabs .tab.active {
+  background: var(--workbench-editor-background) !important;
 }
 
 .code .editor .tabs .tab:not(.active):hover {
@@ -115,11 +119,11 @@
 }
 
 .code .editor .preview-area .preview-content pre .copy:hover {
-  background: var(--workbench-secondary-button-hover-background);
+  background: var(--workbench-hover-background);
 }
 
 .code .editor .preview-area .preview-content pre .run:hover {
-  background: var(--workbench-secondary-button-hover-background);
+  background: var(--workbench-hover-background);
 }
 
 .code .editor .preview-area .preview-content a {
@@ -304,8 +308,7 @@
 }
 
 .monaco-editor .scrollbar.vertical .slider {
-  width: 9px !important;
-  margin-left: 5px !important;
+  width: 7px !important;
 }
 
 .monaco-editor .scrollbar.horizontal .slider {
@@ -320,11 +323,13 @@
 .monaco-editor .suggest-widget {
   padding: 6px !important;
   border: 2px solid var(--workbench-border-foreground) !important;
+  height: max-content !important;
   overflow: hidden !important;
 }
 
 .monaco-editor .suggest-widget .monaco-list-row {
   width: 100% !important;
+  height: max-content !important;
   border-radius: 6px !important;
   padding: 0 12px !important;
 }

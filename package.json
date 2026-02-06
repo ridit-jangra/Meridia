@@ -34,6 +34,7 @@
     "marked": "^16.4.2",
     "marked-base-url": "^1.1.8",
     "marked-highlight": "^2.2.3",
+    "minimatch": "^10.1.2",
     "monaco-editor": "^0.29.0",
     "monaco-editor-core": "^0.29.0",
     "monaco-languageclient": "0.13.1-next.9",

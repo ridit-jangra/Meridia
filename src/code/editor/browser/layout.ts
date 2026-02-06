@@ -20,6 +20,7 @@ import {
   getStandaloneForExtension,
   standalones,
 } from "../common/standalones.js";
+import { Tooltip } from "../../workbench/browser/parts/tooltip/tooltip.js";
 
 export class Editor extends CoreEl {
   private _splitter!: Splitter;
@@ -60,7 +61,7 @@ export class Editor extends CoreEl {
     dispatch(update_editor_tabs(updatedTabs));
 
     const closingExtensionEditor = getStandaloneForExtension(
-      window.path.extname(tabUri)
+      window.path.extname(tabUri),
     );
     if (closingExtensionEditor) {
       closingExtensionEditor._close();
@@ -72,7 +73,7 @@ export class Editor extends CoreEl {
     const newActiveTab = updatedTabs.find((t) => t.active);
     if (newActiveTab) {
       const newActiveExtensionEditor = getStandaloneForExtension(
-        window.path.extname(newActiveTab.uri)
+        window.path.extname(newActiveTab.uri),
       );
 
       if (newActiveExtensionEditor) {
@@ -83,10 +84,10 @@ export class Editor extends CoreEl {
         newActiveExtensionEditor._open(newActiveTab.uri);
 
         const details = this._editorArea.querySelector(
-          ".details"
+          ".details",
         ) as HTMLDivElement;
         const preview = this._editorArea.querySelector(
-          ".preview"
+          ".preview",
         ) as HTMLDivElement;
         if (details) details.style.display = "none";
         if (preview) preview.style.display = "none";
@@ -141,7 +142,7 @@ export class Editor extends CoreEl {
       tabs,
       this._editorTabs,
       (tab) => this._setActiveEditorTab(tab.uri),
-      (tabUri, event) => this._closeEditorTab(tabUri, event)
+      (tabUri, event) => this._closeEditorTab(tabUri, event),
     );
   }
 
@@ -168,7 +169,7 @@ export class Editor extends CoreEl {
       tabs,
       this._previewTabs,
       (tab) => this._setActivePreviewTab(tab.uri),
-      (tabUri, event) => this._closePreviewTab(tabUri, event)
+      (tabUri, event) => this._closePreviewTab(tabUri, event),
     );
   }
 
@@ -186,7 +187,7 @@ export class Editor extends CoreEl {
 
   private _displayActiveEditorTab(
     activeTab: IEditorTab,
-    editor: _editor | null
+    editor: _editor | null,
   ) {
     if (activeTab.uri.startsWith("tab://")) {
       this._showContentTab(activeTab, editor);
@@ -200,10 +201,10 @@ export class Editor extends CoreEl {
     this._contentArea.style.display = "flex";
 
     const details = this._editorArea.querySelector(
-      ".details"
+      ".details",
     ) as HTMLDivElement;
     const preview = this._editorArea.querySelector(
-      ".preview"
+      ".preview",
     ) as HTMLDivElement;
     if (details) details.style.display = "none";
     if (preview) preview.style.display = "none";
@@ -221,7 +222,7 @@ export class Editor extends CoreEl {
     this._contentArea.style.display = "none";
 
     const extEditor = getStandaloneForExtension(
-      window.path.extname(activeTab.uri)
+      window.path.extname(activeTab.uri),
     );
 
     standalones.forEach((v) => {
@@ -234,20 +235,20 @@ export class Editor extends CoreEl {
       extEditor._open(activeTab.uri);
 
       const details = this._editorArea.querySelector(
-        ".details"
+        ".details",
       ) as HTMLDivElement;
       const preview = this._editorArea.querySelector(
-        ".preview"
+        ".preview",
       ) as HTMLDivElement;
       if (details) details.style.display = "none";
       if (preview) preview.style.display = "none";
     } else {
       if (editor) {
         const details = this._editorArea.querySelector(
-          ".details"
+          ".details",
         ) as HTMLDivElement;
         const preview = this._editorArea.querySelector(
-          ".preview"
+          ".preview",
         ) as HTMLDivElement;
         if (details) details.style.display = "flex";
         if (preview) preview.style.display = "none";
@@ -265,11 +266,16 @@ export class Editor extends CoreEl {
     tabs: (IEditorTab | IPreviewTab)[],
     container: HTMLDivElement,
     onClickTab: (tab: IEditorTab | IPreviewTab) => void,
-    onCloseTab: (tabUri: string, event?: Event) => void
+    onCloseTab: (tabUri: string, event?: Event) => void,
   ) {
     container.innerHTML = "";
     tabs.forEach((tab) => {
-      const tabEl = document.createElement("div");
+      const tabEl = new Tooltip()._getEl(
+        document.createElement("div"),
+        tab.uri,
+        "bottom",
+        500,
+      );
       tabEl.className = `tab ${tab.active ? "active" : ""}`;
 
       tabEl.onclick = (e) => {
@@ -381,11 +387,11 @@ export class Editor extends CoreEl {
 
     watch(
       (s) => s.main.editor_tabs,
-      (next) => this._renderEditorTabs(next)
+      (next) => this._renderEditorTabs(next),
     );
     watch(
       (s) => s.main.preview_tabs,
-      (next) => this._renderPreviewTabs(next)
+      (next) => this._renderPreviewTabs(next),
     );
 
     const _editorPane = document.createElement("div");
@@ -399,7 +405,7 @@ export class Editor extends CoreEl {
       "horizontal",
       [60, 40],
       () => {},
-      "workbench.workspace.editor.splitter"
+      "workbench.workspace.editor.splitter",
     );
 
     registerStandalone("workbench.workspace.editor.splitter", this._splitter);

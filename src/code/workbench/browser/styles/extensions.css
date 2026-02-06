@@ -48,7 +48,7 @@
 }
 
 .code .extensions .search span:hover {
-  background: var(--workbench-secondary-button-hover-background);
+  background: var(--workbench-hover-background);
 }
 
 .code .extensions .search span svg {
