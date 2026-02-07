@@ -65,17 +65,21 @@ function updateEditorTabsStatus(
     const normalizedUri = normalizePath(tab.uri);
 
     let newStatus: IEditorTab["status"] = "default";
+    let newBadge: IEditorTab["badge"] = "D";
 
     if (notAddedSet.has(normalizedUri)) {
       newStatus = "untracked";
+      newBadge = "U";
     } else if (modifiedSet.has(normalizedUri)) {
       newStatus = "modified";
+      newBadge = "M";
     } else if (ignoredSet.has(normalizedUri)) {
       newStatus = "ignored";
+      newBadge = "I";
     }
 
     if (tab.status !== newStatus) {
-      return { ...tab, status: newStatus };
+      return { ...tab, status: newStatus, badge: newBadge };
     }
 
     return tab;

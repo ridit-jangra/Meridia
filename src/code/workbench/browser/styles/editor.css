@@ -48,7 +48,7 @@
 }
 
 .code .editor .tabs .tab.ignored {
-  color: var(--workbench-ignored-untracked-foreground);
+  color: var(--workbench-files-ignored-foreground);
 }
 
 .code .editor .tabs .tab.error {
@@ -109,10 +109,11 @@
 
 .code .editor .preview-area .preview-content pre {
   position: relative;
+  padding: 0;
+  padding-top: 30px !important;
   width: 100%;
   border-radius: 10px;
   background: var(--workbench-preview-markdown-code-background);
-  padding: 0;
 }
 
 .code .editor .preview-area .preview-content pre * {

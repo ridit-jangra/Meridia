@@ -274,7 +274,7 @@ export class Editor extends CoreEl {
 
       const tabEl = new Tooltip()._getEl(
         document.createElement("div"),
-        `${tab.uri}${isPreview ? " • Preview" : ` • ${(tab as IEditorTab).status}`}`,
+        `${tab.uri}${isPreview ? " • Preview" : `${(tab as IEditorTab).status === "default" ? "" : ` • ${(tab as IEditorTab).status}`}`}`,
         "bottom",
         500,
       );
@@ -290,11 +290,14 @@ export class Editor extends CoreEl {
       icon.className = "icon";
       icon.innerHTML = tab.icon || getFileIcon(tab.name);
 
+      const HIDDEN_BADGES = new Set(["I", "D"]);
+      const badge = (tab as IEditorTab).badge;
+
       const name = document.createElement("span");
       name.className = "name";
-      name.textContent = (tab as IPreviewTab).name.startsWith("Preview ")
-        ? (tab as IPreviewTab).name
-        : tab.name;
+      name.textContent = (tab as IPreviewTab).is_preview
+        ? `Preview • ${(tab as IPreviewTab).name}`
+        : `${tab.name} ${badge && !HIDDEN_BADGES.has(badge) ? badge : ""}`;
 
       const iconWrapper = document.createElement("div");
       iconWrapper.className = "icon-wrapper";

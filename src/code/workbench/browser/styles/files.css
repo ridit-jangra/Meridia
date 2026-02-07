@@ -113,6 +113,10 @@
   box-sizing: border-box;
 }
 
+.code .tree .node .badge {
+  margin-right: 12px;
+}
+
 .code .tree .child-nodes {
   display: flex;
   flex-direction: column;
@@ -226,7 +230,7 @@
 }
 
 .code .tree .node.ignored {
-  color: var(--workbench-ignored-untracked-foreground);
+  color: var(--workbench-files-ignored-foreground);
 }
 
 .code .tree .node.error {

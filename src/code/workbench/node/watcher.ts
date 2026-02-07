@@ -6,6 +6,8 @@ import ignore, { Ignore } from "ignore";
 
 let fileWatcher: FSWatcher | null = null;
 let gitWatcher: FSWatcher | null = null;
+let venvWatcher: FSWatcher | null = null;
+let activeVenvName: string | null = null;
 let watchRootPath = "";
 let isWatching = false;
 const eventQueue = new Map<string, NodeJS.Timeout>();
@@ -27,6 +29,7 @@ const DEBOUNCE_DELAYS: Record<string, number> = {
 const throttledPaths = new Map<string, number>();
 
 let gitUpdateTimeout: NodeJS.Timeout | null = null;
+let venvUpdateTimeout: NodeJS.Timeout | null = null;
 let gitignoreInstance: Ignore | null = null;
 
 function _debounce(key: string, callback: () => void, delay = 150) {
@@ -86,7 +89,6 @@ function isIgnoredByGitignore(filePath: string): boolean {
     const relativePath = path.relative(watchRootPath, filePath);
     if (!relativePath || relativePath.startsWith("..")) return false;
 
-    // Convert Windows path separators to forward slashes for ignore library
     const normalizedPath = relativePath.replace(/\\/g, "/");
 
     const isIgnored = gitignoreInstance.ignores(normalizedPath);
@@ -112,6 +114,52 @@ function handleGitUpdate() {
     workbench.webContents.send("git-folder-update");
     gitUpdateTimeout = null;
   }, 1000);
+}
+
+function handleVenvUpdate(venvFolderName: string) {
+  if (venvUpdateTimeout) {
+    console.log("[Venv] Clearing existing venv update timeout");
+    clearTimeout(venvUpdateTimeout);
+  }
+
+  console.log("[Venv] Scheduling virtual-env-update event (1000ms debounce)");
+  venvUpdateTimeout = setTimeout(() => {
+    console.log(
+      `[Venv] Sending virtual-env-update event for: ${venvFolderName}`,
+    );
+    workbench.webContents.send("virtual-env-update", venvFolderName);
+    venvUpdateTimeout = null;
+  }, 1000);
+}
+
+function detectVenvFolder(rootPath: string): string | null {
+  const commonVenvNames = [
+    ".venv",
+    "venv",
+    "env",
+    ".env",
+    "virtualenv",
+    ".virtualenv",
+  ];
+
+  for (const venvName of commonVenvNames) {
+    const venvPath = path.join(rootPath, venvName);
+    if (fs.existsSync(venvPath)) {
+      // Check if it's a valid venv by looking for characteristic files
+      const isWindows = process.platform === "win32";
+      const pythonPath = isWindows
+        ? path.join(venvPath, "Scripts", "python.exe")
+        : path.join(venvPath, "bin", "python");
+
+      if (fs.existsSync(pythonPath)) {
+        console.log(`[Venv] Detected virtual environment: ${venvName}`);
+        return venvName;
+      }
+    }
+  }
+
+  console.log("[Venv] No virtual environment folder found");
+  return null;
 }
 
 function checkForRename(filePath: string, isAdd: boolean): boolean {
@@ -190,7 +238,6 @@ function handleEvent(eventType: string, filePath: string) {
       const baseName = path.basename(normalized);
 
       if (eventType === "add" || eventType === "addDir") {
-        // Check if file/folder is ignored by .gitignore
         if (isIgnoredByGitignore(normalized)) {
           console.log(
             `[Handler] File/folder ignored, triggering git update: ${normalized}`,
@@ -224,13 +271,11 @@ function handleEvent(eventType: string, filePath: string) {
           nodeType: eventType === "add" ? "file" : "folder",
         });
 
-        // Trigger git update for any file addition
         console.log(
           `[Handler] File added, triggering git update: ${normalized}`,
         );
         handleGitUpdate();
       } else if (eventType === "unlink" || eventType === "unlinkDir") {
-        // Check if file/folder is ignored by .gitignore
         if (isIgnoredByGitignore(normalized)) {
           console.log(
             `[Handler] File/folder ignored, triggering git update: ${normalized}`,
@@ -260,7 +305,6 @@ function handleEvent(eventType: string, filePath: string) {
               nodeUri: safeUri,
             });
 
-            // Trigger git update for any file removal
             console.log(
               `[Handler] File removed, triggering git update: ${normalized}`,
             );
@@ -284,7 +328,6 @@ function handleEvent(eventType: string, filePath: string) {
         );
         workbench.webContents.send("files-node-changed", { nodeUri: safeUri });
 
-        // Trigger git update for any file change
         console.log(
           `[Handler] File changed, triggering git update: ${normalized}`,
         );
@@ -298,7 +341,6 @@ function handleEvent(eventType: string, filePath: string) {
 function _watchGitFolder(rootPath: string) {
   const gitPath = path.join(rootPath, ".git");
 
-  // Check if .git folder exists
   if (!fs.existsSync(gitPath)) {
     console.log(`[Git] No .git folder found at: ${gitPath}`);
     return;
@@ -307,9 +349,7 @@ function _watchGitFolder(rootPath: string) {
   try {
     console.log(`[Git] Starting to watch .git folder: ${gitPath}`);
     gitWatcher = chokidar.watch(gitPath, {
-      ignored: [
-        /\.lock$/, // Ignore lock files
-      ],
+      ignored: [/\.lock$/],
       ignoreInitial: true,
       persistent: true,
       depth: 99,
@@ -332,6 +372,89 @@ function _watchGitFolder(rootPath: string) {
     });
   } catch (error) {
     console.error("[Git] Failed to watch .git folder:", error);
+  }
+}
+
+function _watchVenvFolder(rootPath: string) {
+  const venvFolderName = detectVenvFolder(rootPath);
+
+  if (!venvFolderName) {
+    console.log("[Venv] No virtual environment folder to watch");
+    return;
+  }
+
+  const venvPath = path.join(rootPath, venvFolderName);
+  activeVenvName = venvFolderName;
+
+  // Only watch specific critical paths, not the entire deep structure
+  const pathsToWatch = [
+    path.join(venvPath, "pyvenv.cfg"), // Configuration file
+    path.join(venvPath, "Scripts"), // Windows activation scripts
+    path.join(venvPath, "bin"), // Unix activation scripts
+  ];
+
+  // Filter to only existing paths
+  const existingPaths = pathsToWatch.filter((p) => fs.existsSync(p));
+
+  if (existingPaths.length === 0) {
+    console.log("[Venv] No critical venv paths found to watch");
+    return;
+  }
+
+  try {
+    console.log(
+      `[Venv] Starting to watch venv critical paths: ${existingPaths.join(", ")}`,
+    );
+    venvWatcher = chokidar.watch(existingPaths, {
+      ignored: [
+        /(^|[\/\\])__pycache__($|[\/\\])/, // Match __pycache__ folder anywhere
+        /\.pyc$/, // Match .pyc files
+        /\.py$/, // Match .py files
+        /\.pyo$/, // Match .pyo files
+        /\.egg-info($|[\/\\])/, // Match .egg-info folders
+        /\.dist-info($|[\/\\])/, // Match .dist-info folders
+        (filePath: string) => {
+          // Additional check for any paths we want to skip
+          const lower = filePath.toLowerCase();
+          return (
+            lower.includes("__pycache__") ||
+            lower.endsWith(".pyc") ||
+            lower.endsWith(".py") ||
+            lower.endsWith(".pyo") ||
+            lower.includes(".egg-info") ||
+            lower.includes(".dist-info")
+          );
+        },
+      ],
+      ignoreInitial: true,
+      persistent: true,
+      depth: 2, // Only 2 levels deep to avoid going into site-packages
+      ignorePermissionErrors: true,
+      usePolling: false,
+      awaitWriteFinish: { stabilityThreshold: 300, pollInterval: 100 },
+    });
+
+    venvWatcher.on("all", (event, filePath) => {
+      console.log(
+        `[Venv] Virtual environment event: ${event} | Path: ${filePath}`,
+      );
+      handleVenvUpdate(venvFolderName);
+    });
+
+    venvWatcher.on("error", (error) => {
+      console.error("[Venv] Venv watcher error:", error);
+    });
+
+    venvWatcher.on("ready", () => {
+      console.log("[Venv] Venv watcher ready");
+      // Trigger initial event when venv is detected
+      console.log(
+        `[Venv] Sending initial virtual-env-update event for: ${venvFolderName}`,
+      );
+      workbench.webContents.send("virtual-env-update", venvFolderName);
+    });
+  } catch (error) {
+    console.error("[Venv] Failed to watch venv folder:", error);
   }
 }
 
@@ -382,7 +505,6 @@ export function _watch(rootPath: string) {
 
     console.log(`[Watcher] Normalized watch path: ${watchRootPath}`);
 
-    // Load .gitignore patterns
     loadGitignore(watchRootPath);
 
     console.log("[Watcher] Initializing file watcher");
@@ -392,7 +514,7 @@ export function _watch(rootPath: string) {
         /Thumbs\.db/,
         /\/\.vscode\//,
         /\/\.idea\//,
-        /\/\.git\//, // Ignore .git from main watcher
+        /\/\.git\//,
         /\.(tmp|temp|log)$/i,
         /\/proc\//,
         /\/\.wine\//,
@@ -421,11 +543,7 @@ export function _watch(rootPath: string) {
       awaitWriteFinish: { stabilityThreshold: 300, pollInterval: 100 },
     });
 
-    fileWatcher.on("all", (event, filePath) => {
-      // This logs all events (can be noisy)
-      // Uncomment for verbose logging:
-      // console.log(`[Watcher] Raw event: ${event} | ${filePath}`);
-    });
+    fileWatcher.on("all", (event, filePath) => {});
 
     fileWatcher.on("error", (error) => {
       console.error("[Watcher] File watcher error:", error);
@@ -444,10 +562,10 @@ export function _watch(rootPath: string) {
     );
     fileWatcher.on("change", (filePath) => handleEvent("change", filePath));
 
-    // Watch .git folder separately
     _watchGitFolder(rootPath);
 
-    // Watch .gitignore file for changes
+    _watchVenvFolder(rootPath);
+
     _watchGitignoreFile(rootPath);
 
     console.log("[Watcher] All watchers initialized successfully");
@@ -471,11 +589,21 @@ export function _stop() {
     console.log("[Git] Closing git watcher");
     gitWatcher.close().catch(() => {});
   }
+  if (venvWatcher) {
+    console.log("[Venv] Closing venv watcher");
+    venvWatcher.close().catch(() => {});
+  }
 
   if (gitUpdateTimeout) {
     console.log("[Git] Clearing pending git update timeout");
     clearTimeout(gitUpdateTimeout);
     gitUpdateTimeout = null;
+  }
+
+  if (venvUpdateTimeout) {
+    console.log("[Venv] Clearing pending venv update timeout");
+    clearTimeout(venvUpdateTimeout);
+    venvUpdateTimeout = null;
   }
 
   console.log(`[Watcher] Clearing ${eventQueue.size} pending events`);
@@ -492,6 +620,7 @@ export function _stop() {
   recentlyUnlinked.clear();
 
   gitignoreInstance = null;
+  activeVenvName = null;
   isWatching = false;
   watchRootPath = "";
 
@@ -504,6 +633,8 @@ export function getWatcherStatus() {
     watchRootPath,
     hasActiveWatcher: fileWatcher !== null,
     hasGitWatcher: gitWatcher !== null,
+    hasVenvWatcher: venvWatcher !== null,
+    activeVenvName,
     pendingEventCount: eventQueue.size,
     pendingRenames: recentlyUnlinked.size,
     hasGitignore: gitignoreInstance !== null,

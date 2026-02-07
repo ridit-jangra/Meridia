@@ -1,6 +1,7 @@
+import "./common/python/virtual-env.js";
 import "./browser/web.js";
 import "./common/project-details.js";
-import "./common/pylsp.js";
+import "./common/python/pylsp.js";
 import "./common/settings/settings.js";
 import "./common/notebook.js";
 import "./common/theme.js";
