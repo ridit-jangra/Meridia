@@ -11,10 +11,10 @@ export const gitBridge = {
       git = simpleGit(folderPath);
       gitInstanceMap.set(folderPath, git);
 
-      status = await git.status();
+      status = await git.status(["--ignored"]);
     }
 
-    status = await git.status();
+    status = await git.status(["--ignored"]);
 
     return status;
   },

@@ -1,5 +1,5 @@
 import { IFolderStructure } from "../../workbench.types.js";
-import { getFileIcon } from "../utils.js";
+import { getFileIcon, getBadge } from "../utils.js";
 import { getThemeIcon } from "../../browser/media/icons.js";
 import { Tooltip } from "../../browser/parts/tooltip/tooltip.js";
 
@@ -69,7 +69,14 @@ export class FileRenderer {
     });
   }
 
-  getNodeState(
+  getNodeState(node: HTMLElement) {
+    if (node.classList.contains("modified")) return "modified";
+    if (node.classList.contains("ignored")) return "ignored";
+    if (node.classList.contains("untracked")) return "untracked";
+    return "";
+  }
+
+  getNodeStatus(
     node: HTMLElement,
   ): "modified" | "ignored" | "untracked" | "default" {
     if (node.classList.contains("modified")) return "modified";
@@ -115,7 +122,8 @@ export class FileRenderer {
 
     const name = new Tooltip()._getEl(
       document.createElement("span"),
-      () => `${node.uri} • ${this.getNodeState(nodeEl)}`,
+      () =>
+        `${node.uri}  ${this.getNodeState(nodeEl) !== "" ? " • " : ""} ${node.type === "folder" ? "contains" : ""} ${this.getNodeState(nodeEl)} ${node.type === "folder" ? "items" : ""}`,
       "bottom",
       500,
     );
@@ -131,8 +139,13 @@ export class FileRenderer {
       };
     }
 
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    badge.style.display = "none";
+
     nodeEl.appendChild(icon);
     nodeEl.appendChild(name);
+    nodeEl.appendChild(badge);
 
     nodeEl.onclick = (e) => {
       e.stopPropagation();
@@ -157,6 +170,7 @@ export class FileRenderer {
       const status = this._gitStatus.get(normalizedUri);
       if (status) {
         nodeEl.classList.add(status);
+        this.updateNodeBadge(nodeEl, status);
       }
     } else if (node.type === "folder") {
       const folderStatuses = this._folderStatus.get(normalizedUri);
@@ -164,10 +178,36 @@ export class FileRenderer {
         folderStatuses.forEach((status) => {
           nodeEl.classList.add(status);
         });
+
+        const primaryStatus = folderStatuses.has("modified")
+          ? "modified"
+          : folderStatuses.has("untracked")
+            ? "untracked"
+            : "ignored";
+        this.updateNodeBadge(nodeEl, primaryStatus);
       }
     }
 
     return nodeEl;
+  }
+
+  private updateNodeBadge(
+    nodeElement: HTMLElement,
+    status: "untracked" | "modified" | "ignored",
+  ) {
+    const badgeEl = nodeElement.querySelector(".badge") as HTMLElement;
+    if (!badgeEl) return;
+
+    const badgeText = getBadge(status);
+
+    if (status === "ignored") {
+      badgeEl.style.display = "none";
+      badgeEl.textContent = "";
+    } else {
+      badgeEl.style.display = "inline-block";
+      badgeEl.textContent = badgeText;
+      badgeEl.className = `badge ${status}`;
+    }
   }
 
   createChildContainer(
@@ -238,7 +278,6 @@ export class FileRenderer {
       this._renderedChildContainers.set(newUri, childContainer);
     }
 
-    // Update active node URI if it was the renamed node
     if (this._activeNodeUri === oldUri) {
       this._activeNodeUri = newUri;
     }
@@ -257,7 +296,6 @@ export class FileRenderer {
       this._renderedChildContainers.delete(uri);
     }
 
-    // Clear active node if it was the removed node
     if (this._activeNodeUri === uri) {
       this._activeNodeUri = null;
     }
@@ -432,7 +470,6 @@ export class FileRenderer {
    * Adds "active" class to the node element and removes it from the previously active node.
    */
   setActiveNode(uri: string) {
-    // Remove active class from previously active node
     if (this._activeNodeUri !== null) {
       const previousActiveNode = this._renderedNodes.get(this._activeNodeUri);
       if (previousActiveNode) {
@@ -440,7 +477,6 @@ export class FileRenderer {
       }
     }
 
-    // Set new active node
     this._activeNodeUri = uri;
     const newActiveNode = this._renderedNodes.get(uri);
     if (newActiveNode) {
@@ -554,6 +590,13 @@ export class FileRenderer {
         const status = this._gitStatus.get(normalizedUri);
         if (status) {
           nodeElement.classList.add(status);
+          this.updateNodeBadge(nodeElement, status);
+        } else {
+          const badgeEl = nodeElement.querySelector(".badge") as HTMLElement;
+          if (badgeEl) {
+            badgeEl.style.display = "none";
+            badgeEl.textContent = "";
+          }
         }
       } else if (nodeType === "folder") {
         const folderStatuses = this._folderStatus.get(normalizedUri);
@@ -561,6 +604,19 @@ export class FileRenderer {
           folderStatuses.forEach((status) => {
             nodeElement.classList.add(status);
           });
+
+          const primaryStatus = folderStatuses.has("modified")
+            ? "modified"
+            : folderStatuses.has("untracked")
+              ? "untracked"
+              : "ignored";
+          this.updateNodeBadge(nodeElement, primaryStatus);
+        } else {
+          const badgeEl = nodeElement.querySelector(".badge") as HTMLElement;
+          if (badgeEl) {
+            badgeEl.style.display = "none";
+            badgeEl.textContent = "";
+          }
         }
       }
     });

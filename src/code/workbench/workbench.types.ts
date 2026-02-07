@@ -200,6 +200,7 @@ export interface IEditorTab {
   is_touched: boolean;
   active: boolean;
   status: "modified" | "untracked" | "removed" | "ignored" | "default";
+  badge: "M" | "U" | "R" | "I" | "D";
 }
 
 export interface IPreviewTab {

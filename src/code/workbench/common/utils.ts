@@ -395,5 +395,22 @@ export function getRunCommand(_path: string) {
   }
 }
 
+export function getBadge(
+  status: "modified" | "untracked" | "removed" | "ignored" | "default",
+): "M" | "U" | "R" | "I" | "D" {
+  const badgeRecord: Record<
+    "modified" | "untracked" | "removed" | "ignored" | "default",
+    "M" | "U" | "R" | "I" | "D"
+  > = {
+    default: "D",
+    ignored: "I",
+    modified: "M",
+    removed: "R",
+    untracked: "U",
+  };
+
+  return badgeRecord[status];
+}
+
 export const normalizePath = (path: string) => path.replace(/\\\\/g, "\\");
 export const unNormalizePath = (path: string) => path.replace(/\\/g, "\\\\");

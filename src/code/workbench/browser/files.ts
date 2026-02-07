@@ -12,6 +12,7 @@ import { FileStructure } from "../common/files/file-structure.js";
 import { FileRenderer } from "../common/files/file-renderer.js";
 import { FileOperations } from "../common/files/file-operations.js";
 import { Tooltip } from "./parts/tooltip/tooltip.js";
+import { getBadge } from "../common/utils.js";
 
 const path = window.path;
 const fs = window.fs;
@@ -399,6 +400,7 @@ export class Files extends CoreEl {
     } else {
       const nodeEl = this._renderer._renderedNodes.get(uri);
       const state = nodeEl ? this.getNodeState(nodeEl) : "default";
+      const badge = getBadge(state);
 
       const newTab: IEditorTab = {
         name,
@@ -406,7 +408,9 @@ export class Files extends CoreEl {
         active: true,
         is_touched: false,
         status: state,
+        badge: badge,
       };
+
       const updatedTabs = [
         ...currentTabs.map((tab) => ({ ...tab, active: false })),
         newTab,

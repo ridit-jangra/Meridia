@@ -19,7 +19,7 @@ function sendEvent() {
   document.dispatchEvent(menuEvent);
 }
 
-async function _init() {
+export async function _init() {
   const project_details = (await window.ipc.invoke(
     "workbench.workspace.details",
   )) as IProjectDetails;
