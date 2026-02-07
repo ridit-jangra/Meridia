@@ -3,7 +3,7 @@ import "./browser/web.js";
 import "./common/project-details.js";
 import "./common/python/pylsp.js";
 import "./common/settings/settings.js";
-import "./common/notebook.js";
+import "./common/python/notebook.js";
 import "./common/theme.js";
 import "./common/scrollbar.js";
 import "./common/state.js";

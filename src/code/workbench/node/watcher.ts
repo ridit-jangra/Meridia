@@ -93,7 +93,7 @@ function isIgnoredByGitignore(filePath: string): boolean {
 
     const isIgnored = gitignoreInstance.ignores(normalizedPath);
     if (isIgnored) {
-      console.log(`[GitIgnore] File ignored by .gitignore: ${normalizedPath}`);
+      // console.log(`[GitIgnore] File ignored by .gitignore: ${normalizedPath}`);
     }
     return isIgnored;
   } catch (error) {
@@ -145,7 +145,6 @@ function detectVenvFolder(rootPath: string): string | null {
   for (const venvName of commonVenvNames) {
     const venvPath = path.join(rootPath, venvName);
     if (fs.existsSync(venvPath)) {
-      // Check if it's a valid venv by looking for characteristic files
       const isWindows = process.platform === "win32";
       const pythonPath = isWindows
         ? path.join(venvPath, "Scripts", "python.exe")
@@ -386,14 +385,12 @@ function _watchVenvFolder(rootPath: string) {
   const venvPath = path.join(rootPath, venvFolderName);
   activeVenvName = venvFolderName;
 
-  // Only watch specific critical paths, not the entire deep structure
   const pathsToWatch = [
-    path.join(venvPath, "pyvenv.cfg"), // Configuration file
-    path.join(venvPath, "Scripts"), // Windows activation scripts
-    path.join(venvPath, "bin"), // Unix activation scripts
+    path.join(venvPath, "pyvenv.cfg"),
+    path.join(venvPath, "Scripts"),
+    path.join(venvPath, "bin"),
   ];
 
-  // Filter to only existing paths
   const existingPaths = pathsToWatch.filter((p) => fs.existsSync(p));
 
   if (existingPaths.length === 0) {
@@ -407,14 +404,13 @@ function _watchVenvFolder(rootPath: string) {
     );
     venvWatcher = chokidar.watch(existingPaths, {
       ignored: [
-        /(^|[\/\\])__pycache__($|[\/\\])/, // Match __pycache__ folder anywhere
-        /\.pyc$/, // Match .pyc files
-        /\.py$/, // Match .py files
-        /\.pyo$/, // Match .pyo files
-        /\.egg-info($|[\/\\])/, // Match .egg-info folders
-        /\.dist-info($|[\/\\])/, // Match .dist-info folders
+        /(^|[\/\\])__pycache__($|[\/\\])/,
+        /\.pyc$/,
+        /\.py$/,
+        /\.pyo$/,
+        /\.egg-info($|[\/\\])/,
+        /\.dist-info($|[\/\\])/,
         (filePath: string) => {
-          // Additional check for any paths we want to skip
           const lower = filePath.toLowerCase();
           return (
             lower.includes("__pycache__") ||
@@ -428,7 +424,7 @@ function _watchVenvFolder(rootPath: string) {
       ],
       ignoreInitial: true,
       persistent: true,
-      depth: 2, // Only 2 levels deep to avoid going into site-packages
+      depth: 2,
       ignorePermissionErrors: true,
       usePolling: false,
       awaitWriteFinish: { stabilityThreshold: 300, pollInterval: 100 },
@@ -447,7 +443,7 @@ function _watchVenvFolder(rootPath: string) {
 
     venvWatcher.on("ready", () => {
       console.log("[Venv] Venv watcher ready");
-      // Trigger initial event when venv is detected
+
       console.log(
         `[Venv] Sending initial virtual-env-update event for: ${venvFolderName}`,
       );

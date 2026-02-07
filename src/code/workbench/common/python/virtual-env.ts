@@ -1,8 +1,61 @@
+import {
+  hideBox,
+  showLoadingBox,
+} from "../../../platform/messagebox/common/messagebox.js";
+import { IProjectDetails } from "../../workbench.types.js";
+import { runCommand } from "../process.js";
 import { _init } from "../project-details.js";
 import { select } from "../store/selector.js";
+import { update_project_details } from "../store/slice.js";
+import { dispatch } from "../store/store.js";
+import { addInformation, removeInformation } from "../titlebar.js";
+
+function sendCompleteEvent() {
+  const menuEvent = new CustomEvent(
+    "workbench.workspace.virtual.env.complete",
+    {
+      detail: { action: "detaitls" },
+    },
+  );
+  console.log("virtual env send event");
+  document.dispatchEvent(menuEvent);
+}
+
+export function create_env(project_details: IProjectDetails) {
+  if (
+    project_details.venv?.path &&
+    !window.fs.exists(project_details.venv?.path)
+  ) {
+    const path = window.path.join([project_details.path, ".venv"]);
+    const command = "python";
+    const args = ["-m", "venv", path];
+
+    console.log("creating virtual env", command, ...args);
+
+    const loadingBox = showLoadingBox(
+      "Creating virtual environment",
+      "Virtual enviornment is being created...",
+    );
+
+    const information = addInformation("Creating virtual env");
+
+    runCommand(
+      command,
+      args,
+      () => {
+        hideBox(loadingBox);
+        removeInformation(information);
+        sendCompleteEvent();
+      },
+      () => {},
+    );
+  } else {
+    sendCompleteEvent();
+  }
+}
 
 async function update_env(venv_folder_name: string) {
-  console.log("initiating env ");
+  console.log("initiating env");
 
   const folder_structure = select((s) => s.main.folder_structure);
   if (!folder_structure?.uri) return;
@@ -60,6 +113,14 @@ async function update_env(venv_folder_name: string) {
   console.log("writing file", meridiaFile, JSON.stringify(config));
 
   window.fs.createFile(meridiaFile, JSON.stringify(config));
+
+  const project_details = (await window.ipc.invoke(
+    "workbench.workspace.details",
+  )) as IProjectDetails;
+
+  if (!project_details) return;
+
+  dispatch(update_project_details(project_details));
 
   await _init();
 }

@@ -25,7 +25,7 @@ import { getThemeIcon } from "./media/icons.js";
 import { _newProject } from "./window/new-project/browser/new-project.js";
 import { Extensions } from "./extensions.js";
 import { Notebook } from "../../editor/editors/jupyter/browser/notebook.js";
-import { Git } from "./git.js";
+import { git } from "./git.js";
 
 export class Layout {
   constructor() {
@@ -38,7 +38,6 @@ export class Layout {
 
     const titlebar = new Titlebar().getDomElement()!;
 
-    const git = new Git().getDomElement()!;
     const mira = new Mira().getDomElement()!;
     const structure = new Structure().getDomElement()!;
     const extensions = new Extensions().getDomElement()!;
@@ -58,7 +57,7 @@ export class Layout {
     );
     const gitOption = new PanelOption(
       "Git",
-      git,
+      git.getDomElement(),
       () => {},
       getThemeIcon("git"),
       "top",

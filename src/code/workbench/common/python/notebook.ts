@@ -1,20 +1,20 @@
-import { IProjectDetails } from "../workbench.types.js";
-import { _xtermManager } from "./devPanel/spawnXterm.js";
-import { runInstall } from "./process.js";
-import { addInformation, removeInformation } from "./titlebar.js";
+import { IProjectDetails } from "../../workbench.types.js";
+import { _xtermManager } from "../devPanel/spawnXterm.js";
+import { runInstall } from "../process.js";
+import { addInformation, removeInformation } from "../titlebar.js";
 
 export async function install(project_details: IProjectDetails) {
   if (project_details?.venv?.python) {
     const result = await window.ipc.invoke(
       "workbench.workspace.python.project.check.package",
       project_details,
-      "notebook"
+      "notebook",
     );
 
     if (!result) {
       const informationEl = addInformation("Installing notebook");
       const logContainer = informationEl.querySelector(
-        ".log-container"
+        ".log-container",
       ) as HTMLDivElement;
 
       runInstall(
@@ -27,13 +27,13 @@ export async function install(project_details: IProjectDetails) {
           const logEl = document.createElement("span");
           logEl.textContent = log;
           logContainer.appendChild(logEl);
-        }
+        },
       );
     }
   } else {
     const result = await window.ipc.invoke(
       "workbench.workspace.python.check.package",
-      "notebook"
+      "notebook",
     );
 
     const arg =
@@ -42,7 +42,7 @@ export async function install(project_details: IProjectDetails) {
     if (!result) {
       const informationEl = addInformation("Installing notebook");
       const logContainer = informationEl.querySelector(
-        ".log-container"
+        ".log-container",
       ) as HTMLDivElement;
 
       runInstall(
@@ -55,7 +55,7 @@ export async function install(project_details: IProjectDetails) {
           const logEl = document.createElement("span");
           logEl.textContent = log;
           logContainer.appendChild(logEl);
-        }
+        },
       );
     }
   }
@@ -68,7 +68,7 @@ document.addEventListener(
     const _action = _customEvent.detail.action;
 
     const project_details = await window.ipc.invoke(
-      "workbench.workspace.details"
+      "workbench.workspace.details",
     );
 
     await install(project_details);
@@ -76,5 +76,5 @@ document.addEventListener(
     _xtermManager._update();
 
     await window.jupyter.startKernel();
-  }
+  },
 );
