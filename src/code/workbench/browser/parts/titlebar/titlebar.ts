@@ -132,6 +132,8 @@ export class Titlebar extends CoreEl {
           uri: "tab://settings",
           is_touched: false,
           active: true,
+          badge: "D",
+          status: "default",
         };
 
         openTab(_tab);

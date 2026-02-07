@@ -2,7 +2,7 @@ export function runInstall(
   command: string,
   args: string[],
   onCompleteCallback: Function,
-  onLogCallback: Function
+  onLogCallback: Function,
 ) {
   window.ipc.on("workbench.workspace.install.log", (_: any, log: string) => {
     onLogCallback(log);
@@ -19,13 +19,14 @@ export function runCommand(
   command: string,
   args: string[],
   onCompleteCallback: Function,
-  onLogCallback: Function
+  onLogCallback: Function,
 ) {
   window.ipc.on(
     "workbench.workspace.run.command.log",
     (_: any, log: string) => {
       onLogCallback(log);
-    }
+      console.log("[Run Command Log] ", log);
+    },
   );
 
   window.ipc.on("workbench.workspace.run.command.complete", () => {

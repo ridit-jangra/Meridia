@@ -10,12 +10,23 @@ export const gitBridge = {
     if (!git) {
       git = simpleGit(folderPath);
       gitInstanceMap.set(folderPath, git);
-
-      status = await git.status(["--ignored"]);
     }
 
     status = await git.status(["--ignored"]);
 
     return status;
+  },
+
+  async commit(commit_message: string, folderPath: string, files: string[]) {
+    let git = gitInstanceMap.get(folderPath);
+
+    if (!git) {
+      git = simpleGit(folderPath);
+      gitInstanceMap.set(folderPath, git);
+    }
+
+    await git.add(files);
+
+    await git.commit(commit_message);
   },
 };

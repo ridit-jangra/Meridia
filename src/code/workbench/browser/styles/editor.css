@@ -33,7 +33,7 @@
 
 .code .editor .tabs .tab {
   padding: 12px 10px !important;
-  width: max-content !important;
+  min-width: max-content !important;
   overflow: hidden !important;
   border-radius: 0px !important;
   border-right: 1px solid var(--workbench-border-foreground) !important;

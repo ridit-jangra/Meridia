@@ -3,6 +3,7 @@ import { select } from "../store/selector.js";
 import { dispatch } from "../store/store.js";
 import { update_editor_tabs } from "../store/slice.js";
 import { IEditorTab } from "../../workbench.types.js";
+import { git } from "../../browser/git.js";
 
 export async function update_status() {
   const folder_structure = select((s) => s.main.folder_structure);
@@ -35,8 +36,9 @@ export async function update_status() {
   }
 
   files._renderer.updateGitStatus(not_added, modified, ignored);
-
   updateEditorTabsStatus(not_added, modified, ignored);
+
+  git.update_changes_list(not_added, modified, ignored);
 }
 
 function updateEditorTabsStatus(

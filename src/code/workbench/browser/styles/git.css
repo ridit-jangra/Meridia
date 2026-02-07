@@ -1,0 +1,148 @@
+.code .git {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px 0;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+}
+
+.code .git .input {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--workbench-input-background);
+  border: 1px solid var(--workbench-input-border-foreground);
+  width: 95%;
+  justify-self: center;
+  height: 40px;
+  border-radius: 8px;
+  padding: 10px 0;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.code .git .input input {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  color: var(--workbench-input-foreground);
+  padding: 10px;
+}
+
+.code .git .input:focus-within {
+  box-shadow: 0 0 2px 2px var(--workbench-input-active-outline);
+}
+
+.code .git .input input:focus {
+  outline: none;
+}
+
+.code .git .input span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-right: 8px;
+  background: none;
+}
+
+.code .git .input span:hover {
+  background: var(--workbench-hover-background);
+}
+
+.code .git .input span svg {
+  width: 18px;
+  height: auto;
+}
+
+.code .git .commit-btn {
+  display: flex;
+  width: 95%;
+  padding: 10px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 16px;
+  background: var(--workbench-secondary-button-background);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.code .git .commit-btn:hover {
+  background: var(--workbench-hover-background);
+}
+
+.code .git .commit-btn.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.code .git .changes {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  width: 100%;
+  min-height: 0;
+  align-items: baseline;
+}
+
+.code .git .changes .title {
+  flex-shrink: 0;
+  padding: 0 15px;
+  margin-bottom: 5px;
+}
+
+.code .git .changes .changes-list {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.code .git .changes .changes-list .no-changes {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 18px;
+}
+
+.code .git .changes .changes-list .file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 17px;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+  color: var(--workbench-files-default-foreground);
+}
+
+.code .git .changes .changes-list .file-item:hover {
+  background: var(--workbench-hover-background);
+}
+
+.code .git .changes .changes-list .file-item.untracked {
+  color: var(--workbench-files-untracked-foreground);
+}
+
+.code .git .changes .changes-list .file-item.modified {
+  color: var(--workbench-files-modified-foreground);
+}
+
+.code .git .changes .changes-list .file-item.ignored {
+  color: var(--workbench-files-ignored-foreground);
+}
+
+.code .git .changes .changes-list .file-item.error {
+  color: var(--workbench-error-untracked-foreground);
+}
