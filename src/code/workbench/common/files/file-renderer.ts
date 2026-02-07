@@ -465,10 +465,6 @@ export class FileRenderer {
     }
   }
 
-  /**
-   * Set the active node by URI. Only one node can be active at a time.
-   * Adds "active" class to the node element and removes it from the previously active node.
-   */
   setActiveNode(uri: string) {
     if (this._activeNodeUri !== null) {
       const previousActiveNode = this._renderedNodes.get(this._activeNodeUri);
@@ -484,9 +480,6 @@ export class FileRenderer {
     }
   }
 
-  /**
-   * Clear the active node state
-   */
   clearActiveNode() {
     if (this._activeNodeUri !== null) {
       const activeNode = this._renderedNodes.get(this._activeNodeUri);
@@ -497,9 +490,6 @@ export class FileRenderer {
     }
   }
 
-  /**
-   * Get the URI of the currently active node
-   */
   getActiveNodeUri(): string | null {
     return this._activeNodeUri;
   }

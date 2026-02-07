@@ -8,20 +8,23 @@ const _background = _theme.getColor("workbench.editor.background");
 const _foreground = _theme.getColor("workbench.editor.foreground");
 const _cursor = _theme.getColor("workbench.editor.cursor.foreground");
 const _lineHighlight = _theme.getColor(
-  "workbench.editor.line.highlight.background"
+  "workbench.editor.line.highlight.background",
 );
 const _tokens = _theme.getActiveTheme().tokenColors!;
 
 const _widgetBackground = _theme.getColor("workbench.editor.widget.background");
 const _hoverBackground = _theme.getColor("workbench.item.hover.background");
+const _selectionBackground = _theme.getColor(
+  "workbench.editor.selection.background",
+);
 const _borderForeground = _theme.getColor("workbench.border.foreground");
 const _inputBackground = _theme.getColor("workbench.input.background");
 const _scrollbarThumb = _theme.getColor("workbench.scrollbar.thumb.foreground");
 const _scrollbarThumbHover = _theme.getColor(
-  "workbench.scrollbar.thumb.hover.foreground"
+  "workbench.scrollbar.thumb.hover.foreground",
 );
 const _scrollbarThumbActive = _theme.getColor(
-  "workbench.scrollbar.thumb.active.foreground"
+  "workbench.scrollbar.thumb.active.foreground",
 );
 
 monaco.editor.defineTheme("meridia-theme", {
@@ -114,13 +117,13 @@ monaco.editor.defineTheme("meridia-theme", {
     "editorSuggestWidget.foreground": _foreground,
     "editorSuggestWidget.border": _borderForeground,
     "editorSuggestWidget.highlightForeground": _theme.getColor(
-      "workbench.tabs.active.foreground"
+      "workbench.tabs.active.foreground",
     ),
     "editorSuggestWidget.selectedBackground": _hoverBackground,
     "editorSuggestWidget.selectedForeground": _foreground,
     "editorSuggestWidget.selectedIconForeground": _foreground,
     "editorSuggestWidget.focusHighlightForeground": _theme.getColor(
-      "workbench.tabs.active.foreground"
+      "workbench.tabs.active.foreground",
     ),
 
     "editorHoverWidget.background": _widgetBackground,
@@ -146,7 +149,7 @@ monaco.editor.defineTheme("meridia-theme", {
     "peekViewTitle.background": _widgetBackground,
     "peekViewTitleLabel.foreground": _foreground,
     "peekViewTitleDescription.foreground": _theme.getColor(
-      "workbench.tabs.foreground"
+      "workbench.tabs.foreground",
     ),
 
     "menu.background": _widgetBackground,
@@ -182,10 +185,10 @@ monaco.editor.defineTheme("meridia-theme", {
     "breadcrumb.foreground": _foreground,
     "breadcrumb.background": _widgetBackground,
     "breadcrumb.focusForeground": _theme.getColor(
-      "workbench.tabs.active.foreground"
+      "workbench.tabs.active.foreground",
     ),
     "breadcrumb.activeSelectionForeground": _theme.getColor(
-      "workbench.tabs.active.foreground"
+      "workbench.tabs.active.foreground",
     ),
     "breadcrumb.pickerBackground": _widgetBackground,
 
@@ -241,7 +244,7 @@ monaco.editor.defineTheme("meridia-theme", {
     "panelTitle.inactiveForeground":
       _theme.getColor("workbench.tabs.foreground") || "#cccccc",
 
-    "editor.selectionBackground": _hoverBackground,
+    "editor.selectionBackground": _selectionBackground,
     "editor.selectionHighlightBackground":
       _theme.getColor("workbench.panel.options.hover.background") ||
       _hoverBackground,

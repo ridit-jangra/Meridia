@@ -19,7 +19,21 @@
   font-size: 15px;
 }
 
-.context-menu span:hover {
+.context-menu span.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.context-menu .separator {
+  cursor: default;
+  height: 2px;
+  margin: 5px 0;
+  width: 95%;
+  justify-self: center;
+  background: var(--workbench-border-foreground);
+}
+
+.context-menu span:not(.separator):hover {
   cursor: pointer;
   background: var(--workbench-hover-background);
 }

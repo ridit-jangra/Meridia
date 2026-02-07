@@ -31,6 +31,8 @@ export const tokensToCssVariables: Record<IThemeColors, string> = {
   "workbench.editor.cursor.foreground": "--workbench-editor-cursor-foreground",
   "workbench.editor.line.highlight.background":
     "--workbench-editor-line-highlight-background",
+  "workbench.editor.selection.background":
+    "--workbench-editor-selection-background",
   "workbench.editor.suggestion.active.background":
     "--workbench-editor-suggestion-active-background",
   "workbench.editor.widget.background": "--workbench-editor-widget-background",

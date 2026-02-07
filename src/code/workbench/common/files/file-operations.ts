@@ -91,6 +91,7 @@ export class FileOperations {
     input.type = "text";
     input.value = originalName;
     input.className = "inline-editor-input";
+    input.spellcheck = false;
 
     nameSpan.replaceWith(input);
     input.focus();
@@ -136,6 +137,7 @@ export class FileOperations {
     input.type = "text";
     input.placeholder = `New ${type}...`;
     input.className = "inline-editor-input";
+    input.spellcheck = false;
 
     if (type === "file") {
       input.oninput = (event) => {
