@@ -102,6 +102,7 @@ export const ThemeColors = [
   "workbench.editor.foreground",
   "workbench.editor.cursor.foreground",
   "workbench.editor.line.highlight.background",
+  "workbench.editor.selection.background",
   "workbench.editor.suggestion.active.background",
   "workbench.editor.widget.background",
   "workbench.preview.markdown.code.background",

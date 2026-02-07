@@ -70,10 +70,6 @@ class XtermManager {
     });
     term.loadAddon(clipboardAddon);
 
-    setTimeout(() => {
-      fitAddon.fit();
-    }, 50);
-
     const structure = select((s) => s.main.folder_structure);
     const _cwd = structure ? structure.uri : cwd ? cwd : "";
 
@@ -137,9 +133,35 @@ class XtermManager {
       _ptyDataListener: onPtyData,
     });
 
-    requestAnimationFrame(() => {
-      this._update();
-    });
+    // Ensure font is loaded before fitting with multiple attempts
+    const ensureFontLoaded = async () => {
+      try {
+        // Wait for all fonts to be ready
+        await document.fonts.ready;
+        // Explicitly load JetBrains Mono
+        await document.fonts.load('18px "Jetbrains Mono"');
+      } catch (e) {
+        // Fallback if font loading API fails
+      }
+
+      // Multiple fit attempts to ensure proper rendering
+      requestAnimationFrame(() => {
+        term.refresh(0, term.rows - 1);
+        fitAddon.fit();
+        setTimeout(() => {
+          term.refresh(0, term.rows - 1);
+          fitAddon.fit();
+          this._update();
+          // One more fit after a longer delay
+          setTimeout(() => {
+            term.refresh(0, term.rows - 1);
+            fitAddon.fit();
+          }, 200);
+        }, 100);
+      });
+    };
+
+    ensureFontLoaded();
 
     if (project_details.venv && project_details.venv.activate) {
       ipcRenderer.invoke(
@@ -148,10 +170,6 @@ class XtermManager {
         project_details.venv.activate + "\r",
       );
     }
-
-    setTimeout(() => {
-      this._update();
-    }, 100);
 
     return _container;
   }
@@ -167,28 +185,49 @@ class XtermManager {
   }
 
   _update() {
-    setTimeout(() => {
-      for (const [_, instance] of this._terminals) {
-        try {
-          const parentElement =
-            instance._container.parentElement?.parentElement?.parentElement;
+    // Use requestAnimationFrame for better timing with browser rendering
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        for (const [_, instance] of this._terminals) {
+          try {
+            const parentElement =
+              instance._container.parentElement?.parentElement?.parentElement;
 
-          if (!parentElement) continue;
+            if (!parentElement) continue;
 
-          const _height =
-            instance._container.parentElement!.parentElement!.parentElement!
-              .clientHeight -
-            7 +
-            "px";
+            // Ensure parent has dimensions
+            const parentHeight = parentElement.clientHeight;
+            if (parentHeight === 0) continue;
 
-          instance._container.style.height = _height;
-          instance._container.style.width = "100%";
-          instance._container.style.overflow = "hidden";
+            const _height = parentHeight - 7 + "px";
 
-          instance._fitAddon.fit();
-        } catch (e) {}
+            instance._container.style.height = _height;
+            instance._container.style.width = "100%";
+            instance._container.style.overflow = "hidden";
+
+            // Force refresh to ensure font is properly rendered
+            instance.term.refresh(0, instance.term.rows - 1);
+            instance._fitAddon.fit();
+          } catch (e) {}
+        }
+      }, 50);
+    });
+  }
+
+  _forceRefresh(id?: string) {
+    if (id) {
+      const instance = this._terminals.get(id);
+      if (instance) {
+        instance.term.refresh(0, instance.term.rows - 1);
+        instance._fitAddon.fit();
       }
-    }, 100);
+    } else {
+      // Refresh all terminals
+      for (const [_, instance] of this._terminals) {
+        instance.term.refresh(0, instance.term.rows - 1);
+        instance._fitAddon.fit();
+      }
+    }
   }
 
   _dispose(id: string) {
@@ -246,7 +285,6 @@ class XtermManager {
 
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
-    fitAddon.fit();
 
     const clipboardAddon = new ClipboardAddon({
       writeText: (data) => window.workbench.clipboard.writeText(data),
@@ -317,9 +355,30 @@ class XtermManager {
       },
     );
 
-    setTimeout(() => {
-      this._update();
-    }, 100);
+    // Ensure font is loaded before fitting with multiple attempts
+    const ensureFontLoaded = async () => {
+      try {
+        // Wait for all fonts to be ready
+        await document.fonts.ready;
+        // Explicitly load JetBrains Mono
+        await document.fonts.load('18px "Jetbrains Mono"');
+      } catch (e) {
+        // Fallback if font loading API fails
+      }
+
+      // Multiple fit attempts to ensure proper rendering
+      setTimeout(() => {
+        term.refresh(0, term.rows - 1);
+        fitAddon.fit();
+        this._update();
+        setTimeout(() => {
+          term.refresh(0, term.rows - 1);
+          fitAddon.fit();
+        }, 200);
+      }, 100);
+    };
+
+    ensureFontLoaded();
 
     return _container;
   }

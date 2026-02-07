@@ -97,6 +97,170 @@ export class Editor extends CoreEl {
     }
   }
 
+  private _closeAllEditorTabs() {
+    dispatch(update_editor_tabs([]));
+    const editor = getStandalone("editor") as _editor;
+    if (editor) editor._visibility(false);
+    standalones.forEach((v) => v._setVisiblity(false));
+  }
+
+  private _closeOtherEditorTabs(tabUri: string) {
+    const currentTabs = select((s) => s.main.editor_tabs);
+    const tabToKeep = currentTabs.find((t) => t.uri === tabUri);
+    if (!tabToKeep) return;
+
+    const updatedTabs = [{ ...tabToKeep, active: true }];
+    dispatch(update_editor_tabs(updatedTabs));
+  }
+
+  private _closeEditorTabsToRight(tabUri: string) {
+    const currentTabs = select((s) => s.main.editor_tabs);
+    const tabIndex = currentTabs.findIndex((t) => t.uri === tabUri);
+    if (tabIndex === -1) return;
+
+    const updatedTabs = currentTabs.slice(0, tabIndex + 1);
+    dispatch(update_editor_tabs(updatedTabs));
+  }
+
+  private _closeEditorTabsToLeft(tabUri: string) {
+    const currentTabs = select((s) => s.main.editor_tabs);
+    const tabIndex = currentTabs.findIndex((t) => t.uri === tabUri);
+    if (tabIndex === -1) return;
+
+    const updatedTabs = currentTabs.slice(tabIndex);
+    dispatch(update_editor_tabs(updatedTabs));
+  }
+
+  private _showTabContextMenu(
+    x: number,
+    y: number,
+    tab: IEditorTab | IPreviewTab,
+    isEditorTab: boolean,
+  ) {
+    const currentTabs = isEditorTab
+      ? select((s) => s.main.editor_tabs)
+      : select((s) => s.main.preview_tabs);
+
+    const tabIndex = currentTabs.findIndex((t) => t.uri === tab.uri);
+    const hasTabsToRight = tabIndex < currentTabs.length - 1;
+    const hasTabsToLeft = tabIndex > 0;
+    const hasOtherTabs = currentTabs.length > 1;
+
+    const contextMenu = document.createElement("div");
+    contextMenu.className = "context-menu";
+    contextMenu.style.position = "fixed";
+    contextMenu.style.left = `${x}px`;
+    contextMenu.style.top = `${y}px`;
+    contextMenu.style.zIndex = "10000";
+
+    const menuItems = [
+      {
+        label: "Close",
+        action: () => {
+          if (isEditorTab) {
+            this._closeEditorTab(tab.uri);
+          } else {
+            this._closePreviewTab(tab.uri);
+          }
+        },
+        enabled: true,
+        show: true,
+      },
+      {
+        label: "Close All",
+        action: () => {
+          if (isEditorTab) {
+            this._closeAllEditorTabs();
+          }
+        },
+        enabled: isEditorTab,
+        show: isEditorTab,
+      },
+      {
+        label: "Close Others",
+        action: () => {
+          if (isEditorTab) {
+            this._closeOtherEditorTabs(tab.uri);
+          }
+        },
+        enabled: isEditorTab && hasOtherTabs,
+        show: isEditorTab,
+      },
+      {
+        label: "Close to the Right",
+        action: () => {
+          if (isEditorTab) {
+            this._closeEditorTabsToRight(tab.uri);
+          }
+        },
+        enabled: isEditorTab && hasTabsToRight,
+        show: isEditorTab,
+      },
+      {
+        label: "Close to the Left",
+        action: () => {
+          if (isEditorTab) {
+            this._closeEditorTabsToLeft(tab.uri);
+          }
+        },
+        enabled: isEditorTab && hasTabsToLeft,
+        show: isEditorTab,
+      },
+      {
+        type: "separator",
+        show: true,
+      },
+      {
+        label: "Copy Path",
+        action: () => {
+          navigator.clipboard.writeText(tab.uri).catch((err) => {
+            console.error("Failed to copy path:", err);
+          });
+        },
+        enabled: true,
+        show: true,
+      },
+    ];
+
+    menuItems.forEach((item) => {
+      if (!item.show) return;
+
+      if (item.type === "separator") {
+        const separator = document.createElement("div");
+        separator.className = "separator";
+        contextMenu.appendChild(separator);
+      } else {
+        const menuItem = document.createElement("span");
+        menuItem.className = "context-menu-item";
+        if (!item.enabled) {
+          menuItem.classList.add("disabled");
+        }
+        menuItem.textContent = item.label!;
+
+        menuItem.onclick = () => {
+          if (!item.enabled) return;
+          item.action!();
+          document.body.removeChild(contextMenu);
+        };
+
+        contextMenu.appendChild(menuItem);
+      }
+    });
+
+    document.body.appendChild(contextMenu);
+
+    const closeContextMenu = (e: MouseEvent) => {
+      if (!contextMenu.contains(e.target as Node)) {
+        document.body.removeChild(contextMenu);
+        document.removeEventListener("click", closeContextMenu);
+      }
+    };
+
+    setTimeout(() => {
+      document.addEventListener("click", closeContextMenu);
+    }, 0);
+  }
+
   private _closePreviewTab(tabUri: string, event?: Event) {
     if (event) event.stopPropagation();
 
@@ -143,6 +307,7 @@ export class Editor extends CoreEl {
       this._editorTabs,
       (tab) => this._setActiveEditorTab(tab.uri),
       (tabUri, event) => this._closeEditorTab(tabUri, event),
+      true,
     );
   }
 
@@ -170,6 +335,7 @@ export class Editor extends CoreEl {
       this._previewTabs,
       (tab) => this._setActivePreviewTab(tab.uri),
       (tabUri, event) => this._closePreviewTab(tabUri, event),
+      false,
     );
   }
 
@@ -267,6 +433,7 @@ export class Editor extends CoreEl {
     container: HTMLDivElement,
     onClickTab: (tab: IEditorTab | IPreviewTab) => void,
     onCloseTab: (tabUri: string, event?: Event) => void,
+    isEditorTab: boolean,
   ) {
     container.innerHTML = "";
     tabs.forEach((tab) => {
@@ -285,6 +452,12 @@ export class Editor extends CoreEl {
         if ((e.target as HTMLElement).closest(".close-icon")) return;
         onClickTab(tab);
       };
+
+      // Add context menu listener
+      tabEl.addEventListener("contextmenu", (e) => {
+        e.preventDefault();
+        this._showTabContextMenu(e.clientX, e.clientY, tab, isEditorTab);
+      });
 
       const icon = document.createElement("span");
       icon.className = "icon";

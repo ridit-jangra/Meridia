@@ -226,6 +226,7 @@ export const Dark: ITheme = {
     "workbench.editor.suggestion.active.background": "#404040",
     "workbench.editor.widget.background": "#141414",
     "workbench.editor.line.highlight.background": "#292929",
+    "workbench.editor.selection.background": "#353535",
 
     "workbench.preview.markdown.code.background": "#2A2A2A99",
 
