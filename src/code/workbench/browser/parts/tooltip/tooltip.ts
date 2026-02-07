@@ -5,7 +5,7 @@ type TooltipPos = "top" | "bottom" | "left" | "right";
 export class Tooltip extends CoreEl {
   _getEl(
     el: HTMLElement,
-    text: string,
+    text: string | (() => string),
     position: TooltipPos = "top",
     timeout = 0,
   ) {
@@ -13,7 +13,10 @@ export class Tooltip extends CoreEl {
 
     const t = document.createElement("div");
     t.className = "tooltip";
-    t.textContent = text;
+
+    // Set initial text
+    const getText = () => (typeof text === "function" ? text() : text);
+    t.textContent = getText();
 
     document.body.appendChild(t);
 
@@ -84,6 +87,10 @@ export class Tooltip extends CoreEl {
       if (destroyed) return;
       clearTimers();
       visible = true;
+
+      // Update text content when showing (for dynamic text)
+      t.textContent = getText();
+
       t.style.display = "block";
       t.style.opacity = "0";
       place();

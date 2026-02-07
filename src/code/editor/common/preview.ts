@@ -34,7 +34,7 @@ export class Preview {
           const language = hljs.getLanguage(lang) ? lang : "plaintext";
           return hljs.highlight(code, { language }).value;
         },
-      })
+      }),
     );
   }
 
@@ -47,7 +47,7 @@ export class Preview {
       "preview-content scrollbar-container x-disable";
 
     const bottomPanel = document.querySelector(
-      ".bottom-panel"
+      ".bottom-panel",
     ) as HTMLDivElement;
 
     this._resizeObserver = new ResizeObserver(() => {
@@ -67,7 +67,7 @@ export class Preview {
 
   private _sync(
     editor: monaco.editor.IStandaloneCodeEditor,
-    model: monaco.editor.ITextModel
+    model: monaco.editor.ITextModel,
   ) {
     if (this._scrollListener) {
       this._scrollListener.dispose();
@@ -76,7 +76,7 @@ export class Preview {
     if (this._previewScrollListener) {
       this._contentContainer.removeEventListener(
         "scroll",
-        this._previewScrollListener
+        this._previewScrollListener,
       );
     }
 
@@ -169,8 +169,44 @@ export class Preview {
 
     this._contentContainer.addEventListener(
       "scroll",
-      this._previewScrollListener
+      this._previewScrollListener,
     );
+  }
+
+  private _setupRunButtons() {
+    this._contentContainer.querySelectorAll("pre").forEach((pre) => {
+      const codeElement = pre.querySelector("code");
+      if (!codeElement) return;
+
+      const run = document.createElement("div");
+      run.className = "run";
+      run.textContent = "Run";
+
+      run.addEventListener("click", async () => {
+        const code = codeElement.textContent || "";
+
+        try {
+          await navigator.clipboard.writeText(code);
+
+          run.textContent = "Executed!";
+          run.classList.add("executed");
+
+          setTimeout(() => {
+            run.textContent = "Run";
+            run.classList.remove("executed");
+          }, 2000);
+        } catch (err) {
+          run.textContent = "Failed";
+
+          setTimeout(() => {
+            run.textContent = "Run";
+          }, 2000);
+        }
+      });
+
+      pre.style.position = "relative";
+      pre.appendChild(run);
+    });
   }
 
   private _setupCopyButtons() {
@@ -233,10 +269,11 @@ export class Preview {
     this._contentContainer.innerHTML = html;
 
     this._setupCopyButtons();
+    this._setupRunButtons();
 
-    this._contentContainer.querySelectorAll("code").forEach((v) => {
-      v.classList.add("scrollbar-container", "y-disable");
-    });
+    // this._contentContainer.querySelectorAll("code").forEach((v) => {
+    //   v.classList.add("scrollbar-container", "y-disable");
+    // });
   }
 
   _close(tab: IPreviewTab) {
@@ -266,7 +303,7 @@ export class Preview {
         if (this._previewScrollListener) {
           this._contentContainer.removeEventListener(
             "scroll",
-            this._previewScrollListener
+            this._previewScrollListener,
           );
           this._previewScrollListener = null;
         }
@@ -311,7 +348,7 @@ export class Preview {
     if (this._previewScrollListener) {
       this._contentContainer.removeEventListener(
         "scroll",
-        this._previewScrollListener
+        this._previewScrollListener,
       );
       this._previewScrollListener = null;
     }
@@ -361,6 +398,7 @@ export class Preview {
         uri: fsPath,
         active: true,
         icon: tab.icon || getFileIcon("file.md"),
+        is_preview: true,
       };
 
       updatedTabs = [

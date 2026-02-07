@@ -270,13 +270,16 @@ export class Editor extends CoreEl {
   ) {
     container.innerHTML = "";
     tabs.forEach((tab) => {
+      const isPreview = (tab as IPreviewTab).is_preview;
+
       const tabEl = new Tooltip()._getEl(
         document.createElement("div"),
-        tab.uri,
+        `${tab.uri}${isPreview ? " • Preview" : ` • ${(tab as IEditorTab).status}`}`,
         "bottom",
         500,
       );
-      tabEl.className = `tab ${tab.active ? "active" : ""}`;
+
+      tabEl.className = `tab ${tab.active ? "active" : ""} ${(tab as IEditorTab)?.status!}`;
 
       tabEl.onclick = (e) => {
         if ((e.target as HTMLElement).closest(".close-icon")) return;
