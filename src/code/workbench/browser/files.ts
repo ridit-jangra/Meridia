@@ -366,6 +366,15 @@ export class Files extends CoreEl {
     this._renderer.animateToggle(container, isNowExpanded);
   }
 
+  private getNodeState(
+    node: HTMLElement,
+  ): "modified" | "ignored" | "untracked" | "default" {
+    if (node.classList.contains("modified")) return "modified";
+    if (node.classList.contains("ignored")) return "ignored";
+    if (node.classList.contains("untracked")) return "untracked";
+    return "default";
+  }
+
   private _handleOpenFile(uri: string, name: string) {
     const stateValue = select((s) => s.main.editor_tabs);
     const normalizedUri = path.normalize(uri);
@@ -388,11 +397,15 @@ export class Files extends CoreEl {
       }));
       dispatch(update_editor_tabs(updatedTabs));
     } else {
+      const nodeEl = this._renderer._renderedNodes.get(uri);
+      const state = nodeEl ? this.getNodeState(nodeEl) : "default";
+
       const newTab: IEditorTab = {
         name,
         uri: normalizedUri,
         active: true,
         is_touched: false,
+        status: state,
       };
       const updatedTabs = [
         ...currentTabs.map((tab) => ({ ...tab, active: false })),

@@ -227,7 +227,15 @@ export const Dark: ITheme = {
     "workbench.editor.widget.background": "#141414",
     "workbench.editor.line.highlight.background": "#292929",
 
-    "workbench.preview.markdown.code.background": "#181818",
+    "workbench.preview.markdown.code.background": "#2A2A2A99",
+
+    "workbench.preview.markdown.copy.background": "#141414",
+    "workbench.preview.markdown.copy.hover.background": "#050505",
+
+    "workbench.preview.markdown.run.background": "#141414",
+    "workbench.preview.markdown.run.hover.background": "#0C0C0C",
+
+    "workbench.preview.markdown.hr.foreground": "#2A2A2A",
 
     "workbench.mira.message.user.background": "#2A2A2A99",
     "workbench.mira.message.user.foreground": "#e6e6e6",

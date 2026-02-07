@@ -205,7 +205,7 @@ export class Drawboard extends CoreEl {
         this._scale += zoomAmount;
         this._scale = Math.min(
           Math.max(this._scale, this._minScale),
-          this._maxScale
+          this._maxScale,
         );
         this._redrawCanvas();
       }
@@ -401,7 +401,7 @@ export class Drawboard extends CoreEl {
       this._ctx.translate(this._offsetX, this._offsetY);
       this._ctx.scale(this._scale, this._scale);
       this._ctx.strokeStyle = _theme.getColor(
-        "workbench.drawboard.canvas.stroke.foreground"
+        "workbench.drawboard.canvas.stroke.foreground",
       );
       this._ctx.lineWidth = this._lineThickness;
       this._ctx.lineCap = "round";
@@ -422,7 +422,7 @@ export class Drawboard extends CoreEl {
         this._startX,
         this._startY,
         x,
-        y
+        y,
       );
       this._redrawCanvas();
     }
@@ -454,7 +454,7 @@ export class Drawboard extends CoreEl {
         this._startX,
         this._startY,
         x,
-        y
+        y,
       );
     }
 
@@ -473,7 +473,7 @@ export class Drawboard extends CoreEl {
     startX: number,
     startY: number,
     endX: number,
-    endY: number
+    endY: number,
   ): IShape {
     const shape: IShape = {
       type,
@@ -684,7 +684,7 @@ export class Drawboard extends CoreEl {
     this._resizeShapePath(
       this._selectedShape,
       this._selectedShape.boundingBox,
-      newBB
+      newBB,
     );
     this._selectedShape.boundingBox = newBB;
     this._redrawCanvas();
@@ -703,7 +703,7 @@ export class Drawboard extends CoreEl {
   private _resizeShapePath(
     shape: IShape,
     oldBB: IBoundingBox,
-    newBB: IBoundingBox
+    newBB: IBoundingBox,
   ) {
     const scaleX = newBB.width / oldBB.width;
     const scaleY = newBB.height / oldBB.height;
@@ -746,7 +746,7 @@ export class Drawboard extends CoreEl {
 
     ctx.save();
     ctx.strokeStyle = _theme.getColor(
-      "workbench.drawboard.canvas.stroke.foreground"
+      "workbench.drawboard.canvas.stroke.foreground",
     );
     ctx.lineWidth = shape.thickness || 2;
     ctx.lineCap = "round";
@@ -773,7 +773,7 @@ export class Drawboard extends CoreEl {
       bb.x * scale + this._offsetX,
       bb.y * scale + this._offsetY,
       bb.width * scale,
-      bb.height * scale
+      bb.height * scale,
     );
     ctx.setLineDash([]);
 
@@ -793,13 +793,13 @@ export class Drawboard extends CoreEl {
         pt.x * scale + this._offsetX - handleSize / 2,
         pt.y * scale + this._offsetY - handleSize / 2,
         handleSize,
-        handleSize
+        handleSize,
       );
       ctx.strokeRect(
         pt.x * scale + this._offsetX - handleSize / 2,
         pt.y * scale + this._offsetY - handleSize / 2,
         handleSize,
-        handleSize
+        handleSize,
       );
     });
     ctx.restore();
@@ -817,8 +817,8 @@ export class Drawboard extends CoreEl {
             startPoint: s.startPoint ? { ...s.startPoint } : undefined,
             endPoint: s.endPoint ? { ...s.endPoint } : undefined,
             thickness: s.thickness,
-          }) as any
-      )
+          }) as any,
+      ),
     );
     this._redoStack = [];
   }
@@ -837,7 +837,7 @@ export class Drawboard extends CoreEl {
           startPoint: s.startPoint ? { ...s.startPoint } : undefined,
           endPoint: s.endPoint ? { ...s.endPoint } : undefined,
           thickness: s.thickness,
-        }) as any
+        }) as any,
     );
     this._selectedShape = null;
     this._redrawCanvas();
@@ -857,7 +857,7 @@ export class Drawboard extends CoreEl {
           startPoint: s.startPoint ? { ...s.startPoint } : undefined,
           endPoint: s.endPoint ? { ...s.endPoint } : undefined,
           thickness: s.thickness,
-        }) as any
+        }) as any,
     );
     this._selectedShape = null;
     this._redrawCanvas();
@@ -869,7 +869,7 @@ export class Drawboard extends CoreEl {
     this._ctx.clearRect(0, 0, width, height);
 
     this._ctx.strokeStyle = _theme.getColor(
-      "workbench.drawboard.canvas.grid.background"
+      "workbench.drawboard.canvas.grid.background",
     );
     this._ctx.lineWidth = 1;
 

@@ -6,7 +6,7 @@ import { Tooltip } from "../../browser/parts/tooltip/tooltip.js";
 const path = window.path;
 
 export class FileRenderer {
-  private _renderedNodes: Map<string, HTMLElement> = new Map();
+  _renderedNodes: Map<string, HTMLElement> = new Map();
   private _renderedChildContainers: Map<string, HTMLElement> = new Map();
   private _gitStatus: Map<string, "untracked" | "modified" | "ignored"> =
     new Map();
@@ -69,6 +69,15 @@ export class FileRenderer {
     });
   }
 
+  getNodeState(
+    node: HTMLElement,
+  ): "modified" | "ignored" | "untracked" | "default" {
+    if (node.classList.contains("modified")) return "modified";
+    if (node.classList.contains("ignored")) return "ignored";
+    if (node.classList.contains("untracked")) return "untracked";
+    return "default";
+  }
+
   createNodeElement(
     node: IFolderStructure,
     depth: number,
@@ -106,7 +115,7 @@ export class FileRenderer {
 
     const name = new Tooltip()._getEl(
       document.createElement("span"),
-      node.uri,
+      () => `${node.uri} • ${this.getNodeState(nodeEl)}`,
       "bottom",
       500,
     );

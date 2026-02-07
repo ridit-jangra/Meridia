@@ -3,7 +3,7 @@
 }
 
 .code .editor .editor-area {
-  height: calc(100% - 53px);
+  height: calc(100% - 48px);
   position: relative;
   display: flex;
   overflow: hidden;
@@ -11,12 +11,18 @@
 
 .code .editor .preview-area {
   height: calc(100% - 53px);
+  padding: 10px 0;
+  background: var(--workbench-editor-background);
   overflow: hidden;
 }
 
 .code .editor .editor-area .code-editor {
   height: 100%;
   width: 100%;
+}
+
+.code .editor .splitter-horizontal .gutter {
+  width: 2px !important;
 }
 
 .code .editor .tabs {
@@ -33,16 +39,28 @@
   border-right: 1px solid var(--workbench-border-foreground) !important;
 }
 
+.code .editor .tabs .tab.untracked {
+  color: var(--workbench-files-untracked-foreground);
+}
+
+.code .editor .tabs .tab.modified {
+  color: var(--workbench-files-modified-foreground);
+}
+
+.code .editor .tabs .tab.ignored {
+  color: var(--workbench-ignored-untracked-foreground);
+}
+
+.code .editor .tabs .tab.error {
+  color: var(--workbench-error-untracked-foreground);
+}
+
 .code .editor .tabs .tab .name {
   font-size: 17px !important;
 }
 
 .code .editor .tabs .tab.active {
   background: var(--workbench-editor-background) !important;
-}
-
-.code .editor .tabs .tab:not(.active):hover {
-  color: var(--workbench-tabs-foreground) !important;
 }
 
 .code .editor .tabs .tab .close-icon {
@@ -77,10 +95,22 @@
   max-width: 100% !important;
 }
 
+.code .editor .preview-area .preview-content hr {
+  border: none;
+  height: 1px;
+  background: var(--workbench-preview-markdown-hr-foreground) !important;
+}
+
+.code .editor .preview-area .preview-content pre code span {
+  overflow: hidden;
+  text-overflow: wrap;
+  white-space: wrap;
+}
+
 .code .editor .preview-area .preview-content pre {
-  padding-top: 15px !important;
   position: relative;
   width: 100%;
+  border-radius: 10px;
   background: var(--workbench-preview-markdown-code-background);
   padding: 0;
 }
@@ -94,13 +124,12 @@
   align-items: center;
   justify-content: center;
   position: absolute;
-  top: -0px;
+  top: 10px;
   right: 10px;
   cursor: pointer;
-  padding: 2px 10px;
-  background: var(--workbench-secondary-button-background);
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
+  padding: 4px 10px;
+  background: var(--workbench-preview-markdown-copy-background);
+  border-radius: 12px;
 }
 
 .code .editor .preview-area .preview-content pre .run {
@@ -108,14 +137,12 @@
   align-items: center;
   justify-content: center;
   position: absolute;
-  gap: 5px;
-  top: -0px;
+  top: 10px;
   right: 85px;
   cursor: pointer;
-  padding: 2px 10px;
-  background: var(--workbench-secondary-button-background);
-  border-bottom-left-radius: 6px;
-  border-bottom-right-radius: 6px;
+  padding: 4px 10px;
+  background: var(--workbench-preview-markdown-run-background);
+  border-radius: 12px;
 }
 
 .code .editor .preview-area .preview-content pre .run span {
@@ -123,11 +150,15 @@
 }
 
 .code .editor .preview-area .preview-content pre .copy:hover {
-  background: var(--workbench-hover-background);
+  background: var(--workbench-preview-markdown-copy-hover-background);
 }
 
 .code .editor .preview-area .preview-content pre .run:hover {
-  background: var(--workbench-hover-background);
+  background: var(--workbench-preview-markdown-run-hover-background);
+}
+
+.code .editor .preview-area .preview-content pre code .hljs-comment {
+  font-style: normal !important;
 }
 
 .code .editor .preview-area .preview-content a {
@@ -146,16 +177,15 @@
 }
 
 .code .editor .preview-area .preview-content h1 {
-  border-bottom: 1px solid var(--workbench-border-foreground);
-  padding: 0 !important;
-  margin: 0 !important;
-  padding: 10px 0 !important;
+  border-bottom: 2px solid var(--workbench-preview-markdown-hr-foreground);
+  padding-bottom: 20px !important;
+  margin-top: 10px !important;
   font-weight: 800;
 }
 
 .code .editor .preview-area .preview-content h2 {
   border-bottom: 1px solid var(--workbench-border-foreground);
-  padding: 0 !important;
+  /* padding: 0 !important; */
   margin: 0 !important;
   padding: 10px 0 !important;
   font-weight: 800;

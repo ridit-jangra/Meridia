@@ -105,6 +105,11 @@ export const ThemeColors = [
   "workbench.editor.suggestion.active.background",
   "workbench.editor.widget.background",
   "workbench.preview.markdown.code.background",
+  "workbench.preview.markdown.copy.background",
+  "workbench.preview.markdown.copy.hover.background",
+  "workbench.preview.markdown.run.background",
+  "workbench.preview.markdown.run.hover.background",
+  "workbench.preview.markdown.hr.foreground",
   "workbench.mira.message.user.background",
   "workbench.mira.message.user.foreground",
   "workbench.mira.message.user.border.foreground",
@@ -194,6 +199,7 @@ export interface IEditorTab {
   uri: string;
   is_touched: boolean;
   active: boolean;
+  status: "modified" | "untracked" | "removed" | "ignored" | "default";
 }
 
 export interface IPreviewTab {
@@ -201,6 +207,7 @@ export interface IPreviewTab {
   icon?: string;
   uri: string;
   active: boolean;
+  is_preview: boolean;
 }
 
 export interface IDevTab {

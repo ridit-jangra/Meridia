@@ -285,6 +285,7 @@ export class Editor {
         uri: _uri,
         active: true,
         is_touched: false,
+        status: "default",
       };
 
       const updatedTabs = [
@@ -430,14 +431,14 @@ export class Editor {
     this._problemsCountElement = _problems;
     _detail.appendChild(_problems);
 
-    // Preview button
     this._preview = document.createElement("div");
     this._preview.className = "preview";
     this._preview.innerHTML = getThemeIcon("preview");
     this._preview.onclick = () => {
       const _tabs = select((s) => s.main.editor_tabs);
       const _active = _tabs.find((t) => t.active);
-      if (_active) _previewManager._open(_active, this._editor);
+      if (_active)
+        _previewManager._open({ ..._active, is_preview: true }, this._editor);
     };
 
     this._layout.appendChild(_detail);
