@@ -16,6 +16,8 @@ export function openExtensionTab(extension: IExtension) {
     uri: uri,
     is_touched: false,
     active: true,
+    badge: "D",
+    status: "default",
   };
 
   openTab(_tab);

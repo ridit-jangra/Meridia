@@ -176,7 +176,7 @@ export const Dark: ITheme = {
     "workbench.background": "#141414",
     "workbench.foreground": "#e6e6e6",
     "workbench.hover.background": "#2A2A2A99",
-    "workbench.secondary.foreground": "#e6e6e699",
+    "workbench.secondary.foreground": "#000",
     "workbench.border.foreground": "#e6e6e60D",
     "workbench.icon.foreground": "#e6e6e699",
     "workbench.item.hover.background": "#2A2A2A99",
@@ -201,7 +201,7 @@ export const Dark: ITheme = {
     "workbench.tabs.icon.foreground": "#505050",
     "workbench.tabs.icon.active.foreground": "#e6e6e6",
     "workbench.tabs.hover.background": "#e6e6e600",
-    "workbench.tabs.active.background": "#222222",
+    "workbench.tabs.active.background": "#2A2A2A99",
     "workbench.tabs.active.foreground": "#e6e6e6",
     "workbench.tabs.active.border.foreground": "#1a1a1a",
 
@@ -302,7 +302,7 @@ export const Dark: ITheme = {
 
     "workbench.statusbar.background": "#141414",
     "workbench.statusbar.foreground": "#e6e6e682",
-    "workbench.statusbar.item.hover.background": "#404040",
+    "workbench.statusbar.item.hover.background": "#2A2A2A99",
 
     "workbench.drawboard.background": "#141414",
     "workbench.drawboard.canvas.background": "#1a1a1a",
@@ -315,8 +315,8 @@ export const Dark: ITheme = {
     "workbench.drawboard.tools.tool.active.border.foreground": "#81A1C1",
 
     "workbench.jupyter.notebook.background": "#141414",
-    "workbench.jupyter.notebook.tools.background": "#141414",
-    "workbench.jupyter.notebook.tools.hover.background": "#2A2A2A99",
+    "workbench.jupyter.notebook.tools.background": "#1F1F1F99",
+    "workbench.jupyter.notebook.tools.hover.background": "#141414",
 
     "workbench.files.default.foreground": "#6F6F6F",
     "workbench.files.icon.foreground": "#6F6F6F",

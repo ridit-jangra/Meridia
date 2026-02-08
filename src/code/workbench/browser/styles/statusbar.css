@@ -11,20 +11,29 @@
 }
 
 .code .statusbar .item-section {
-  height: 40px;
+  height: 100%;
   display: flex;
   align-items: center;
+  gap: 6px;
 }
 
 .code .statusbar .item-section span {
-  padding: 2px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0px 8px;
   border-radius: 4px;
   cursor: pointer;
 }
 
-.code .statusbar .item-section span:hover,
-.hovered {
+.code .statusbar .item-section span:hover {
   background: var(--workbench-statusbar-item-hover-background);
+}
+
+.code .statusbar .item-section .sub-item-section {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .code .statusbar .breadcrumb-container .breadcrumb-item {

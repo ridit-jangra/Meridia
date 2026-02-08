@@ -49,7 +49,8 @@ class XtermManager {
     _container.style.background = "var(--workbench-terminal-background)";
     _container.style.display = "flex";
     _container.style.flexDirection = "column";
-    _container.style.padding = "12px";
+    _container.style.paddingTop = "12px";
+    _container.style.paddingLeft = "12px";
 
     const term = new XTerm({
       scrollback: 1000,
@@ -133,28 +134,23 @@ class XtermManager {
       _ptyDataListener: onPtyData,
     });
 
-    // Ensure font is loaded before fitting with multiple attempts
     const ensureFontLoaded = async () => {
       try {
-        // Wait for all fonts to be ready
         await document.fonts.ready;
-        // Explicitly load JetBrains Mono
-        await document.fonts.load('18px "Jetbrains Mono"');
-      } catch (e) {
-        // Fallback if font loading API fails
-      }
 
-      // Multiple fit attempts to ensure proper rendering
+        await document.fonts.load('18px "Jetbrains Mono"');
+      } catch (e) {}
+
       requestAnimationFrame(() => {
-        term.refresh(0, term.rows - 1);
+        term.refresh(0, term.rows - 4);
         fitAddon.fit();
         setTimeout(() => {
-          term.refresh(0, term.rows - 1);
+          term.refresh(0, term.rows - 4);
           fitAddon.fit();
           this._update();
-          // One more fit after a longer delay
+
           setTimeout(() => {
-            term.refresh(0, term.rows - 1);
+            term.refresh(0, term.rows - 4);
             fitAddon.fit();
           }, 200);
         }, 100);
@@ -185,7 +181,6 @@ class XtermManager {
   }
 
   _update() {
-    // Use requestAnimationFrame for better timing with browser rendering
     requestAnimationFrame(() => {
       setTimeout(() => {
         for (const [_, instance] of this._terminals) {
@@ -195,7 +190,6 @@ class XtermManager {
 
             if (!parentElement) continue;
 
-            // Ensure parent has dimensions
             const parentHeight = parentElement.clientHeight;
             if (parentHeight === 0) continue;
 
@@ -205,8 +199,7 @@ class XtermManager {
             instance._container.style.width = "100%";
             instance._container.style.overflow = "hidden";
 
-            // Force refresh to ensure font is properly rendered
-            instance.term.refresh(0, instance.term.rows - 1);
+            instance.term.refresh(0, instance.term.rows - 4);
             instance._fitAddon.fit();
           } catch (e) {}
         }
@@ -218,13 +211,12 @@ class XtermManager {
     if (id) {
       const instance = this._terminals.get(id);
       if (instance) {
-        instance.term.refresh(0, instance.term.rows - 1);
+        instance.term.refresh(0, instance.term.rows - 4);
         instance._fitAddon.fit();
       }
     } else {
-      // Refresh all terminals
       for (const [_, instance] of this._terminals) {
-        instance.term.refresh(0, instance.term.rows - 1);
+        instance.term.refresh(0, instance.term.rows - 4);
         instance._fitAddon.fit();
       }
     }
@@ -269,7 +261,8 @@ class XtermManager {
     _container.style.background = "var(--workbench-terminal-background)";
     _container.style.display = "flex";
     _container.style.flexDirection = "column";
-    _container.style.padding = "12px";
+    _container.style.paddingTop = "12px";
+    _container.style.paddingLeft = "12px";
     _container.style.overflow = "hidden";
     _container.style.boxSizing = "border-box";
 
@@ -355,24 +348,19 @@ class XtermManager {
       },
     );
 
-    // Ensure font is loaded before fitting with multiple attempts
     const ensureFontLoaded = async () => {
       try {
-        // Wait for all fonts to be ready
         await document.fonts.ready;
-        // Explicitly load JetBrains Mono
-        await document.fonts.load('18px "Jetbrains Mono"');
-      } catch (e) {
-        // Fallback if font loading API fails
-      }
 
-      // Multiple fit attempts to ensure proper rendering
+        await document.fonts.load('18px "Jetbrains Mono"');
+      } catch (e) {}
+
       setTimeout(() => {
-        term.refresh(0, term.rows - 1);
+        term.refresh(0, term.rows - 4);
         fitAddon.fit();
         this._update();
         setTimeout(() => {
-          term.refresh(0, term.rows - 1);
+          term.refresh(0, term.rows - 4);
           fitAddon.fit();
         }, 200);
       }, 100);
@@ -448,8 +436,6 @@ ipcRenderer.on("reset-sizes", () => {
 });
 
 document.addEventListener("workbench.workspace.virtual.env.complete", () => {
-  console.log("virtual env got event");
-
   _xtermManager._terminals.forEach((v, i) => {
     v.term.clear();
 

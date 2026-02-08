@@ -1,6 +1,12 @@
 import { select } from "../common/store/selector.js";
+import { update_editor_tabs } from "../common/store/slice.js";
+import { dispatch } from "../common/store/store.js";
+import { getBadge } from "../common/utils.js";
+import { IEditorTab } from "../workbench.types.js";
 import { CoreEl } from "./parts/core.js";
 import { Tooltip } from "./parts/tooltip/tooltip.js";
+
+const path = window.path;
 
 export class Git extends CoreEl {
   private changesList!: HTMLDivElement;
@@ -14,6 +20,47 @@ export class Git extends CoreEl {
     super();
 
     this._createEl();
+  }
+
+  private _handleOpenFile(uri: string, name: string, state: any) {
+    const stateValue = select((s) => s.main.editor_tabs);
+    const normalizedUri = path.normalize(uri);
+
+    let currentTabs: IEditorTab[] = [];
+    if (Array.isArray(stateValue)) {
+      currentTabs = stateValue;
+    } else if (stateValue && typeof stateValue === "object") {
+      currentTabs = Object.values(stateValue);
+    }
+
+    const existingIndex = currentTabs.findIndex(
+      (tab) => tab.uri === normalizedUri,
+    );
+
+    if (existingIndex !== -1) {
+      const updatedTabs = currentTabs.map((tab, index) => ({
+        ...tab,
+        active: index === existingIndex,
+      }));
+      dispatch(update_editor_tabs(updatedTabs));
+    } else {
+      const badge = getBadge(state);
+
+      const newTab: IEditorTab = {
+        name,
+        uri: normalizedUri,
+        active: true,
+        is_touched: false,
+        status: state,
+        badge: badge,
+      };
+
+      const updatedTabs = [
+        ...currentTabs.map((tab) => ({ ...tab, active: false })),
+        newTab,
+      ];
+      dispatch(update_editor_tabs(updatedTabs));
+    }
   }
 
   private _createEl() {
@@ -143,7 +190,11 @@ export class Git extends CoreEl {
           500,
         );
         fileName.className = "file-name";
-        fileName.textContent = window.path.basename(filePath);
+        fileName.textContent = path.basename(filePath);
+
+        item.onclick = () => {
+          this._handleOpenFile(filePath, path.basename(filePath), status);
+        };
 
         item.appendChild(fileName);
         item.appendChild(badgeEl);

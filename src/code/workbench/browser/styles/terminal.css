@@ -23,6 +23,10 @@
   outline: 2px solid var(--workbench-background);
 }
 
+.code .terminal-container .add:hover {
+  background: var(--workbench-hover-background);
+}
+
 .code .terminal-container .add svg {
   width: 18px;
   height: auto;

@@ -488,11 +488,13 @@
 
 .code .editor .details {
   position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   top: 0px;
   right: 20px;
   z-index: 10;
-  background: var(--workbench-background);
-  width: 35px;
+  width: 80px;
   height: 35px;
   border-radius: 10px;
   display: flex;
@@ -501,8 +503,12 @@
 }
 
 .code .editor .details .problems {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: var(--workbench-terminal-color1);
-  width: 90%;
+  outline: 2px solid var(--workbench-background);
+  width: 35px;
   height: 90%;
   border-radius: 8px;
   display: flex;
@@ -510,6 +516,22 @@
   justify-content: center;
   cursor: pointer;
   color: var(--workbench-foreground);
+}
+
+.code .editor .details .warnings {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--workbench-terminal-color3);
+  outline: 2px solid var(--workbench-background);
+  width: 35px;
+  height: 90%;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--workbench-secondary-foreground);
 }
 
 .code .editor .preview {
@@ -528,6 +550,21 @@
   cursor: pointer;
 }
 
+.code .editor .details .none-div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--workbench-terminal-color16);
+  outline: 2px solid var(--workbench-background);
+  width: 35px;
+  height: 35px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
 .code .editor .preview svg {
   width: 18px;
   height: auto;
@@ -535,17 +572,6 @@
 
 .code .editor .details .problems.none {
   display: none;
-}
-
-.code .editor .details .none-div {
-  background: var(--workbench-terminal-color16);
-  width: 90%;
-  height: 90%;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
 }
 
 .code .editor .editor-area .content-area {
