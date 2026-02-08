@@ -5,7 +5,7 @@ import hljs from "highlight.js";
 import { baseUrl } from "marked-base-url";
 import { CellEditor } from "../common/editor.js";
 import { ICell, ISelectedCell } from "../../../../workbench/workbench.types.js";
-import { NotebookLSP } from "../common/notebookLsp.js";
+// import { NotebookLSP } from "../common/notebookLsp.js";
 
 export class NotebookCell {
   private _selectedCell?: ISelectedCell;
@@ -59,7 +59,7 @@ export class NotebookCell {
     }
 
     if (this.kernelConnection) {
-      NotebookLSP.setKernelConnection(this.kernelConnection);
+      // NotebookLSP.setKernelConnection(this.kernelConnection);
     }
 
     const editorEl = cellEl.querySelector(".editor") as HTMLDivElement;

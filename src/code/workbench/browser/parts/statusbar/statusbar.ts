@@ -1,7 +1,14 @@
 import { store } from "../../../common/store/store.js";
 import { select, watch } from "../../../common/store/selector.js";
-import { getRelativePath } from "../../../common/utils.js";
+import {
+  capitalize,
+  getLanguage,
+  getRelativePath,
+} from "../../../common/utils.js";
 import { CoreEl } from "../core.js";
+import { Tooltip } from "../tooltip/tooltip.js";
+import { _editor } from "../../../../editor/editors/editor.js";
+import { getThemeIcon } from "../../media/icons.js";
 
 interface SymbolInfo {
   name: string;
@@ -67,14 +74,91 @@ export class Statusbar extends CoreEl {
         const relativePath = getRelativePath(_root.uri ?? "", _active.uri);
         const breadcrumbItems = this._createBreadcrumbItems(
           _root.name,
-          relativePath
+          relativePath,
         );
         this._renderBreadcrumb(_breadcrumbContainer, breadcrumbItems);
-      }
+      },
     );
 
     const itemSection = document.createElement("div");
     itemSection.className = "item-section";
+
+    const editorSection = document.createElement("div");
+    editorSection.className = "sub-item-section";
+
+    const lineSection = new Tooltip()._getEl(
+      document.createElement("span"),
+      "Go to Line/Column",
+      "top",
+    );
+    const languageSection = new Tooltip()._getEl(
+      document.createElement("span"),
+      "Select Language Mode",
+      "top",
+    );
+    const indentationSection = new Tooltip()._getEl(
+      document.createElement("span"),
+      "Select Indentation",
+      "top",
+    );
+    const encodingSection = new Tooltip()._getEl(
+      document.createElement("span"),
+      "Select Encoding",
+      "top",
+    );
+
+    const notificationSection = new Tooltip()._getEl(
+      document.createElement("span"),
+      "Notification",
+      "top",
+    );
+
+    notificationSection.innerHTML = getThemeIcon("bell");
+
+    encodingSection.textContent = "UTF-8"; // only for now, will be adding encoding tracking and changing in future.
+
+    watch(
+      (s) => s.main.editor_tabs,
+      (v) => {
+        const active = v.find((v) => v.active);
+        if (!active) {
+          editorSection.style.display = "none";
+          return;
+        } else editorSection.style.display = "flex";
+
+        const language = getLanguage(active.uri);
+
+        languageSection.textContent = capitalize(language);
+      },
+    );
+
+    document.addEventListener(
+      "workbench.workspace.editor.cursor.position.change",
+      (_event) => {
+        const _customEvent = _event as CustomEvent;
+        const { line, column } = _customEvent.detail.action;
+
+        lineSection.textContent = `Ln ${line}, Col ${column}`;
+      },
+    );
+
+    document.addEventListener(
+      "workbench.workspace.editor.indentation.change",
+      (_event) => {
+        const _customEvent = _event as CustomEvent;
+        const { indentation } = _customEvent.detail.action;
+
+        indentationSection.textContent = `Spaces: ${indentation}`;
+      },
+    );
+
+    editorSection.appendChild(lineSection);
+    editorSection.appendChild(indentationSection);
+    editorSection.appendChild(encodingSection);
+    editorSection.appendChild(languageSection);
+
+    itemSection.appendChild(editorSection);
+    itemSection.appendChild(notificationSection);
 
     this._el.appendChild(_breadcrumbContainer);
     this._el.appendChild(itemSection);
@@ -82,7 +166,7 @@ export class Statusbar extends CoreEl {
 
   private _createBreadcrumbItems(
     rootName: string,
-    relativePath: string
+    relativePath: string,
   ): string[] {
     if (!relativePath || relativePath === "./") {
       return [rootName];
@@ -109,7 +193,7 @@ export class Statusbar extends CoreEl {
       const relativePath = getRelativePath(_root.uri ?? "", _active.uri);
       baseBreadcrumbItems = this._createBreadcrumbItems(
         _root.name,
-        relativePath
+        relativePath,
       );
     }
 

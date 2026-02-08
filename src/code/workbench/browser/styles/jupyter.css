@@ -64,7 +64,7 @@
 .code .jupyter-notebook .book .cell-tree {
   display: flex;
   flex-direction: column;
-  padding: 0 30px;
+  /* padding: 0 30px; */
   height: 100%;
   gap: 12px;
   overflow-y: auto;
@@ -222,7 +222,7 @@
 .code .jupyter-notebook .book .cell-tree .cell .output .output-result pre {
   margin: 0;
   padding: 8px;
-  background: var(--workbench-preview-markdown-code-background);
+  background: var(--workbench-jupyter-notebook-tools-background);
   border-radius: 3px;
   overflow-x: auto;
   font-family: "Courier New", monospace;
@@ -239,7 +239,7 @@
   .output-result
   .output-html {
   padding: 8px;
-  background: var(--workbench-editor-background);
+  background: var(--workbench-jupyter-notebook-tools-background);
   border-radius: 4px;
   overflow: auto;
   max-width: 100%;
@@ -495,7 +495,7 @@
   .output-result
   .output-svg {
   padding: 8px;
-  background: var(--workbench-editor-background);
+  background: var(--workbench-jupyter-notebook-tools-background);
   border-radius: 4px;
   overflow: auto;
   max-width: 100%;
@@ -677,11 +677,11 @@
 
 .code .jupyter-notebook .book .cell-tree .cell .output .output-stream {
   padding: 12px;
-  background: var(--workbench-preview-markdown-code-background);
+  background: var(--workbench-jupyter-notebook-tools-background);
   color: var(--workbench-editor-foreground);
   border-radius: 4px;
   margin: 4px 0;
-  font-family: "Courier New", monospace;
+  font-family: "Jetbrains Mono", monospace;
   font-size: 13px;
   line-height: 1.5;
   overflow-x: auto;

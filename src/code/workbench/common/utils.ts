@@ -324,6 +324,8 @@ export function getLanguage(_path: string) {
       return "xml";
     case "rs":
       return "rust";
+    case "ipynb":
+      return "notebook";
     case "yaml":
     case "yml":
       return "yaml";
@@ -413,6 +415,9 @@ export function getBadge(
 
   return badgeRecord[status];
 }
+
+export const capitalize = (s?: string) =>
+  s ? s[0]!.toUpperCase() + s.slice(1) : "";
 
 export const normalizePath = (path: string) => path.replace(/\\\\/g, "\\");
 export const unNormalizePath = (path: string) => path.replace(/\\/g, "\\\\");

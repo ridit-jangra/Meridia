@@ -59,6 +59,7 @@ export class Editor {
   private _preview!: HTMLDivElement;
   private _detailsElement?: HTMLElement;
   private _problemsCountElement?: HTMLElement;
+  private _warningsCountElement?: HTMLElement;
 
   private _models = new Map<string, monaco.editor.ITextModel>();
   private _watchers = new Map<string, any>();
@@ -105,7 +106,6 @@ export class Editor {
     const filePath = uriString;
     const extension = path.extname(filePath).substring(1);
     const languageName = getLanguage(extension);
-    const serverPort = getLanguageServer(extension);
 
     currentMarkers.forEach((marker) => {
       const eventType = this._getMarkerEventType(marker.severity);
@@ -286,6 +286,7 @@ export class Editor {
         active: true,
         is_touched: false,
         status: "default",
+        badge: "D",
       };
 
       const updatedTabs = [
@@ -411,15 +412,14 @@ export class Editor {
     this._preview = undefined as any;
     this._detailsElement = undefined as any;
     this._problemsCountElement = undefined as any;
+    this._warningsCountElement = undefined as any;
   }
 
   private _createLayoutElements() {
-    // Details container
     const _detail = document.createElement("div");
     _detail.className = "details";
     this._detailsElement = _detail;
 
-    // Problems counter
     const _problems = document.createElement("div");
     _problems.className = "problems";
     _problems.onclick = () => {
@@ -430,6 +430,17 @@ export class Editor {
     };
     this._problemsCountElement = _problems;
     _detail.appendChild(_problems);
+
+    const _warnings = document.createElement("div");
+    _warnings.className = "warnings";
+    _warnings.onclick = () => {
+      const _tabs = getStandalone(
+        "workbench.workspace.dev.tab",
+      ) as DevPanelTabs;
+      if (_tabs) _tabs._set("problem");
+    };
+    this._warningsCountElement = _warnings;
+    _detail.appendChild(_warnings);
 
     this._preview = document.createElement("div");
     this._preview.className = "preview";
@@ -472,6 +483,7 @@ export class Editor {
       fixedOverflowWidgets: true,
       links: true,
       linkedEditing: true,
+      tabSize: 4,
       dragAndDrop: true,
       renderLineHighlight: "all",
       renderLineHighlightOnlyWhenFocus: false,
@@ -537,6 +549,76 @@ export class Editor {
     this._setupCursorTracking();
     this._actions();
     this._setupSymbolTracking();
+    this._setupOptionTracker();
+  }
+
+  private _setupOptionTracker() {
+    if (!this._editor) return;
+
+    const position = this._editor.getPosition()!;
+    const indentation = this._editor.getModel()?.getOptions().tabSize;
+
+    const positionEvent = new CustomEvent(
+      "workbench.workspace.editor.cursor.position.change",
+      {
+        detail: {
+          action: {
+            line: position.lineNumber,
+            column: position.column,
+          },
+        },
+      },
+    );
+    document.dispatchEvent(positionEvent);
+
+    const indentationEvent = new CustomEvent(
+      "workbench.workspace.editor.indentation.change",
+      {
+        detail: {
+          action: {
+            indentation: indentation,
+          },
+        },
+      },
+    );
+    document.dispatchEvent(indentationEvent);
+
+    this._editor.onDidChangeModelOptions((e) => {
+      if (this.timer) window.clearTimeout(this.timer);
+
+      this.timer = window.setTimeout(async () => {
+        const event = new CustomEvent(
+          "workbench.workspace.editor.indentation.change",
+          {
+            detail: {
+              action: {
+                indentation: e.tabSize,
+              },
+            },
+          },
+        );
+        document.dispatchEvent(event);
+      }, 10);
+    });
+
+    this._editor.onDidChangeCursorPosition((e) => {
+      if (this.timer) window.clearTimeout(this.timer);
+
+      this.timer = window.setTimeout(async () => {
+        const event = new CustomEvent(
+          "workbench.workspace.editor.cursor.position.change",
+          {
+            detail: {
+              action: {
+                line: e.position.lineNumber,
+                column: e.position.column,
+              },
+            },
+          },
+        );
+        document.dispatchEvent(event);
+      }, 10);
+    });
   }
 
   private _setupSymbolTracking() {
@@ -579,8 +661,17 @@ export class Editor {
       (m) => m.severity === monaco.MarkerSeverity.Warning,
     ).length;
 
+    this._problemsCountElement!.textContent = errorCount.toString();
+
+    this._warningsCountElement!.textContent = warningCount.toString();
+
+    if (warningCount === 0) this._warningsCountElement!.style.display = "none";
+    else this._warningsCountElement!.style.display = "flex";
+
+    if (errorCount === 0) this._problemsCountElement!.style.display = "none";
+    else this._problemsCountElement!.style.display = "flex";
+
     const totalProblems = errorCount + warningCount;
-    this._problemsCountElement!.textContent = totalProblems.toString();
 
     if (totalProblems === 0) {
       this._setNoProblemsState();
@@ -590,9 +681,10 @@ export class Editor {
   }
 
   private _setNoProblemsState() {
-    if (!this._problemsCountElement) return;
+    if (!this._problemsCountElement || !this._warningsCountElement) return;
 
     this._problemsCountElement.classList.add("none");
+    this._warningsCountElement.classList.add("none");
 
     let noneDiv = this._detailsElement?.querySelector(".none-div");
     if (!noneDiv) {
@@ -611,9 +703,10 @@ export class Editor {
   }
 
   private _clearNoProblemsState() {
-    if (!this._problemsCountElement) return;
+    if (!this._problemsCountElement || !this._warningsCountElement) return;
 
     this._problemsCountElement.classList.remove("none");
+    this._warningsCountElement.classList.remove("none");
 
     const noneDiv = this._detailsElement?.querySelector(".none-div");
     if (noneDiv) {

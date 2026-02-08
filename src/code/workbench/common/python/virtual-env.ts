@@ -17,7 +17,6 @@ function sendCompleteEvent() {
       detail: { action: "detaitls" },
     },
   );
-  console.log("virtual env send event");
   document.dispatchEvent(menuEvent);
 }
 
@@ -126,7 +125,6 @@ async function update_env(venv_folder_name: string) {
 }
 
 window.ipc.on("virtual-env-update", (event: any, venv_folder_name: string) => {
-  console.log("got event virutal env", venv_folder_name);
   update_env(venv_folder_name);
 });
 

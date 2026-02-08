@@ -8,6 +8,7 @@ import {
   ISelectedCell,
 } from "../../../../workbench/workbench.types.js";
 import { NotebookCell } from "./cell.js";
+import { Tooltip } from "../../../../workbench/browser/parts/tooltip/tooltip.js";
 
 const fs = window.fs;
 const jupyter = window.jupyter;
@@ -89,7 +90,7 @@ export class Book {
         root: this._tree,
         rootMargin: "300px",
         threshold: 0.01,
-      }
+      },
     );
   }
 
@@ -177,7 +178,7 @@ export class Book {
           notebookCell.updateCellType(newType);
 
           const cellIndex = this._cells.findIndex(
-            (c) => c.id === active.cell.id
+            (c) => c.id === active.cell.id,
           );
           if (cellIndex !== -1) {
             this._cells[cellIndex]!.cell_type = newType;
@@ -246,12 +247,12 @@ export class Book {
                 ipcRenderer.invoke(
                   "workbench.workspace.stdin.response",
                   requestId,
-                  value
+                  value,
                 );
               }
             }
           }
-        }
+        },
       );
     }
   }
@@ -379,7 +380,7 @@ export class Book {
 
       const cellElements = Array.from(this._tree.querySelectorAll(".cell"));
       const cellElIndex = cellElements.findIndex(
-        (el) => (el as any)._selectedCell?.cell.id === cell.cell.id
+        (el) => (el as any)._selectedCell?.cell.id === cell.cell.id,
       );
       if (cellElIndex > 0) {
         this._tree.insertBefore(cell.cellEl, cellElements[cellElIndex - 1]!);
@@ -404,7 +405,7 @@ export class Book {
 
       const cellElements = Array.from(this._tree.querySelectorAll(".cell"));
       const cellElIndex = cellElements.findIndex(
-        (el) => (el as any)._selectedCell?.cell.id === cell.cell.id
+        (el) => (el as any)._selectedCell?.cell.id === cell.cell.id,
       );
       if (cellElIndex < cellElements.length - 1) {
         this._tree.insertBefore(cellElements[cellElIndex + 1]!, cell.cellEl);
@@ -507,7 +508,7 @@ export class Book {
 
   private async _renderSingleCell(
     cell: ICell,
-    index: number
+    index: number,
   ): Promise<HTMLDivElement> {
     const cellTools = this._createCellTools();
 
@@ -521,7 +522,7 @@ export class Book {
           this._cells[cellIndex]!.source = content;
         }
       },
-      () => this._update(this.filePath, true)
+      () => this._update(this.filePath, true),
     );
 
     this._notebookCells.set(cell.id, notebookCell);
@@ -545,7 +546,7 @@ export class Book {
 
   private async _initializeCellEditor(
     notebookCell: NotebookCell,
-    cellEl: HTMLDivElement
+    cellEl: HTMLDivElement,
   ) {
     const selectedCell = await notebookCell.initializeEditor(cellEl);
 
@@ -615,7 +616,7 @@ export class Book {
         if (notebookCell) {
           const created = await this._initializeCellEditor(
             notebookCell,
-            cellEl
+            cellEl,
           );
 
           if (this._cells.length === 1) {
@@ -654,7 +655,7 @@ export class Book {
     const _updated = select((s) => s.main.editor_tabs).map((tab) =>
       this._normalizePath(tab.uri) === this._normalizePath(uriString)
         ? { ...tab, is_touched: _touched }
-        : tab
+        : tab,
     );
 
     dispatch(update_editor_tabs(_updated));
@@ -766,7 +767,7 @@ export class Book {
       await notebookCell.executeCode(
         this._sessionId!,
         (sessionId: string, code: string) =>
-          jupyter.executeToKernel(sessionId, code)
+          jupyter.executeToKernel(sessionId, code),
       );
     }
 
@@ -813,7 +814,7 @@ export class Book {
 
   private _setupCellSelection(
     cellEl: HTMLDivElement,
-    notebookCell: NotebookCell
+    notebookCell: NotebookCell,
   ) {
     cellEl.addEventListener("focusin", () => {
       const selectedCell = notebookCell.getSelectedCell();
@@ -842,7 +843,7 @@ export class Book {
     (cell.cellEl as any)._selectedCell = cell;
 
     const canonicalCellIndex = this._cells.findIndex(
-      (c) => c.id === cell.cell.id
+      (c) => c.id === cell.cell.id,
     );
     let currentType: "markdown" | "code";
 
@@ -857,7 +858,11 @@ export class Book {
   }
 
   private _iconButton(iconName: string, onClick: () => void) {
-    const el = document.createElement("span");
+    const el = new Tooltip()._getEl(
+      document.createElement("span"),
+      iconName,
+      "top",
+    );
     el.innerHTML = getThemeIcon(iconName);
     el.onclick = onClick;
     return el;
