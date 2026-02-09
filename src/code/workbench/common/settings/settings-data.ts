@@ -119,9 +119,9 @@ export const settingsContent: {
           label: "Font Family",
           description: "Controls the font family used in the editor.",
           type: "select",
-          default: "Jetbrains Mono, monospace",
+          default: "Jetbrains Mono",
           options: [
-            "Jetbrains Mono, monospace",
+            "Jetbrains Mono",
             "Fira Code, monospace",
             "Consolas, monospace",
             "Monaco, monospace",

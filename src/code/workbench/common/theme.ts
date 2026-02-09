@@ -1,8 +1,6 @@
 import { Dark, Light } from "../../platform/themes/themes.js";
-import { updateAllThemeIcons } from "../browser/media/icons.js";
 import { ITheme, IThemeColors } from "../workbench.types.js";
 import { registerStandalone } from "./class.js";
-import { settingsManager } from "./settings/settings-manager.js";
 import { tokensToCssVariables } from "./utils.js";
 
 export class Theme {
@@ -20,12 +18,16 @@ export class Theme {
 
     if (!this._mainProcess) {
       this.setTheme("Dark");
+      this.setupListener();
     }
+  }
+
+  private async setupListener() {
+    const { settingsManager } = await import("./settings/settings-manager.js");
 
     settingsManager.watch("appearance.colorTheme", (value) => {
       this.setTheme(value);
-
-      updateAllThemeIcons();
+      if (!this._mainProcess) window.ipc.send("workspace.theme.change", value);
     });
   }
 
@@ -71,7 +73,6 @@ export class Theme {
     }
   }
 
-  // Subscribe to theme changes
   onThemeChange(callback: () => void) {
     this._themeChangeCallbacks.add(callback);
     return () => {

@@ -148,7 +148,7 @@ export class SidebarTree extends CoreEl {
       const childIcon = document.createElement("span");
       childIcon.className = "icon";
 
-      childIcon.innerHTML = child.icon ?? getThemeIcon("framework");
+      childIcon.appendChild(getThemeIcon(child.icon ?? "framework"));
 
       const childName = document.createElement("span");
       childName.className = "name";

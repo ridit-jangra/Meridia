@@ -109,6 +109,27 @@ function createWindow() {
     workbench.loadFile(MAIN_HTML_PATH);
   }
 
+  ipcMain.on("workspace.theme.change", (_, themeName: string) => {
+    _theme.setTheme(themeName);
+
+    workbench.setBackgroundColor(
+      _theme.getNodeColor("workbench.titlebar.background"),
+    );
+
+    const zoomFactor = workbench.webContents.getZoomFactor();
+    const _win = process.platform === "win32";
+    const base = 27;
+
+    const clamped = Math.min(Math.max(zoomFactor, 0.75), 2.0);
+    const newHeight = Math.round(base * 1.4 * clamped);
+
+    workbench.setTitleBarOverlay({
+      color: _theme.getNodeColor("workbench.titlebar.background"),
+      symbolColor: _theme.getNodeColor("workbench.titlebar.foreground"),
+      height: newHeight,
+    });
+  });
+
   function getTitlebarControlInsets() {
     const _inset = _win ? 170 : 95;
     return _inset;

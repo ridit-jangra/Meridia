@@ -2,6 +2,8 @@ import { ISettings } from "../../workbench.types";
 import { update_settings } from "../store/slice";
 import { dispatch } from "../store/store";
 
+const storage = window.storage;
+
 const DEFAULT_SETTINGS: ISettings = {
   "editor.fontFamily": "Jetbrains Mono, monospace",
   "editor.fontSize": 14,
@@ -44,7 +46,7 @@ class SettingsManager {
 
   private loadSettings(): ISettings {
     try {
-      const stored = localStorage.getItem("workbench.settings");
+      const stored = storage.get("workbench.settings");
       if (stored) {
         const parsed = JSON.parse(stored);
 
@@ -59,7 +61,7 @@ class SettingsManager {
 
   private saveSettings() {
     try {
-      localStorage.setItem("workbench.settings", JSON.stringify(this.settings));
+      storage.store("workbench.settings", JSON.stringify(this.settings));
       this.syncToStore();
     } catch (e) {
       console.error("Failed to save settings:", e);

@@ -1,3 +1,4 @@
+import { settingsManager } from "../../common/settings/settings-manager.js";
 import { _theme } from "../../common/theme.js";
 
 const path = window.path;

@@ -23,6 +23,7 @@ export class PanelOption extends CoreEl {
       this._name,
       this.position,
     );
+    this._el.className = "panel-option";
     if (this._icon) this._el.appendChild(this._icon);
     else this._el.textContent = this._name!;
 

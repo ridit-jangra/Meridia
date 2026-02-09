@@ -615,7 +615,7 @@ export class Editor {
       theme: "meridia-theme",
       automaticLayout: true,
       fontSize: fontSize,
-      // fontFamily: fontFamily,
+      fontFamily: fontFamily,
       lineHeight: lineHeight || 0,
       fontWeight: fontWeight,
       tabSize: tabSize,
