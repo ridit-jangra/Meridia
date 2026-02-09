@@ -1,7 +1,7 @@
 import { select } from "../common/store/selector.js";
 import { update_editor_tabs } from "../common/store/slice.js";
 import { dispatch } from "../common/store/store.js";
-import { getBadge } from "../common/utils.js";
+import { getBadge, getFileIcon } from "../common/utils.js";
 import { IEditorTab } from "../workbench.types.js";
 import { CoreEl } from "./parts/core.js";
 import { Tooltip } from "./parts/tooltip/tooltip.js";
@@ -179,9 +179,9 @@ export class Git extends CoreEl {
         const item = document.createElement("div");
         item.className = `file-item ${status}`;
 
-        const badgeEl = document.createElement("span");
-        badgeEl.className = "badge";
-        badgeEl.textContent = badge;
+        const icon = document.createElement("span");
+        icon.className = "icon";
+        icon.innerHTML = getFileIcon(filePath);
 
         const fileName = new Tooltip()._getEl(
           document.createElement("span"),
@@ -192,10 +192,15 @@ export class Git extends CoreEl {
         fileName.className = "file-name";
         fileName.textContent = path.basename(filePath);
 
+        const badgeEl = document.createElement("span");
+        badgeEl.className = "badge";
+        badgeEl.textContent = badge;
+
         item.onclick = () => {
           this._handleOpenFile(filePath, path.basename(filePath), status);
         };
 
+        item.appendChild(icon);
         item.appendChild(fileName);
         item.appendChild(badgeEl);
 

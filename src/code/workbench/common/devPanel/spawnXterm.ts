@@ -5,6 +5,7 @@ import { IXTermInstance } from "../../workbench.types.js";
 import { getStandalone } from "../class.js";
 import { Theme } from "../theme.js";
 import { select } from "../store/selector.js";
+import { settingsManager } from "../settings/settings-manager.js";
 
 const ipcRenderer = window.ipc;
 
@@ -19,6 +20,48 @@ class XtermManager {
     string,
     (status: "success" | "error" | "interrupted") => void
   >();
+  private _settingsWatchers: Array<() => void> = [];
+
+  constructor() {
+    this._setupSettingsWatchers();
+  }
+
+  private _setupSettingsWatchers() {
+    const fontFamilyWatcher = settingsManager.watch(
+      "terminal.font.family",
+      (value) => {
+        this._updateAllTerminals({ fontFamily: value });
+      },
+    );
+    this._settingsWatchers.push(fontFamilyWatcher);
+
+    const fontSizeWatcher = settingsManager.watch(
+      "terminal.font.size",
+      (value) => {
+        this._updateAllTerminals({ fontSize: value });
+      },
+    );
+    this._settingsWatchers.push(fontSizeWatcher);
+  }
+
+  private _updateAllTerminals(options: {
+    fontFamily?: string;
+    fontSize?: number;
+  }) {
+    this._terminals.forEach((instance) => {
+      if (options.fontFamily !== undefined) {
+        instance.term.options.fontFamily = options.fontFamily;
+      }
+      if (options.fontSize !== undefined) {
+        instance.term.options.fontSize = options.fontSize;
+      }
+
+      setTimeout(() => {
+        instance.term.refresh(0, instance.term.rows - 4);
+        instance._fitAddon.fit();
+      }, 50);
+    });
+  }
 
   private _dispatch(eventName: string, detail?: any) {
     const event = new CustomEvent(eventName, {
@@ -52,10 +95,13 @@ class XtermManager {
     _container.style.paddingTop = "12px";
     _container.style.paddingLeft = "12px";
 
+    const terminalFontFamily = settingsManager.get("terminal.font.family");
+    const terminalFontSize = settingsManager.get("terminal.font.size");
+
     const term = new XTerm({
       scrollback: 1000,
-      fontFamily: "Jetbrains Mono, monospace",
-      fontSize: 18,
+      fontFamily: terminalFontFamily,
+      fontSize: terminalFontSize,
       cursorBlink: true,
       cursorStyle: "bar",
       cursorInactiveStyle: "none",
@@ -138,7 +184,9 @@ class XtermManager {
       try {
         await document.fonts.ready;
 
-        await document.fonts.load('18px "Jetbrains Mono"');
+        await document.fonts.load(
+          `${terminalFontSize}px "${terminalFontFamily.split(",")[0]}"`,
+        );
       } catch (e) {}
 
       requestAnimationFrame(() => {
@@ -178,6 +226,9 @@ class XtermManager {
     for (const id of Array.from(this._terminals.keys())) {
       this._dispose(id);
     }
+
+    this._settingsWatchers.forEach((unwatch) => unwatch());
+    this._settingsWatchers = [];
   }
 
   _update() {
@@ -266,10 +317,13 @@ class XtermManager {
     _container.style.overflow = "hidden";
     _container.style.boxSizing = "border-box";
 
+    const terminalFontFamily = settingsManager.get("terminal.font.family");
+    const terminalFontSize = settingsManager.get("terminal.font.size");
+
     const term = new XTerm({
       scrollback: 1000,
-      fontFamily: "Jetbrains Mono",
-      fontSize: 18,
+      fontFamily: terminalFontFamily,
+      fontSize: terminalFontSize,
       cursorBlink: true,
       cursorStyle: "bar",
       cursorInactiveStyle: "none",
@@ -352,7 +406,9 @@ class XtermManager {
       try {
         await document.fonts.ready;
 
-        await document.fonts.load('18px "Jetbrains Mono"');
+        await document.fonts.load(
+          `${terminalFontSize}px "${terminalFontFamily.split(",")[0]}"`,
+        );
       } catch (e) {}
 
       setTimeout(() => {

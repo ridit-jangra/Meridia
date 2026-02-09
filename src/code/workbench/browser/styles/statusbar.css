@@ -3,7 +3,7 @@
   align-items: center;
   justify-content: space-between;
   background: var(--workbench-statusbar-background);
-  color: var(--workbench-secondary-foreground);
+  color: var(--workbench-statusbar-foreground);
   border-top: 1px solid var(--workbench-border-foreground);
   height: 40px;
   width: 100%;

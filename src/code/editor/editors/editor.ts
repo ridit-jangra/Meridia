@@ -28,6 +28,7 @@ import {
 import { DevPanelTabs } from "../../workbench/browser/parts/devPanel/tabs.js";
 import { getThemeIcon } from "../../workbench/browser/media/icons.js";
 import { _clients } from "../common/langserver.js";
+import { settingsManager } from "../../workbench/common/settings/settings-manager.js";
 
 const fs = window.fs;
 const path = window.path;
@@ -72,8 +73,132 @@ export class Editor {
 
   private _previousMarkers = new Map<string, monaco.editor.IMarker[]>();
 
+  private _settingsWatchers: Array<() => void> = [];
+
   constructor() {
     this._setupMarkerListener();
+    this._setupSettingsWatchers();
+  }
+
+  private _setupSettingsWatchers() {
+    const fontFamilyWatcher = settingsManager.watch(
+      "editor.fontFamily",
+      (value) => {
+        if (this._editor) {
+          this._editor.updateOptions({ fontFamily: value });
+        }
+      },
+    );
+    this._settingsWatchers.push(fontFamilyWatcher);
+
+    const fontSizeWatcher = settingsManager.watch(
+      "editor.fontSize",
+      (value) => {
+        if (this._editor) {
+          this._editor.updateOptions({ fontSize: value });
+        }
+      },
+    );
+    this._settingsWatchers.push(fontSizeWatcher);
+
+    const lineHeightWatcher = settingsManager.watch(
+      "editor.lineHeight",
+      (value) => {
+        if (this._editor) {
+          this._editor.updateOptions({ lineHeight: value || 0 });
+        }
+      },
+    );
+    this._settingsWatchers.push(lineHeightWatcher);
+
+    const fontWeightWatcher = settingsManager.watch(
+      "editor.fontWeight",
+      (value) => {
+        if (this._editor) {
+          this._editor.updateOptions({ fontWeight: value });
+        }
+      },
+    );
+    this._settingsWatchers.push(fontWeightWatcher);
+
+    const tabSizeWatcher = settingsManager.watch("editor.tabSize", (value) => {
+      if (this._editor) {
+        this._editor.updateOptions({ tabSize: value });
+      }
+    });
+    this._settingsWatchers.push(tabSizeWatcher);
+
+    const insertSpacesWatcher = settingsManager.watch(
+      "editor.insertSpaces",
+      (value) => {
+        if (this._editor) {
+          this._editor.updateOptions({ insertSpaces: value });
+        }
+      },
+    );
+    this._settingsWatchers.push(insertSpacesWatcher);
+
+    const detectIndentationWatcher = settingsManager.watch(
+      "editor.detectIndentation",
+      (value) => {
+        if (this._editor) {
+          this._editor.updateOptions({ detectIndentation: value });
+        }
+      },
+    );
+    this._settingsWatchers.push(detectIndentationWatcher);
+
+    const wordWrapWatcher = settingsManager.watch(
+      "editor.wordWrap",
+      (value) => {
+        if (this._editor) {
+          this._editor.updateOptions({ wordWrap: value as any });
+        }
+      },
+    );
+    this._settingsWatchers.push(wordWrapWatcher);
+
+    const wordWrapColumnWatcher = settingsManager.watch(
+      "editor.wordWrapColumn",
+      (value) => {
+        if (this._editor) {
+          this._editor.updateOptions({ wordWrapColumn: value });
+        }
+      },
+    );
+    this._settingsWatchers.push(wordWrapColumnWatcher);
+
+    const cursorStyleWatcher = settingsManager.watch(
+      "editor.cursorStyle",
+      (value) => {
+        if (this._editor) {
+          this._editor.updateOptions({ cursorStyle: value as any });
+        }
+      },
+    );
+    this._settingsWatchers.push(cursorStyleWatcher);
+
+    const cursorBlinkingWatcher = settingsManager.watch(
+      "editor.cursorBlinking",
+      (value) => {
+        if (this._editor) {
+          this._editor.updateOptions({ cursorBlinking: value as any });
+        }
+      },
+    );
+    this._settingsWatchers.push(cursorBlinkingWatcher);
+
+    const smoothCaretAnimationWatcher = settingsManager.watch(
+      "editor.smoothCaretAnimation",
+      (value) => {
+        if (this._editor) {
+          this._editor.updateOptions({
+            cursorSmoothCaretAnimation: value,
+          });
+        }
+      },
+    );
+    this._settingsWatchers.push(smoothCaretAnimationWatcher);
   }
 
   private _normalizePath(p: string) {
@@ -471,19 +596,41 @@ export class Editor {
 
     this._cleanupLayoutElements();
 
+    const fontFamily = settingsManager.get("editor.fontFamily");
+    const fontSize = settingsManager.get("editor.fontSize");
+    const lineHeight = settingsManager.get("editor.lineHeight");
+    const fontWeight = settingsManager.get("editor.fontWeight");
+    const tabSize = settingsManager.get("editor.tabSize");
+    const insertSpaces = settingsManager.get("editor.insertSpaces");
+    const detectIndentation = settingsManager.get("editor.detectIndentation");
+    const wordWrap = settingsManager.get("editor.wordWrap");
+    const wordWrapColumn = settingsManager.get("editor.wordWrapColumn");
+    const cursorStyle = settingsManager.get("editor.cursorStyle");
+    const cursorBlinking = settingsManager.get("editor.cursorBlinking");
+    const smoothCaretAnimation = settingsManager.get(
+      "editor.smoothCaretAnimation",
+    );
+
     this._editor = monaco.editor.create(this._layout, {
       theme: "meridia-theme",
       automaticLayout: true,
-      fontSize: 18,
-      fontFamily: "Jetbrains, monospace",
-      cursorBlinking: "smooth",
-      cursorSmoothCaretAnimation: true,
+      fontSize: fontSize,
+      // fontFamily: fontFamily,
+      lineHeight: lineHeight || 0,
+      fontWeight: fontWeight,
+      tabSize: tabSize,
+      insertSpaces: insertSpaces,
+      detectIndentation: detectIndentation,
+      wordWrap: wordWrap as any,
+      wordWrapColumn: wordWrapColumn,
+      cursorStyle: cursorStyle as any,
+      cursorBlinking: cursorBlinking as any,
+      cursorSmoothCaretAnimation: smoothCaretAnimation,
       minimap: { enabled: false },
       renderWhitespace: "none",
       fixedOverflowWidgets: true,
       links: true,
       linkedEditing: true,
-      tabSize: 4,
       dragAndDrop: true,
       renderLineHighlight: "all",
       renderLineHighlightOnlyWhenFocus: false,
@@ -1239,6 +1386,9 @@ export class Editor {
   }
 
   dispose() {
+    this._settingsWatchers.forEach((unwatch) => unwatch());
+    this._settingsWatchers = [];
+
     this._registeredProviders.forEach((disposable) => {
       try {
         disposable.dispose();

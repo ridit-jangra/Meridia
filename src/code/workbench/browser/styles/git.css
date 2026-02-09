@@ -119,12 +119,42 @@
 .code .git .changes .changes-list .file-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 4px 17px;
+  padding: 4px 0;
   font-size: 16px;
+  align-self: center;
   cursor: pointer;
+  position: relative;
+  overflow: visible;
   width: 100%;
-  color: var(--workbench-files-default-foreground);
+  box-sizing: border-box;
+}
+
+.code .git .changes .changes-list .file-item .badge {
+  position: absolute;
+  right: 12px;
+  /* margin-right: 12px; */
+}
+
+.code .git .changes .changes-list .file-item .icon {
+  margin: 0 3px;
+  margin-left: 10px;
+  flex-shrink: 0;
+  width: 20px;
+  transition: transform 0.2s ease;
+}
+
+.code .git .changes .changes-list .file-item .icon svg {
+  display: flex;
+  width: 17px;
+  height: auto;
+}
+
+.code .git .changes .changes-list .file-item .name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .code .git .changes .changes-list .file-item:hover {
