@@ -507,6 +507,30 @@
   justify-content: center;
 }
 
+.code .editor .details span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.code .editor .problems span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.code .editor .warnings span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.code .editor .none-div span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .code .editor .details .problems {
   display: flex;
   align-items: center;

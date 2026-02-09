@@ -17,7 +17,7 @@
   gap: 6px;
 }
 
-.code .statusbar .item-section span {
+.code .statusbar .item-section .item {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -26,8 +26,14 @@
   cursor: pointer;
 }
 
-.code .statusbar .item-section span:hover {
+.code .statusbar .item-section .item:hover {
   background: var(--workbench-statusbar-item-hover-background);
+}
+
+.code .statusbar .item-section .item span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .code .statusbar .item-section .sub-item-section {

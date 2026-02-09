@@ -19,8 +19,16 @@
   z-index: 1000;
   right: 20px;
   top: 5px;
+  height: 35px;
+  width: 35px;
   background: var(--workbench-secondary-button-background);
   outline: 2px solid var(--workbench-background);
+}
+
+.code .terminal-container .add span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .code .terminal-container .add:hover {

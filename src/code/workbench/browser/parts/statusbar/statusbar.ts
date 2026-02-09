@@ -91,27 +91,31 @@ export class Statusbar extends CoreEl {
       "Go to Line/Column",
       "top",
     );
+    lineSection.className = "item";
     const languageSection = new Tooltip()._getEl(
       document.createElement("span"),
       "Select Language Mode",
       "top",
     );
+    languageSection.className = "item";
     const indentationSection = new Tooltip()._getEl(
       document.createElement("span"),
       "Select Indentation",
       "top",
     );
+    indentationSection.className = "item";
     const encodingSection = new Tooltip()._getEl(
       document.createElement("span"),
       "Select Encoding",
       "top",
     );
-
+    encodingSection.className = "item";
     const notificationSection = new Tooltip()._getEl(
       document.createElement("span"),
       "Notification",
       "top",
     );
+    notificationSection.className = "item";
 
     notificationSection.appendChild(getThemeIcon("bell"));
 

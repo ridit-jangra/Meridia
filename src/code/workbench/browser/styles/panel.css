@@ -16,7 +16,7 @@
   overflow: hidden;
 }
 
-.left-panel-options span {
+.left-panel-options .panel-option {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -25,21 +25,21 @@
   border-radius: 9px;
 }
 
-.left-panel-options span.active {
+.left-panel-options .panel-option.active {
   opacity: 1;
   background: var(--workbench-activitybar-active-background);
 }
 
-.left-panel-options span svg {
+.left-panel-options .panel-option svg {
   width: 25px;
   height: auto;
 }
 
-.code .left-panel-options span:not(.active) {
+.code .left-panel-options .panel-option:not(.active) {
   opacity: 0.4;
 }
 
-.code .left-panel-options span:not(.active):hover {
+.code .left-panel-options .panel-option:not(.active):hover {
   background: var(--workbench-activitybar-hover-background);
   opacity: 0.8;
 }
