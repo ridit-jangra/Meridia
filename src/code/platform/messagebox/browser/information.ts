@@ -5,7 +5,7 @@ export class information extends Message {
   constructor(
     private title: string,
     private message: string,
-    private onCompleteCallback?: Function
+    private onCompleteCallback?: Function,
   ) {
     super();
     this._createEl();
@@ -24,7 +24,7 @@ export class information extends Message {
 
     const close = document.createElement("span");
     close.className = "close-icon";
-    close.innerHTML = getThemeIcon("close");
+    close.appendChild(getThemeIcon("close"));
 
     titlebar.appendChild(title);
     titlebar.appendChild(close);

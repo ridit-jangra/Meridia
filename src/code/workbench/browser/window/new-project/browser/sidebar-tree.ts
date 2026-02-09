@@ -24,7 +24,7 @@ export class SidebarTree extends CoreEl {
   private _persistExpanded() {
     window.storage?.store(
       "projects-expanded-nodes",
-      Array.from(this.expandedNodes)
+      Array.from(this.expandedNodes),
     );
   }
 
@@ -107,7 +107,7 @@ export class SidebarTree extends CoreEl {
 
     const toggleIcon = document.createElement("span");
     toggleIcon.className = "icon toggle";
-    toggleIcon.innerHTML = getThemeIcon("chevronRight");
+    toggleIcon.appendChild(getThemeIcon("chevronRight"));
     toggleIcon.style.cursor = "pointer";
 
     const langIcon = document.createElement("span");

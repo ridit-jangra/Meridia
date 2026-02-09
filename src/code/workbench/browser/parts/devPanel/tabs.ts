@@ -103,7 +103,7 @@ export class DevPanelTabs extends CoreEl {
     optionsContainer.className = "options";
 
     const closeOption = document.createElement("span");
-    closeOption.innerHTML = getThemeIcon("close");
+    closeOption.appendChild(getThemeIcon("close"));
 
     closeOption.onclick = () => {
       const _state = select((s) => s.main.panel_state);

@@ -71,28 +71,28 @@ export class Drawboard extends CoreEl {
 
     const mouseTool = document.createElement("span");
     mouseTool.className = "tool active";
-    mouseTool.innerHTML = getThemeIcon("selection");
+    mouseTool.appendChild(getThemeIcon("selection"));
     mouseTool.title = "Select (V)";
     mouseTool.onclick = () => this._setTool("mouse", mouseTool);
     this._toolbar.appendChild(mouseTool);
 
     const penTool = document.createElement("span");
     penTool.className = "tool";
-    penTool.innerHTML = getThemeIcon("edit");
+    penTool.appendChild(getThemeIcon("edit"));
     penTool.title = "Pen (P)";
     penTool.onclick = () => this._setTool("pen", penTool);
     this._toolbar.appendChild(penTool);
 
     const rectTool = document.createElement("span");
     rectTool.className = "tool";
-    rectTool.innerHTML = getThemeIcon("rectangle");
+    rectTool.appendChild(getThemeIcon("rectangle"));
     rectTool.title = "Rectangle (R)";
     rectTool.onclick = () => this._setTool("rectangle", rectTool);
     this._toolbar.appendChild(rectTool);
 
     const circleTool = document.createElement("span");
     circleTool.className = "tool";
-    circleTool.innerHTML = getThemeIcon("circle");
+    circleTool.appendChild(getThemeIcon("circle"));
     circleTool.title = "Circle (C)";
     circleTool.onclick = () => this._setTool("circle", circleTool);
     this._toolbar.appendChild(circleTool);
@@ -106,7 +106,7 @@ export class Drawboard extends CoreEl {
 
     const arrowTool = document.createElement("span");
     arrowTool.className = "tool";
-    arrowTool.innerHTML = getThemeIcon("arrow");
+    arrowTool.appendChild(getThemeIcon("arrow"));
     arrowTool.title = "Arrow (A)";
     arrowTool.onclick = () => this._setTool("arrow", arrowTool);
     this._toolbar.appendChild(arrowTool);

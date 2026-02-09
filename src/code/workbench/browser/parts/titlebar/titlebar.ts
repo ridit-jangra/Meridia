@@ -82,7 +82,7 @@ export class Titlebar extends CoreEl {
       "bottom",
     );
     this.hamburgerContainer.className = "menu-button menu-container";
-    this.hamburgerContainer.innerHTML = getThemeIcon("menu");
+    this.hamburgerContainer.appendChild(getThemeIcon("menu"));
     this.hamburgerContainer.onclick = (e) => {
       e.stopPropagation();
       this._toggle();
@@ -96,7 +96,7 @@ export class Titlebar extends CoreEl {
       "Create new project",
       "bottom",
     );
-    newProject.innerHTML = getThemeIcon("add");
+    newProject.appendChild(getThemeIcon("add"));
     newProject.className = "command-option";
     newProject.style.marginLeft = "5px";
     newProject.onclick = () => {
@@ -128,7 +128,7 @@ export class Titlebar extends CoreEl {
       () => {
         const _tab: IEditorTab = {
           name: "Settings",
-          icon: getThemeIcon("settings"),
+          icon: "settings",
           uri: "tab://settings",
           is_touched: false,
           active: true,
@@ -181,7 +181,7 @@ export class Titlebar extends CoreEl {
     );
 
     document.addEventListener("workbench.editor.run.disable", () => {
-      runOption.getDomElement()!.innerHTML = getThemeIcon("rerun");
+      runOption.getDomElement()!.appendChild(getThemeIcon("rerun"));
       runOption.getDomElement()!.onclick = () => {
         const _tabs = select((s) => s.main.editor_tabs);
         const _active = _tabs.find((t) => t.active);
@@ -190,7 +190,7 @@ export class Titlebar extends CoreEl {
       };
     });
     document.addEventListener("workbench.editor.run.enable", () => {
-      runOption.getDomElement()!.innerHTML = getThemeIcon("run");
+      runOption.getDomElement()!.appendChild(getThemeIcon("run"));
       runOption.getDomElement()!.onclick = () => {
         const _tabs = select((s) => s.main.editor_tabs);
         const _active = _tabs.find((t) => t.active);
@@ -253,7 +253,7 @@ export class Titlebar extends CoreEl {
         if (item.submenu && item.submenu.length > 0) {
           const arrow = document.createElement("span");
           arrow.className = "menu-submenu-arrow";
-          arrow.innerHTML = getThemeIcon("chevronRight");
+          arrow.appendChild(getThemeIcon("chevronRight"));
           content.appendChild(arrow);
 
           const submenu = document.createElement("div");

@@ -107,12 +107,12 @@ export class SidebarTree extends CoreEl {
 
     const toggleIcon = document.createElement("span");
     toggleIcon.className = "icon toggle";
-    toggleIcon.innerHTML = getThemeIcon("chevronRight");
+    toggleIcon.appendChild(getThemeIcon("chevronRight"));
     toggleIcon.style.cursor = "pointer";
 
     const langIcon = document.createElement("span");
     langIcon.className = "icon";
-    langIcon.innerHTML = node.icon;
+    langIcon.appendChild(getThemeIcon(node.icon));
 
     const name = document.createElement("span");
     name.className = "name";

@@ -35,7 +35,7 @@ export class React extends CoreEl {
     crumb2.className = "crumb";
 
     const icon2 = document.createElement("span");
-    icon2.innerHTML = getThemeIcon("react");
+    icon2.appendChild(getThemeIcon("react"));
 
     const title = document.createElement("span");
     title.textContent = "React";
@@ -92,7 +92,7 @@ export class React extends CoreEl {
 
     const browserPath = document.createElement("span");
     browserPath.className = "option";
-    browserPath.innerHTML = getThemeIcon("folder");
+    browserPath.appendChild(getThemeIcon("folder"));
 
     browserPath.onclick = async () => {
       const path = await window.files.getFolderPath();
@@ -170,14 +170,14 @@ export class React extends CoreEl {
     name: string,
     path: string,
     tailwind: boolean,
-    reactIcons: boolean
+    reactIcons: boolean,
   ) {
     window.ipc.invoke(
       "workbench.workspace.project.create.typescript.react",
       name,
       path,
       tailwind,
-      reactIcons
+      reactIcons,
     );
 
     window.ipc.on(
@@ -185,7 +185,7 @@ export class React extends CoreEl {
       (_: any, path: string) => {
         _newProject._hide();
         window.files.changeFolder(path);
-      }
+      },
     );
   }
 }

@@ -26,7 +26,7 @@ export class Python extends CoreEl {
     input.placeholder = "Enter the package name.";
 
     const search = document.createElement("span");
-    search.innerHTML = getThemeIcon("search");
+    search.appendChild(getThemeIcon("search"));
 
     inputWrapper.appendChild(input);
     inputWrapper.appendChild(search);

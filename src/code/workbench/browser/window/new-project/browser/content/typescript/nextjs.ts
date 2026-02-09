@@ -35,7 +35,7 @@ export class NextJS extends CoreEl {
     crumb2.className = "crumb";
 
     const icon2 = document.createElement("span");
-    icon2.innerHTML = getThemeIcon("nextjs");
+    icon2.appendChild(getThemeIcon("nextjs"));
 
     const title = document.createElement("span");
     title.textContent = "Next.js";
@@ -93,7 +93,7 @@ export class NextJS extends CoreEl {
 
     const browserPath = document.createElement("span");
     browserPath.className = "option";
-    browserPath.innerHTML = getThemeIcon("folder");
+    browserPath.appendChild(getThemeIcon("folder"));
 
     browserPath.onclick = async () => {
       const path = await window.files.getFolderPath();
@@ -237,7 +237,7 @@ export class NextJS extends CoreEl {
         reactIcons,
         srcDir,
         alias,
-        swcMinify
+        swcMinify,
       );
     });
 
@@ -256,7 +256,7 @@ export class NextJS extends CoreEl {
     reactIcons: boolean,
     srcDir: boolean,
     alias: boolean,
-    swcMinify: boolean
+    swcMinify: boolean,
   ) {
     window.ipc.invoke(
       "workbench.workspace.project.create.typescript.nextjs",
@@ -269,7 +269,7 @@ export class NextJS extends CoreEl {
       reactIcons,
       srcDir,
       alias,
-      swcMinify
+      swcMinify,
     );
 
     window.ipc.once(
@@ -279,7 +279,7 @@ export class NextJS extends CoreEl {
         if (window.files?.changeFolder) {
           window.files.changeFolder(projectPath);
         }
-      }
+      },
     );
   }
 }

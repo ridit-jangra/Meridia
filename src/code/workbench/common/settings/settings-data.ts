@@ -1,104 +1,103 @@
 import { ISetting, ISettingsTree } from "../../workbench.types.js";
-import { getThemeIcon } from "../../browser/media/icons.js";
 
 export const settingsTree: ISettingsTree[] = [
   {
     name: "Editor",
-    icon: getThemeIcon("edit"),
+    icon: "edit",
     key: "editor",
     children: [
       {
         name: "Text",
         content: "",
         key: "editorText",
-        icon: getThemeIcon("text"),
+        icon: "text",
       },
       {
         name: "Tab Size",
         content: "",
         key: "editorTabSize",
-        icon: getThemeIcon("tabs"),
+        icon: "tabs",
       },
       {
         name: "Word Wrap",
         content: "",
         key: "editorWordWrap",
-        icon: getThemeIcon("word"),
+        icon: "word",
       },
       {
         name: "Auto Save",
         content: "",
         key: "editorAutoSave",
-        icon: getThemeIcon("save"),
+        icon: "save",
       },
       {
         name: "Cursor",
         content: "",
         key: "editorCursor",
-        icon: getThemeIcon("text"),
+        icon: "text",
       },
     ],
   },
   {
     name: "Appearance",
-    icon: getThemeIcon("colors"),
+    icon: "colors",
     key: "appearance",
     children: [
       {
         name: "Theme",
         content: "",
         key: "appearanceTheme",
-        icon: getThemeIcon("theme"),
+        icon: "theme",
       },
       {
         name: "Font Size",
         content: "",
         key: "appearanceFontSize",
-        icon: getThemeIcon("text"),
+        icon: "text",
       },
       {
         name: "Zoom",
         content: "",
         key: "appearanceZoom",
-        icon: getThemeIcon("sync"),
+        icon: "sync",
       },
     ],
   },
   {
     name: "Terminal",
-    icon: getThemeIcon("terminal"),
+    icon: "terminal",
     key: "terminal",
     children: [
       {
         name: "Shell",
         content: "",
         key: "terminalShell",
-        icon: getThemeIcon("terminal"),
+        icon: "terminal",
       },
       {
         name: "Font",
         content: "",
         key: "terminalFont",
-        icon: getThemeIcon("text"),
+        icon: "text",
       },
     ],
   },
   {
     name: "Files",
-    icon: getThemeIcon("file"),
+    icon: "file",
     key: "files",
     children: [
       {
         name: "Auto Save",
         content: "",
         key: "filesAutoSave",
-        icon: getThemeIcon("save"),
+        icon: "save",
       },
       {
         name: "Encoding",
         content: "",
         key: "filesEncoding",
-        icon: getThemeIcon("error"),
+        icon: "error",
       },
     ],
   },
@@ -111,7 +110,6 @@ export const settingsContent: {
   }[];
 } = {
   settings: [
-    // ===== EDITOR TEXT SETTINGS =====
     {
       key: "editorText",
       content: [
@@ -307,7 +305,6 @@ export const settingsContent: {
       ],
     },
 
-    // ===== APPEARANCE THEME SETTINGS =====
     {
       key: "appearanceTheme",
       content: [

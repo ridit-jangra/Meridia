@@ -25,7 +25,7 @@ export class Settings extends CoreEl {
     searchInput.placeholder = "Search settings...";
 
     const searchIcon = document.createElement("span");
-    searchIcon.innerHTML = getThemeIcon("search");
+    searchIcon.appendChild(getThemeIcon("search"));
 
     searchBox.appendChild(searchInput);
     searchBox.appendChild(searchIcon);

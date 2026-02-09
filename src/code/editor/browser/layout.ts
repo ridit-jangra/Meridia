@@ -453,7 +453,6 @@ export class Editor extends CoreEl {
         onClickTab(tab);
       };
 
-      // Add context menu listener
       tabEl.addEventListener("contextmenu", (e) => {
         e.preventDefault();
         this._showTabContextMenu(e.clientX, e.clientY, tab, isEditorTab);
@@ -461,7 +460,14 @@ export class Editor extends CoreEl {
 
       const icon = document.createElement("span");
       icon.className = "icon";
-      icon.innerHTML = tab.icon || getFileIcon(tab.name);
+
+      const themeIcon = getThemeIcon(tab.icon!);
+
+      if (themeIcon.tagName === "SPAN") {
+        icon.appendChild(themeIcon);
+      } else {
+        icon.innerHTML = getFileIcon(tab.name);
+      }
 
       const HIDDEN_BADGES = new Set(["I", "D"]);
       const badge = (tab as IEditorTab).badge;
@@ -479,7 +485,7 @@ export class Editor extends CoreEl {
 
       const closeIcon = document.createElement("span");
       closeIcon.className = "close-icon";
-      closeIcon.innerHTML = getThemeIcon("close");
+      closeIcon.appendChild(getThemeIcon("close"));
       closeIcon.onclick = (e) => {
         e.stopPropagation();
         onCloseTab(tab.uri, e);

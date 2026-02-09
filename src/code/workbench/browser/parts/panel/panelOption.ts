@@ -7,7 +7,7 @@ export class PanelOption extends CoreEl {
     private _name: string,
     public _content?: HTMLElement,
     private _onClickCallback?: Function,
-    private _icon?: string,
+    private _icon?: HTMLElement,
     private position: "bottom" | "left" | "right" | "top" = "right",
   ) {
     super();
@@ -23,7 +23,7 @@ export class PanelOption extends CoreEl {
       this._name,
       this.position,
     );
-    if (this._icon) this._el.innerHTML = this._icon;
+    if (this._icon) this._el.appendChild(this._icon);
     else this._el.textContent = this._name!;
 
     this._el.onclick = () => {

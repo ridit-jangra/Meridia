@@ -1,21 +1,21 @@
 import { getThemeIcon } from "../../workbench/browser/media/icons.js";
 
-const _function = getThemeIcon("function");
+const _function = getThemeIcon("function").getHTML();
 const _functionSvg = `data:image/svg+xml;base64,${btoa(_function)}`;
 
-const _variable = getThemeIcon("variable");
+const _variable = getThemeIcon("variable").getHTML();
 const _variableSvg = `data:image/svg+xml;base64,${btoa(_variable)}`;
 
-const _class = getThemeIcon("class");
+const _class = getThemeIcon("class").getHTML();
 const _classSvg = `data:image/svg+xml;base64,${btoa(_class)}`;
 
-const _property = getThemeIcon("property");
+const _property = getThemeIcon("property").getHTML();
 const _propertySvg = `data:image/svg+xml;base64,${btoa(_property)}`;
 
-const _module = getThemeIcon("module");
+const _module = getThemeIcon("module").getHTML();
 const _moduleSvg = `data:image/svg+xml;base64,${btoa(_module)}`;
 
-const _constant = getThemeIcon("constant");
+const _constant = getThemeIcon("constant").getHTML();
 const _constantSvg = `data:image/svg+xml;base64,${btoa(_constant)}`;
 
 const css = `

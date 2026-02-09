@@ -35,7 +35,7 @@ export class Empty extends CoreEl {
     crumb2.className = "crumb";
 
     const icon2 = document.createElement("span");
-    icon2.innerHTML = getThemeIcon("default");
+    icon2.appendChild(getThemeIcon("default"));
 
     const title = document.createElement("span");
     title.textContent = "Empty";
@@ -92,7 +92,7 @@ export class Empty extends CoreEl {
 
     const browserPath = document.createElement("span");
     browserPath.className = "option";
-    browserPath.innerHTML = getThemeIcon("folder");
+    browserPath.appendChild(getThemeIcon("folder"));
 
     browserPath.onclick = async () => {
       const path = await window.files.getFolderPath();
@@ -172,7 +172,7 @@ export class Empty extends CoreEl {
       name,
       path,
       main,
-      venv
+      venv,
     );
 
     window.ipc.on(
@@ -180,7 +180,7 @@ export class Empty extends CoreEl {
       (_: any, path: string) => {
         _newProject._hide();
         window.files.changeFolder(path);
-      }
+      },
     );
   }
 }
