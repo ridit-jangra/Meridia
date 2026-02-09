@@ -6,10 +6,12 @@ export const Light: ITheme = {
   colors: {
     "workbench.background": "#f0f0f0",
     "workbench.foreground": "#1e1e1e",
+    "workbench.hover.background": "#e8e8e899",
     "workbench.secondary.foreground": "#424242",
     "workbench.border.foreground": "#d4d4d4",
     "workbench.icon.foreground": "#424242",
     "workbench.item.hover.background": "#e8e8e8",
+
     "workbench.primary.button.background": "#007acc",
     "workbench.primary.button.foreground": "#ffffff",
     "workbench.secondary.button.background": "#e1e1e1",
@@ -26,10 +28,11 @@ export const Light: ITheme = {
 
     "workbench.tabs.background": "#ffffff",
     "workbench.tabs.foreground": "#424242",
-    "workbench.tabs.icon.foreground": "#ffffffclear",
+    "workbench.tabs.icon.foreground": "#424242",
+    "workbench.tabs.icon.active.foreground": "#1e1e1e",
     "workbench.tabs.hover.background": "#e8e8e8",
     "workbench.tabs.hover.foreground": "#1e1e1e",
-    "workbench.tabs.active.background": "#212121",
+    "workbench.tabs.active.background": "#ffffff",
     "workbench.tabs.active.foreground": "#1e1e1e",
     "workbench.tabs.active.border.foreground": "#007acc",
 
@@ -52,10 +55,16 @@ export const Light: ITheme = {
     "workbench.editor.foreground": "#1e1e1e",
     "workbench.editor.cursor.foreground": "#1e1e1e",
     "workbench.editor.line.highlight.background": "#f0f8ff",
+    "workbench.editor.selection.background": "#cce7ff",
     "workbench.editor.suggestion.active.background": "#cce7ff",
     "workbench.editor.widget.background": "#f3f3f3",
 
     "workbench.preview.markdown.code.background": "#f6f8fa",
+    "workbench.preview.markdown.copy.background": "#ffffff",
+    "workbench.preview.markdown.copy.hover.background": "#f3f3f3",
+    "workbench.preview.markdown.run.background": "#ffffff",
+    "workbench.preview.markdown.run.hover.background": "#f3f3f3",
+    "workbench.preview.markdown.hr.foreground": "#d4d4d4",
 
     "workbench.mira.message.user.background": "#f3f3f3",
     "workbench.mira.message.user.foreground": "#1e1e1e",
@@ -72,6 +81,8 @@ export const Light: ITheme = {
     "workbench.activitybar.background": "#f0f0f0",
     "workbench.activitybar.hover.background": "#dedede",
     "workbench.activitybar.active.background": "#d4d4d4",
+    "workbench.activitybar.icon.foreground": "#424242",
+    "workbench.activitybar.icon.active.foreground": "#1e1e1e",
 
     "workbench.titlebar.background": "#f0f0f0",
     "workbench.titlebar.foreground": "#1e1e1e",
@@ -131,6 +142,7 @@ export const Light: ITheme = {
     "workbench.jupyter.notebook.active.cell.border.foreground": "#2188ff",
 
     "workbench.files.default.foreground": "#1e1e1e",
+    "workbench.files.icon.foreground": "#424242",
     "workbench.files.modified.foreground": "#b08800",
     "workbench.files.untracked.foreground": "#22863a",
     "workbench.files.ignored.foreground": "#6a737d",
@@ -176,7 +188,7 @@ export const Dark: ITheme = {
     "workbench.background": "#141414",
     "workbench.foreground": "#e6e6e6",
     "workbench.hover.background": "#2A2A2A99",
-    "workbench.secondary.foreground": "#000",
+    "workbench.secondary.foreground": "#e6e6e699",
     "workbench.border.foreground": "#e6e6e60D",
     "workbench.icon.foreground": "#e6e6e699",
     "workbench.item.hover.background": "#2A2A2A99",

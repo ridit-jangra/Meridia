@@ -83,6 +83,7 @@ export class Content extends CoreEl {
     // Listen for changes
     select.addEventListener("change", () => {
       settingsManager.set(setting.key as any, select.value);
+      console.log("chaning", setting.key, select.value);
     });
 
     // Watch for external changes
@@ -138,6 +139,9 @@ export class Content extends CoreEl {
       const numValue = parseFloat(input.value);
       if (!isNaN(numValue)) {
         settingsManager.set(setting.key as any, numValue);
+
+        settingsManager.set(setting.key as any, numValue);
+        console.log("chaning", setting.key, numValue);
       }
     });
 

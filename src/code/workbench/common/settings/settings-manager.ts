@@ -46,11 +46,14 @@ class SettingsManager {
     try {
       const stored = localStorage.getItem("workbench.settings");
       if (stored) {
-        return { ...DEFAULT_SETTINGS, ...JSON.parse(stored) };
+        const parsed = JSON.parse(stored);
+
+        return { ...DEFAULT_SETTINGS, ...parsed };
       }
     } catch (e) {
       console.error("Failed to load settings:", e);
     }
+
     return { ...DEFAULT_SETTINGS };
   }
 
@@ -64,7 +67,7 @@ class SettingsManager {
   }
 
   private syncToStore() {
-    dispatch(update_settings(this.settings));
+    dispatch(update_settings({ ...this.settings }));
   }
 
   get<K extends keyof ISettings>(key: K): ISettings[K] {
@@ -73,7 +76,11 @@ class SettingsManager {
 
   set<K extends keyof ISettings>(key: K, value: ISettings[K]) {
     if (this.settings[key] !== value) {
-      this.settings[key] = value;
+      this.settings = {
+        ...this.settings,
+        [key]: value,
+      };
+
       this.saveSettings();
       this.notifyListeners(key, value);
 
@@ -118,7 +125,6 @@ class SettingsManager {
     this.settings = { ...DEFAULT_SETTINGS };
     this.saveSettings();
 
-    // Notify all listeners
     Object.keys(this.settings).forEach((key) => {
       this.notifyListeners(
         key as keyof ISettings,
