@@ -24,7 +24,7 @@ export class Extensions extends CoreEl {
     input.placeholder = "Search extensions";
 
     const searchButton = document.createElement("span");
-    searchButton.innerHTML = getThemeIcon("search");
+    searchButton.appendChild(getThemeIcon("search"));
 
     search.appendChild(input);
     search.appendChild(searchButton);
@@ -55,7 +55,7 @@ export class Extensions extends CoreEl {
 
       const icon = document.createElement("span");
       icon.className = "icon";
-      icon.innerHTML = getThemeIcon("extension");
+      icon.appendChild(getThemeIcon("extension"));
 
       const content = document.createElement("div");
       content.className = "content";

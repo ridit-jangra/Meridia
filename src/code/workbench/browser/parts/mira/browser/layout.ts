@@ -44,10 +44,10 @@ export class Mira extends CoreEl {
     input.placeholder = "Ask Mira.";
 
     const sendButton = document.createElement("span");
-    sendButton.innerHTML = getThemeIcon("send");
+    sendButton.appendChild(getThemeIcon("send"));
 
     const micButton = document.createElement("span");
-    micButton.innerHTML = getThemeIcon("mic");
+    micButton.appendChild(getThemeIcon("mic"));
 
     sendButton.onclick = () => {
       const currentText = input.value.trim();

@@ -2,7 +2,10 @@ import { getThemeIcon } from "../../../workbench/browser/media/icons.js";
 import { Message } from "./message.js";
 
 export class Loading extends Message {
-  constructor(private title: string, private message: string) {
+  constructor(
+    private title: string,
+    private message: string,
+  ) {
     super();
     this._createEl();
   }
@@ -20,7 +23,7 @@ export class Loading extends Message {
 
     const close = document.createElement("span");
     close.className = "close-icon";
-    close.innerHTML = getThemeIcon("close");
+    close.appendChild(getThemeIcon("close"));
 
     titlebar.appendChild(title);
     titlebar.appendChild(close);

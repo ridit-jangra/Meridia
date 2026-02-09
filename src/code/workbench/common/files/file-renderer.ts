@@ -105,7 +105,7 @@ export class FileRenderer {
       icon.innerHTML = getFileIcon(node.name);
     } else {
       const isExpanded = expandedFolders.has(node.uri);
-      icon.innerHTML = getThemeIcon("chevronRight");
+      icon.appendChild(getThemeIcon("chevronRight"));
       icon.style.cursor = "pointer";
       icon.classList.add("toggle");
 

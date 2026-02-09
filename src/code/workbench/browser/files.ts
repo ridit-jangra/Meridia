@@ -96,7 +96,7 @@ export class Files extends CoreEl {
       "Add new file",
       "top",
     );
-    addFile.innerHTML = getThemeIcon("addFile");
+    addFile.appendChild(getThemeIcon("addFile"));
     addFile.onclick = () =>
       this._handleAddNode(this._fileStructure.structure.uri, "file");
 
@@ -105,7 +105,7 @@ export class Files extends CoreEl {
       "Add new folder",
       "top",
     );
-    addFolder.innerHTML = getThemeIcon("addDirectory");
+    addFolder.appendChild(getThemeIcon("addDirectory"));
     addFolder.onclick = () =>
       this._handleAddNode(this._fileStructure.structure.uri, "folder");
 
@@ -114,7 +114,7 @@ export class Files extends CoreEl {
       "Refresh tree",
       "top",
     );
-    refresh.innerHTML = getThemeIcon("refresh");
+    refresh.appendChild(getThemeIcon("refresh"));
     refresh.onclick = () => this._handleRefresh();
 
     options.appendChild(addFile);

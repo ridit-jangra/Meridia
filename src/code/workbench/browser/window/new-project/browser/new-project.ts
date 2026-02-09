@@ -26,7 +26,7 @@ export class NewProject extends CoreEl {
     title.className = "title";
 
     const closeIcon = document.createElement("span");
-    closeIcon.innerHTML = getThemeIcon("close");
+    closeIcon.appendChild(getThemeIcon("close"));
     closeIcon.className = "close-icon";
     closeIcon.onclick = () => {
       this._hide();
@@ -42,7 +42,7 @@ export class NewProject extends CoreEl {
     this._contentEl.className = "content";
 
     const tree = new SidebarTree((key: string) =>
-      this._setContent(key)
+      this._setContent(key),
     ).getDomElement()!;
 
     sidebar.appendChild(tree);
@@ -50,7 +50,7 @@ export class NewProject extends CoreEl {
     const splitterHorizontal = new Splitter(
       [sidebar, this._contentEl],
       "horizontal",
-      [30, 70]
+      [30, 70],
     );
 
     this._el.appendChild(titlebar);

@@ -9,7 +9,7 @@ export class Download extends Message {
     private message: string,
     private command: string,
     private args?: string[],
-    private onCompleteCallback?: Function
+    private onCompleteCallback?: Function,
   ) {
     super();
     this._createEl();
@@ -28,7 +28,7 @@ export class Download extends Message {
 
     const close = document.createElement("span");
     close.className = "close-icon";
-    close.innerHTML = getThemeIcon("close");
+    close.appendChild(getThemeIcon("close"));
 
     titlebar.appendChild(title);
     titlebar.appendChild(close);
@@ -74,7 +74,7 @@ export class Download extends Message {
 
   _start() {
     const buttonWrapper = this._el?.querySelector(
-      ".button-wrapper"
+      ".button-wrapper",
     ) as HTMLDivElement;
 
     window.ipc.on("workbench.workspace.install.log", (_: any, log: string) => {
@@ -93,7 +93,7 @@ export class Download extends Message {
     });
 
     const description = this._el?.querySelector(
-      ".description"
+      ".description",
     ) as HTMLSpanElement;
     description.textContent = "Installing...";
 

@@ -55,7 +55,7 @@ export class Problem extends CoreEl {
       (_tabs) => {
         const _active = _tabs.find((_tab) => _tab.active);
         if (_active) this.setActiveTab(_active.uri);
-      }
+      },
     );
   }
 
@@ -179,7 +179,7 @@ export class Problem extends CoreEl {
 
     const tabsContainer =
       this._el!.parentElement!.parentElement!.parentElement!.querySelector(
-        ".content-tabs"
+        ".content-tabs",
       ) as HTMLDivElement;
     if (!tabsContainer) return;
 
@@ -214,7 +214,7 @@ export class Problem extends CoreEl {
 
       const closeButton = document.createElement("span");
       closeButton.className = "close-icon";
-      closeButton.innerHTML = getThemeIcon("close");
+      closeButton.appendChild(getThemeIcon("close"));
       closeButton.onclick = (e) => {
         e.stopPropagation();
         this._closeTab(tab.id);
@@ -229,7 +229,7 @@ export class Problem extends CoreEl {
     });
 
     const activeTabEl = tabsContainer.querySelector(
-      ".tab.active"
+      ".tab.active",
     ) as HTMLElement | null;
 
     if (activeTabEl) {
@@ -264,7 +264,7 @@ export class Problem extends CoreEl {
     this._listEl.innerHTML = "";
 
     const fileProblems = Array.from(this._problems.values()).filter(
-      (p) => p.filePath === activeTab.uri
+      (p) => p.filePath === activeTab.uri,
     );
 
     if (fileProblems.length === 0) {

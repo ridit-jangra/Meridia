@@ -569,7 +569,7 @@ export class Editor {
 
     this._preview = document.createElement("div");
     this._preview.className = "preview";
-    this._preview.innerHTML = getThemeIcon("preview");
+    this._preview.appendChild(getThemeIcon("preview"));
     this._preview.onclick = () => {
       const _tabs = select((s) => s.main.editor_tabs);
       const _active = _tabs.find((t) => t.active);
@@ -837,7 +837,7 @@ export class Editor {
     if (!noneDiv) {
       noneDiv = document.createElement("div");
       noneDiv.className = "none-div";
-      noneDiv.innerHTML = getThemeIcon("check");
+      noneDiv.appendChild(getThemeIcon("check"));
       noneDiv.addEventListener("click", () => {
         const _tabs = getStandalone(
           "workbench.workspace.dev.tab",

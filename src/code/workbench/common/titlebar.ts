@@ -10,7 +10,7 @@ const ipcRenderer = window.ipc;
 export function addInformation(title: string) {
   const titlebar = document.querySelector(".titlebar.top") as HTMLDivElement;
   const informationSection = titlebar.querySelector(
-    ".information-section"
+    ".information-section",
   ) as HTMLDivElement;
 
   const el = document.createElement("div");
@@ -18,7 +18,7 @@ export function addInformation(title: string) {
 
   const loadingIcon = document.createElement("span");
   loadingIcon.className = "loading";
-  loadingIcon.innerHTML = getThemeIcon("loader");
+  loadingIcon.appendChild(getThemeIcon("loader"));
 
   const titleEl = document.createElement("span");
   titleEl.className = "title";

@@ -35,7 +35,7 @@ export class FastAPI extends CoreEl {
     crumb2.className = "crumb";
 
     const icon2 = document.createElement("span");
-    icon2.innerHTML = getThemeIcon("fastAPI");
+    icon2.appendChild(getThemeIcon("fastAPI"));
 
     const title = document.createElement("span");
     title.textContent = "FastAPI";
@@ -92,7 +92,7 @@ export class FastAPI extends CoreEl {
 
     const browserPath = document.createElement("span");
     browserPath.className = "option";
-    browserPath.innerHTML = getThemeIcon("folder");
+    browserPath.appendChild(getThemeIcon("folder"));
 
     browserPath.onclick = async () => {
       const path = await window.files.getFolderPath();
@@ -174,7 +174,7 @@ export class FastAPI extends CoreEl {
       name,
       path,
       main,
-      venv
+      venv,
     );
 
     window.ipc.once(
@@ -184,7 +184,7 @@ export class FastAPI extends CoreEl {
         if (window.files?.changeFolder) {
           window.files.changeFolder(path);
         }
-      }
+      },
     );
   }
 }

@@ -40,7 +40,7 @@ export class Run extends CoreEl {
   _render() {
     const tabsContainer =
       this._el!.parentElement!.parentElement!.parentElement!.querySelector(
-        ".content-tabs"
+        ".content-tabs",
       ) as HTMLDivElement;
     if (!tabsContainer) return;
 
@@ -67,7 +67,7 @@ export class Run extends CoreEl {
 
       const closeButton = document.createElement("span");
       closeButton.className = "close-icon";
-      closeButton.innerHTML = getThemeIcon("close");
+      closeButton.appendChild(getThemeIcon("close"));
       closeButton.onclick = (e) => {
         e.stopPropagation();
         this._close(tab.id);
@@ -86,7 +86,7 @@ export class Run extends CoreEl {
     }
 
     const activeTabEl = tabsContainer.querySelector(
-      ".tab.active"
+      ".tab.active",
     ) as HTMLElement | null;
 
     if (activeTabEl) {
@@ -124,7 +124,7 @@ export class Run extends CoreEl {
 
     if (termInstance) {
       const scrollAreaElem = termInstance._container.querySelector(
-        ".xterm-viewport"
+        ".xterm-viewport",
       ) as HTMLElement;
       const _scrollbar = new PerfectScrollbar(scrollAreaElem, {
         suppressScrollX: true,
@@ -145,7 +145,7 @@ export class Run extends CoreEl {
             (mutation.type === "attributes" &&
               mutation.attributeName === "style" &&
               ((mutation.target as HTMLElement).style.height !== undefined ||
-                (mutation.target as HTMLElement).style.width !== undefined))
+                (mutation.target as HTMLElement).style.width !== undefined)),
         );
 
         if (hasRelevantChanges) {
@@ -271,7 +271,7 @@ export class Run extends CoreEl {
 
   private _set(tabId: string, status: "running" | "stopped") {
     this._tabs = this._tabs.map((t) =>
-      t.id === tabId ? { ...t, meta: { ...(t as any).meta, status } } : t
+      t.id === tabId ? { ...t, meta: { ...(t as any).meta, status } } : t,
     );
     this._render();
   }

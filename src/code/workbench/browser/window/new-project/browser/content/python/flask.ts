@@ -35,7 +35,7 @@ export class Flask extends CoreEl {
     crumb2.className = "crumb";
 
     const icon2 = document.createElement("span");
-    icon2.innerHTML = getThemeIcon("flask");
+    icon2.appendChild(getThemeIcon("flask"));
 
     const title = document.createElement("span");
     title.textContent = "Flask";
@@ -92,7 +92,7 @@ export class Flask extends CoreEl {
 
     const browserPath = document.createElement("span");
     browserPath.className = "option";
-    browserPath.innerHTML = getThemeIcon("folder");
+    browserPath.appendChild(getThemeIcon("folder"));
 
     browserPath.onclick = async () => {
       const path = await window.files.getFolderPath();
@@ -174,7 +174,7 @@ export class Flask extends CoreEl {
       name,
       path,
       main,
-      venv
+      venv,
     );
 
     window.ipc.once(
@@ -184,7 +184,7 @@ export class Flask extends CoreEl {
         if (window.files?.changeFolder) {
           window.files.changeFolder(path);
         }
-      }
+      },
     );
   }
 }

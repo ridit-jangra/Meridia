@@ -113,7 +113,7 @@ export class Statusbar extends CoreEl {
       "top",
     );
 
-    notificationSection.innerHTML = getThemeIcon("bell");
+    notificationSection.appendChild(getThemeIcon("bell"));
 
     encodingSection.textContent = "UTF-8"; // only for now, will be adding encoding tracking and changing in future.
 

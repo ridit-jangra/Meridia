@@ -1,12 +1,15 @@
 import { Dark, Light } from "../../platform/themes/themes.js";
+import { updateAllThemeIcons } from "../browser/media/icons.js";
 import { ITheme, IThemeColors } from "../workbench.types.js";
 import { registerStandalone } from "./class.js";
+import { settingsManager } from "./settings/settings-manager.js";
 import { tokensToCssVariables } from "./utils.js";
 
 export class Theme {
   private _active!: ITheme;
   private registeredThemes: Map<string, ITheme> = new Map();
   private _mainProcess: boolean;
+  private _themeChangeCallbacks: Set<() => void> = new Set();
 
   constructor(_main?: boolean) {
     this._mainProcess = _main || typeof window === "undefined";
@@ -18,6 +21,12 @@ export class Theme {
     if (!this._mainProcess) {
       this.setTheme("Dark");
     }
+
+    settingsManager.watch("appearance.colorTheme", (value) => {
+      this.setTheme(value);
+
+      updateAllThemeIcons();
+    });
   }
 
   getNodeColor(_token: IThemeColors) {
@@ -58,7 +67,20 @@ export class Theme {
 
     if (!this._mainProcess) {
       this._applyThemeToDOM(_theme);
+      this._notifyThemeChange();
     }
+  }
+
+  // Subscribe to theme changes
+  onThemeChange(callback: () => void) {
+    this._themeChangeCallbacks.add(callback);
+    return () => {
+      this._themeChangeCallbacks.delete(callback);
+    };
+  }
+
+  private _notifyThemeChange() {
+    this._themeChangeCallbacks.forEach((callback) => callback());
   }
 
   private _applyThemeToDOM(_theme: ITheme) {

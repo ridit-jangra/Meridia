@@ -49,7 +49,7 @@ export class Terminal extends CoreEl {
 
     const add = document.createElement("span");
     add.className = "add";
-    add.innerHTML = getThemeIcon("add");
+    add.appendChild(getThemeIcon("add"));
 
     add.onclick = () => {
       const newTab = this._add();
@@ -63,7 +63,7 @@ export class Terminal extends CoreEl {
   _render() {
     const tabsContainer =
       this._el!.parentElement!.parentElement!.parentElement!.querySelector(
-        ".content-tabs"
+        ".content-tabs",
       ) as HTMLDivElement;
 
     if (!tabsContainer) return;
@@ -84,7 +84,7 @@ export class Terminal extends CoreEl {
 
       const icon = document.createElement("span");
       icon.className = "icon";
-      icon.innerHTML = getThemeIcon("terminal");
+      icon.appendChild(getThemeIcon("terminal"));
 
       const name = document.createElement("span");
       name.className = "name";
@@ -92,7 +92,7 @@ export class Terminal extends CoreEl {
 
       const closeButton = document.createElement("span");
       closeButton.className = "close-icon";
-      closeButton.innerHTML = getThemeIcon("close");
+      closeButton.appendChild(getThemeIcon("close"));
       closeButton.onclick = (e) => {
         e.stopPropagation();
         this._close(tab.id);
@@ -111,7 +111,7 @@ export class Terminal extends CoreEl {
     }
 
     const activeTabEl = tabsContainer.querySelector(
-      ".tab.active"
+      ".tab.active",
     ) as HTMLElement | null;
 
     if (activeTabEl) {
@@ -131,7 +131,7 @@ export class Terminal extends CoreEl {
 
   private async _open(tab: IDevPanelTab) {
     const terminalArea = this._el?.querySelector(
-      ".terminal-area"
+      ".terminal-area",
     ) as HTMLDivElement;
     if (!terminalArea) return;
 
@@ -151,7 +151,7 @@ export class Terminal extends CoreEl {
 
     if (termInstance) {
       const scrollAreaElem = termInstance._container.querySelector(
-        ".xterm-viewport"
+        ".xterm-viewport",
       ) as HTMLElement;
       const _scrollbar = new PerfectScrollbar(scrollAreaElem, {
         suppressScrollX: true,
@@ -172,7 +172,7 @@ export class Terminal extends CoreEl {
             (mutation.type === "attributes" &&
               mutation.attributeName === "style" &&
               ((mutation.target as HTMLElement).style.height !== undefined ||
-                (mutation.target as HTMLElement).style.width !== undefined))
+                (mutation.target as HTMLElement).style.width !== undefined)),
         );
 
         if (hasRelevantChanges) {

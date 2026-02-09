@@ -35,7 +35,7 @@ export class Django extends CoreEl {
     crumb2.className = "crumb";
 
     const icon2 = document.createElement("span");
-    icon2.innerHTML = getThemeIcon("django");
+    icon2.appendChild(getThemeIcon("django"));
 
     const title = document.createElement("span");
     title.textContent = "Django";
@@ -92,7 +92,7 @@ export class Django extends CoreEl {
 
     const browserPath = document.createElement("span");
     browserPath.className = "option";
-    browserPath.innerHTML = getThemeIcon("folder");
+    browserPath.appendChild(getThemeIcon("folder"));
 
     browserPath.onclick = async () => {
       const path = await window.files.getFolderPath();
@@ -199,7 +199,7 @@ export class Django extends CoreEl {
     path: string,
     main: boolean,
     venv: boolean,
-    appName: string
+    appName: string,
   ) {
     window.ipc.invoke(
       "workbench.workspace.project.create.python.django",
@@ -207,7 +207,7 @@ export class Django extends CoreEl {
       path,
       main,
       venv,
-      appName
+      appName,
     );
 
     window.ipc.once(
@@ -217,7 +217,7 @@ export class Django extends CoreEl {
         if (window.files?.changeFolder) {
           window.files.changeFolder(path);
         }
-      }
+      },
     );
   }
 }
