@@ -1,8 +1,6 @@
+import { _theme } from "../../workbench/common/theme.js";
 import monaco from "./utils.js";
-import { getStandalone } from "../../workbench/common/class";
-import { Theme } from "../../workbench/common/theme";
 
-const _theme = getStandalone("theme") as Theme;
 const _kind = _theme.getActiveTheme().kind;
 const _background = _theme.getColor("workbench.editor.background");
 const _foreground = _theme.getColor("workbench.editor.foreground");
