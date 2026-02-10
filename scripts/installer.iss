@@ -29,6 +29,7 @@ PrivilegesRequired=admin
 WizardStyle=modern
 OutputBaseFilename=meridia-setup-inno-{#MyAppVersion}
 
+
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
