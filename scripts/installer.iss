@@ -19,7 +19,6 @@ DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir=..\\dist
 OutputBaseFilename={#MyAppName}-Setup-{#MyAppVersion}
-SetupIconFile=..\\src\\code\\workbench\\browser\\media\\images\\icon.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2
 SolidCompression=yes
