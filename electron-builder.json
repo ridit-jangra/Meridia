@@ -16,6 +16,7 @@
   ],
   "extraMetadata": "build/main.js",
   "win": {
+    "icon": "src\\code\\workbench\\browser\\media\\images\\icon.ico",
     "target": [
       {
         "target": "nsis",
@@ -28,7 +29,15 @@
     ],
     "artifactName": "${productName}-Setup-${version}.${ext}"
   },
+  "nsis": {
+    "installerIcon": "src/code/workbench/media/icons/images/icon.ico",
+    "uninstallerIcon": "src/code/workbench/media/icons/images/icon.ico",
+    "shortcutName": "Meridia",
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true
+  },
   "linux": {
+    "icon": "src/code/workbench/media/icons/images/icon.ico",
     "target": [
       {
         "target": "AppImage",

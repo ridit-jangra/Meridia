@@ -1,4 +1,4 @@
-name: Build Meridia (Windows EXE)
+name: Build Meridia (Windows Inno Installer)
 
 on:
   push:
@@ -45,11 +45,37 @@ jobs:
         env:
           CI: false
 
-      - name: Upload build artifacts
+      - name: Install Inno Setup
+        run: choco install innosetup -y
+
+      - name: Set Inno version
+        shell: pwsh
+        run: |
+          $refName = "${{ github.ref_name }}"
+          if ($refName -match '^v') {
+            $v = $refName.TrimStart('v')
+          } else {
+            $v = (node -p "require('./package.json').version")
+          }
+          "INNO_VERSION=$v" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Build Installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+          if (!(Test-Path $iscc)) { throw "ISCC not found at $iscc" }
+
+          & $iscc ".\scripts\installer.iss" /DMyAppVersion=$env:INNO_VERSION
+
+          Write-Host "Dist contents:"
+          Get-ChildItem -Path .\dist -Recurse | Select-Object FullName
+
+      - name: Upload artifacts (Inno + other dist)
         uses: actions/upload-artifact@v4
         with:
           name: meridia-windows
           path: |
+            dist/meridia-setup-inno-*.exe
             dist/**/*.exe
             dist/**/*.msi
             dist/**/*.zip
@@ -65,5 +91,5 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            dist/*.exe
+            dist/meridia-setup-inno-*.exe
           fail_on_unmatched_files: true

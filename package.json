@@ -1,6 +1,6 @@
 {
   "name": "meridia",
-  "version": "1.0.4",
+  "version": "1.0.0",
   "main": "build/code/workbench/electron-browser/window.js",
   "scripts": {
     "clean": "rimraf build",
