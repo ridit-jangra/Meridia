@@ -16,7 +16,6 @@
   ],
   "extraMetadata": "build/main.js",
   "win": {
-    "icon": "src\\code\\workbench\\browser\\media\\images\\icon.ico",
     "target": [
       {
         "target": "nsis",
