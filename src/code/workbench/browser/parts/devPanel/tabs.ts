@@ -21,25 +21,19 @@ export class DevPanelTabs extends CoreEl {
       id: "terminal",
       name: "Terminal",
       active: false,
-      icon: getThemeIcon("terminal"),
+      icon: "terminal",
     },
     {
       id: "run",
       name: "Run",
       active: false,
-      icon: getThemeIcon("run"),
+      icon: "run",
     },
     {
       id: "problem",
       name: "Problems",
       active: false,
-      icon: getThemeIcon("problem"),
-    },
-    {
-      id: "package-manager",
-      name: "Package Manager",
-      active: false,
-      icon: getThemeIcon("packageManager"),
+      icon: "problem",
     },
   ];
 
@@ -134,7 +128,7 @@ export class DevPanelTabs extends CoreEl {
 
       const icon = document.createElement("span");
       icon.className = `icon ${tab.id}`;
-      icon.innerHTML = tab.icon ?? getThemeIcon("terminal");
+      icon.appendChild(getThemeIcon(tab.icon ?? "terminal"));
 
       const name = document.createElement("span");
       name.className = "name";

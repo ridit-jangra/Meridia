@@ -3,7 +3,7 @@ import { ClipboardAddon } from "@xterm/addon-clipboard";
 import { Terminal as XTerm } from "@xterm/xterm";
 import { IXTermInstance } from "../../workbench.types.js";
 import { getStandalone } from "../class.js";
-import { Theme } from "../theme.js";
+import { _theme, Theme } from "../theme.js";
 import { select } from "../store/selector.js";
 import { settingsManager } from "../settings/settings-manager.js";
 
@@ -42,6 +42,35 @@ class XtermManager {
       },
     );
     this._settingsWatchers.push(fontSizeWatcher);
+  }
+
+  _updateAllTerminalsTheme() {
+    this._terminals.forEach((v) => {
+      v.term.options.theme = {
+        background: _theme.getColor("workbench.terminal.background"),
+        foreground: _theme.getColor("workbench.terminal.foreground"),
+        cursor: _theme.getColor("workbench.terminal.cursor.foreground"),
+        selectionBackground: _theme.getColor(
+          "workbench.terminal.selection.background",
+        ),
+        black: _theme.getColor("workbench.terminal.black"),
+        red: _theme.getColor("workbench.terminal.red"),
+        green: _theme.getColor("workbench.terminal.green"),
+        yellow: _theme.getColor("workbench.terminal.yellow"),
+        blue: _theme.getColor("workbench.terminal.blue"),
+        magenta: _theme.getColor("workbench.terminal.magenta"),
+        cyan: _theme.getColor("workbench.terminal.cyan"),
+        white: _theme.getColor("workbench.terminal.white"),
+        brightBlack: _theme.getColor("workbench.terminal.bright.black"),
+        brightRed: _theme.getColor("workbench.terminal.bright.red"),
+        brightGreen: _theme.getColor("workbench.terminal.bright.green"),
+        brightYellow: _theme.getColor("workbench.terminal.bright.yellow"),
+        brightBlue: _theme.getColor("workbench.terminal.bright.blue"),
+        brightMagenta: _theme.getColor("workbench.terminal.bright.magenta"),
+        brightCyan: _theme.getColor("workbench.terminal.bright.cyan"),
+        brightWhite: _theme.getColor("workbench.terminal.bright.white"),
+      };
+    });
   }
 
   private _updateAllTerminals(options: {
@@ -505,4 +534,10 @@ document.addEventListener("workbench.workspace.virtual.env.complete", () => {
       );
     }
   });
+});
+
+settingsManager.watch("appearance.colorTheme", () => {
+  setTimeout(() => {
+    _xtermManager._updateAllTerminalsTheme();
+  }, 5);
 });
