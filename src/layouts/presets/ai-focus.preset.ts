@@ -1,5 +1,4 @@
-import { layout_engine } from "../layout.engine";
-import { layout_preset } from "./presets.type";
+import { layout_preset } from "./preset.types";
 
 export const ai_focus_preset: layout_preset = {
   id: "ai-focus",
@@ -7,11 +6,11 @@ export const ai_focus_preset: layout_preset = {
   root: {
     type: "split",
     dir: "row",
-    size: 0.7,
+    size: 70,
     a: {
       type: "split",
       dir: "col",
-      size: 0.8,
+      size: 80,
       a: { type: "panel", id: "editor" },
       b: {
         type: "tabs",
@@ -26,5 +25,3 @@ export const ai_focus_preset: layout_preset = {
     },
   },
 };
-
-layout_engine.store(ai_focus_preset);

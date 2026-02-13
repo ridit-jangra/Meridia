@@ -7,7 +7,7 @@ export class storage_service {
 
   private readonly storage_file_path = path.join(
     app.getPath("userData"),
-    "meridia.json",
+    "storage.json",
   );
 
   constructor() {
