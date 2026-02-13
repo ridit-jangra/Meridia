@@ -6,9 +6,10 @@ import {
 import { useEffect, useRef, useState } from "react";
 import * as ResizablePrimitive from "react-resizable-panels";
 import { PanelComponent } from "../components/PanelComponent";
-import { layout_node } from "./presets/preset.types";
+import { TLayoutNode } from "./presets/preset.types";
 import { set_node_at_path } from "../shared/layout.helper";
 import { layout_engine } from "./layout.engine";
+import { TabsComponent } from "../components/TabsComponent";
 
 function renderNode({
   node,
@@ -16,8 +17,7 @@ function renderNode({
   on_update_node,
 }: IRenderNodeProps): React.ReactNode {
   if (node.type === "split") {
-    // Recursively check if a node or its children are all disabled
-    const isNodeEnabled = (n: layout_node): boolean => {
+    const isNodeEnabled = (n: TLayoutNode): boolean => {
       if (n.type === "panel") return n.enabled !== false;
       if (n.type === "tabs") return n.enabled !== false;
       if (n.type === "split") return isNodeEnabled(n.a) || isNodeEnabled(n.b);
@@ -72,7 +72,7 @@ function renderNode({
 
   if (node.type === "tabs") {
     if (node.enabled === false) return null;
-    return <div className="h-full w-full bg-white">tabs</div>;
+    return <TabsComponent tabs={node.tabs} />;
   }
 
   return null;
@@ -93,7 +93,7 @@ export function LayoutRenderer({ layout_preset }: ILayoutRendererProps) {
 
   const on_update_node = (
     path: node_path,
-    node: layout_node,
+    node: TLayoutNode,
     persist_only?: boolean,
   ) => {
     const new_layout = set_node_at_path(root, path, node);

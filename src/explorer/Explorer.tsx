@@ -1,3 +1,3 @@
 export function Explorer() {
-    return <></>
+  return <div className="h-full bg-red-400"></div>;
 }

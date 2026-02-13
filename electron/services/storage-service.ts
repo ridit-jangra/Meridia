@@ -2,7 +2,7 @@ import { app } from "electron";
 import fs from "fs";
 import path from "path";
 
-export class storage_service {
+class storage_service {
   private data: Record<string, any> = {};
 
   private readonly storage_file_path = path.join(
@@ -52,3 +52,5 @@ export class storage_service {
     this.save();
   }
 }
+
+export const storage = new storage_service();

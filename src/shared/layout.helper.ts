@@ -1,10 +1,10 @@
-import { layout_node } from "../layouts/presets/preset.types";
+import { TLayoutNode } from "../layouts/presets/preset.types";
 
 export function set_node_at_path(
-  root: layout_node,
+  root: TLayoutNode,
   path: ("a" | "b")[],
-  next: layout_node,
-): layout_node {
+  next: TLayoutNode,
+): TLayoutNode {
   if (path.length === 0) return next;
 
   if (root.type !== "split") return root;
