@@ -1,7 +1,5 @@
 import { ipcMain } from "electron";
-import { storage_service } from "../services/storage-service";
-
-const storage = new storage_service();
+import { storage } from "../services/storage-service";
 
 ipcMain.handle("workbench.storage.get", (_, key: string, fallback?: any) => {
   return storage.get(key, fallback);

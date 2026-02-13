@@ -1,17 +1,17 @@
-import { layout_node, layout_preset } from "./presets/preset.types";
+import { TLayoutNode, TLayoutPreset } from "./presets/preset.types";
 
 export interface ILayoutRendererProps {
-  layout_preset: layout_preset;
+  layout_preset: TLayoutPreset;
 }
 
 export type node_path = ("a" | "b")[];
 
 export interface IRenderNodeProps {
-  node: layout_node;
+  node: TLayoutNode;
   path: node_path;
   on_update_node: (
     path: node_path,
-    node: layout_node,
+    node: TLayoutNode,
     persist_only?: boolean,
   ) => void;
 }

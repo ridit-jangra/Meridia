@@ -1,20 +1,22 @@
 import { useEffect, useState } from "react";
 import { layout_engine } from "./layouts/layout.engine";
 import { LayoutRenderer } from "./layouts/layout.renderer";
-import { layout_preset } from "./layouts/presets/preset.types";
+import { TLayoutPreset } from "./layouts/presets/preset.types";
 import { ide_preset } from "./layouts/presets/preset.ide";
-import { ai_focus_preset } from "./layouts/presets/ai-focus.preset";
-import { SELECTED_LAYOUT_KEY } from "./shared/storage-keys";
+import { agent_preset } from "./layouts/presets/agent.preset";
+import { SELECTED_LAYOUT_KEY } from "../shared/storage-keys";
+import { editor_preset } from "./layouts/presets/editor.preset";
 
 function App() {
-  const [preset, setPreset] = useState<layout_preset | null>(null);
+  const [preset, setPreset] = useState<TLayoutPreset | null>(null);
 
   useEffect(() => {
     (async () => {
       await layout_engine.load();
 
       layout_engine.register_default_layout(ide_preset);
-      layout_engine.register_default_layout(ai_focus_preset);
+      layout_engine.register_default_layout(agent_preset);
+      layout_engine.register_default_layout(editor_preset);
 
       const selected_layout = (await window.storage.get(
         SELECTED_LAYOUT_KEY,

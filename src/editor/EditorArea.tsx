@@ -1,3 +1,3 @@
 export function EditorArea() {
-    return <></>
+  return <div className="h-full bg-indigo-400"></div>;
 }
