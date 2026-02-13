@@ -1,5 +1,5 @@
 import { ipcRenderer, contextBridge } from "electron";
-import { IFolderStructure, INode } from "../shared/explorer.types";
+import { IFolderStructure, INode } from "../shared/types/explorer.types";
 
 contextBridge.exposeInMainWorld("ipcRenderer", {
   on(...args: Parameters<typeof ipcRenderer.on>) {

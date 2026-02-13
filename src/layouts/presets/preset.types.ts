@@ -1,4 +1,8 @@
-export type TLayoutNode = TSplitNode | TTabNode | TPanelNode;
+export type TLayoutNode =
+  | TSplitNode
+  | TTabNode
+  | TPanelNode
+  | TActivityBarPanelNode;
 
 export type TLayoutPreset = {
   id: string;
@@ -9,6 +13,7 @@ export type TLayoutPreset = {
 export type TTab = {
   id: string;
   label: string;
+  shortcut_id?: string;
 };
 
 export type TSplitNode = {
@@ -23,6 +28,17 @@ export type TPanelNode = {
   type: "panel";
   id: string;
   enabled?: boolean;
+};
+
+export type TActivityBarPanelNode = {
+  type: "activity-bar-panel";
+  enabled?: boolean;
+  panels: {
+    id: string;
+    icon: string;
+    tooltip?: string;
+    shortcut_id?: string;
+  }[];
 };
 
 export type TTabNode = {

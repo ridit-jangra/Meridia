@@ -6,4 +6,14 @@ export interface IPanelComponentProps {
 
 export interface ITabsComponentProps {
   tabs: TTab[];
+  default_active_id: string;
+}
+
+export interface IActivityBarComponentProps {
+  panels: {
+    id: string;
+    tooltip?: string;
+    shortcut_id?: string;
+    icon: string;
+  }[];
 }

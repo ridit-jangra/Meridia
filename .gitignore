@@ -26,3 +26,5 @@ dist-ssr
 *.sw?
 
 dist-electron
+
+src/theme/themes/*.json
