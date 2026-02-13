@@ -1,5 +1,5 @@
 import { WORKSPACES_DATA } from "../../shared/storage-keys";
-import { IWorkspace } from "../../shared/workspace.types";
+import { IWorkspace } from "../../shared/types/workspace.types";
 import { storage } from "./storage-service";
 import path from "path";
 

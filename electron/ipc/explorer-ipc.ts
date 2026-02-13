@@ -1,6 +1,6 @@
 import { ipcMain } from "electron";
 import { explorer } from "../services/explorer-service";
-import { INode } from "../../shared/explorer.types";
+import { INode } from "../../shared/types/explorer.types";
 
 ipcMain.handle(
   "workbench.explorer.get.root.structure",

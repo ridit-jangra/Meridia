@@ -1,9 +1,9 @@
-import { IFolderStructure, INode } from "../../shared/explorer.types";
+import { IFolderStructure, INode } from "../../shared/types/explorer.types";
 import path from "path";
 import fs from "fs/promises";
 import { storage } from "./storage-service";
 import { WORKSPACES_DATA } from "../../shared/storage-keys";
-import { IWorkspace } from "../../shared/workspace.types";
+import { IWorkspace } from "../../shared/types/workspace.types";
 
 class explorer_services {
   public async get_root_structure(

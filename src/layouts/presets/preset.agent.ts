@@ -1,8 +1,8 @@
 import { TLayoutPreset } from "./preset.types";
 
-export const ide_preset: TLayoutPreset = {
-  id: "ide",
-  name: "ide",
+export const agent_preset: TLayoutPreset = {
+  id: "agent",
+  name: "agent",
   root: {
     type: "split",
     dir: "row",
@@ -29,7 +29,7 @@ export const ide_preset: TLayoutPreset = {
           icon: "GitMergeIcon",
         },
       ],
-      enabled: true,
+      enabled: false,
     },
     b: {
       type: "split",
@@ -62,7 +62,7 @@ export const ide_preset: TLayoutPreset = {
       b: {
         type: "panel",
         id: "ai_chat",
-        enabled: false,
+        enabled: true,
       },
     },
   },

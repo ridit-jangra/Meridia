@@ -28,10 +28,9 @@ export class Engine {
 
   public async load() {
     try {
-      const loaded =
-        await window.storage.get<Record<string, TLayoutPreset>>(
-          LAYOUT_PRESETS_KEY,
-        );
+      const loaded = await window.storage.get<Record<string, TLayoutPreset>>(
+        LAYOUT_PRESETS_KEY,
+      );
 
       if (loaded) {
         this.presets = loaded;

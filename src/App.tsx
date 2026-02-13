@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { layout_engine } from "./layouts/layout.engine";
 import { LayoutRenderer } from "./layouts/layout.renderer";
-import { TLayoutPreset } from "./layouts/presets/preset.types";
 import { ide_preset } from "./layouts/presets/preset.ide";
-import { agent_preset } from "./layouts/presets/agent.preset";
+import { agent_preset } from "./layouts/presets/preset.agent";
 import { SELECTED_LAYOUT_KEY } from "../shared/storage-keys";
-import { editor_preset } from "./layouts/presets/editor.preset";
+import { editor_preset } from "./layouts/presets/preset.editor";
+import { shortcuts } from "./shortcut/shortcut.service";
+import "./theme/theme.service";
+import { useAppDispatch, useAppSelector } from "./store/hooks";
+import { set_layout } from "./store/slices/layout.slice";
 
 function App() {
-  const [preset, setPreset] = useState<TLayoutPreset | null>(null);
+  const active_id = useAppSelector((s) => s.layout.active);
+  const dispatch = useAppDispatch();
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -18,23 +23,23 @@ function App() {
       layout_engine.register_default_layout(agent_preset);
       layout_engine.register_default_layout(editor_preset);
 
-      const selected_layout = (await window.storage.get(
-        SELECTED_LAYOUT_KEY,
-      )) as string;
+      const saved = await window.storage.get(SELECTED_LAYOUT_KEY, "ide");
 
-      if (selected_layout) {
-        setPreset(
-          layout_engine.get_layout(selected_layout) ??
-            layout_engine.get_layout("ide") ??
-            null,
-        );
-      } else {
-        setPreset(layout_engine.get_layout("ide") ?? null);
-        window.storage.set(SELECTED_LAYOUT_KEY, "ide");
-      }
+      dispatch(set_layout(saved));
+      setReady(true);
     })();
+    // layout_engine.reset_all();
   }, []);
 
+  useEffect(() => {
+    window.storage.set(SELECTED_LAYOUT_KEY, active_id);
+  }, [active_id]);
+
+  useEffect(() => shortcuts.bind(window), []);
+
+  if (!ready) return null;
+
+  const preset = layout_engine.get_layout(active_id);
   if (!preset) return null;
 
   return <LayoutRenderer layout_preset={preset} />;
