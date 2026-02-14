@@ -15,9 +15,7 @@ type storage_api = {
 };
 
 type explorer_api = {
-  get_root_structure(
-    folder_path: string,
-  ): Promise<{
+  get_root_structure(folder_path: string): Promise<{
     root: IRootNode;
     path: string;
     structure: { root: IRootNode; path: string; structure: INode[] }[];
