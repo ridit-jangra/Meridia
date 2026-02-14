@@ -11,8 +11,8 @@ export function Tooltip(opts: {
     "div",
     {
       class: cn(
-        "pointer-events-none fixed z-[9999] hidden px-2 py-1 text-[13.5px] " +
-          "bg-tooltip-background text-tooltip-foreground border-2 border-tooltip-border rounded-[8px] " +
+        "pointer-events-none fixed z-[9999] hidden px-2 py-1 text-[12.5px] " +
+          "bg-tooltip-background text-tooltip-foreground border border-tooltip-border rounded-[8px] " +
           "animate-in fade-in zoom-in-95 duration-150",
         opts.class,
       ),

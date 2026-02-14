@@ -1,3 +1,5 @@
+import { ITitlebarMenuItem } from "../../common/lib.types";
+import { shortcuts } from "../../services/shortcut/shortcut.service";
 import { cn } from "../common/cn";
 import { h } from "../common/h";
 import { lucide } from "./icon";
@@ -12,12 +14,7 @@ export type MenuItem =
     }
   | { type: "separator" };
 
-export type Menu = {
-  label: string;
-  items: MenuItem[];
-};
-
-export function Menubar(opts: { menus: Menu[]; class?: string }) {
+export function Menubar(opts: { menus: ITitlebarMenuItem[]; class?: string }) {
   let openMenuIndex: number | null = null;
 
   const triggers: HTMLDivElement[] = [];
@@ -37,7 +34,7 @@ export function Menubar(opts: { menus: Menu[]; class?: string }) {
     triggers.forEach((t) => {
       t.classList.remove(
         "bg-titlebar-item-active-background",
-        "text-titlebar-item-active-foreground",
+        // "text-titlebar-item-active-foreground",
       );
     });
   };
@@ -59,15 +56,15 @@ export function Menubar(opts: { menus: Menu[]; class?: string }) {
 
     trigger.classList.add(
       "bg-titlebar-item-active-background",
-      "text-titlebar-item-active-foreground",
+      // "text-titlebar-item-active-foreground",
     );
   };
 
   const root = h("div", {
-    class: cn("p-2 flex items-center gap-1 select-none no-drag", opts.class),
+    class: cn("flex items-center gap-px select-none no-drag", opts.class),
   });
 
-  const buildPanel = (items: MenuItem[]) => {
+  const buildPanel = (items: ITitlebarMenuItem[]) => {
     const panel = h("div", {
       class: cn(
         "fixed z-[9999] hidden w-85",
@@ -77,7 +74,7 @@ export function Menubar(opts: { menus: Menu[]; class?: string }) {
       ),
     });
 
-    const openSubmenu = (row: HTMLElement, sub: MenuItem[]) => {
+    const openSubmenu = (row: HTMLElement, sub: ITitlebarMenuItem[]) => {
       closeFloating();
 
       const subPanel = buildPanel(sub);
@@ -93,7 +90,7 @@ export function Menubar(opts: { menus: Menu[]; class?: string }) {
     };
 
     items.forEach((item) => {
-      if (item.type === "separator") {
+      if (item.name === "separator") {
         panel.appendChild(
           h("div", { class: "my-1 border-t border-workbench-border" }),
         );
@@ -104,33 +101,40 @@ export function Menubar(opts: { menus: Menu[]; class?: string }) {
         "div",
         {
           class: cn(
-            "flex items-center justify-between px-3 py-1.5 text-[13px] rounded-[7px]",
-            item.disabled ? "opacity-50 pointer-events-none" : "cursor-pointer",
+            "flex items-center justify-between px-3 py-1.5 text-[11.5px] rounded-[7px]",
+            "cursor-pointer",
             "hover:bg-titlebar-item-hover-background hover:text-titlebar-item-hover-foreground",
             "active:bg-titlebar-item-active-background",
           ),
           on: {
             mouseenter: () => {
-              if (item.sub_menu && item.sub_menu.length > 0) {
-                openSubmenu(row, item.sub_menu);
+              if (item.submenu && item.submenu.length > 0) {
+                openSubmenu(row, item.submenu);
               } else {
                 // closeFloating();
               }
             },
             mousedown: (e: Event) => {
               e.preventDefault();
-              if (item.disabled) return;
-              if (item.sub_menu && item.sub_menu.length > 0) return;
+              // if (item.disabled) return;
+              if (item.submenu && item.submenu.length > 0) return;
+              if (item.command) shortcuts.run_shortcut(item.command);
               closeAll();
             },
           },
         },
-        h("span", { class: "truncate" }, item.label),
+        h("span", { class: "truncate" }, item.name),
         h(
           "div",
           { class: "flex items-center gap-2 text-[12px] opacity-70" },
-          item.command_id ? h("span", {}, item.command_id) : "",
-          item.sub_menu && item.sub_menu.length > 0
+          item.command
+            ? h(
+                "span",
+                {},
+                shortcuts.get_shortcut({ command: item.command })?.keys,
+              )
+            : "",
+          item.submenu && item.submenu.length > 0
             ? h("span", {}, lucide("chevron-right"))
             : "",
         ),
@@ -147,15 +151,15 @@ export function Menubar(opts: { menus: Menu[]; class?: string }) {
       "div",
       {
         class: cn(
-          "px-2.5 py-1 text-[13px] rounded-[7px] cursor-pointer",
+          "px-2 py-px text-[12px] rounded-[7px]",
           "text-titlebar-foreground",
-          "hover:bg-titlebar-item-hover-background/80 hover:text-titlebar-item-hover-foreground",
+          "hover:bg-titlebar-item-hover-background/80 hover:text-titlebar-item-hover-foreground/80",
         ),
       },
-      menu.label,
+      menu.name,
     );
 
-    const panel = buildPanel(menu.items);
+    const panel = buildPanel(menu.submenu!);
     panels.push(panel);
     triggers.push(trigger);
 
