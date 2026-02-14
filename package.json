@@ -1,5 +1,5 @@
 {
-  "name": "v2",
+  "name": "Meridia",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -21,9 +21,10 @@
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/vite": "^4.1.18",
     "@vscode/codicons": "^0.0.44",
-    "lucide": "^0.564.0",
+    "lucide-static": "^0.564.0",
     "react-redux": "^9.2.0",
     "split.js": "^1.6.5",
-    "tailwindcss": "^4.1.18"
+    "tailwindcss": "^4.1.18",
+    "tailwindcss-animate": "^1.0.7"
   }
 }
