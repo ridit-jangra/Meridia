@@ -1,10 +1,10 @@
-import { h } from "../ui/common/h";
-import { cn } from "../ui/common/cn";
+import { h } from "../core/dom/h";
+import { cn } from "../core/utils/cn";
 import { Tooltip } from "../ui/components/tooltip";
 import { ScrollArea } from "../ui/components/scroll-area";
 import { shortcuts } from "../services/shortcut/shortcut.service";
 import { layout_engine } from "../services/layouts/layout.engine";
-import { toggle_node_at_path } from "../common/layout.helper";
+import { toggle_node_at_path } from "../services/layouts/layout.helper";
 import { store } from "../services/store/store";
 import { set_active_panel_key } from "../services/store/slices/layout.slice";
 import { ACTIVE_PANEL_KEY } from "../../shared/storage-keys";

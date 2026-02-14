@@ -1,5 +1,5 @@
-export * from "./common/h";
-export * from "./common/cn";
+export * from "../core/dom/h";
+export * from "../core/utils/cn";
 
 export * from "./components/button";
 export * from "./components/label";

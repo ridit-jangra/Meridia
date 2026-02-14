@@ -1,8 +1,8 @@
 import LogoSvg from "../assets/images/logo.svg?raw";
-import { h } from "../ui/common/h";
-import { cn } from "../ui/common/cn";
-import { Menubar } from "../ui/components/menubar";
-import { titlebar_menu } from "../common/titlebar.menu";
+import { h } from "../../core/dom/h";
+import { cn } from "../../core/utils/cn";
+import { Menubar } from "../../ui/components/menubar";
+import { titlebar_menu } from "./titlebar.menu";
 
 export function Titlebar() {
   const menus = titlebar_menu;

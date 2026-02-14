@@ -1,7 +1,7 @@
-import { layout_engine } from "../services/layouts/layout.engine";
-import { TLayoutNode } from "../services/layouts/presets/preset.types";
-import { store } from "../services/store/store";
-import { debounce } from "./utils";
+import { layout_engine } from "./layout.engine";
+import { TLayoutNode } from "./presets/preset.types";
+import { store } from "../store/store";
+import { debounce } from "../../core/utils/utils";
 
 export function set_node_at_path(
   root: TLayoutNode,
