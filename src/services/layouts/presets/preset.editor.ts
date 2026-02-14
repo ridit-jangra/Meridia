@@ -9,24 +9,25 @@ export const editor_preset: TLayoutPreset = {
     size: 20,
     a: {
       type: "activity-bar-panel",
+      id: "left",
       panels: [
         {
           id: "explorer",
           tooltip: "Explorer",
           shortcut_id: "toggleExplorer",
-          icon: "FilesIcon",
+          icon: "files",
         },
         {
           id: "search",
           tooltip: "Search",
           shortcut_id: "toggleSearch",
-          icon: "SearchIcon",
+          icon: "search",
         },
         {
           id: "git",
           tooltip: "Git",
           shortcut_id: "toggleGit",
-          icon: "GitMergeIcon",
+          icon: "git-merge",
         },
       ],
       enabled: false,

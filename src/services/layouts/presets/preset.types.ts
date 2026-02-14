@@ -31,6 +31,7 @@ export type TPanelNode = {
 };
 
 export type TActivityBarPanelNode = {
+  id: string;
   type: "activity-bar-panel";
   enabled?: boolean;
   panels: {
