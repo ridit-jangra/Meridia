@@ -1,30 +1,33 @@
-# React + TypeScript + Vite
+# Meridia
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+<img src="./resources/whole.png" style="border-radius: 8px" />
 
-Currently, two official plugins are available:
+Meridia is a next-gen code editor that blends coding, debugging, and customizable.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Visit [meridia.dev](https://meridia.dev) for more info.
 
-## Expanding the ESLint configuration
+# Documentation
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+If you want to read about using Meridia or developing extensions in Meridia, the [Documentation](https://docs.meridia.dev) is available.
 
-- Configure the top-level `parserOptions` property like this:
+# Installing
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
+## Prerequisites
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+- [Git](https://git-scm.com/)
+
+### Windows
+
+Download the latest [Meridia installer](https://meridia.dev/download)
+
+Meridia will automatically update when a new release is available.
+
+### Linux
+
+Download the latest [Meridia App Image](https://meridia.dev/download)
+
+Meridia will automatically update when a new release is available.
+
+# License
+
+[Mit](https://github.com/ridit-jangra/Meridia/blob/main/LICENSE)
