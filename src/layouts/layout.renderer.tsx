@@ -87,11 +87,16 @@ function renderNode({
 export function LayoutRenderer({ layout_preset }: ILayoutRendererProps) {
   const [root, setRoot] = useState(layout_preset.root);
   const prevPresetId = useRef(layout_preset.id);
+  const prevPresetRoot = useRef(layout_preset.root);
 
   useEffect(() => {
-    if (prevPresetId.current !== layout_preset.id) {
+    if (
+      prevPresetId.current !== layout_preset.id ||
+      prevPresetRoot.current !== layout_preset.root
+    ) {
       setRoot(layout_preset.root);
       prevPresetId.current = layout_preset.id;
+      prevPresetRoot.current = layout_preset.root;
     }
   }, [layout_preset.id, layout_preset.root]);
 
@@ -100,7 +105,7 @@ export function LayoutRenderer({ layout_preset }: ILayoutRendererProps) {
   const on_update_node = (
     path: node_path,
     node: TLayoutNode,
-    persist_only?: boolean,
+    persist_only?: boolean
   ) => {
     const new_layout = set_node_at_path(root, path, node);
 
@@ -125,7 +130,7 @@ export function LayoutRenderer({ layout_preset }: ILayoutRendererProps) {
     return () => {
       if (save_timer.current) window.clearTimeout(save_timer.current);
     };
-  }, [root]);
+  }, [root, layout_preset.id]);
 
   return (
     <div className="h-screen w-screen">

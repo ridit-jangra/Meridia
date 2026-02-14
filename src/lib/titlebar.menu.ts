@@ -167,6 +167,23 @@ export const titlebar_menu: ITitlebarMenuItem[] = [
       },
       { id: "separator-1", name: "separator" },
       {
+        id: "appearence",
+        name: "Appearence",
+        submenu: [
+          {
+            id: "toggle-primary-side-bar",
+            name: "Toggle Primary Side Bar",
+            command: "layout.togglePrimarySideBar",
+          },
+          {
+            id: "toggle-secondary-side-bar",
+            name: "Toggle Secondary Side Bar",
+            command: "layout.toggleSecondarySideBar",
+          },
+        ],
+      },
+      { id: "separator-5", name: "separator" },
+      {
         id: "explorer",
         name: "Explorer",
         command: "layout.toggleExplorer",

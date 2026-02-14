@@ -8,6 +8,9 @@ import { set_active_panel_key } from "../store/slices/layout.slice";
 import { PanelComponent } from "./PanelComponent";
 import { useEffect, useRef } from "react";
 import { ACTIVE_PANEL_KEY } from "../../shared/storage-keys";
+import { toggle_node_at_path } from "../lib/layout.helper";
+import { layout_engine } from "../layouts/layout.engine";
+import { store } from "../store/store";
 
 export function ActivityBarPanelComponent({
   panels,
@@ -34,6 +37,29 @@ export function ActivityBarPanelComponent({
     }
   }, [active_panel_key]);
 
+  const handlePanelClick = (panelId: string) => {
+    // If clicking the already-active panel, toggle the activity bar closed
+    if (panelId === active_panel_key) {
+      const state = store.getState();
+      const active_layout_id = state.layout.active_layout_id;
+      const preset = layout_engine.get_layout(active_layout_id);
+
+      if (!preset) return;
+
+      // Adjust this path to match where your activity-bar-panel is in your layout
+      // For agent_preset, it's at ["a"]
+      const new_root = toggle_node_at_path(preset.root, ["a"]);
+
+      layout_engine.update_preset(active_layout_id, {
+        ...preset,
+        root: new_root,
+      });
+    } else {
+      // Otherwise, just switch to the new panel
+      dispatch(set_active_panel_key(panelId));
+    }
+  };
+
   return (
     <div className="h-full bg-panel-background text-panel-foreground flex flex-col">
       <div className="flex items-center justify-center gap-2 p-2 shrink-0">
@@ -55,7 +81,7 @@ export function ActivityBarPanelComponent({
                 }`}
                 onClick={() => {
                   if (!panel.id) return;
-                  dispatch(set_active_panel_key(panel.id));
+                  handlePanelClick(panel.id);
                 }}
               >
                 <Icon size={22} />
