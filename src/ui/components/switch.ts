@@ -18,24 +18,27 @@ export function Switch(opts?: {
 
   const track = h("div", {
     class: cn(
-      "h-5 w-9 border border-input rounded-none relative " +
-        "focus-within:ring-1 focus-within:ring-ring",
+      "relative inline-flex h-6 w-11 items-center rounded-full border-2 border-input-border " +
+        "bg-input-background focus-within:ring-1",
       opts?.disabled ? "opacity-50 pointer-events-none" : "cursor-pointer",
       opts?.class,
     ),
   });
 
   const thumb = h("div", {
-    class: "h-4 w-4 bg-foreground absolute top-[2px] left-[2px] rounded-none",
+    class:
+      "absolute left-0.5 top-0 h-5 w-5 rounded-full bg-select-foreground transition-transform",
   });
 
   track.appendChild(thumb);
 
   const sync = () => {
     const on = input.checked;
+
     thumb.style.transform = on ? "translateX(16px)" : "translateX(0px)";
-    track.classList.toggle("bg-accent", on);
-    track.classList.toggle("bg-input", !on);
+
+    track.classList.toggle("bg-button-primary-background/60", on);
+    track.classList.toggle("bg-input-background", !on);
   };
 
   sync();

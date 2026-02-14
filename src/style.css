@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -31,34 +32,10 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   --radius: 0.625rem;
+}
 
-  --background: var(--workbench-background);
-  --foreground: var(--workbench-foreground);
-
-  --card: var(--panel-background);
-  --card-foreground: var(--panel-foreground);
-
-  --popover: var(--panel-background);
-  --popover-foreground: var(--panel-foreground);
-
-  --primary: var(--button-primary-background);
-  --primary-foreground: var(--button-primary-foreground);
-
-  --secondary: var(--button-secondary-background);
-  --secondary-foreground: var(--button-secondary-foreground);
-
-  --muted: var(--panel-background);
-  --muted-foreground: var(--workbench-foreground);
-
-  --accent: var(--panel-background);
-  --accent-foreground: var(--workbench-foreground);
-
-  --destructive: var(--button-danger-background);
-  --destructive-foreground: var(--button-danger-foreground);
-
-  --border: var(--workbench-border);
-  --input: var(--input-background);
-  --ring: var(--focus-border);
+body {
+  user-select: none;
 }
 
 #app {
@@ -172,6 +149,19 @@
     --titlebar-menu-item-active-background
   );
 
+  --color-titlebar-menu-item-hover-background: var(
+    --titlebar-menu-item-hover-background
+  );
+  --color-titlebar-menu-item-hover-foreground: var(
+    --titlebar-menu-item-hover-foreground
+  );
+  --color-titlebar-menu-item-active-background: var(
+    --titlebar-menu-item-active-background
+  );
+  --color-titlebar-menu-item-active-foreground: var(
+    --titlebar-menu-item-active-foreground
+  );
+
   --color-split-handle-foreground: var(--split-handle-foreground);
   --color-split-handle-hover-foreground: var(--split-handle-hover-foreground);
   --color-split-handle-active-foreground: var(--split-handle-active-foreground);
@@ -189,9 +179,23 @@
   --color-select-foreground: var(--select-foreground);
   --color-select-border: var(--select-border);
   --color-select-hover-background: var(--select-hover-background);
+  --color-select-menu-background: var(--select-menu-background);
+  --color-select-option-foreground: var(--select-option-foreground);
   --color-select-option-hover-background: var(--select-option-hover-background);
   --color-select-option-active-background: var(
     --select-option-active-background
+  );
+
+  --color-tooltip-background: var(--tooltip-background);
+  --color-tooltip-foreground: var(--tooltip-foreground);
+  --color-tooltip-border: var(--tooltip-border);
+
+  --color-scrollbar-thumb-foreground: var(--scrollbar-thumb-foreground);
+  --color-scrollbar-thumb-hover-foreground: var(
+    --scrollbar-thumb-hover-foreground
+  );
+  --color-scrollbar-thumb-active-foreground: var(
+    --scrollbar-thumb-active-foreground
   );
 
   --font-inter: "Inter", sans-serif;
@@ -203,4 +207,50 @@
 
 .no-drag {
   -webkit-app-region: no-drag;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.overlay-scrollbar-root {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.overlay-scrollbar-track {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  border-radius: 3px;
+  background: transparent;
+  pointer-events: auto;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.overlay-scrollbar-root:hover .overlay-scrollbar-track {
+  opacity: 1;
+}
+
+.overlay-scrollbar-thumb {
+  width: 8px;
+  margin-left: 1px;
+  border-radius: 3px;
+  background: var(--color-scrollbar-thumb-foreground);
+}
+
+.overlay-scrollbar-track:hover .overlay-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb-hover-foreground);
+}
+
+.overlay-scrollbar-thumb:active {
+  background: var(--color-scrollbar-thumb-active-foreground);
 }

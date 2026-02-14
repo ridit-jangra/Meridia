@@ -84,8 +84,14 @@ export const dark: ITheme = {
     "select.foreground": "#E4E4E4EB",
     "select.border": "#E4E4E413",
     "select.hover.background": "#E4E4E411",
+    "select.menu.background": "#181818",
+    "select.option.foreground": "#E4E4E4EB",
     "select.option.hover.background": "#E4E4E41E",
     "select.option.active.background": "#343434",
+
+    "tooltip.background": "#1c1c1c",
+    "tooltip.foreground": "#E4E4E4EB",
+    "tooltip.border": "#E4E4E426",
 
     "button.primary.background": "#81A1C1",
     "button.primary.foreground": "#191c22",
@@ -128,5 +134,12 @@ export const dark: ITheme = {
     "selection.background": "#E4E4E430",
     "selection.foreground": "#E4E4E4EB",
     "focus.border": "#E4E4E426",
+
+    "context.menu.background": "#181818",
+    "context.menu.foreground": "#E4E4E4EB",
+    "context.menu.border": "#E4E4E413",
+    "context.menu.item.foreground": "#E4E4E4EB",
+    "context.menu.item.hover.background": "#E4E4E41E",
+    "context.menu.item.hover.foreground": "#E4E4E4EB",
   },
 };

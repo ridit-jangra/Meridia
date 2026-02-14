@@ -81,8 +81,14 @@ export const colors = [
   "select.foreground",
   "select.border",
   "select.hover.background",
+  "select.menu.background",
+  "select.option.foreground",
   "select.option.hover.background",
   "select.option.active.background",
+
+  "tooltip.background",
+  "tooltip.foreground",
+  "tooltip.border",
 
   "button.primary.background",
   "button.primary.foreground",
@@ -127,6 +133,13 @@ export const colors = [
   "command.item.foreground",
   "command.item.hover.background",
   "command.item.hover.foreground",
+
+  "context.menu.background",
+  "context.menu.foreground",
+  "context.menu.border",
+  "context.menu.item.foreground",
+  "context.menu.item.hover.background",
+  "context.menu.item.hover.foreground",
 ] as const;
 
 export type TColors = (typeof colors)[number];

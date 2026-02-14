@@ -1,6 +1,6 @@
 import { cn } from "../common/cn";
 import { h } from "../common/h";
-import { codicon } from "./icon";
+import { codicon, lucide } from "./icon";
 
 type SelectItem = { value: string; label: string };
 
@@ -40,14 +40,14 @@ export function Select(opts: {
     h(
       "span",
       { class: "flex items-center text-foreground/60" },
-      codicon("chevron-down", "text-[14px]"),
+      lucide("chevron-down"),
     ),
   );
 
   const menu = h("div", {
     class: cn(
       "fixed z-[9999] hidden min-w-[180px] max-h-[260px] overflow-auto " +
-        "bg-popover text-popover-foreground border border-border rounded-none p-1",
+        "bg-select-menu-background text-select-option-foreground border border-workbench-border border-2 rounded-[7px] p-1",
       opts.menuClass,
     ),
   });
@@ -82,10 +82,10 @@ export function Select(opts: {
           "div",
           {
             class: cn(
-              "px-2 py-1 text-[13px] cursor-pointer select-none rounded-none",
+              "px-2 py-1.5 text-[14px] cursor-pointer select-none rounded-[7px]",
               i === activeIndex
-                ? "bg-accent text-accent-foreground"
-                : "hover:bg-accent hover:text-accent-foreground",
+                ? "bg-select-option-active-background text-select-option-foreground"
+                : "hover:bg-select-option-hover-background text-select-option-foreground",
             ),
             on: {
               mouseenter: () => {
