@@ -1,4 +1,4 @@
-import LogoSvg from "../assets/images/logo.svg?raw";
+import LogoSvg from "../../assets/images/logo.svg?raw";
 import { h } from "../../core/dom/h";
 import { cn } from "../../core/utils/cn";
 import { Menubar } from "../../ui/components/menubar";
