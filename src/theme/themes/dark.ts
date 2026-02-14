@@ -69,6 +69,11 @@ export const dark: ITheme = {
     "terminal.foreground": "#E4E4E4EB",
     "terminal.cursor.foreground": "#E4E4E4EB",
 
+    "command.background": "#141414",
+    "command.item.foreground": "#E4E4E4EB",
+    "command.item.hover.background": "#E4E4E411",
+    "command.item.hover.foreground": "#E4E4E4EB",
+
     "input.background": "#E4E4E40A",
     "input.foreground": "#E4E4E4EB",
     "input.border": "#E4E4E413",
