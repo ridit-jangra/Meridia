@@ -511,12 +511,12 @@ shortcuts.register_shortcuts([
     command: "app.zoomIn",
     scope: "app",
   },
-  // {
-  //   id: "zoomOut",
-  //   keys: "ctrl+-",
-  //   command: "app.zoomOut",
-  //   scope: "app",
-  // },
+  {
+    id: "zoomOut",
+    keys: "ctrl+-",
+    command: "app.zoomOut",
+    scope: "app",
+  },
   {
     id: "zoomReset",
     keys: "ctrl+0",
