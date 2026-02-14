@@ -4,10 +4,25 @@ import {
   set_active_panel_key,
   set_active_tab_key,
 } from "../store/slices/layout.slice";
+import {
+  disable_node_at_path,
+  enable_node_at_path,
+  is_node_enabled_at_path,
+  toggle_node_at_path,
+} from "../lib/layout.helper";
+import { layout_engine } from "../layouts/layout.engine";
+import { update_layout } from "../lib/utils";
+
+let debounceTimer: number | null = null;
+export const debounce = (fn: () => void, delay: number = 35) => {
+  if (debounceTimer) window.clearTimeout(debounceTimer);
+  debounceTimer = window.setTimeout(fn, delay);
+};
 
 shortcuts.register_command({
   id: "layout.toggleSearch",
   run: () => {
+    update_layout(["a"], enable_node_at_path);
     store.dispatch(set_active_panel_key("search"));
   },
 });
@@ -15,6 +30,7 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.toggleExplorer",
   run: () => {
+    update_layout(["a"], enable_node_at_path);
     store.dispatch(set_active_panel_key("explorer"));
   },
 });
@@ -22,6 +38,7 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.toggleGit",
   run: () => {
+    update_layout(["a"], enable_node_at_path);
     store.dispatch(set_active_panel_key("git"));
   },
 });
@@ -29,14 +46,85 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.toggleTerminal",
   run: () => {
-    store.dispatch(set_active_tab_key("terminal"));
+    debounce(() => {
+      const state = store.getState();
+      const active_layout_id = state.layout.active_layout_id;
+      const active_tab_key = state.layout.active_tab_key;
+      const preset = layout_engine.get_layout(active_layout_id);
+
+      if (!preset) return;
+
+      let new_root;
+
+      if (
+        active_tab_key === "terminal" &&
+        is_node_enabled_at_path(preset.root, ["b", "a", "b"])
+      ) {
+        new_root = disable_node_at_path(preset.root, ["b", "a", "b"]);
+      } else {
+        new_root = enable_node_at_path(preset.root, ["b", "a", "b"]);
+      }
+
+      layout_engine.update_preset(active_layout_id, {
+        ...preset,
+        root: new_root,
+      });
+
+      store.dispatch(set_active_tab_key("terminal"));
+    });
   },
 });
 
 shortcuts.register_command({
   id: "layout.toggleProblems",
   run: () => {
-    store.dispatch(set_active_tab_key("problems"));
+    debounce(() => {
+      const state = store.getState();
+      const active_layout_id = state.layout.active_layout_id;
+      const active_tab_key = state.layout.active_tab_key;
+      const preset = layout_engine.get_layout(active_layout_id);
+
+      if (!preset) return;
+
+      let new_root;
+
+      if (
+        active_tab_key === "problems" &&
+        is_node_enabled_at_path(preset.root, ["b", "a", "b"])
+      ) {
+        new_root = disable_node_at_path(preset.root, ["b", "a", "b"]);
+      } else {
+        new_root = enable_node_at_path(preset.root, ["b", "a", "b"]);
+      }
+
+      layout_engine.update_preset(active_layout_id, {
+        ...preset,
+        root: new_root,
+      });
+
+      store.dispatch(set_active_tab_key("problems"));
+    });
+  },
+});
+
+shortcuts.register_command({
+  id: "layout.toggleBottomPanel",
+  run: () => {
+    update_layout(["b", "a", "b"], toggle_node_at_path);
+  },
+});
+
+shortcuts.register_command({
+  id: "layout.togglePrimarySideBar",
+  run: () => {
+    update_layout(["a"], toggle_node_at_path);
+  },
+});
+
+shortcuts.register_command({
+  id: "layout.toggleSecondarySideBar",
+  run: () => {
+    update_layout(["b", "b"], toggle_node_at_path);
   },
 });
 
@@ -252,6 +340,24 @@ shortcuts.register_shortcuts([
     id: "toggleProblems",
     keys: "ctrl+shift+m",
     command: "layout.toggleProblems",
+    scope: "app",
+  },
+  {
+    id: "togglePrimarySideBar",
+    keys: "ctrl+b",
+    command: "layout.togglePrimarySideBar",
+    scope: "app",
+  },
+  {
+    id: "toggleBottomPanel",
+    keys: "ctrl+j",
+    command: "layout.toggleBottomPanel",
+    scope: "app",
+  },
+  {
+    id: "toggleSecondarySideBar",
+    keys: "ctrl+alt+b",
+    command: "layout.toggleSecondarySideBar",
     scope: "app",
   },
   {

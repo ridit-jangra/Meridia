@@ -8,10 +8,14 @@ import { editor_preset } from "./layouts/presets/preset.editor";
 import { shortcuts } from "./shortcut/shortcut.service";
 import "./theme/theme.service";
 import { useAppDispatch, useAppSelector } from "./store/hooks";
-import { set_layout } from "./store/slices/layout.slice";
+import {
+  set_active_layout_id,
+  update_preset,
+} from "./store/slices/layout.slice";
 
 function App() {
-  const active_id = useAppSelector((s) => s.layout.active);
+  const active_layout_id = useAppSelector((s) => s.layout.active_layout_id);
+  const presets = useAppSelector((s) => s.layout.presets);
   const dispatch = useAppDispatch();
   const [ready, setReady] = useState(false);
 
@@ -19,27 +23,30 @@ function App() {
     (async () => {
       await layout_engine.load();
 
-      layout_engine.register_default_layout(ide_preset);
-      layout_engine.register_default_layout(agent_preset);
-      layout_engine.register_default_layout(editor_preset);
+      const ide = layout_engine.register_default_layout(ide_preset);
+      const agent = layout_engine.register_default_layout(agent_preset);
+      const editor = layout_engine.register_default_layout(editor_preset);
+
+      dispatch(update_preset(ide));
+      dispatch(update_preset(agent));
+      dispatch(update_preset(editor));
 
       const saved = await window.storage.get(SELECTED_LAYOUT_KEY, "ide");
-
-      dispatch(set_layout(saved));
+      dispatch(set_active_layout_id(saved));
       setReady(true);
     })();
-    // layout_engine.reset_all();
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
-    window.storage.set(SELECTED_LAYOUT_KEY, active_id);
-  }, [active_id]);
+    window.storage.set(SELECTED_LAYOUT_KEY, active_layout_id);
+  }, [active_layout_id]);
 
   useEffect(() => shortcuts.bind(window), []);
 
   if (!ready) return null;
 
-  const preset = layout_engine.get_layout(active_id);
+  const preset =
+    presets[active_layout_id] || layout_engine.get_layout(active_layout_id);
   if (!preset) return null;
 
   return <LayoutRenderer layout_preset={preset} />;
