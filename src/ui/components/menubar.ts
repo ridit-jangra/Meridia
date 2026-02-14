@@ -1,7 +1,7 @@
-import { ITitlebarMenuItem } from "../../common/lib.types";
+import { ITitlebarMenuItem } from "../../core/types/lib.types";
 import { shortcuts } from "../../services/shortcut/shortcut.service";
-import { cn } from "../common/cn";
-import { h } from "../common/h";
+import { cn } from "../../core/utils/cn";
+import { h } from "../../core/dom/h";
 import { lucide } from "./icon";
 
 export type MenuItem =

@@ -1,12 +1,12 @@
 // layout-renderer.ts
 import Split from "split.js";
-import { h } from "../../ui/common/h";
-import { set_node_at_path } from "../../common/layout.helper";
+import { h } from "../../core/dom/h";
+import { set_node_at_path } from "./layout.helper";
 import { layout_engine } from "./layout.engine";
 import type { TLayoutNode, TLayoutPreset } from "./presets/preset.types";
 import type { node_path } from "./layout.types";
 import { cn } from "../../ui";
-import { Titlebar } from "../../components/titlebar";
+import { Titlebar } from "../../workbench/titlebar/titlebar";
 import { PanelComponent } from "../../components/panel-component";
 import { ActivityBarPanelComponent } from "../../components/activitybar-panel-component";
 import { TabsComponent } from "../../components/tabs-component";

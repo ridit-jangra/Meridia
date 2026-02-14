@@ -1,4 +1,4 @@
-import { h } from "../ui/common/h";
+import { h } from "./dom/h";
 
 export const tabs_registery: Record<string, () => HTMLElement> = {
   terminal: () => h("div", { class: "p-2" }, "Terminal view"),

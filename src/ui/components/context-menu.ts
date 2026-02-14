@@ -1,5 +1,5 @@
-import { cn } from "../common/cn";
-import { h } from "../common/h";
+import { cn } from "../../core/utils/cn";
+import { h } from "../../core/dom/h";
 import { lucide } from "./icon";
 
 export type ContextMenuItem =

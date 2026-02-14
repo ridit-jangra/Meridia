@@ -1,5 +1,5 @@
-import { cn } from "../common/cn";
-import { h } from "../common/h";
+import { cn } from "../../core/utils/cn";
+import { h } from "../../core/dom/h";
 
 function clamp(v: number, min: number, max: number) {
   return Math.max(min, Math.min(max, v));

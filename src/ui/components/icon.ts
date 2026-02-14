@@ -1,4 +1,4 @@
-import { h } from "../common/h";
+import { h } from "../../core/dom/h";
 
 export function codicon(name: string, className?: string) {
   return h("span", {

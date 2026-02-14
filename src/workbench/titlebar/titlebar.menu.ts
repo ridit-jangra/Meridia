@@ -1,4 +1,4 @@
-import { ITitlebarMenuItem } from "./lib.types";
+import { ITitlebarMenuItem } from "../core/types/lib.types";
 
 export const titlebar_menu: ITitlebarMenuItem[] = [
   {

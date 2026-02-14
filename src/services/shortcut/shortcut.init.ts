@@ -10,10 +10,10 @@ import {
   enable_node_at_path,
   is_node_enabled_at_path,
   toggle_node_at_path,
-} from "../../common/layout.helper";
+} from "../layouts/layout.helper";
 import { layout_engine } from "../layouts/layout.engine";
-import { update_layout } from "../../common/layout.helper";
-import { debounce } from "../../common/utils";
+import { update_layout } from "../layouts/layout.helper";
+import { debounce } from "../../core/utils/utils";
 
 shortcuts.register_command({
   id: "layout.toggleSearch",
