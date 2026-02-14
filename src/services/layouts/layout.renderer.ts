@@ -7,9 +7,9 @@ import type { TLayoutNode, TLayoutPreset } from "./presets/preset.types";
 import type { node_path } from "./layout.types";
 import { cn } from "../../ui";
 import { Titlebar } from "../../workbench/titlebar/titlebar";
-import { PanelComponent } from "../../components/panel-component";
-import { ActivityBarPanelComponent } from "../../components/activitybar-panel-component";
-import { TabsComponent } from "../../components/tabs-component";
+import { PanelComponent } from "../../workbench/panels/panel-component";
+import { ActivityBarPanelComponent } from "../../workbench/activitybar/activitybar-panel-component";
+import { TabsComponent } from "../../workbench/tabs/tabs-component";
 
 // import { Titlebar } from "../components/Titlebar";
 // import { PanelComponent } from "../components/PanelComponent";

@@ -1,10 +1,10 @@
 import { shortcuts } from "./shortcut.service";
-import { store } from "../store/store";
+import { store } from "../state/store";
 import {
   set_active_panel_key,
   set_active_tab_key,
   set_command_palette_open,
-} from "../store/slices/layout.slice";
+} from "../state/slices/layout.slice";
 import {
   disable_node_at_path,
   enable_node_at_path,

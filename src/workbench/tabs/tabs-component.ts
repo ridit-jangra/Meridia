@@ -1,15 +1,15 @@
-import { h } from "../core/dom/h";
-import { cn } from "../core/utils/cn";
-import { Tooltip } from "../ui/components/tooltip";
-import { ScrollArea } from "../ui/components/scroll-area";
-import { shortcuts } from "../services/shortcut/shortcut.service";
-import { layout_engine } from "../services/layouts/layout.engine";
-import { toggle_node_at_path } from "../services/layouts/layout.helper";
-import { store } from "../services/store/store";
-import { set_active_tab_key } from "../services/store/slices/layout.slice";
-import { ACTIVE_TAB_KEY } from "../../shared/storage-keys";
-import type { TTabNode } from "../services/layouts/presets/preset.types";
-import { tabs_registery } from "../core/registery";
+import { h } from "../../core/dom/h";
+import { cn } from "../../core/utils/cn";
+import { Tooltip } from "../../ui/components/tooltip";
+import { ScrollArea } from "../../ui/components/scroll-area";
+import { shortcuts } from "../../services/shortcut/shortcut.service";
+import { layout_engine } from "../../services/layouts/layout.engine";
+import { toggle_node_at_path } from "../../services/layouts/layout.helper";
+import { store } from "../../services/state/store";
+import { set_active_tab_key } from "../../services/state/slices/layout.slice";
+import { ACTIVE_TAB_KEY } from "../../../shared/storage-keys";
+import type { TTabNode } from "../../services/layouts/presets/preset.types";
+import { tabs_registry } from "../../core/registry";
 
 type ViewFactory = () => HTMLElement;
 
@@ -33,7 +33,7 @@ export function TabsComponent(opts: { node: TTabNode }) {
     content.innerHTML = "";
 
     const key = get_active();
-    const panel = (tabs_registery as Record<string, ViewFactory | undefined>)[
+    const panel = (tabs_registry as Record<string, ViewFactory | undefined>)[
       key
     ];
 

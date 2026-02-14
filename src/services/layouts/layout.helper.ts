@@ -1,6 +1,6 @@
 import { layout_engine } from "./layout.engine";
 import { TLayoutNode } from "./presets/preset.types";
-import { store } from "../store/store";
+import { store } from "../state/store";
 import { debounce } from "../../core/utils/utils";
 
 export function set_node_at_path(

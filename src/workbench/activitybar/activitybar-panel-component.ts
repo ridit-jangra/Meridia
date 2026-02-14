@@ -1,16 +1,16 @@
-import { h } from "../core/dom/h";
-import { cn } from "../core/utils/cn";
-import { Tooltip } from "../ui/components/tooltip";
-import { ScrollArea } from "../ui/components/scroll-area";
-import { shortcuts } from "../services/shortcut/shortcut.service";
-import { layout_engine } from "../services/layouts/layout.engine";
-import { toggle_node_at_path } from "../services/layouts/layout.helper";
-import { store } from "../services/store/store";
-import { set_active_panel_key } from "../services/store/slices/layout.slice";
-import { ACTIVE_PANEL_KEY } from "../../shared/storage-keys";
-import { PanelComponent } from "./panel-component";
-import type { TActivityBarPanelNode } from "../services/layouts/presets/preset.types";
-import { lucide } from "../ui/components/icon";
+import { h } from "../../core/dom/h";
+import { cn } from "../../core/utils/cn";
+import { Tooltip } from "../../ui/components/tooltip";
+import { ScrollArea } from "../../ui/components/scroll-area";
+import { shortcuts } from "../../services/shortcut/shortcut.service";
+import { layout_engine } from "../../services/layouts/layout.engine";
+import { toggle_node_at_path } from "../../services/layouts/layout.helper";
+import { store } from "../../services/state/store";
+import { set_active_panel_key } from "../../services/state/slices/layout.slice";
+import { ACTIVE_PANEL_KEY } from "../../../shared/storage-keys";
+import { PanelComponent } from "../panels/panel-component";
+import type { TActivityBarPanelNode } from "../../services/layouts/presets/preset.types";
+import { lucide } from "../../ui/components/icon";
 
 export function ActivityBarPanelComponent(opts: {
   node: TActivityBarPanelNode;
