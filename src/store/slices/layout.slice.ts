@@ -5,6 +5,7 @@ interface LayoutState {
   active_layout_id: string;
   active_panel_key: string;
   active_tab_key: string;
+  command_palette_open: boolean;
   presets: Record<string, TLayoutPreset>;
 }
 
@@ -12,6 +13,7 @@ const initialState: LayoutState = {
   active_layout_id: "ide",
   active_panel_key: "explorer",
   active_tab_key: "terminal",
+  command_palette_open: false,
   presets: {},
 };
 
@@ -31,6 +33,9 @@ const layoutSlice = createSlice({
     update_preset(state, action: PayloadAction<TLayoutPreset>) {
       state.presets[action.payload.id] = action.payload;
     },
+    set_command_palette_open(state, action: PayloadAction<boolean>) {
+      state.command_palette_open = action.payload;
+    },
   },
 });
 
@@ -39,5 +44,6 @@ export const {
   set_active_panel_key,
   set_active_tab_key,
   update_preset,
+  set_command_palette_open,
 } = layoutSlice.actions;
 export default layoutSlice.reducer;

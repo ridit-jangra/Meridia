@@ -150,6 +150,10 @@ export class shortcut_service {
     const { _norm, ...rest } = found;
     return { ...rest, norm: _norm };
   }
+
+  get_all_shortcuts() {
+    return this.shortcuts;
+  }
 }
 
 export const shortcuts = new shortcut_service();

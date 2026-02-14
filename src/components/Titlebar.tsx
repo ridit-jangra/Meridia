@@ -12,6 +12,16 @@ import {
   MenubarSubTrigger,
   MenubarTrigger,
 } from "./shadcn/menubar";
+import {
+  Command,
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandShortcut,
+} from "./shadcn/command";
 import { Popover, PopoverContent, PopoverTrigger } from "./shadcn/popover";
 import { titlebar_menu } from "../lib/titlebar.menu";
 import { shortcuts } from "../shortcut/shortcut.service";
@@ -28,7 +38,10 @@ import { layout_engine } from "../layouts/layout.engine";
 import { Switch } from "./shadcn/switch";
 import { Label } from "./shadcn/label";
 import { useAppDispatch, useAppSelector } from "../store/hooks";
-import { set_active_layout_id } from "../store/slices/layout.slice";
+import {
+  set_active_layout_id,
+  set_command_palette_open,
+} from "../store/slices/layout.slice";
 
 function ShortcutLabel({ command }: { command: string }) {
   const keys = shortcuts.get_shortcut({ command })?.keys;
@@ -108,6 +121,9 @@ const layoutPanels = [
 
 export function Titlebar() {
   const active_layout_id = useAppSelector((s) => s.layout.active_layout_id);
+  const command_pallete_open = useAppSelector(
+    (s) => s.layout.command_palette_open,
+  );
   const dispatch = useAppDispatch();
 
   return (
@@ -132,14 +148,61 @@ export function Titlebar() {
         </Menubar>
       </div>
 
-      <Tooltip>
-        <TooltipTrigger>
-          <span className="py-1 px-2 rounded-md hover:bg-titlebar-item-hover-background hover:text-titlebar-item-hover-foreground no-drag cursor-pointer transition-colors">
-            MeridiaV2
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>Command Palette</TooltipContent>
-      </Tooltip>
+      <>
+        <Tooltip>
+          <TooltipTrigger>
+            <span
+              className="py-1 px-2 rounded-md hover:bg-titlebar-item-hover-background hover:text-titlebar-item-hover-foreground no-drag cursor-pointer transition-colors"
+              onClick={() => {
+                dispatch(set_command_palette_open(true));
+              }}
+            >
+              MeridiaV2
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>Command Palette</TooltipContent>
+        </Tooltip>
+        <CommandDialog
+          open={command_pallete_open}
+          onOpenChange={(open) => {
+            dispatch(set_command_palette_open(open));
+          }}
+          showCloseButton={false}
+        >
+          <Command className="bg-command-background no-drag">
+            <CommandInput placeholder="Type a command or search..." />
+            <CommandList>
+              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandGroup heading="Commands">
+                {shortcuts.get_all_shortcuts().map((command, i) => (
+                  <CommandItem
+                    key={i}
+                    onSelect={() => {
+                      dispatch(set_command_palette_open(false));
+                      shortcuts.run_shortcut(command.command);
+                    }}
+                  >
+                    <span>{command.id}</span>
+                    <CommandShortcut className="flex gap-1">
+                      {command.keys.split("+").map((v, index, array) => (
+                        <span key={index} className="flex gap-1 items-center">
+                          <kbd className="bg-command-item-foreground/13 p-1 rounded-md text-[12px]">
+                            {" "}
+                            {v[0].toUpperCase() + v.slice(1)}
+                          </kbd>
+                          <p className="text-[16px]">
+                            {index !== array.length - 1 && " +"}
+                          </p>
+                        </span>
+                      ))}
+                    </CommandShortcut>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </CommandDialog>
+      </>
 
       <div className="mr-35 no-drag flex items-center gap-px">
         {layoutPanels.map((panel) => {
@@ -214,7 +277,7 @@ export function Titlebar() {
                         />
                       </div>
                     );
-                  }
+                  },
                 )}
               </div>
             </div>

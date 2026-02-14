@@ -163,6 +163,11 @@
   --color-split-handle-hover-foreground: var(--split-handle-hover-foreground);
   --color-split-handle-active-foreground: var(--split-handle-active-foreground);
 
+  --color-command-background: var(--command-background);
+  --color-command-item-foreground: var(--command-item-foreground);
+  --color-command-item-hover-foreground: var(--command-item-hover-foreground);
+  --color-command-item-hover-background: var(--command-item-hover-background);
+
   --color-selection-background: var(--selection-background);
   --color-selection-foreground: var(--selection-foreground);
   --color-focus-border: var(--focus-border);

@@ -3,6 +3,7 @@ import { store } from "../store/store";
 import {
   set_active_panel_key,
   set_active_tab_key,
+  set_command_palette_open,
 } from "../store/slices/layout.slice";
 import {
   disable_node_at_path,
@@ -272,7 +273,9 @@ shortcuts.register_command({
 });
 shortcuts.register_command({
   id: "app.commandPalette",
-  run: () => console.log("command palette"),
+  run: () => {
+    store.dispatch(set_command_palette_open(true));
+  },
 });
 shortcuts.register_command({
   id: "app.zoomIn",

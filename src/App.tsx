@@ -18,6 +18,7 @@ function App() {
   const presets = useAppSelector((s) => s.layout.presets);
   const dispatch = useAppDispatch();
   const [ready, setReady] = useState(false);
+  const [is_initialized, set_is_initialized] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -31,15 +32,20 @@ function App() {
       dispatch(update_preset(agent));
       dispatch(update_preset(editor));
 
-      const saved = await window.storage.get(SELECTED_LAYOUT_KEY, "ide");
-      dispatch(set_active_layout_id(saved));
+      const saved = (await window.storage.get(SELECTED_LAYOUT_KEY)) as string;
+      console.log("got", saved);
+      dispatch(set_active_layout_id(saved ?? "ide"));
       setReady(true);
+      set_is_initialized(true);
     })();
   }, [dispatch]);
 
   useEffect(() => {
+    if (!is_initialized) return;
+
     window.storage.set(SELECTED_LAYOUT_KEY, active_layout_id);
-  }, [active_layout_id]);
+    console.log("saving", active_layout_id);
+  }, [active_layout_id, is_initialized]);
 
   useEffect(() => shortcuts.bind(window), []);
 

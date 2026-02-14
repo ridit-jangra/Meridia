@@ -180,6 +180,11 @@ export const titlebar_menu: ITitlebarMenuItem[] = [
             name: "Toggle Secondary Side Bar",
             command: "layout.toggleSecondarySideBar",
           },
+          {
+            id: "toggle-bottom-panel",
+            name: "Toggle Bottom Panel",
+            command: "layout.toggleBottomPanel",
+          },
         ],
       },
       { id: "separator-5", name: "separator" },

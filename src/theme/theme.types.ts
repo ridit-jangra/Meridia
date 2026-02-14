@@ -122,6 +122,11 @@ export const colors = [
   "selection.background",
   "selection.foreground",
   "focus.border",
+
+  "command.background",
+  "command.item.foreground",
+  "command.item.hover.background",
+  "command.item.hover.foreground",
 ] as const;
 
 export type TColors = (typeof colors)[number];
