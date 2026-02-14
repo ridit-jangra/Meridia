@@ -1,8 +1,8 @@
 import { app, BrowserWindow } from "electron";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
-import "./ipc/storage-ipc";
 import path from "node:path";
+import "./ipc/storage-ipc";
 
 const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -32,19 +32,15 @@ let win: BrowserWindow | null;
 function createWindow() {
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    backgroundColor: "#141414",
-    titleBarOverlay: {
-      color: "#141414",
-      symbolColor: "#E4E4E4A8",
-      height: 44,
-    },
-    titleBarStyle: "hidden",
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
     },
   });
 
-  win.maximize();
+  // Test active push message to Renderer-process.
+  win.webContents.on("did-finish-load", () => {
+    win?.webContents.send("main-process-message", new Date().toLocaleString());
+  });
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL);

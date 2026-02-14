@@ -27,4 +27,4 @@ dist-ssr
 
 dist-electron
 
-src/theme/themes/*.json
+src/services/theme/themes/*.json
