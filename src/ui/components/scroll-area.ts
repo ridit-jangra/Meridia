@@ -14,11 +14,15 @@ export function ScrollArea(opts?: {
   const viewport = h(
     "div",
     {
-      class: cn("min-h-0 min-w-0 overflow-auto", "scrollbar-hide", opts?.class),
+      class: cn(
+        "min-h-0 min-w-0 overflow-auto h-full",
+        "scrollbar-hide",
+        opts?.class,
+      ),
     },
     h(
       "div",
-      { class: cn("min-h-0 min-w-0", opts?.innerClass) },
+      { class: cn("min-h-0 min-w-0 h-full", opts?.innerClass) },
       ...(opts?.children ?? []),
     ),
   );
@@ -33,7 +37,12 @@ export function ScrollArea(opts?: {
 
   track.appendChild(thumb);
 
-  const el = h("div", { class: "overlay-scrollbar-root" }, viewport, track);
+  const el = h(
+    "div",
+    { class: "overlay-scrollbar-root h-full" },
+    viewport,
+    track,
+  );
 
   let dragging = false;
   let dragStartY = 0;

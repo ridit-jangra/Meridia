@@ -152,8 +152,8 @@ export function Menubar(opts: { menus: ITitlebarMenuItem[]; class?: string }) {
       {
         class: cn(
           "px-2 py-px text-[12px] rounded-[7px]",
-          "text-titlebar-foreground",
-          "hover:bg-titlebar-item-hover-background/80 hover:text-titlebar-item-hover-foreground/80",
+          "text-titlebar-foreground/90",
+          "hover:bg-titlebar-item-hover-background/80 hover:text-titlebar-item-hover-foreground/90",
         ),
       },
       menu.name,

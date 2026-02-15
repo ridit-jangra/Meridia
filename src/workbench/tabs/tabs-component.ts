@@ -28,20 +28,36 @@ export function TabsComponent(opts: { node: TTabNode }) {
   const get_active = () => store.getState().layout.active_tab_key;
 
   let is_initialized = false;
+  const pills = new Map<string, HTMLElement>();
 
   const mountPanel = () => {
     content.innerHTML = "";
-
     const key = get_active();
     const panel = (tabs_registry as Record<string, ViewFactory | undefined>)[
       key
     ];
-
     if (panel) content.appendChild(panel());
+  };
+
+  const updatePills = () => {
+    const active = get_active();
+
+    for (const [id, pill] of pills.entries()) {
+      const isActive = id === active;
+
+      pill.classList.toggle("bg-view-tab-active-background", isActive);
+      pill.classList.toggle("text-view-tab-active-foreground", isActive);
+
+      pill.classList.toggle("bg-view-tab-background", !isActive);
+      pill.classList.toggle("text-view-tab-foreground", !isActive);
+      pill.classList.toggle("hover:bg-view-tab-hover-background", !isActive);
+      pill.classList.toggle("hover:text-view-tab-hover-foreground", !isActive);
+    }
   };
 
   const renderTabs = () => {
     header.innerHTML = "";
+    pills.clear();
 
     const active_tab_key = get_active();
 
@@ -72,13 +88,14 @@ export function TabsComponent(opts: { node: TTabNode }) {
         position: "top",
       });
 
+      pills.set(tab.id, pill);
       header.appendChild(pill);
     }
   };
 
   const render = () => {
-    renderTabs();
     mountPanel();
+    updatePills();
   };
 
   const handle_click = async (tabId: string) => {
@@ -124,6 +141,7 @@ export function TabsComponent(opts: { node: TTabNode }) {
     render();
   });
 
+  renderTabs();
   init();
 
   el.appendChild(header);
