@@ -34,6 +34,10 @@
   --radius: 0.625rem;
 }
 
+.popover-shadow {
+  box-shadow: var(--popover-shadow);
+}
+
 body {
   user-select: none;
 }
@@ -170,6 +174,8 @@ body {
   --color-command-item-foreground: var(--command-item-foreground);
   --color-command-item-hover-foreground: var(--command-item-hover-foreground);
   --color-command-item-hover-background: var(--command-item-hover-background);
+  --color-command-item-active-foreground: var(--command-item-active-foreground);
+  --color-command-item-active-background: var(--command-item-active-background);
 
   --color-selection-background: var(--selection-background);
   --color-selection-foreground: var(--selection-foreground);
@@ -197,6 +203,12 @@ body {
   --color-scrollbar-thumb-active-foreground: var(
     --scrollbar-thumb-active-foreground
   );
+
+  --color-popover-background: var(--popover-background);
+  --color-popover-border: var(--popover-border);
+
+  --color-popover-content-background: var(--popover-content-background);
+  --color-popover-content-foreground: var(--popover-content-foreground);
 
   --font-inter: "Inter", sans-serif;
 }

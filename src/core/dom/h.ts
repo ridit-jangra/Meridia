@@ -1,58 +1,92 @@
-export type Child =
+// src/core/dom/h.ts
+type Child =
   | HTMLElement
-  | Text
+  | SVGElement
   | string
   | number
   | boolean
   | null
   | undefined;
 
-export type Props = {
+type HProps<T extends Element> = {
   class?: string;
-  style?: Partial<CSSStyleDeclaration>;
-  attrs?: Record<string, string | number | boolean | null | undefined>;
-  dataset?: Record<string, string | number | boolean | null | undefined>;
-  on?: Record<string, (e: Event) => void>;
-};
+  style?:
+    | string
+    | Partial<CSSStyleDeclaration>
+    | Record<string, string | number>;
+  attrs?: Record<string, any>;
+  on?: Record<string, (e: any) => void>;
+} & Record<string, any>;
 
 export function h<K extends keyof HTMLElementTagNameMap>(
   tag: K,
-  props?: Props | null,
+  props?: HProps<HTMLElementTagNameMap[K]> | null,
   ...children: Child[]
-): HTMLElementTagNameMap[K] {
-  const el = document.createElement(tag);
+): HTMLElementTagNameMap[K];
 
-  if (props?.class) el.className = props.class;
-  if (props?.style) Object.assign(el.style, props.style);
+export function h<K extends keyof SVGElementTagNameMap>(
+  tag: K,
+  props?: HProps<SVGElementTagNameMap[K]> | null,
+  ...children: Child[]
+): SVGElementTagNameMap[K];
 
-  if (props?.attrs) {
-    for (const [k, val] of Object.entries(props.attrs)) {
-      if (val === null || val === undefined || val === false) continue;
-      if (val === true) el.setAttribute(k, "");
-      else el.setAttribute(k, String(val));
+export function h(tag: any, props?: any, ...children: Child[]) {
+  const el =
+    tag === "svg" ||
+    tag === "path" ||
+    tag === "g" ||
+    tag === "circle" ||
+    tag === "rect"
+      ? document.createElementNS("http://www.w3.org/2000/svg", tag)
+      : document.createElement(tag);
+
+  if (props) {
+    const { class: className, style, attrs, on, ...rest } = props;
+
+    if (className) el.setAttribute("class", className);
+
+    if (style != null) {
+      if (typeof style === "string") {
+        (el as HTMLElement).style.cssText += style;
+      } else {
+        const s = (el as HTMLElement).style as any;
+        for (const k in style) {
+          const v = (style as any)[k];
+          if (v == null) continue;
+          s[k] = typeof v === "number" ? String(v) : v;
+        }
+      }
     }
-  }
 
-  if (props?.dataset) {
-    for (const [k, val] of Object.entries(props.dataset)) {
-      if (val === null || val === undefined || val === false) continue;
-      (el as any).dataset[k] = String(val);
+    if (attrs) {
+      for (const k in attrs) {
+        const v = attrs[k];
+        if (v === false || v == null) continue;
+        if (v === true) el.setAttribute(k, "");
+        else el.setAttribute(k, String(v));
+      }
     }
-  }
 
-  if (props?.on) {
-    for (const [name, fn] of Object.entries(props.on)) {
-      el.addEventListener(name, fn as any);
+    if (on) {
+      for (const k in on) el.addEventListener(k, on[k]);
+    }
+
+    for (const k in rest) {
+      const v = rest[k];
+      if (v == null) continue;
+      if (k in el) (el as any)[k] = v;
+      else el.setAttribute(k, String(v));
     }
   }
 
   for (const c of children) {
-    if (c === null || c === undefined || c === false) continue;
-    if (typeof c === "string" || typeof c === "number")
+    if (c == null || c === false) continue;
+    if (typeof c === "string" || typeof c === "number") {
       el.appendChild(document.createTextNode(String(c)));
-    else if (c === true) el.appendChild(document.createTextNode("true"));
-    else el.appendChild(c);
+    } else {
+      el.appendChild(c as any);
+    }
   }
 
-  return el;
+  return el as any;
 }

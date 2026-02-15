@@ -1,4 +1,3 @@
-// layout-renderer.ts
 import Split from "split.js";
 import { h } from "../../core/dom/h";
 import { set_node_at_path } from "./layout.helper";
@@ -11,12 +10,12 @@ import { PanelComponent } from "../../workbench/panels/panel-component";
 import { ActivityBarPanelComponent } from "../../workbench/activitybar/activitybar-panel-component";
 import { TabsComponent } from "../../workbench/tabs/tabs-component";
 
-// import { Titlebar } from "../components/Titlebar";
-// import { PanelComponent } from "../components/PanelComponent";
-// import { TabsComponent } from "../components/TabsComponent";
-// import { ActivityBarPanelComponent } from "../components/ActivitybarPanelComponent";
-
 type RenderResult = { el: HTMLElement; destroy: () => void };
+
+type CacheEntry = {
+  node: TLayoutNode;
+  result: RenderResult;
+};
 
 function isNodeEnabled(n: TLayoutNode): boolean {
   if (n.type === "panel") return n.enabled !== false;
@@ -24,6 +23,41 @@ function isNodeEnabled(n: TLayoutNode): boolean {
   if (n.type === "activity-bar-panel") return n.enabled !== false;
   if (n.type === "split") return isNodeEnabled(n.a) || isNodeEnabled(n.b);
   return true;
+}
+
+function pathToKey(path: node_path): string {
+  return path.join(".");
+}
+
+function nodesEqual(a: TLayoutNode, b: TLayoutNode): boolean {
+  if (a.type !== b.type) return false;
+
+  if (a.type === "panel" && b.type === "panel") {
+    return a.id === b.id && a.enabled === b.enabled;
+  }
+
+  if (a.type === "tabs" && b.type === "tabs") {
+    return (
+      a.id === b.id &&
+      a.active === b.active &&
+      a.enabled === b.enabled &&
+      JSON.stringify(a.tabs) === JSON.stringify(b.tabs)
+    );
+  }
+
+  if (a.type === "activity-bar-panel" && b.type === "activity-bar-panel") {
+    return (
+      a.id === b.id &&
+      a.enabled === b.enabled &&
+      JSON.stringify(a.panels) === JSON.stringify(b.panels)
+    );
+  }
+
+  if (a.type === "split" && b.type === "split") {
+    return a.dir === b.dir && a.size === b.size;
+  }
+
+  return false;
 }
 
 function renderNode(opts: {
@@ -34,28 +68,73 @@ function renderNode(opts: {
     node: TLayoutNode,
     persist_only?: boolean,
   ) => void;
+  cache: Map<string, CacheEntry>;
 }): RenderResult | null {
-  const { node, path, on_update_node } = opts;
+  const { node, path, on_update_node, cache } = opts;
+
+  const cacheKey = pathToKey(path);
+  const cached = cache.get(cacheKey);
+
+  if (cached && nodesEqual(cached.node, node)) {
+    if (node.type === "split" && cached.node.type === "split") {
+      const aKey = pathToKey([...path, "a"]);
+      const bKey = pathToKey([...path, "b"]);
+      const cachedA = cache.get(aKey);
+      const cachedB = cache.get(bKey);
+
+      const childrenUnchanged =
+        cachedA &&
+        nodesEqual(cachedA.node, node.a) &&
+        cachedB &&
+        nodesEqual(cachedB.node, node.b);
+
+      if (childrenUnchanged) {
+        return cached.result;
+      }
+    } else {
+      return cached.result;
+    }
+  }
 
   if (node.type === "split") {
     const aEnabled = isNodeEnabled(node.a);
     const bEnabled = isNodeEnabled(node.b);
 
-    if (!aEnabled && bEnabled)
-      return renderNode({ node: node.b, path: [...path, "b"], on_update_node });
-    if (!bEnabled && aEnabled)
-      return renderNode({ node: node.a, path: [...path, "a"], on_update_node });
-    if (!aEnabled && !bEnabled) return null;
+    if (!aEnabled && bEnabled) {
+      cleanupCacheBranch(cache, [...path, "a"]);
+      return renderNode({
+        node: node.b,
+        path: [...path, "b"],
+        on_update_node,
+        cache,
+      });
+    }
+    if (!bEnabled && aEnabled) {
+      cleanupCacheBranch(cache, [...path, "b"]);
+      return renderNode({
+        node: node.a,
+        path: [...path, "a"],
+        on_update_node,
+        cache,
+      });
+    }
+    if (!aEnabled && !bEnabled) {
+      cleanupCacheBranch(cache, [...path, "a"]);
+      cleanupCacheBranch(cache, [...path, "b"]);
+      return null;
+    }
 
     const childA = renderNode({
       node: node.a,
       path: [...path, "a"],
       on_update_node,
+      cache,
     });
     const childB = renderNode({
       node: node.b,
       path: [...path, "b"],
       on_update_node,
+      cache,
     });
 
     if (!childA || !childB) return childA ?? childB;
@@ -114,7 +193,7 @@ function renderNode(opts: {
       },
     });
 
-    return {
+    const result = {
       el: container,
       destroy() {
         try {
@@ -124,27 +203,58 @@ function renderNode(opts: {
         childB.destroy();
       },
     };
+
+    cache.set(cacheKey, { node, result });
+    return result;
   }
 
   if (node.type === "panel") {
     if (node.enabled === false) return null;
     const el = PanelComponent({ id: node.id });
-    return { el, destroy() {} };
+    const result = { el, destroy() {} };
+
+    cache.set(cacheKey, { node, result });
+    return result;
   }
 
   if (node.type === "tabs") {
     if (node.enabled === false) return null;
-    const el = TabsComponent({ node }).el;
-    return { el, destroy() {} };
+    const component = TabsComponent({ node });
+    const result = { el: component.el, destroy() {} };
+
+    cache.set(cacheKey, { node, result });
+    return result;
   }
 
   if (node.type === "activity-bar-panel") {
     if (node.enabled === false) return null;
     const view = ActivityBarPanelComponent({ node });
-    return { el: view.el, destroy: view.destroy };
+    const result = { el: view.el, destroy: view.destroy };
+
+    cache.set(cacheKey, { node, result });
+    return result;
   }
 
   return null;
+}
+
+function cleanupCacheBranch(cache: Map<string, CacheEntry>, path: node_path) {
+  const prefix = pathToKey(path);
+  const keysToDelete: string[] = [];
+
+  for (const key of cache.keys()) {
+    if (key === prefix || key.startsWith(prefix + ".")) {
+      const entry = cache.get(key);
+      if (entry) {
+        entry.result.destroy();
+      }
+      keysToDelete.push(key);
+    }
+  }
+
+  for (const key of keysToDelete) {
+    cache.delete(key);
+  }
 }
 
 export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
@@ -156,6 +266,8 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
 
   let suspend_external = false;
   let suspend_timer: number | null = null;
+
+  const nodeCache = new Map<string, CacheEntry>();
 
   const contentHost = h("div", {
     class: "min-h-0 min-w-0 h-[calc(100vh-3rem)] max-h-[calc(100vh-3rem)]",
@@ -183,13 +295,16 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
   };
 
   const rerender = () => {
-    mounted?.destroy();
+    if (mounted && mounted.el.parentElement) {
+      mounted.el.remove();
+    }
     contentHost.innerHTML = "";
 
     const r = renderNode({
       node: rootNode,
       path: [],
       on_update_node,
+      cache: nodeCache,
     });
 
     if (!r) {
@@ -213,20 +328,16 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
     persist(newRoot, 50);
   };
 
-  // initial render
   rerender();
 
-  // ✅ rerender when engine updates this preset
   const unsubscribe = layout_engine.subscribe(() => {
     if (suspend_external) return;
 
     const latest = layout_engine.get_layout(preset.id);
     if (!latest) return;
 
-    // If preset object changed, update reference
     const presetChanged = latest !== preset;
 
-    // If root ref changed, update + rerender
     const rootChanged = latest.root !== rootNode;
 
     if (presetChanged || rootChanged) {
@@ -249,6 +360,12 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
       unsubscribe();
       if (saveTimer) window.clearTimeout(saveTimer);
       if (suspend_timer) window.clearTimeout(suspend_timer);
+
+      for (const [_, entry] of nodeCache.entries()) {
+        entry.result.destroy();
+      }
+      nodeCache.clear();
+
       mounted?.destroy();
       el.remove();
     },

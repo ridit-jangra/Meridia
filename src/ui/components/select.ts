@@ -1,6 +1,6 @@
 import { cn } from "../../core/utils/cn";
 import { h } from "../../core/dom/h";
-import { codicon, lucide } from "./icon";
+import { lucide } from "./icon";
 
 type SelectItem = { value: string; label: string };
 

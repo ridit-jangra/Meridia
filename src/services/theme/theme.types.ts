@@ -133,6 +133,8 @@ export const colors = [
   "command.item.foreground",
   "command.item.hover.background",
   "command.item.hover.foreground",
+  "command.item.active.background",
+  "command.item.active.foreground",
 
   "context.menu.background",
   "context.menu.foreground",
@@ -140,6 +142,14 @@ export const colors = [
   "context.menu.item.foreground",
   "context.menu.item.hover.background",
   "context.menu.item.hover.foreground",
+
+  "popover.background",
+  "popover.border",
+
+  "popover.content.background",
+  "popover.content.foreground",
+
+  "popover.shadow",
 ] as const;
 
 export type TColors = (typeof colors)[number];

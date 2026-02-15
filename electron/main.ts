@@ -36,13 +36,15 @@ function createWindow() {
     titleBarOverlay: {
       color: "#141414",
       symbolColor: "#E4E4E4A8",
-      height: 48,
+      height: 49,
     },
     titleBarStyle: "hidden",
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
     },
   });
+
+  win.setMenuBarVisibility(false);
 
   win.maximize();
 

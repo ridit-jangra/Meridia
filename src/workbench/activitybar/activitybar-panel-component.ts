@@ -24,24 +24,47 @@ export function ActivityBarPanelComponent(opts: {
   });
 
   const top = h("div", {
-    class: "flex items-center justify-center gap-1 p-2 shrink-0",
+    class: "flex items-center justify-center gap-1.5 p-2 shrink-0",
   });
 
-  const scroll = ScrollArea({ class: "flex-1 min-h-0" });
+  const scroll = ScrollArea({ class: "flex-1 min-h-0 h-full" });
   const content = scroll.inner;
 
   const get_active = () => store.getState().layout.active_panel_key;
 
   let is_initialized = false;
+  const btns = new Map<string, HTMLElement>();
 
-  const render = () => {
+  const panelCache = new Map<string, HTMLElement>();
+
+  const updateButtons = () => {
+    const active = get_active();
+
+    for (const [id, btn] of btns.entries()) {
+      const isActive = id === active;
+
+      btn.classList.toggle("bg-explorer-item-active-background/80", isActive);
+
+      btn.classList.toggle("text-explorer-icon-foreground", !isActive);
+      btn.classList.toggle(
+        "hover:bg-explorer-item-hover-background",
+        !isActive,
+      );
+      btn.classList.toggle(
+        "hover:text-explorer-item-hover-foreground",
+        !isActive,
+      );
+    }
+  };
+
+  const renderButtons = () => {
     top.innerHTML = "";
-    content.innerHTML = "";
+    btns.clear();
 
-    const active_panel_key = get_active();
+    const active = get_active();
 
     for (const panel of opts.node.panels) {
-      const is_active = panel.id === active_panel_key;
+      const is_active = panel.id === active;
 
       const shortcut_text = panel.shortcut_id
         ? shortcuts.get_shortcut({ id: panel.shortcut_id })?.keys
@@ -49,7 +72,7 @@ export function ActivityBarPanelComponent(opts: {
 
       const btn = h("div", {
         class: cn(
-          "p-2 rounded-[7px] cursor-pointer flex items-center justify-center",
+          "p-[6px] rounded-[7px] cursor-pointer flex items-center justify-center transition-colors",
           is_active
             ? "bg-explorer-item-active-background/80"
             : "hover:bg-explorer-item-hover-background hover:text-explorer-item-hover-foreground text-explorer-icon-foreground",
@@ -60,9 +83,7 @@ export function ActivityBarPanelComponent(opts: {
       btn.appendChild(
         h(
           "span",
-          {
-            class: cn("[&_svg]:w-5 [&_svg]:h-5 leading-none"),
-          },
+          { class: cn("[&_svg]:w-5 [&_svg]:h-5 leading-none") },
           lucide(panel.icon),
         ),
       );
@@ -72,21 +93,50 @@ export function ActivityBarPanelComponent(opts: {
         text:
           (panel.tooltip ?? panel.id) +
           (shortcut_text ? ` (${shortcut_text})` : ""),
-        position: "bottom",
+        position: "top",
       });
 
+      btns.set(panel.id, btn);
       top.appendChild(btn);
-    }
-
-    if (active_panel_key) {
-      content.appendChild(PanelComponent({ id: active_panel_key }));
     }
   };
 
-  const handle_click = async (panelId: string) => {
-    const active_panel_key = get_active();
+  const renderPanel = () => {
+    const active = get_active();
 
-    if (panelId === active_panel_key) {
+    if (!active) {
+      for (const [_, panelEl] of panelCache.entries()) {
+        panelEl.style.display = "none";
+      }
+      return;
+    }
+
+    let panelEl = panelCache.get(active);
+
+    if (!panelEl) {
+      panelEl = PanelComponent({ id: active });
+      panelCache.set(active, panelEl);
+      content.appendChild(panelEl);
+    }
+
+    for (const [panelId, el] of panelCache.entries()) {
+      if (panelId === active) {
+        el.style.display = "";
+      } else {
+        el.style.display = "none";
+      }
+    }
+  };
+
+  const render = () => {
+    renderPanel();
+    updateButtons();
+  };
+
+  const handle_click = async (panelId: string) => {
+    const active = get_active();
+
+    if (panelId === active) {
       const state = store.getState();
       const active_layout_id = state.layout.active_layout_id;
       const preset = layout_engine.get_layout(active_layout_id);
@@ -108,6 +158,7 @@ export function ActivityBarPanelComponent(opts: {
   const init = async () => {
     const saved = await window.storage.get(ACTIVE_PANEL_KEY);
     if (saved) store.dispatch(set_active_panel_key(saved as string));
+
     is_initialized = true;
     render();
   };
@@ -122,6 +173,7 @@ export function ActivityBarPanelComponent(opts: {
     render();
   });
 
+  renderButtons();
   init();
 
   el.appendChild(top);
@@ -131,6 +183,12 @@ export function ActivityBarPanelComponent(opts: {
     el,
     destroy() {
       unsub();
+
+      for (const [_, panelEl] of panelCache.entries()) {
+        panelEl.remove();
+      }
+      panelCache.clear();
+
       el.remove();
     },
   };

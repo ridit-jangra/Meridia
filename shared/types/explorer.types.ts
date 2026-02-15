@@ -15,3 +15,9 @@ export interface IFolderStructure {
   path: string;
   structure: INode[];
 }
+
+export interface IChildStructure {
+  path: string;
+  id: string;
+  child_nodes: INode[];
+}
