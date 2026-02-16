@@ -40,6 +40,7 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
   let start = 0;
   let end = 0;
   let raf = 0;
+
   const cache = new Map<string, HTMLElement>();
 
   const setSpacer = () => {
@@ -62,6 +63,50 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
     return { s, e };
   };
 
+  const getKey = (item: T, index: number) =>
+    opts.key ? opts.key(item, index) : String(index);
+
+  const reconcile = (desired: HTMLElement[]) => {
+    const byKey = new Map<string, HTMLElement>();
+    Array.from(layer.children).forEach((n) => {
+      const el = n as HTMLElement;
+      const k = el.dataset.vkey;
+      if (k) byKey.set(k, el);
+    });
+
+    let cur: ChildNode | null = layer.firstChild;
+
+    for (let i = 0; i < desired.length; i++) {
+      const want = desired[i];
+      const k = want.dataset.vkey || "";
+
+      if (cur && (cur as HTMLElement).dataset?.vkey === k) {
+        byKey.delete(k);
+        cur = cur.nextSibling;
+        continue;
+      }
+
+      const existing = byKey.get(k);
+      if (existing) {
+        layer.insertBefore(existing, cur);
+        byKey.delete(k);
+        cur = existing.nextSibling;
+        continue;
+      }
+
+      layer.insertBefore(want, cur);
+      cur = want.nextSibling;
+    }
+
+    while (cur) {
+      const next = cur.nextSibling;
+      (cur as HTMLElement).remove();
+      cur = next;
+    }
+
+    byKey.forEach((el) => el.remove());
+  };
+
   const renderRange = (s: number, e: number) => {
     if (s === start && e === end) return;
     start = s;
@@ -69,11 +114,11 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
 
     layer.style.transform = `translateY(${start * opts.itemHeight}px)`;
 
+    const nodes: HTMLElement[] = [];
     const newKeys = new Set<string>();
-    const fragment = document.createDocumentFragment();
 
     for (let i = start; i < end; i++) {
-      const key = opts.key ? opts.key(items[i], i) : String(i);
+      const key = getKey(items[i], i);
       newKeys.add(key);
 
       let row = cache.get(key);
@@ -83,25 +128,20 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
       if (!row || !shouldCache) {
         row = opts.render(items[i], i);
         (row.style as any).height = `${opts.itemHeight}px`;
-        if (shouldCache) {
-          cache.set(key, row);
-        }
+        (row as any).dataset.vkey = key;
+        if (shouldCache) cache.set(key, row);
+      } else {
+        (row as any).dataset.vkey = key;
       }
-      fragment.appendChild(row);
+
+      nodes.push(row);
     }
 
-    Array.from(cache.keys()).forEach((key) => {
-      if (!newKeys.has(key)) {
-        const el = cache.get(key);
-        if (el && el.parentNode) {
-          el.remove();
-        }
-        cache.delete(key);
-      }
+    Array.from(cache.keys()).forEach((k) => {
+      if (!newKeys.has(k)) cache.delete(k);
     });
 
-    layer.innerHTML = "";
-    layer.appendChild(fragment);
+    reconcile(nodes);
 
     opts.onRangeChange?.(start, end);
   };
@@ -132,27 +172,10 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
     inner,
     setItems(next: T[]) {
       items = next;
-      cache.clear();
       setSpacer();
       start = -1;
       end = -1;
       schedule();
-    },
-    updateItem(index: number) {
-      const key = opts.key ? opts.key(items[index], index) : String(index);
-      cache.delete(key);
-
-      if (index >= start && index < end) {
-        const row = opts.render(items[index], index);
-        (row.style as any).height = `${opts.itemHeight}px`;
-        cache.set(key, row);
-
-        const children = Array.from(layer.children);
-        const elementIndex = index - start;
-        if (children[elementIndex]) {
-          layer.replaceChild(row, children[elementIndex]);
-        }
-      }
     },
     updateItems(next: T[]) {
       items = next;
@@ -167,6 +190,13 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
       schedule();
     },
     invalidate(key: string) {
+      cache.delete(key);
+      start = -1;
+      end = -1;
+      schedule();
+    },
+    updateItem(index: number) {
+      const key = getKey(items[index], index);
       cache.delete(key);
       start = -1;
       end = -1;

@@ -3,11 +3,10 @@ import { cn } from "../../core/utils/cn";
 import { open_editor_tab } from "../../services/editor/editor.helper";
 import { get_file_icon } from "../../services/explorer/explorer.helper";
 import { VirtualTree } from "../../ui";
-import { stressAddBurst } from "./stress.helpers";
 
 export function Explorer() {
   const tree = VirtualTree({
-    rowHeight: 26,
+    rowHeight: 27,
     height: "full",
     get_icon: get_file_icon,
     icon_folder_name: "file-icons",

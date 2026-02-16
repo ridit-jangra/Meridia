@@ -13,7 +13,7 @@ export function TabSwitcher() {
   const modal = h("div", {
     class: cn(
       "fixed z-[9999] hidden",
-      "left-1/2 top-[12%] -translate-x-1/2",
+      "left-1/2 top-[5%] -translate-x-1/2",
       "w-[560px] max-w-[calc(100vw-24px)] p-1.5",
       "bg-command-background text-command-item-foreground",
       "border border-workbench-border rounded-xl overflow-hidden",

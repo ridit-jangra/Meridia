@@ -1,4 +1,4 @@
-import { ITheme } from "./theme.types";
+import { ITheme, TColors } from "./theme.types";
 import { dark, light } from "./themes";
 
 type theme_id = string;
@@ -35,6 +35,19 @@ export class theme_service {
     return this.get(this.active_id);
   }
 
+  get_color(key: TColors, fromCSS?: false): string | undefined;
+  get_color(key: string, fromCSS: true): string;
+  get_color(key: string, fromCSS = false): string | undefined {
+    if (!fromCSS) {
+      return this.get_active()?.colors?.[key as TColors];
+    }
+
+    const cssVar = `--${key.replace(/\./g, "-")}`;
+    return getComputedStyle(document.documentElement)
+      .getPropertyValue(cssVar)
+      .trim();
+  }
+
   set_active(theme_id: theme_id) {
     if (!this.themes[theme_id]) return;
     this.active_id = theme_id;
@@ -45,7 +58,7 @@ export class theme_service {
     const theme = this.themes[theme_id];
     if (!theme) return;
 
-    const css_vars = Object.entries(theme.colors!)
+    const css_vars = Object.entries(theme.colors ?? {})
       .map(([key, value]) => `--${key.replace(/\./g, "-")}: ${value};`)
       .join("\n");
 

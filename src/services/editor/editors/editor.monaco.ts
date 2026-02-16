@@ -1,7 +1,9 @@
 import * as monaco from "monaco-editor";
+import "../editor.monaco.theme";
 import { h } from "../../../ui";
 import { editor } from "../editor";
 import { IMonacoEditor, IMonacoModel } from "../editor.types";
+import { path_to_language } from "../editor.helper";
 
 const el = h("div", { class: "monaco-editor h-full w-full" });
 
@@ -32,17 +34,21 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
     this.monacoEditor.instance = monaco.editor.create(this.monacoEditor.el, {
       value: "",
-      language: "typescript",
-      theme: "vs-dark",
+      language: "plaintext",
+      theme: "theme",
       automaticLayout: true,
       minimap: { enabled: false },
-      fontSize: 13,
+      fontSize: 15,
     });
   }
 
   public create_model(file_path: string) {
     const uri = monaco.Uri.parse(`file://${file_path}`);
-    const model = monaco.editor.createModel("", undefined, uri);
+    const model = monaco.editor.createModel(
+      "",
+      path_to_language(file_path),
+      uri,
+    );
 
     const m: IMonacoModel = {
       uri: file_path,

@@ -62,3 +62,21 @@ export function close_all_tabs() {
 export function get_file_extension(file_path: string) {
   return file_path.slice(file_path.lastIndexOf(".") + 1);
 }
+
+export function path_to_language(file_path: string) {
+  const extension = get_file_extension(file_path);
+
+  const language_map: Record<string, string> = {
+    ts: "typescript",
+    js: "javascript",
+    tsx: "typescript",
+    jsx: "javascript",
+    html: "html",
+    py: "python",
+    json: "json",
+    md: "markdown",
+    css: "css",
+  };
+
+  return language_map[extension] ?? "plaintext";
+}

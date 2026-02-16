@@ -25,7 +25,20 @@ export function Tooltip(opts: {
 
   let showTimeout: number | null = null;
 
+  const hide = () => {
+    if (showTimeout !== null) {
+      window.clearTimeout(showTimeout);
+      showTimeout = null;
+    }
+    tip.style.display = "none";
+  };
+
   const show = (e: MouseEvent) => {
+    if (!document.body.contains(opts.child)) {
+      hide();
+      return;
+    }
+
     const rect = opts.child.getBoundingClientRect();
 
     tip.style.display = "block";
@@ -96,18 +109,20 @@ export function Tooltip(opts: {
     }
   };
 
-  const hide = () => {
-    if (showTimeout !== null) {
-      window.clearTimeout(showTimeout);
-      showTimeout = null;
-    }
-    tip.style.display = "none";
-  };
-
   opts.child.addEventListener("mouseenter", handleMouseEnter);
   opts.child.addEventListener("mouseleave", hide);
   opts.child.addEventListener("blur", hide);
   opts.child.addEventListener("mousedown", hide);
+
+  const observer = new MutationObserver(() => {
+    if (!document.body.contains(opts.child)) {
+      hide();
+      tip.remove();
+      observer.disconnect();
+    }
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true });
 
   return {
     el: opts.child,
@@ -119,6 +134,7 @@ export function Tooltip(opts: {
       opts.child.removeEventListener("mouseleave", hide);
       opts.child.removeEventListener("blur", hide);
       opts.child.removeEventListener("mousedown", hide);
+      observer.disconnect();
       tip.remove();
     },
   };

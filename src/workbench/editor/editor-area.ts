@@ -32,13 +32,15 @@ export function EditorArea() {
     lastActivePath = key.file_path;
 
     const extension = get_file_extension(key.file_path);
-    const editor = editors_registry[extension];
+    let editor = editors_registry[extension];
 
     const editors = getEditorsUnique();
 
     editors.forEach((e) => e.set_visible(false));
 
-    if (!editor) return;
+    if (!editor) {
+      editor = editors_registry["ts"];
+    }
 
     editor.set_visible(true);
 
