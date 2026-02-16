@@ -4,7 +4,7 @@ import { cn } from "../../core/utils/cn";
 import { shortcuts } from "../../services/shortcut/shortcut.service";
 import { set_command_palette_open } from "../../services/state/slices/layout.slice";
 import { store } from "../../services/state/store";
-import { ContextMenu, Popover, Tooltip } from "../../ui";
+import { Popover, Tooltip } from "../../ui";
 import { codicon, lucide } from "../../ui/components/icon";
 import { Menubar } from "../../ui/components/menubar";
 import { titlebar_menu } from "./titlebar.menu";

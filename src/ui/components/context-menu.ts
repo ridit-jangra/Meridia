@@ -52,7 +52,7 @@ export function ContextMenu(opts?: {
       "fixed z-[10000] hidden",
       opts?.menuClass
         ? ""
-        : "bg-panel-background text-panel-foreground p-px border border-workbench-border rounded-[7px] shadow-sm",
+        : "bg-panel-background text-panel-foreground p-1 border border-workbench-border rounded-[7px] shadow-sm",
       opts?.menuClass,
     ),
   }) as HTMLDivElement;
@@ -84,7 +84,7 @@ export function ContextMenu(opts?: {
     const panel = h("div", {
       class: cn(
         "fixed z-[10001] hidden min-w-[260px]",
-        "bg-panel-background text-panel-foreground p-px",
+        "bg-panel-background text-panel-foreground p-1",
         "border border-workbench-border rounded-[7px] overflow-hidden shadow-sm",
         opts?.class,
       ),
@@ -124,7 +124,7 @@ export function ContextMenu(opts?: {
           "div",
           {
             class: cn(
-              "flex items-center justify-between px-3 py-1 text-[13px] rounded-[7px]",
+              "flex items-center justify-between px-7 py-1.5 text-[13px] rounded-[7px]",
               it.disabled ? "opacity-50 pointer-events-none" : "cursor-pointer",
               "hover:bg-titlebar-item-hover-background hover:text-titlebar-item-hover-foreground",
               "active:bg-titlebar-item-active-background",
@@ -151,7 +151,7 @@ export function ContextMenu(opts?: {
         "div",
         {
           class: cn(
-            "flex items-center justify-between px-3 py-1 text-[13px] rounded-[7px]",
+            "flex items-center justify-between px-7 py-1.5 text-[13px] rounded-[7px]",
             it.disabled ? "opacity-50 pointer-events-none" : "cursor-pointer",
             "hover:bg-titlebar-item-hover-background hover:text-titlebar-item-hover-foreground",
             "active:bg-titlebar-item-active-background",

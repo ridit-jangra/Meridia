@@ -6,7 +6,7 @@ export const dark: ITheme = {
   base: "dark",
   colors: {
     "workbench.background": "#141414",
-    "workbench.foreground": "#E4E4E4EB",
+    "workbench.foreground": "#CFCFCFEB",
     "workbench.border": "#E4E4E413",
 
     "panel.background": "#141414",
@@ -137,17 +137,17 @@ export const dark: ITheme = {
     "selection.foreground": "#E4E4E4EB",
     "focus.border": "#E4E4E426",
 
-    "context.menu.background": "#121212",
+    "context.menu.background": "#0A0A0A",
     "context.menu.foreground": "#E4E4E4EB",
     "context.menu.border": "#E4E4E41A",
     "context.menu.item.foreground": "#E4E4E4EB",
-    "context.menu.item.hover.background": "#1E1E1E",
+    "context.menu.item.hover.background": "#151515",
     "context.menu.item.hover.foreground": "#E4E4E4EB",
 
-    "popover.background": "#121212",
+    "popover.background": "#0A0A0A",
     "popover.border": "#E4E4E41A",
 
-    "popover.content.background": "#121212",
+    "popover.content.background": "#0A0A0A",
     "popover.content.foreground": "#E4E4E4EB",
 
     "popover.shadow": "0 12px 30px rgba(0, 0, 0, 0.5)",

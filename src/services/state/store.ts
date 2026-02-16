@@ -1,11 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import layoutReducer from "./slices/layout.slice";
 import explorerReducer from "./slices/explorer.slice";
+import editorReducer from "./slices/editor.slice";
 
 export const store = configureStore({
   reducer: {
     layout: layoutReducer,
     explorer: explorerReducer,
+    editor: editorReducer,
   },
 });
 

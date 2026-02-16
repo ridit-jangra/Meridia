@@ -240,14 +240,16 @@ export function Command(opts: {
         ),
         h(
           "div",
-          { class: "shrink-0 flex items-center gap-1 opacity-70 text-[12px]" },
+          {
+            class: "shrink-0 flex items-center gap-1.5 opacity-70 text-[12px]",
+          },
           ...(it.keys
             ? it.keys
                 .split("+")
                 .map((key: string, index: number, arr: string[]) => {
                   return h(
                     "div",
-                    { class: "flex items-center gap-1" },
+                    { class: "flex items-center gap-1.5" },
                     h(
                       "span",
                       {

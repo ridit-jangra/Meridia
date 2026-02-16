@@ -40,6 +40,7 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
   let start = 0;
   let end = 0;
   let raf = 0;
+  const cache = new Map<string, HTMLElement>();
 
   const setSpacer = () => {
     spacer.style.height = `${items.length * opts.itemHeight}px`;
@@ -66,14 +67,41 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
     start = s;
     end = e;
 
-    layer.innerHTML = "";
     layer.style.transform = `translateY(${start * opts.itemHeight}px)`;
 
+    const newKeys = new Set<string>();
+    const fragment = document.createDocumentFragment();
+
     for (let i = start; i < end; i++) {
-      const row = opts.render(items[i], i);
-      (row.style as any).height = `${opts.itemHeight}px`;
-      layer.appendChild(row);
+      const key = opts.key ? opts.key(items[i], i) : String(i);
+      newKeys.add(key);
+
+      let row = cache.get(key);
+
+      const shouldCache = !(items[i] as any).isFolder === false;
+
+      if (!row || !shouldCache) {
+        row = opts.render(items[i], i);
+        (row.style as any).height = `${opts.itemHeight}px`;
+        if (shouldCache) {
+          cache.set(key, row);
+        }
+      }
+      fragment.appendChild(row);
     }
+
+    Array.from(cache.keys()).forEach((key) => {
+      if (!newKeys.has(key)) {
+        const el = cache.get(key);
+        if (el && el.parentNode) {
+          el.remove();
+        }
+        cache.delete(key);
+      }
+    });
+
+    layer.innerHTML = "";
+    layer.appendChild(fragment);
 
     opts.onRangeChange?.(start, end);
   };
@@ -104,7 +132,42 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
     inner,
     setItems(next: T[]) {
       items = next;
+      cache.clear();
       setSpacer();
+      start = -1;
+      end = -1;
+      schedule();
+    },
+    updateItem(index: number) {
+      const key = opts.key ? opts.key(items[index], index) : String(index);
+      cache.delete(key);
+
+      if (index >= start && index < end) {
+        const row = opts.render(items[index], index);
+        (row.style as any).height = `${opts.itemHeight}px`;
+        cache.set(key, row);
+
+        const children = Array.from(layer.children);
+        const elementIndex = index - start;
+        if (children[elementIndex]) {
+          layer.replaceChild(row, children[elementIndex]);
+        }
+      }
+    },
+    updateItems(next: T[]) {
+      items = next;
+      setSpacer();
+      start = -1;
+      end = -1;
+      schedule();
+    },
+    refresh() {
+      start = -1;
+      end = -1;
+      schedule();
+    },
+    invalidate(key: string) {
+      cache.delete(key);
       start = -1;
       end = -1;
       schedule();
@@ -126,6 +189,7 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
       if (raf) cancelAnimationFrame(raf);
       viewport.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
+      cache.clear();
       viewport.remove();
     },
   };
