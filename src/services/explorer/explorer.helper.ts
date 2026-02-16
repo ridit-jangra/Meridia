@@ -71,3 +71,49 @@ export function get_file_icon(_name: string) {
 
   return icon_path;
 }
+
+export function join_path(...segments: string[]): string {
+  if (segments.length === 0) return "";
+
+  const filtered = segments.filter((s) => s !== "");
+  if (filtered.length === 0) return "";
+
+  let joined = filtered.join("/");
+
+  joined = joined.replace(/\/+/g, "/");
+
+  if (joined.length > 1 && joined.endsWith("/")) {
+    joined = joined.slice(0, -1);
+  }
+
+  if (segments[0].startsWith("/") && !joined.startsWith("/")) {
+    joined = "/" + joined;
+  }
+
+  return joined;
+}
+
+export function get_dir_name(path: string): string {
+  if (!path || path === "/") return "/";
+
+  const normalized = path.replace(/\/+$/, "");
+
+  const lastSlashIndex = normalized.lastIndexOf("/");
+
+  if (lastSlashIndex === -1) return ".";
+  if (lastSlashIndex === 0) return "/";
+
+  return normalized.substring(0, lastSlashIndex);
+}
+
+export function get_base_name(path: string): string {
+  if (!path || path === "/") return "/";
+
+  const normalized = path.replace(/\/+$/, "");
+
+  const lastSlashIndex = normalized.lastIndexOf("/");
+
+  if (lastSlashIndex === -1) return normalized;
+
+  return normalized.substring(lastSlashIndex + 1);
+}

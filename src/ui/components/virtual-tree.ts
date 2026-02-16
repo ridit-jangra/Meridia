@@ -1,32 +1,27 @@
+import { IFolderStructure, INode } from "../../../shared/types/explorer.types";
 import { h } from "../../core/dom/h";
 import { cn } from "../../core/utils/cn";
 import { lucide } from "./icon";
 import { Tooltip } from "./tooltip";
 import { VirtualList } from "./virtual-list";
-
-export type TreeNode = {
-  id: string;
-  label: string;
-  children?: TreeNode[];
-  defaultOpen?: boolean;
-};
-
-type FlatRow = {
-  id: string;
-  label: string;
-  depth: number;
-  isFolder: boolean;
-  node: TreeNode;
-};
+import { ContextMenu, ContextMenuItem } from "./context-menu";
+import {
+  FlatRow,
+  flattenTree,
+  removeNode,
+  findNodeById,
+} from "./virtual-tree.helpers";
+import { createAddNodeInput } from "./add-node.helpers";
+import { createRenameInput } from "./rename-node.helpers";
 
 export function VirtualTree(opts: {
-  roots: TreeNode[];
+  folderStructure: IFolderStructure;
   rowHeight: number;
   class?: string;
   height?: number | string;
   indent?: number;
   initiallyOpenAll?: boolean;
-  onSelect?: (id: string, node: TreeNode) => void;
+  onSelect?: (id: string, node: INode) => void;
   renderRight?: (row: FlatRow) => HTMLElement | null;
   get_icon?: (name: string) => string;
   icon_folder_name?: string;
@@ -35,45 +30,117 @@ export function VirtualTree(opts: {
 
   const open = new Set<string>();
   const selected = { id: "" };
+  let editingNodeId: string | null = null;
 
-  const initOpen = (n: TreeNode) => {
-    if (opts.initiallyOpenAll || n.defaultOpen) open.add(n.id);
-    (n.children ?? []).forEach(initOpen);
+  const initOpen = (n: INode) => {
+    if (opts.initiallyOpenAll) open.add(n.id);
+    (n.child_nodes ?? []).forEach(initOpen);
   };
-  opts.roots.forEach(initOpen);
-
-  const flatten = (nodes: TreeNode[], depth: number, out: FlatRow[]) => {
-    for (const n of nodes) {
-      const isFolder = !!(n.children && n.children.length);
-      out.push({
-        id: n.id,
-        label: n.label,
-        depth,
-        isFolder,
-        node: n,
-      });
-      if (isFolder && open.has(n.id)) flatten(n.children!, depth + 1, out);
-    }
-  };
+  opts.folderStructure.structure.forEach(initOpen);
 
   let rows: FlatRow[] = [];
+  const contextMenu = ContextMenu();
+
+  const rebuild = () => {
+    const out: FlatRow[] = [];
+    flattenTree(opts.folderStructure.structure, 0, open, out);
+    rows = out;
+    list.setItems(rows);
+  };
 
   const toggle = (id: string) => {
     if (open.has(id)) open.delete(id);
     else open.add(id);
-
-    const out: FlatRow[] = [];
-    flatten(opts.roots, 0, out);
-
-    rows = out;
-    list.updateItems(rows);
+    rebuild();
   };
 
-  const rebuild = () => {
-    const out: FlatRow[] = [];
-    flatten(opts.roots, 0, out);
-    rows = out;
+  const startAddNode = (parentId: string, type: "file" | "folder") => {
+    open.add(parentId);
+    editingNodeId = `__adding_${type}_${parentId}`;
+
+    const result = findNodeById(opts.folderStructure.structure, parentId);
+    if (!result) return;
+
+    const parentDepth = rows.find((r) => r.id === parentId)?.depth ?? 0;
+
+    const parentIndex = rows.findIndex((r) => r.id === parentId);
+    if (parentIndex === -1) {
+      rebuild();
+      return;
+    }
+
+    const tempRow: FlatRow = {
+      id: editingNodeId,
+      label: "",
+      depth: parentDepth + 1,
+      isFolder: type === "folder",
+      node: { id: editingNodeId, type, name: "", path: "" } as INode,
+    };
+
+    const newRows = [...rows];
+    newRows.splice(parentIndex + 1, 0, tempRow);
+    rows = newRows;
     list.setItems(rows);
+  };
+
+  const startRename = (nodeId: string) => {
+    editingNodeId = `__renaming_${nodeId}`;
+    rebuild();
+  };
+
+  const deleteNode = (nodeId: string) => {
+    const result = findNodeById(opts.folderStructure.structure, nodeId);
+    if (!result) return;
+
+    const type = result.node.type === "folder" ? "folder" : "file";
+    const confirmMsg = `Are you sure you want to delete this ${type}?`;
+
+    if (!confirm(confirmMsg)) return;
+
+    const success = removeNode(opts.folderStructure.structure, nodeId);
+    if (success) {
+      if (selected.id === nodeId) {
+        selected.id = "";
+      }
+      open.delete(nodeId);
+      editingNodeId = null;
+      rebuild();
+    }
+  };
+
+  const getContextMenuItems = (row: FlatRow): ContextMenuItem[] => {
+    const items: ContextMenuItem[] = [];
+
+    if (row.isFolder) {
+      items.push(
+        {
+          type: "item",
+          label: "New File",
+          onClick: () => startAddNode(row.id, "file"),
+        },
+        {
+          type: "item",
+          label: "New Folder",
+          onClick: () => startAddNode(row.id, "folder"),
+        },
+        { type: "separator" },
+      );
+    }
+
+    items.push(
+      {
+        type: "item",
+        label: "Rename",
+        onClick: () => startRename(row.id),
+      },
+      {
+        type: "item",
+        label: "Delete",
+        onClick: () => deleteNode(row.id),
+      },
+    );
+
+    return items;
   };
 
   const list = VirtualList<FlatRow>({
@@ -84,6 +151,60 @@ export function VirtualTree(opts: {
     overscan: 8,
     key: (r) => r.id,
     render: (row) => {
+      if (
+        editingNodeId &&
+        editingNodeId.startsWith("__adding_") &&
+        row.id === editingNodeId
+      ) {
+        const type = editingNodeId.includes("_file_") ? "file" : "folder";
+        const parentId = editingNodeId.replace(`__adding_${type}_`, "");
+        const result = findNodeById(opts.folderStructure.structure, parentId);
+
+        if (result) {
+          return createAddNodeInput({
+            type,
+            parentId,
+            parentPath: result.node.path,
+            nodes: opts.folderStructure.structure,
+            indent,
+            depth: row.depth,
+            onComplete: (newNode) => {
+              editingNodeId = null;
+              rebuild();
+              if (type === "file") {
+                selected.id = newNode.id;
+                opts.onSelect?.(newNode.id, newNode);
+              }
+            },
+            onCancel: () => {
+              editingNodeId = null;
+              rebuild();
+            },
+          });
+        }
+      }
+
+      if (editingNodeId === `__renaming_${row.id}`) {
+        return createRenameInput({
+          nodeId: row.id,
+          nodes: opts.folderStructure.structure,
+          indent,
+          depth: row.depth,
+          currentName: row.label,
+          isFolder: row.isFolder,
+          get_icon: opts.get_icon,
+          icon_folder_name: opts.icon_folder_name,
+          onComplete: () => {
+            editingNodeId = null;
+            rebuild();
+          },
+          onCancel: () => {
+            editingNodeId = null;
+            rebuild();
+          },
+        });
+      }
+
       const isSel = row.id === selected.id;
 
       let caretIcon: HTMLElement | null = null;
@@ -100,8 +221,8 @@ export function VirtualTree(opts: {
         })();
 
       const icon = !row.isFolder && h("img", { class: "w-4 h-4 mr-1" });
-      if (icon)
-        icon.src = `./${opts.icon_folder_name}/${opts.get_icon!(row.id)}`;
+      if (icon && opts.get_icon && opts.icon_folder_name)
+        icon.src = `./${opts.icon_folder_name}/${opts.get_icon(row.id)}`;
 
       const left = h(
         "div",
@@ -146,6 +267,8 @@ export function VirtualTree(opts: {
         right ?? "",
       );
 
+      contextMenu.bind(el, () => getContextMenuItems(row));
+
       Tooltip({ child: el, text: row.id, delay: 200 });
 
       return el;
@@ -156,8 +279,8 @@ export function VirtualTree(opts: {
 
   return {
     el: list.el,
-    setRoots(next: TreeNode[]) {
-      opts.roots = next;
+    setFolderStructure(next: IFolderStructure) {
+      opts.folderStructure = next;
       rebuild();
     },
     open(id: string) {
@@ -177,6 +300,7 @@ export function VirtualTree(opts: {
     },
     destroy() {
       list.destroy();
+      contextMenu.destroy();
     },
   };
 }

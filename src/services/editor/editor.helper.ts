@@ -1,3 +1,4 @@
+import { get_base_name } from "../explorer/explorer.helper";
 import { update_tabs } from "../state/slices/editor.slice";
 import { store } from "../state/store";
 import { ITab } from "./editor.types";
@@ -23,7 +24,7 @@ export function open_editor_tab(file_path: string) {
 
   const new_tab: ITab = {
     file_path: file_path,
-    name: file_path,
+    name: get_base_name(file_path),
     active: true,
   };
 
