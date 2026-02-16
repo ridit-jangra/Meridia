@@ -26,7 +26,6 @@ export function toggle_node_at_path(
   path: ("a" | "b")[],
 ): TLayoutNode {
   if (path.length === 0) {
-    // Toggle the node at this path
     if (
       root.type === "panel" ||
       root.type === "tabs" ||
