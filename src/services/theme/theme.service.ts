@@ -1,5 +1,5 @@
 import { ITheme } from "./theme.types";
-import { dark } from "./themes/dark";
+import { dark, light } from "./themes";
 
 type theme_id = string;
 
@@ -14,6 +14,8 @@ export class theme_service {
     document.head.appendChild(this.style_el);
 
     this.register(dark);
+    this.register(light);
+
     this.apply(this.active_id);
   }
 
