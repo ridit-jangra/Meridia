@@ -1,62 +1,50 @@
 import { editors_registry } from "../../core/registry";
-import {
-  ICustomEditor,
-  ICustomModel,
-  IMonacoEditor,
-  IMonacoModel,
-} from "./editor.types";
 
-export class editor {
-  public models: ICustomModel[] | IMonacoModel[] = [];
-  public readonly editor: ICustomEditor | IMonacoEditor;
-  public active_model: ICustomModel | IMonacoModel | null = null;
+export class editor<
+  TEditor extends { extensions: string[]; el: HTMLElement },
+  TModel extends { uri: string },
+> {
+  public models: TModel[] = [];
+  public readonly editor: TEditor;
+  public active_model: TModel | null = null;
 
-  constructor(editor: typeof this.editor) {
+  constructor(editor: TEditor) {
     this.editor = editor;
 
     editor.extensions.forEach((ext) => {
-      editors_registry[ext] = this;
+      editors_registry[ext] = this as any;
     });
   }
 
   public mount(parent?: HTMLElement) {}
 
-  public create_model(file_path: string) {
-    const model: ICustomModel | IMonacoModel = {
-      uri: file_path,
-      dispose() {},
-      cursor_position: {
-        col: 0,
-        line: 0,
-      },
-    };
-
-    return model;
+  public create_model(file_path: string): TModel {
+    throw new Error("create_model not implemented");
   }
 
-  public add_model(model: ICustomModel | IMonacoModel) {
+  public add_model(model: TModel) {
     this.models.push(model);
   }
 
   public dispose_model(uri: string) {
-    const model = this.models.find((model) => model.uri === uri);
-    if (!model) return;
+    const idx = this.models.findIndex((m) => m.uri === uri);
+    if (idx === -1) return;
+
+    const model = this.models[idx];
+    (model as any).dispose?.();
+    this.models.splice(idx, 1);
   }
 
   public set_model_active(uri: string) {
-    const model = this.models.find((model) => model.uri === uri);
-
+    const model = this.models.find((m) => m.uri === uri);
     if (!model) return;
 
     this.active_model = model;
-
     this.update_editor();
   }
 
   public get_model(uri: string) {
-    const model = this.models.find((model) => model.uri === uri);
-
-    return model;
+    return this.models.find((m) => m.uri === uri);
   }
 
   public update_editor() {}

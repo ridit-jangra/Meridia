@@ -1,3 +1,5 @@
+import type * as monaco from "monaco-editor";
+
 export type git_badge = "M" | "U" | "I" | "R";
 export type git_status = "modified" | "untracked" | "ignored" | "removed";
 export type file_status = "problems" | "warnings";
@@ -19,6 +21,7 @@ export interface IMonacoEditor {
   el: HTMLElement;
   parent_el: HTMLElement;
   extensions: string[];
+  instance: monaco.editor.IStandaloneCodeEditor;
   dispose: () => void;
 }
 
@@ -37,6 +40,10 @@ export interface ICustomModel {
 
 export interface IMonacoModel {
   uri: string;
+  model: monaco.editor.ITextModel;
   dispose: () => void;
-  cursor_position: cursor_position;
+  cursor_position: {
+    line: number;
+    col: number;
+  };
 }

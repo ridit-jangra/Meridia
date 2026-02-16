@@ -28,3 +28,6 @@ dist-ssr
 dist-electron
 
 src/services/theme/themes/*.json
+
+*.stress
+stress*
