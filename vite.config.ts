@@ -1,12 +1,22 @@
 import { defineConfig } from "vite";
 import path from "node:path";
 import electron from "vite-plugin-electron/simple";
+import monaco from "vite-plugin-monaco-editor";
 import tailwindcss from "@tailwindcss/vite";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     tailwindcss(),
+    monaco({
+      languageWorkers: [
+        "editorWorkerService",
+        "typescript",
+        "json",
+        "css",
+        "html",
+      ],
+    }),
     electron({
       main: {
         // Shortcut of `build.lib.entry`.

@@ -1,6 +1,7 @@
 import { editors_registry } from "../../core/registry";
 import { get_file_extension } from "../../services/editor/editor.helper";
 import { image_editor } from "../../services/editor/editors/editor.image";
+import { monaco_editor } from "../../services/editor/editors/editor.monaco";
 import { store } from "../../services/state/store";
 import { h, ScrollArea } from "../../ui";
 import { EditorTabs } from "./editor-tabs";
@@ -13,33 +14,31 @@ export function EditorArea() {
   const tabs = EditorTabs();
 
   const scroll = ScrollArea({ class: "flex-1 min-h-0" });
-  scroll.inner.classList.add("editor-area");
+  scroll.inner.classList.add("editor-area", "h-full");
 
   const get_active = () => store.getState().editor.tabs.find((v) => v.active);
 
+  const getEditorsUnique = () =>
+    Array.from(new Set(Object.values(editors_registry)));
+
   let is_initialized = false;
+  let lastActivePath = "";
 
   const mountPanel = () => {
     const key = get_active();
-
     if (!key) return;
 
-    const extension = get_file_extension(key.file_path);
+    if (key.file_path === lastActivePath) return;
+    lastActivePath = key.file_path;
 
+    const extension = get_file_extension(key.file_path);
     const editor = editors_registry[extension];
 
-    const editors = Object.values(editors_registry);
+    const editors = getEditorsUnique();
 
-    if (!editor) {
-      editors.forEach((editor) => {
-        editor.set_visible(false);
-      });
-      return;
-    }
+    editors.forEach((e) => e.set_visible(false));
 
-    editors.forEach((editor) => {
-      editor.set_visible(false);
-    });
+    if (!editor) return;
 
     editor.set_visible(true);
 
@@ -51,18 +50,15 @@ export function EditorArea() {
     }
 
     const model = editor.create_model(key.file_path);
-
     editor.add_model(model);
-
     editor.set_model_active(key.file_path);
   };
 
   const init = async () => {
     new image_editor();
+    new monaco_editor();
 
-    Object.values(editors_registry).forEach((editor) => {
-      editor.mount(scroll.inner);
-    });
+    getEditorsUnique().forEach((e) => e.mount(scroll.inner));
 
     is_initialized = true;
     mountPanel();
@@ -72,7 +68,7 @@ export function EditorArea() {
     const { tabs } = store.getState().editor;
 
     if (is_initialized && tabs) {
-      //   window.storage.set(ACTIVE_TAB_KEY, active_tab_key);
+      // window.storage.set(ACTIVE_TAB_KEY, active_tab_key);
     }
 
     mountPanel();
@@ -82,6 +78,11 @@ export function EditorArea() {
 
   el.appendChild(tabs.el);
   el.appendChild(scroll.el);
+
+  (el as any).destroy = () => {
+    unsub();
+    getEditorsUnique().forEach((e) => e.set_visible(false));
+  };
 
   return el;
 }
