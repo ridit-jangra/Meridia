@@ -212,7 +212,7 @@ export function VirtualTree(opts: {
         row.isFolder &&
         (() => {
           const span = h("span", {
-            class: "mr-1 opacity-70 transition-transform duration-150",
+            class: "mr-1 opacity-70",
             style: open.has(row.id) ? "transform: rotate(90deg)" : "",
           });
           caretIcon = lucide("chevron-right");
@@ -226,10 +226,10 @@ export function VirtualTree(opts: {
 
       const left = h(
         "div",
-        { class: "flex items-center min-w-0" },
+        { class: "ml-2 flex items-center min-w-0" },
         caret,
         icon,
-        h("span", { class: "truncate" }, row.label),
+        h("span", { class: "truncate font-normal" }, row.label),
       );
 
       const right = opts.renderRight ? opts.renderRight(row) : null;
@@ -239,7 +239,7 @@ export function VirtualTree(opts: {
         {
           class: cn(
             "px-2 flex items-center justify-between select-none cursor-pointer",
-            "text-[12.5px]",
+            "text-[13px]",
             isSel
               ? "bg-explorer-item-active-background text-explorer-item-active-foreground"
               : "hover:bg-explorer-item-hover-background hover:text-explorer-item-hover-foreground text-explorer-foreground",

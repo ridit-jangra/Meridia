@@ -1,10 +1,7 @@
 import { h } from "../../core/dom/h";
 import { cn } from "../../core/utils/cn";
 import { shortcuts } from "../../services/shortcut/shortcut.service";
-import {
-  shortcut_ctx,
-  shortcut_def,
-} from "../../services/shortcut/shortcut.types";
+import { shortcut_def } from "../../services/shortcut/shortcut.types";
 import { ScrollArea } from "./scroll-area";
 
 export interface CommandGroup {
@@ -31,7 +28,7 @@ export function Command(opts: {
   const modal = h("div", {
     class: cn(
       "fixed z-[9999] hidden",
-      "left-1/2 top-[12%] -translate-x-1/2",
+      "left-1/2 top-[5%] -translate-x-1/2",
       "w-[560px] max-w-[calc(100vw-24px)] py-1",
       "bg-command-background text-command-item-foreground",
       "border border-workbench-border rounded-xl overflow-hidden",
@@ -81,7 +78,7 @@ export function Command(opts: {
   modal.appendChild(list);
   document.body.appendChild(modal);
 
-  const isVisible = (it: shortcut_def) => {
+  const isVisible = () => {
     return true;
   };
 

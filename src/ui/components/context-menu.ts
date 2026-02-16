@@ -52,7 +52,7 @@ export function ContextMenu(opts?: {
       "fixed z-[10000] hidden",
       opts?.menuClass
         ? ""
-        : "bg-panel-background text-panel-foreground p-1 border border-workbench-border rounded-[7px] shadow-sm",
+        : "bg-panel-background text-panel-foreground p-0.5 border border-workbench-border rounded-[7px] shadow-sm",
       opts?.menuClass,
     ),
   }) as HTMLDivElement;
