@@ -165,12 +165,14 @@ function renderNode(opts: {
     );
 
     const GUTTER_BASE =
-      "bg-split-handle-foreground hover:bg-split-handle-hover-foreground active:bg-split-handle-active-foreground";
+      "bg-split-handle-foreground hover:bg-split-handle-hover-foreground active:bg-split-handle-active-foreground transition-all duration-150";
+
+    const gutterSize = dir === "vertical" ? 1 : 0.5;
 
     const gutterClass =
       dir === "vertical"
-        ? `${GUTTER_BASE} h-[6px] cursor-row-resize`
-        : `${GUTTER_BASE} w-[2px] cursor-col-resize`;
+        ? `${GUTTER_BASE} cursor-row-resize relative`
+        : `${GUTTER_BASE} cursor-col-resize relative`;
 
     const sizeA = typeof node.size === "number" ? node.size : 50;
     const sizes = [sizeA, 100 - sizeA];
@@ -179,10 +181,42 @@ function renderNode(opts: {
       direction: dir,
       sizes,
       minSize: 120,
-      gutterSize: 1,
+      gutterSize: gutterSize,
       gutter: () => {
         const g = document.createElement("div");
         g.className = gutterClass;
+
+        const inner = document.createElement("div");
+        inner.className =
+          "absolute inset-0 bg-split-handle-foreground hover:bg-split-handle-hover-foreground active:bg-split-handle-active-foreground transition-all duration-150";
+
+        if (dir === "vertical") {
+          inner.style.top = "50%";
+          inner.style.transform = "translateY(-50%)";
+          inner.style.height = `${gutterSize}px`;
+          inner.style.width = "100%";
+
+          g.addEventListener("mouseenter", () => {
+            inner.style.height = "6px";
+          });
+          g.addEventListener("mouseleave", () => {
+            inner.style.height = `${gutterSize}px`;
+          });
+        } else {
+          inner.style.left = "50%";
+          inner.style.transform = "translateX(-50%)";
+          inner.style.width = `${gutterSize}px`;
+          inner.style.height = "100%";
+
+          g.addEventListener("mouseenter", () => {
+            inner.style.width = "5px";
+          });
+          g.addEventListener("mouseleave", () => {
+            inner.style.width = `${gutterSize}px`;
+          });
+        }
+
+        g.appendChild(inner);
         return g;
       },
       onDrag: (s) => {

@@ -1,11 +1,12 @@
 import { h } from "../../core/dom/h";
 import { cn } from "../../core/utils/cn";
+import { lucide } from "./icon";
+import { Tooltip } from "./tooltip";
 import { VirtualList } from "./virtual-list";
 
 export type TreeNode = {
   id: string;
   label: string;
-  icon?: string;
   children?: TreeNode[];
   defaultOpen?: boolean;
 };
@@ -15,7 +16,6 @@ type FlatRow = {
   label: string;
   depth: number;
   isFolder: boolean;
-  icon?: string;
   node: TreeNode;
 };
 
@@ -28,6 +28,8 @@ export function VirtualTree(opts: {
   initiallyOpenAll?: boolean;
   onSelect?: (id: string, node: TreeNode) => void;
   renderRight?: (row: FlatRow) => HTMLElement | null;
+  get_icon?: (name: string) => string;
+  icon_folder_name?: string;
 }) {
   const indent = opts.indent ?? 14;
 
@@ -48,7 +50,6 @@ export function VirtualTree(opts: {
         label: n.label,
         depth,
         isFolder,
-        icon: n.icon,
         node: n,
       });
       if (isFolder && open.has(n.id)) flatten(n.children!, depth + 1, out);
@@ -56,17 +57,23 @@ export function VirtualTree(opts: {
   };
 
   let rows: FlatRow[] = [];
+
+  const toggle = (id: string) => {
+    if (open.has(id)) open.delete(id);
+    else open.add(id);
+
+    const out: FlatRow[] = [];
+    flatten(opts.roots, 0, out);
+
+    rows = out;
+    list.updateItems(rows);
+  };
+
   const rebuild = () => {
     const out: FlatRow[] = [];
     flatten(opts.roots, 0, out);
     rows = out;
     list.setItems(rows);
-  };
-
-  const toggle = (id: string) => {
-    if (open.has(id)) open.delete(id);
-    else open.add(id);
-    rebuild();
   };
 
   const list = VirtualList<FlatRow>({
@@ -79,17 +86,22 @@ export function VirtualTree(opts: {
     render: (row) => {
       const isSel = row.id === selected.id;
 
-      const caret = row.isFolder
-        ? h(
-            "span",
-            { class: cn("mr-1 opacity-70", open.has(row.id) ? "" : "") },
-            open.has(row.id) ? "▾" : "▸",
-          )
-        : h("span", { class: "mr-1 opacity-30" }, "•");
+      let caretIcon: HTMLElement | null = null;
+      const caret =
+        row.isFolder &&
+        (() => {
+          const span = h("span", {
+            class: "mr-1 opacity-70 transition-transform duration-150",
+            style: open.has(row.id) ? "transform: rotate(90deg)" : "",
+          });
+          caretIcon = lucide("chevron-right");
+          span.appendChild(caretIcon);
+          return span;
+        })();
 
-      const icon = row.icon
-        ? h("span", { class: cn("codicon", `codicon-${row.icon}`, "mr-2") })
-        : h("span", { class: "mr-2 w-[14px]" }, "");
+      const icon = !row.isFolder && h("img", { class: "w-4 h-4 mr-1" });
+      if (icon)
+        icon.src = `./${opts.icon_folder_name}/${opts.get_icon!(row.id)}`;
 
       const left = h(
         "div",
@@ -105,26 +117,36 @@ export function VirtualTree(opts: {
         "div",
         {
           class: cn(
-            "px-2 flex items-center justify-between select-none",
-            "text-[13px] rounded-[7px] mx-1",
+            "px-2 flex items-center justify-between select-none cursor-pointer",
+            "text-[12.5px]",
             isSel
               ? "bg-explorer-item-active-background text-explorer-item-active-foreground"
               : "hover:bg-explorer-item-hover-background hover:text-explorer-item-hover-foreground text-explorer-foreground",
           ),
           style: `padding-left:${6 + row.depth * indent}px;`,
           on: {
-            mousedown: (e: Event) => {
-              e.preventDefault();
-              selected.id = row.id;
-              if (row.isFolder) toggle(row.id);
-              opts.onSelect?.(row.id, row.node);
-              list.setItems(rows);
+            click: (e: MouseEvent) => {
+              if (e.button !== 0) return;
+
+              if (row.isFolder) {
+                if (caret) {
+                  const isOpen = open.has(row.id);
+                  caret.style.transform = isOpen ? "" : "rotate(90deg)";
+                }
+                toggle(row.id);
+              } else {
+                selected.id = row.id;
+                opts.onSelect?.(row.id, row.node);
+                list.refresh();
+              }
             },
           },
         },
         left,
         right ?? "",
       );
+
+      Tooltip({ child: el, text: row.id, delay: 200 });
 
       return el;
     },

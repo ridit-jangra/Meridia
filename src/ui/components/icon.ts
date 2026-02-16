@@ -1,7 +1,7 @@
 import { h } from "../../core/dom/h";
 
 export function codicon(name: string, className?: string) {
-  return h("span", {
+  return h("i", {
     class: `codicon codicon-${name} ${className ?? ""}`,
   });
 }

@@ -101,7 +101,7 @@ export function Menubar(opts: { menus: ITitlebarMenuItem[]; class?: string }) {
         "div",
         {
           class: cn(
-            "flex items-center justify-between px-3 py-1.5 text-[11.5px] rounded-[7px]",
+            "flex items-center justify-between px-7 py-1.5 text-[11.5px] rounded-[7px]",
             "cursor-pointer",
             "hover:bg-titlebar-item-hover-background hover:text-titlebar-item-hover-foreground",
             "active:bg-titlebar-item-active-background",
@@ -126,7 +126,7 @@ export function Menubar(opts: { menus: ITitlebarMenuItem[]; class?: string }) {
         h("span", { class: "truncate" }, item.name),
         h(
           "div",
-          { class: "flex items-center gap-2 text-[12px] opacity-70" },
+          { class: "flex items-center gap-2 text-[14px] opacity-70" },
           item.command
             ? h(
                 "span",
@@ -151,7 +151,7 @@ export function Menubar(opts: { menus: ITitlebarMenuItem[]; class?: string }) {
       "div",
       {
         class: cn(
-          "px-2 py-px text-[12px] rounded-[7px]",
+          "px-2 py-px text-[12.5px] rounded-[7px]",
           "text-titlebar-foreground/90",
           "hover:bg-titlebar-item-hover-background/80 hover:text-titlebar-item-hover-foreground/90",
         ),
