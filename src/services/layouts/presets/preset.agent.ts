@@ -6,65 +6,60 @@ export const agent_preset: TLayoutPreset = {
   root: {
     type: "split",
     dir: "row",
-    size: 20,
-    a: {
-      type: "activity-bar-panel",
-      id: "left",
-      panels: [
-        {
-          id: "explorer",
-          tooltip: "Explorer",
-          shortcut_id: "toggleExplorer",
-          icon: "files",
-        },
-        {
-          id: "search",
-          tooltip: "Search",
-          shortcut_id: "toggleSearch",
-          icon: "search",
-        },
-        {
-          id: "git",
-          tooltip: "Git",
-          shortcut_id: "toggleGit",
-          icon: "git-merge",
-        },
-      ],
-      enabled: false,
-    },
-    b: {
-      type: "split",
-      dir: "row",
-      size: 75,
-      a: {
+    sizes: [20, 55, 25],
+    children: [
+      {
+        type: "activity-bar-panel",
+        id: "left",
+        enabled: false,
+        panels: [
+          {
+            id: "explorer",
+            tooltip: "Explorer",
+            shortcut_id: "toggleExplorer",
+            icon: "files",
+          },
+          {
+            id: "search",
+            tooltip: "Search",
+            shortcut_id: "toggleSearch",
+            icon: "search",
+          },
+          {
+            id: "git",
+            tooltip: "Git",
+            shortcut_id: "toggleGit",
+            icon: "git-merge",
+          },
+        ],
+      },
+      {
         type: "split",
         dir: "col",
-        size: 70,
-        a: { type: "panel", id: "editor", enabled: true },
-        b: {
-          type: "tabs",
-          id: "bottom",
-          tabs: [
-            {
-              id: "terminal",
-              label: "Terminal",
-              shortcut_id: "toggleTerminal",
-            },
-            {
-              id: "problems",
-              label: "Problems",
-              shortcut_id: "toggleProblems",
-            },
-          ],
-          active: "terminal",
-          enabled: true,
-        },
+        sizes: [70, 30],
+        children: [
+          { type: "panel", id: "editor", enabled: true },
+          {
+            type: "tabs",
+            id: "bottom",
+            tabs: [
+              {
+                id: "terminal",
+                label: "Terminal",
+                shortcut_id: "toggleTerminal",
+              },
+              {
+                id: "problems",
+                label: "Problems",
+                shortcut_id: "toggleProblems",
+              },
+            ],
+            active: "terminal",
+            enabled: true,
+          },
+        ],
       },
-      b: {
-        type: "panel",
-        id: "ai_chat",
-        enabled: true,
-      },
-    },
+      { type: "panel", id: "ai_chat", enabled: true },
+    ],
   },
 };

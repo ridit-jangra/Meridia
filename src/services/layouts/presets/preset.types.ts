@@ -19,9 +19,8 @@ export type TTab = {
 export type TSplitNode = {
   type: "split";
   dir: "row" | "col";
-  size: number;
-  a: TLayoutNode;
-  b: TLayoutNode;
+  sizes: number[]; // one entry per child, should sum to 100
+  children: TLayoutNode[];
 };
 
 export type TPanelNode = {
