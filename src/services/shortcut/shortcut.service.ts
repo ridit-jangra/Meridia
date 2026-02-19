@@ -60,7 +60,15 @@ export class shortcut_service {
   }
 
   add_shortcut(def: shortcut_def) {
-    this.shortcuts.push({ ...def, _norm: normalize_chord(def.keys) });
+    const keysArray = Array.isArray(def.keys) ? def.keys : [def.keys];
+
+    for (const key of keysArray) {
+      this.shortcuts.push({
+        ...def,
+        keys: key,
+        _norm: normalize_chord(key),
+      });
+    }
   }
 
   set_ctx(next: shortcut_ctx) {
@@ -153,6 +161,41 @@ export class shortcut_service {
 
   get_all_shortcuts() {
     return this.shortcuts;
+  }
+
+  list_categories(opts?: { include_uncategorized?: boolean }) {
+    const include_uncategorized = opts?.include_uncategorized ?? true;
+
+    const set = new Set<string>();
+
+    for (const s of this.shortcuts) {
+      const c = (s.category ?? "").trim();
+      if (c) set.add(c);
+      else if (include_uncategorized) set.add("Other");
+    }
+
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }
+
+  get_shortcuts_by_category(
+    category: string,
+    opts?: { scope?: shortcut_scope; include_global?: boolean },
+  ) {
+    const include_global = opts?.include_global ?? true;
+
+    return this.shortcuts
+      .filter((s) => {
+        const c = (s.category ?? "").trim();
+        if (!c) return category === "Other";
+        return c === category;
+      })
+      .filter((s) => {
+        if (!opts?.scope) return true;
+        const scope = s.scope ?? "app";
+        if (include_global) return scope === opts.scope || scope === "app";
+        return scope === opts.scope;
+      })
+      .map(({ _norm, ...rest }) => ({ ...rest, norm: _norm }));
   }
 }
 

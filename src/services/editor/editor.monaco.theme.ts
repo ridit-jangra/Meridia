@@ -1,5 +1,5 @@
-import * as monaco from "monaco-editor";
 import { theme } from "../theme/theme.service";
+import { monaco } from "./editor.helper";
 
 const _kind = theme.get_active().base;
 const _background = theme.get_color("editor.background");

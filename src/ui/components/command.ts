@@ -11,6 +11,14 @@ export interface CommandGroup {
   items: shortcut_def[];
 }
 
+type GroupRow = { kind: "group"; group: CommandGroup; score: number };
+type ItemRow = {
+  kind: "item";
+  it: shortcut_def;
+  group: CommandGroup;
+  score: number;
+};
+
 export function Command(opts: {
   groups: CommandGroup[];
   defaultGroup?: string;
@@ -78,9 +86,7 @@ export function Command(opts: {
   modal.appendChild(list);
   document.body.appendChild(modal);
 
-  const isVisible = () => {
-    return true;
-  };
+  const isVisible = () => true;
 
   const score = (label: string, q: string) => {
     if (!q) return 1;
@@ -96,16 +102,41 @@ export function Command(opts: {
     return 10;
   };
 
-  const filtered = () => {
+  const flatten = (): { it: shortcut_def; group: CommandGroup }[] => {
+    const out: { it: shortcut_def; group: CommandGroup }[] = [];
+    for (const g of opts.groups) {
+      for (const it of g.items) out.push({ it, group: g });
+    }
+    return out;
+  };
+
+  const filtered = (): (GroupRow | ItemRow)[] => {
     const q = query;
 
     if (!activeGroup) {
-      return opts.groups
-        .map((group) => ({
-          isGroup: true,
-          group,
-          score: score(group.name, q),
-        }))
+      if (!q) {
+        return opts.groups
+          .map((group) => ({
+            kind: "group" as const,
+            group,
+            score: Math.max(score(group.name, q), score(group.prefix, q)),
+          }))
+          .filter((x) => x.score > 0)
+          .sort((a, b) => b.score - a.score);
+      }
+
+      return flatten()
+        .filter(({ it }) => isVisible())
+        .map(({ it, group }) => {
+          const label = it.label ?? it.id;
+          const extra = `${group.name} ${group.prefix} ${it.id} ${it.command ?? ""} ${it.category ?? ""}`;
+          return {
+            kind: "item" as const,
+            it,
+            group,
+            score: Math.max(score(label, q), score(extra, q)),
+          };
+        })
         .filter((x) => x.score > 0)
         .sort((a, b) => b.score - a.score);
     }
@@ -113,12 +144,13 @@ export function Command(opts: {
     return activeGroup.items
       .filter(isVisible)
       .map((it) => ({
-        isGroup: false,
+        kind: "item" as const,
         it,
-        sc: score(it.id, q),
+        group: activeGroup!,
+        score: score(it.label ?? it.id, q),
       }))
-      .filter((x) => x.sc > 0)
-      .sort((a, b) => b.sc - a.sc);
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score);
   };
 
   const run = (it: shortcut_def) => {
@@ -160,8 +192,8 @@ export function Command(opts: {
       return;
     }
 
-    items.forEach((item: any, i) => {
-      if (item.isGroup) {
+    items.forEach((item, i) => {
+      if (item.kind === "group") {
         const row = h(
           "div",
           {
@@ -204,14 +236,14 @@ export function Command(opts: {
         list.appendChild(row);
 
         if (i === active && scrollIntoView) {
-          requestAnimationFrame(() => {
-            row.scrollIntoView({ block: "nearest" });
-          });
+          requestAnimationFrame(() => row.scrollIntoView({ block: "nearest" }));
         }
         return;
       }
 
       const it = item.it;
+      const group = item.group;
+
       const row = h(
         "div",
         {
@@ -233,7 +265,10 @@ export function Command(opts: {
         h(
           "div",
           { class: "min-w-0" },
-          h("div", { class: "text-[13px] truncate" }, it.id),
+          h("div", { class: "text-[13px] truncate" }, it.label ?? it.id),
+          !activeGroup
+            ? h("div", { class: "text-[11px] opacity-60 truncate" }, group.name)
+            : null,
         ),
         h(
           "div",
@@ -243,8 +278,8 @@ export function Command(opts: {
           ...(it.keys
             ? it.keys
                 .split("+")
-                .map((key: string, index: number, arr: string[]) => {
-                  return h(
+                .map((key: string, index: number, arr: string[]) =>
+                  h(
                     "div",
                     { class: "flex items-center gap-1.5" },
                     h(
@@ -258,8 +293,8 @@ export function Command(opts: {
                     index !== arr.length - 1
                       ? h("span", { class: "text-[12px]" }, "+")
                       : null,
-                  );
-                })
+                  ),
+                )
             : []),
         ),
       );
@@ -267,9 +302,7 @@ export function Command(opts: {
       list.appendChild(row);
 
       if (i === active && scrollIntoView) {
-        requestAnimationFrame(() => {
-          row.scrollIntoView({ block: "nearest" });
-        });
+        requestAnimationFrame(() => row.scrollIntoView({ block: "nearest" }));
       }
     });
   };
@@ -337,22 +370,19 @@ export function Command(opts: {
       e.preventDefault();
       const items = filtered();
       const item = items[active];
-
       if (!item) return;
 
-      if ((item as any).isGroup) {
-        selectGroup((item as any).group);
+      if (item.kind === "group") {
+        selectGroup(item.group);
         return;
       }
 
-      if ((item as any).it) run((item as any).it);
+      run(item.it);
     }
   };
 
   const onDocumentClick = (e: MouseEvent) => {
-    if (!modal.contains(e.target as Node)) {
-      close();
-    }
+    if (!modal.contains(e.target as Node)) close();
   };
 
   return {
@@ -374,9 +404,7 @@ export function Command(opts: {
       const group = opts.groups.find((g) => g.id === groupId);
       if (group) {
         selectGroup(group);
-        if (open) {
-          queueMicrotask(() => input.focus());
-        }
+        if (open) queueMicrotask(() => input.focus());
       }
     },
     destroy() {

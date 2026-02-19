@@ -43,6 +43,18 @@ export function VirtualTree(opts: {
 
   const rebuild = () => {
     const out: FlatRow[] = [];
+
+    const root_node = el.querySelector(".root-node");
+    if (root_node) root_node.remove();
+
+    const node = h(
+      "span",
+      { class: "root-node px-2 text-explorer-foreground" },
+      opts.folderStructure.root.name,
+    );
+
+    el.prepend(node);
+
     flattenTree(opts.folderStructure.structure, 0, open, out);
     rows = out;
     list.setItems(rows);
@@ -142,6 +154,8 @@ export function VirtualTree(opts: {
 
     return items;
   };
+
+  const el = h("div", { class: "flex flex-col gap-2 overflow-hidden" });
 
   const list = VirtualList<FlatRow>({
     items: rows,
@@ -275,10 +289,12 @@ export function VirtualTree(opts: {
     },
   });
 
+  el.appendChild(list.el);
+
   rebuild();
 
   return {
-    el: list.el,
+    el,
     setFolderStructure(next: IFolderStructure) {
       opts.folderStructure = next;
       rebuild();

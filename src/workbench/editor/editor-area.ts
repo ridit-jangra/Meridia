@@ -26,7 +26,11 @@ export function EditorArea() {
 
   const mountPanel = () => {
     const key = get_active();
-    if (!key) return;
+    if (!key) {
+      const editors = getEditorsUnique();
+      editors.forEach((e) => e.set_visible(false));
+      return;
+    }
 
     if (key.file_path === lastActivePath) return;
     lastActivePath = key.file_path;

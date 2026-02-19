@@ -15,6 +15,10 @@ import {
 import { layout_engine } from "../layouts/layout.engine";
 import { update_layout } from "../layouts/layout.helper";
 import { debounce } from "../../core/utils/utils";
+import {
+  close_active_editor_tab,
+  open_new_editor_tab,
+} from "../editor/editor.helper";
 
 shortcuts.register_command({
   id: "layout.toggleSearch",
@@ -133,6 +137,7 @@ shortcuts.register_command({
     update_layout(["b", "b"], toggle_node_at_path);
   },
 });
+
 shortcuts.register_command({
   id: "terminal.new",
   run: () => console.log("new terminal"),
@@ -200,84 +205,138 @@ shortcuts.register_command({
   id: "app.about",
   run: () => console.log("about"),
 });
+shortcuts.register_command({
+  id: "editor.closeTab",
+  run: () => {
+    close_active_editor_tab();
+  },
+});
+shortcuts.register_command({
+  id: "editor.newTab",
+  run: () => {
+    open_new_editor_tab();
+  },
+});
 
 shortcuts.register_shortcuts([
   {
     id: "toggleSearch",
+    label: "Toggle Search",
+    category: "Layout",
     keys: "ctrl+shift+f",
     command: "layout.toggleSearch",
     scope: "app",
   },
   {
     id: "toggleExplorer",
+    label: "Toggle Explorer",
+    category: "Layout",
     keys: "ctrl+shift+e",
     command: "layout.toggleExplorer",
     scope: "app",
   },
   {
     id: "toggleGit",
+    label: "Toggle Git",
+    category: "Layout",
     keys: "ctrl+shift+g",
     command: "layout.toggleGit",
     scope: "app",
   },
   {
     id: "toggleTerminal",
+    label: "Toggle Terminal",
+    category: "Layout",
     keys: "ctrl+`",
     command: "layout.toggleTerminal",
     scope: "app",
   },
   {
     id: "toggleProblems",
+    label: "Toggle Problems",
+    category: "Layout",
     keys: "ctrl+shift+m",
     command: "layout.toggleProblems",
     scope: "app",
   },
   {
     id: "togglePrimarySideBar",
+    label: "Toggle Primary Sidebar",
+    category: "Layout",
     keys: "ctrl+b",
     command: "layout.togglePrimarySideBar",
     scope: "app",
   },
   {
     id: "toggleBottomPanel",
+    label: "Toggle Bottom Panel",
+    category: "Layout",
     keys: "ctrl+j",
     command: "layout.toggleBottomPanel",
     scope: "app",
   },
   {
     id: "toggleSecondarySideBar",
+    label: "Toggle Secondary Sidebar",
+    category: "Layout",
     keys: "ctrl+alt+b",
     command: "layout.toggleSecondarySideBar",
     scope: "app",
   },
   {
     id: "commandPalette",
-    keys: "ctrl+shift+p",
+    label: "Show Command Palette",
+    category: "App",
+    keys: ["ctrl+shift+p", "f1"],
     command: "app.commandPalette",
     scope: "app",
   },
   {
     id: "zoomIn",
+    label: "Zoom In",
+    category: "App",
     keys: "ctrl+=",
     command: "app.zoomIn",
     scope: "app",
   },
   {
     id: "zoomOut",
+    label: "Zoom Out",
+    category: "App",
     keys: "ctrl+-",
     command: "app.zoomOut",
     scope: "app",
   },
   {
     id: "zoomReset",
+    label: "Reset Zoom",
+    category: "App",
     keys: "ctrl+0",
     command: "app.zoomReset",
     scope: "app",
   },
   {
     id: "toggleFullscreen",
+    label: "Toggle Fullscreen",
+    category: "App",
     keys: "f11",
     command: "app.toggleFullscreen",
+    scope: "app",
+  },
+  {
+    id: "closeTab",
+    label: "Close Tab",
+    category: "Editor",
+    keys: "ctrl+w",
+    command: "editor.closeTab",
+    scope: "app",
+  },
+  {
+    id: "newTab",
+    label: "New Tab",
+    category: "Editor",
+    keys: "ctrl+n",
+    command: "editor.newTab",
     scope: "app",
   },
 ]);

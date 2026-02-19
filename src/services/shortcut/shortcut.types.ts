@@ -4,11 +4,13 @@ export type shortcut_ctx = Record<string, boolean>;
 
 export type shortcut_def = {
   id: string;
-  keys: string;
+  keys: string | string[];
   command: string;
   scope?: shortcut_scope;
   when?: string;
   prevent_default?: boolean;
+  category?: string;
+  label?: string;
 };
 
 export type command_handler = (e: KeyboardEvent) => void;
