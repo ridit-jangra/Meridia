@@ -1,4 +1,10 @@
 import { editor } from "../services/editor/editor";
+import {
+  ICustomEditor,
+  ICustomModel,
+  IMonacoEditor,
+  IMonacoModel,
+} from "../services/editor/editor.types";
 import { EditorArea } from "../workbench/editor/editor-area";
 import { Explorer } from "../workbench/explorer/explorer";
 import { h } from "./dom/h";
@@ -13,4 +19,7 @@ export const panels_registry: Record<string, () => HTMLElement> = {
   editor: () => EditorArea(),
 };
 
-export const editors_registry: Record<string, editor> = {};
+export const editors_registry: Record<
+  string,
+  editor<IMonacoEditor | ICustomEditor, ICustomModel | IMonacoModel>
+> = {};

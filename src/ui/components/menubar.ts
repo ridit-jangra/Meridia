@@ -97,6 +97,12 @@ export function Menubar(opts: { menus: ITitlebarMenuItem[]; class?: string }) {
         return;
       }
 
+      const keys = item.command
+        ? shortcuts.get_shortcut({ command: item.command })?.keys
+        : undefined;
+
+      const keyText = Array.isArray(keys) ? keys.join(" + ") : (keys ?? "");
+
       const row = h(
         "div",
         {
@@ -127,13 +133,7 @@ export function Menubar(opts: { menus: ITitlebarMenuItem[]; class?: string }) {
         h(
           "div",
           { class: "flex items-center gap-2 text-[14px] opacity-70" },
-          item.command
-            ? h(
-                "span",
-                {},
-                shortcuts.get_shortcut({ command: item.command })?.keys,
-              )
-            : "",
+          item.command ? h("span", {}, keyText) : "",
           item.submenu && item.submenu.length > 0
             ? h("span", {}, lucide("chevron-right"))
             : "",
