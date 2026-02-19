@@ -9,7 +9,7 @@ type Child =
   | undefined;
 
 type HProps<T extends Element> = {
-  class?: string;
+  class?: string | T;
   style?:
     | string
     | Partial<CSSStyleDeclaration>

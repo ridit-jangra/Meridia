@@ -38,7 +38,7 @@ const palette = Command({
   open: false,
 });
 
-const unsub = store.subscribe(() => {
+store.subscribe(() => {
   const { command_palette_open } = store.getState().layout;
 
   if (command_palette_open) {

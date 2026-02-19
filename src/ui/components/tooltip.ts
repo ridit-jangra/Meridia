@@ -33,7 +33,7 @@ export function Tooltip(opts: {
     tip.style.display = "none";
   };
 
-  const show = (e: MouseEvent) => {
+  const show = () => {
     if (!document.body.contains(opts.child)) {
       hide();
       return;
@@ -101,11 +101,11 @@ export function Tooltip(opts: {
     tip.style.top = `${top}px`;
   };
 
-  const handleMouseEnter = (e: MouseEvent) => {
+  const handleMouseEnter = () => {
     if (opts.delay) {
-      showTimeout = window.setTimeout(() => show(e), opts.delay);
+      showTimeout = window.setTimeout(() => show(), opts.delay);
     } else {
-      show(e);
+      show();
     }
   };
 

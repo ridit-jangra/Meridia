@@ -16,9 +16,12 @@ export class editor<
     });
   }
 
-  public mount(parent?: HTMLElement) {}
+  public mount(parent?: HTMLElement) {
+    parent;
+  }
 
   public create_model(file_path: string): TModel {
+    file_path;
     throw new Error("create_model not implemented");
   }
 

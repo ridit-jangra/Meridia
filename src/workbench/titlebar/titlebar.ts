@@ -136,7 +136,7 @@ export function Titlebar() {
   const content = h("div");
   content.textContent = "Hello popover";
 
-  const pop = Popover(layout_btn, content, {
+  Popover(layout_btn, content, {
     trigger: "click",
     placement: "bottom",
     align: "start",

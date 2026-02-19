@@ -126,7 +126,7 @@ export function Command(opts: {
       }
 
       return flatten()
-        .filter(({ it }) => isVisible())
+        .filter(() => isVisible())
         .map(({ it, group }) => {
           const label = it.label ?? it.id;
           const extra = `${group.name} ${group.prefix} ${it.id} ${it.command ?? ""} ${it.category ?? ""}`;
@@ -276,7 +276,7 @@ export function Command(opts: {
             class: "shrink-0 flex items-center gap-1.5 opacity-70 text-[12px]",
           },
           ...(it.keys
-            ? it.keys
+            ? (it.keys as string)
                 .split("+")
                 .map((key: string, index: number, arr: string[]) =>
                   h(

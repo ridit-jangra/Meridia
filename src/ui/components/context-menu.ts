@@ -23,8 +23,6 @@ export function ContextMenu(opts?: {
   menuClass?: string;
   widthClass?: string;
 }) {
-  let open = false;
-
   const floating: HTMLDivElement[] = [];
   let closeTimer: number | null = null;
 
@@ -42,7 +40,6 @@ export function ContextMenu(opts?: {
   };
 
   const closeAll = () => {
-    open = false;
     closeFloating();
     root.style.display = "none";
   };
@@ -210,7 +207,6 @@ export function ContextMenu(opts?: {
 
   const openAt = (x: number, y: number, items: ContextMenuItem[]) => {
     currentItems = items;
-    open = true;
     closeFloating();
     render();
     placeAt(x, y, root);

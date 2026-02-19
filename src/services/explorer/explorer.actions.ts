@@ -1,16 +1,30 @@
 import { IChildStructure, INode } from "../../../shared/types/explorer.types";
 
 export class explorer_actions {
-  public create_file(path: string) {}
-  public create_dir(path: string) {}
+  public create_file(path: string) {
+    path;
+  }
+  public create_dir(path: string) {
+    path;
+  }
 
-  public read_file(path: string) {}
-  public read_dir(path: string) {}
+  public read_file(path: string) {
+    path;
+  }
+  public read_dir(path: string) {
+    path;
+  }
 
-  public delete_file(path: string) {}
-  public delete_dir(path: string) {}
+  public delete_file(path: string) {
+    path;
+  }
+  public delete_dir(path: string) {
+    path;
+  }
 
-  public stat(path: string) {}
+  public stat(path: string) {
+    path;
+  }
 
   public async get_child_structure(
     node: INode,
