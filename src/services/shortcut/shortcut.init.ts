@@ -170,14 +170,6 @@ shortcuts.register_command({
   },
 });
 shortcuts.register_command({
-  id: "app.zoomIn",
-  run: () => console.log("zoom in"),
-});
-shortcuts.register_command({
-  id: "app.zoomOut",
-  run: () => console.log("zoom out"),
-});
-shortcuts.register_command({
   id: "app.zoomReset",
   run: () => console.log("reset zoom"),
 });
@@ -297,14 +289,6 @@ shortcuts.register_shortcuts([
     category: "App",
     keys: "ctrl+=",
     command: "app.zoomIn",
-    scope: "app",
-  },
-  {
-    id: "zoomOut",
-    label: "Zoom Out",
-    category: "App",
-    keys: "ctrl+-",
-    command: "app.zoomOut",
     scope: "app",
   },
   {
