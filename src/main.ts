@@ -16,11 +16,12 @@ import { build_command_groups } from "./ui/components/command/command.groups";
 
 const root = document.getElementById("app")!;
 
-await layout_engine.load();
-
-layout_engine.register_default_layout(ide_preset);
-layout_engine.register_default_layout(agent_preset);
-layout_engine.register_default_layout(editor_preset);
+(async () => {
+  await layout_engine.load();
+  layout_engine.register_default_layout(ide_preset);
+  layout_engine.register_default_layout(agent_preset);
+  layout_engine.register_default_layout(editor_preset);
+})();
 
 const preset = layout_engine.get_layout("ide");
 const lr = LayoutRenderer({ layout_preset: preset });
