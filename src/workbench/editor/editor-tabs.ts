@@ -29,20 +29,20 @@ export function EditorTabs() {
 
   const scrollToTab = (element: HTMLElement) => {
     setTimeout(() => {
-      const viewport = scrollArea.viewport;
+      const editorport = scrollArea.viewport;
 
       const elementLeft = element.offsetLeft;
       const elementWidth = element.offsetWidth;
       const elementRight = elementLeft + elementWidth;
 
-      const viewportScrollLeft = viewport.scrollLeft;
-      const viewportWidth = viewport.clientWidth;
-      const viewportRight = viewportScrollLeft + viewportWidth;
+      const editorportScrollLeft = editorport.scrollLeft;
+      const editorportWidth = editorport.clientWidth;
+      const editorportRight = editorportScrollLeft + editorportWidth;
 
-      if (elementLeft < viewportScrollLeft) {
-        viewport.scrollLeft = elementLeft - 20;
-      } else if (elementRight > viewportRight) {
-        viewport.scrollLeft = elementRight - viewportWidth + 20;
+      if (elementLeft < editorportScrollLeft) {
+        editorport.scrollLeft = elementLeft - 20;
+      } else if (elementRight > editorportRight) {
+        editorport.scrollLeft = elementRight - editorportWidth + 20;
       }
     }, 50);
   };
@@ -52,13 +52,27 @@ export function EditorTabs() {
 
     const icon = h("img", {
       class: "w-4 h-4 mt-px",
-    });
+    }) as HTMLImageElement;
     icon.src = `./file-icons/${get_file_icon(tab.file_path)}`;
+
+    const dirtyDot = h("span", {
+      attrs: { "data-role": "dirty-dot" },
+      class: cn(
+        "w-[9px] h-[9px] rounded-full",
+        "bg-editor-tab-foreground/70",
+        tab.is_touched ? "" : "hidden",
+        tab.is_touched ? "group-hover:hidden" : "",
+      ),
+    });
 
     const closeBtn = h(
       "span",
       {
-        class: "rounded p-0.5 [&_svg]:w-5 [&_svg]:h-5",
+        attrs: { "data-role": "close-btn" },
+        class: cn(
+          "rounded p-0.5 [&_svg]:w-5 [&_svg]:h-5",
+          tab.is_touched ? "hidden group-hover:flex" : "",
+        ),
         on: {
           click: (e: MouseEvent) => {
             e.preventDefault();
@@ -76,24 +90,28 @@ export function EditorTabs() {
       lucide("x"),
     );
 
+    const endSlot = h(
+      "div",
+      { class: "shrink-0 w-6 flex items-center justify-center" },
+      dirtyDot,
+      closeBtn,
+    );
+
     const pill = h(
       "div",
       {
         class: cn(
+          "group",
           "px-3.5 py-2.5 text-[14px] flex items-center gap-2 cursor-pointer select-none border-r border-r-editor-tab-border whitespace-nowrap",
           is_active
-            ? "bg-view-tab-active-background text-view-tab-active-foreground"
-            : "bg-view-tab-background text-view-tab-foreground hover:bg-view-tab-hover-background hover:text-view-tab-hover-foreground",
+            ? "bg-editor-tab-active-background text-editor-tab-active-foreground"
+            : "bg-editor-tab-background text-editor-tab-foreground hover:bg-editor-tab-hover-background hover:text-editor-tab-hover-foreground",
         ),
         on: {
           click: (e: MouseEvent) => {
-            // Only handle left click for tab selection
-            if (e.button === 0) {
-              handle_click(tab);
-            }
+            if (e.button === 0) handle_click(tab);
           },
           mousedown: (e: MouseEvent) => {
-            // Middle click (scroll wheel button) to close tab
             if (e.button === 1) {
               e.preventDefault();
               e.stopPropagation();
@@ -101,7 +119,6 @@ export function EditorTabs() {
             }
           },
           auxclick: (e: MouseEvent) => {
-            // Alternative handling for middle click
             if (e.button === 1) {
               e.preventDefault();
               e.stopPropagation();
@@ -111,7 +128,7 @@ export function EditorTabs() {
         },
       },
       h("div", { class: "flex items-center gap-1.5" }, icon, tab.name),
-      closeBtn,
+      endSlot,
     );
 
     Tooltip({
@@ -160,11 +177,35 @@ export function EditorTabs() {
     const is_active = tab.active;
 
     element.className = cn(
+      "group",
       "px-3.5 py-2.5 text-[14px] flex items-center gap-2 cursor-pointer select-none border-r border-r-editor-tab-border whitespace-nowrap",
       is_active
-        ? "bg-view-tab-active-background text-view-tab-active-foreground"
-        : "bg-view-tab-background text-view-tab-foreground hover:bg-view-tab-hover-background hover:text-view-tab-hover-foreground",
+        ? "bg-editor-tab-active-background text-editor-tab-active-foreground"
+        : "bg-editor-tab-background text-editor-tab-foreground hover:bg-editor-tab-hover-background hover:text-editor-tab-hover-foreground",
     );
+
+    const dot = element.querySelector(
+      '[data-role="dirty-dot"]',
+    ) as HTMLElement | null;
+    const close = element.querySelector(
+      '[data-role="close-btn"]',
+    ) as HTMLElement | null;
+
+    if (dot) {
+      dot.className = cn(
+        "w-[9px] h-[9px] rounded-full",
+        "bg-editor-tab-foreground/70",
+        tab.is_touched ? "" : "hidden",
+        tab.is_touched ? "group-hover:hidden" : "",
+      );
+    }
+
+    if (close) {
+      close.className = cn(
+        "rounded p-0.5 [&_svg]:w-5 [&_svg]:h-5",
+        tab.is_touched ? "hidden group-hover:flex" : "",
+      );
+    }
   };
 
   const renderTabs = () => {

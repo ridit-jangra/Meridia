@@ -20,7 +20,7 @@ export const dark: ITheme = {
     "editor.line.highlight.background": "#232323",
 
     "editor.tab.background": "#151515",
-    "editor.tab.active.background": "#1F1F1F",
+    "editor.tab.active.background": "#181818",
     "editor.tab.hover.background": "#1A1A1A",
     "editor.tab.foreground": "#E6E6E666",
     "editor.tab.active.foreground": "#E6E6E6EB",

@@ -68,6 +68,12 @@ export function Titlebar() {
     {
       class:
         "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
+      on: {
+        click: (e: Event) => {
+          e.preventDefault();
+          shortcuts.run_shortcut("layout.togglePrimarySideBar");
+        },
+      },
     },
     codicon("layout-sidebar-left", "text-titlebar-foreground"),
   );
@@ -77,6 +83,12 @@ export function Titlebar() {
     {
       class:
         "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
+      on: {
+        click: (e: Event) => {
+          e.preventDefault();
+          shortcuts.run_shortcut("layout.toggleBottomPanel");
+        },
+      },
     },
     codicon("layout-panel", "text-titlebar-foreground"),
   );
@@ -86,6 +98,12 @@ export function Titlebar() {
     {
       class:
         "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
+      on: {
+        click: (e: Event) => {
+          e.preventDefault();
+          shortcuts.run_shortcut("layout.toggleSecondarySideBar");
+        },
+      },
     },
     codicon("layout-sidebar-right-off", "text-titlebar-foreground"),
   );

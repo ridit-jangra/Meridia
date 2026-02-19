@@ -6,6 +6,7 @@ export type FlatRow = {
   depth: number;
   isFolder: boolean;
   node: INode;
+  isRoot?: boolean;
 };
 
 export function sortNodes(nodes: INode[]): INode[] {

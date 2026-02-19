@@ -7,14 +7,23 @@ export type cursor_position = {
   line: number;
   col: number;
 };
+export type tab_status = "EXISTS" | "NEW";
+export type selection = {
+  startLine: number;
+  startCol: number;
+  endLine: number;
+  endCol: number;
+};
 
 export interface ITab {
   name: string;
   git_badge?: git_badge;
   git_status?: git_status;
   file_status?: file_status;
+  tab_status: tab_status;
   file_path: string;
   active: boolean;
+  is_touched?: boolean;
 }
 
 export interface IMonacoEditor {
@@ -46,4 +55,5 @@ export interface IMonacoModel {
     line: number;
     col: number;
   };
+  selection?: selection;
 }
