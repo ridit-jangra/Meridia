@@ -22,6 +22,8 @@ async function init() {
   layout_engine.register_default_layout(agent_preset);
   layout_engine.register_default_layout(editor_preset);
 
+  // layout_engine.reset_all();
+
   const preset = layout_engine.get_layout("ide");
   const lr = LayoutRenderer({ layout_preset: preset });
 

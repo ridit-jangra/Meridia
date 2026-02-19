@@ -23,8 +23,8 @@ import {
 shortcuts.register_command({
   id: "layout.toggleSearch",
   run: () => {
-    if (!is_node_enabled_at_path_active_preset(["a"]))
-      update_layout(["a"], enable_node_at_path);
+    if (!is_node_enabled_at_path_active_preset([0]))
+      update_layout([0], enable_node_at_path);
     store.dispatch(set_active_panel_key("search"));
   },
 });
@@ -32,8 +32,8 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.toggleExplorer",
   run: () => {
-    if (!is_node_enabled_at_path_active_preset(["a"]))
-      update_layout(["a"], enable_node_at_path);
+    if (!is_node_enabled_at_path_active_preset([0]))
+      update_layout([0], enable_node_at_path);
     store.dispatch(set_active_panel_key("explorer"));
   },
 });
@@ -41,8 +41,8 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.toggleGit",
   run: () => {
-    if (!is_node_enabled_at_path_active_preset(["a"]))
-      update_layout(["a"], enable_node_at_path);
+    if (!is_node_enabled_at_path_active_preset([0]))
+      update_layout([0], enable_node_at_path);
     store.dispatch(set_active_panel_key("git"));
   },
 });
@@ -60,15 +60,16 @@ shortcuts.register_command({
 
       let new_root;
 
+      // [1] = center split, [1] = bottom tabs
       if (
         active_tab_key === "terminal" &&
-        is_node_enabled_at_path(preset.root, ["b", "a", "b"])
+        is_node_enabled_at_path(preset.root, [1, 1])
       ) {
-        if (is_node_enabled_at_path_active_preset(["b", "a", "b"]))
-          new_root = disable_node_at_path(preset.root, ["b", "a", "b"]);
+        if (is_node_enabled_at_path_active_preset([1, 1]))
+          new_root = disable_node_at_path(preset.root, [1, 1]);
       } else {
-        if (!is_node_enabled_at_path_active_preset(["b", "a", "b"]))
-          new_root = enable_node_at_path(preset.root, ["b", "a", "b"]);
+        if (!is_node_enabled_at_path_active_preset([1, 1]))
+          new_root = enable_node_at_path(preset.root, [1, 1]);
       }
 
       if (new_root)
@@ -97,13 +98,13 @@ shortcuts.register_command({
 
       if (
         active_tab_key === "problems" &&
-        is_node_enabled_at_path(preset.root, ["b", "a", "b"])
+        is_node_enabled_at_path(preset.root, [1, 1])
       ) {
-        if (is_node_enabled_at_path_active_preset(["b", "a", "b"]))
-          new_root = disable_node_at_path(preset.root, ["b", "a", "b"]);
+        if (is_node_enabled_at_path_active_preset([1, 1]))
+          new_root = disable_node_at_path(preset.root, [1, 1]);
       } else {
-        if (!is_node_enabled_at_path_active_preset(["b", "a", "b"]))
-          new_root = enable_node_at_path(preset.root, ["b", "a", "b"]);
+        if (!is_node_enabled_at_path_active_preset([1, 1]))
+          new_root = enable_node_at_path(preset.root, [1, 1]);
       }
 
       if (new_root)
@@ -120,21 +121,30 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.toggleBottomPanel",
   run: () => {
-    update_layout(["b", "a", "b"], toggle_node_at_path);
+    const state = store.getState();
+    const active_layout_id = state.layout.active_layout_id;
+    const preset = layout_engine.get_layout(active_layout_id);
+    if (!preset) return;
+
+    const new_root = toggle_node_at_path(preset.root, [1, 1]);
+    layout_engine.update_preset(active_layout_id, {
+      ...preset,
+      root: new_root,
+    });
   },
 });
 
 shortcuts.register_command({
   id: "layout.togglePrimarySideBar",
   run: () => {
-    update_layout(["a"], toggle_node_at_path);
+    update_layout([0], toggle_node_at_path);
   },
 });
 
 shortcuts.register_command({
   id: "layout.toggleSecondarySideBar",
   run: () => {
-    update_layout(["b", "b"], toggle_node_at_path);
+    update_layout([2], toggle_node_at_path);
   },
 });
 

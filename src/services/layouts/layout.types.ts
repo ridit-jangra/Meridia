@@ -4,7 +4,7 @@ export interface ILayoutRendererProps {
   layout_preset: TLayoutPreset;
 }
 
-export type node_path = ("a" | "b")[];
+export type node_path = number[];
 
 export interface IRenderNodeProps {
   node: TLayoutNode;
