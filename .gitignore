@@ -31,3 +31,4 @@ src/services/theme/themes/*.json
 
 *.stress
 stress*
+release

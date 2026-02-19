@@ -14,38 +14,42 @@ import { store } from "./services/state/store";
 import { set_command_palette_open } from "./services/state/slices/layout.slice";
 import { build_command_groups } from "./ui/components/command/command.groups";
 
-const root = document.getElementById("app")!;
+async function init() {
+  const root = document.getElementById("app")!;
 
-(async () => {
   await layout_engine.load();
   layout_engine.register_default_layout(ide_preset);
   layout_engine.register_default_layout(agent_preset);
   layout_engine.register_default_layout(editor_preset);
-})();
 
-const preset = layout_engine.get_layout("ide");
-const lr = LayoutRenderer({ layout_preset: preset });
+  const preset = layout_engine.get_layout("ide");
+  const lr = LayoutRenderer({ layout_preset: preset });
 
-root.appendChild(lr.el);
+  root.appendChild(lr.el);
 
-shortcuts.bind(document);
+  shortcuts.bind(document);
 
-const palette = Command({
-  placeholder: "Search commands…",
-  groups: build_command_groups(),
-  onOpenChange(open) {
-    store.dispatch(set_command_palette_open(open));
-  },
-  open: false,
-});
+  const palette = Command({
+    placeholder: "Search commands…",
+    groups: build_command_groups(),
+    onOpenChange(open) {
+      store.dispatch(set_command_palette_open(open));
+    },
+    open: false,
+  });
 
-store.subscribe(() => {
-  const { command_palette_open } = store.getState().layout;
+  store.subscribe(() => {
+    const { command_palette_open } = store.getState().layout;
 
-  if (command_palette_open) {
-    palette.setGroups(build_command_groups());
-    palette.open();
-  } else {
-    palette.close();
-  }
-});
+    if (command_palette_open) {
+      palette.setGroups(build_command_groups());
+      palette.open();
+    } else {
+      palette.close();
+    }
+  });
+}
+
+setTimeout(() => {
+  init();
+}, 10);
