@@ -17,7 +17,7 @@ export type SplitterDirection = "horizontal" | "vertical";
 
 export type SplitterPanel = {
   id: string;
-  /** Initial size as percentage (0–100). Panels are normalized to sum to 100. */
+
   size?: number;
   minSize?: number;
   collapsible?: boolean;
@@ -36,7 +36,7 @@ export type SplitterOpts = {
 
 type PanelState = SplitterPanel & {
   paneEl: HTMLElement;
-  currentSize: number; // percentage
+  currentSize: number;
 };
 
 export function Splitter(opts: SplitterOpts) {
@@ -45,7 +45,6 @@ export function Splitter(opts: SplitterOpts) {
   const gutterSize = opts.gutterSize ?? 4;
   const { lineSize, hoverSize, hitSize } = resolveGutterDimension(gutterSize);
 
-  // Normalize initial sizes
   const rawSizes = opts.panels.map((p) => p.size ?? 100 / opts.panels.length);
   const normSizes = normalizeSizes(rawSizes);
 
@@ -73,9 +72,6 @@ export function Splitter(opts: SplitterOpts) {
     cb?.(states.map((s) => ({ id: s.id, size: s.currentSize })));
   };
 
-  // ---------------------------------------------------------------------------
-  // Build children (panes + gutters)
-  // ---------------------------------------------------------------------------
   const children: HTMLElement[] = [];
   const gutterCleanups: (() => void)[] = [];
 
@@ -89,7 +85,6 @@ export function Splitter(opts: SplitterOpts) {
     const isCollapsiblePair =
       !!states[indexA].collapsible || !!states[indexB].collapsible;
 
-    // Inner track line
     const gutterInner = h("div", {
       class: cn(
         "absolute transition-all duration-150",
@@ -100,7 +95,6 @@ export function Splitter(opts: SplitterOpts) {
       style: gutterTrackStyle(dir, lineSize),
     });
 
-    // Outer hit area
     const gutter = h("div", {
       class: cn(
         "relative flex-shrink-0 select-none z-10",
@@ -110,7 +104,6 @@ export function Splitter(opts: SplitterOpts) {
     });
     gutter.appendChild(gutterInner);
 
-    // Hover expand / shrink
     const onGutterEnter = () => {
       if (isHorizontal) gutterInner.style.width = `${hoverSize}px`;
       else gutterInner.style.height = `${hoverSize}px`;
@@ -122,7 +115,6 @@ export function Splitter(opts: SplitterOpts) {
     gutter.addEventListener("mouseenter", onGutterEnter);
     gutter.addEventListener("mouseleave", onGutterLeave);
 
-    // Double-click to collapse / expand
     const onDblClick = () => {
       if (!isCollapsiblePair) return;
 
@@ -157,7 +149,6 @@ export function Splitter(opts: SplitterOpts) {
     };
     gutter.addEventListener("dblclick", onDblClick);
 
-    // Drag resize
     let dragging = false;
     let startPos = 0;
     let startSizeA = 0;
@@ -237,9 +228,6 @@ export function Splitter(opts: SplitterOpts) {
     children.push(gutter);
   });
 
-  // ---------------------------------------------------------------------------
-  // Container
-  // ---------------------------------------------------------------------------
   const container = h(
     "div",
     {
@@ -254,9 +242,6 @@ export function Splitter(opts: SplitterOpts) {
 
   applySizes();
 
-  // ---------------------------------------------------------------------------
-  // Public API
-  // ---------------------------------------------------------------------------
   return {
     el: container,
 
