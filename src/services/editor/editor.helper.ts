@@ -6,6 +6,7 @@ import { update_tabs } from "../state/slices/editor.slice";
 import { store } from "../state/store";
 import { ITab } from "./editor.types";
 import { shortcut_def } from "../shortcut/shortcut.types";
+import { shortcuts } from "../shortcut/shortcut.service";
 
 export function open_editor_tab(file_path: string) {
   const current_tabs = store.getState().editor.tabs;
@@ -188,8 +189,6 @@ export const build_monaco_context_items = (
     action_item(editor, "redo", "Ctrl+Y"),
   ];
 
-  console.log(editItems);
-
   const findItems: (ContextMenuItem | null)[] = [
     action_item(editor, "actions.find", "Ctrl+F"),
     action_item(editor, "editor.action.startFindReplaceAction", "Ctrl+H"),
@@ -219,21 +218,31 @@ export const build_monaco_context_items = (
     action_item(editor, "editor.action.goToReferences", "Shift+F12"),
   ];
 
-  const refactorItems: (ContextMenuItem | null)[] = [
-    action_item(editor, "editor.action.quickFix", "Ctrl+."),
-    action_item(editor, "editor.action.refactor", "Ctrl+Shift+R"),
-    action_item(editor, "editor.action.rename", "F2"),
-  ];
-
   const formatItems: (ContextMenuItem | null)[] = [
     action_item(editor, "editor.action.formatDocument", "Shift+Alt+F"),
     action_item(editor, "editor.action.formatSelection", ""),
     action_item(editor, "editor.action.organizeImports", ""),
   ];
 
-  const viewItems: (ContextMenuItem | null)[] = [
-    action_item(editor, "editor.action.toggleMinimap", ""),
-    action_item(editor, "editor.action.wordWrap", ""),
+  const customItems: ContextMenuItem[] = [
+    {
+      type: "item",
+      label: "Command Palette",
+      command_id:
+        (
+          shortcuts.get_shortcut({ command: "app.commandPalette" })
+            ?.keys as string
+        )
+          .split("+")
+          .map((v) => {
+            return v[0].toUpperCase() + v.slice(1);
+          })
+          .join("+") ?? "Ctrl+Shift+P",
+      disabled: false,
+      onClick: () => {
+        shortcuts.run_shortcut("commandPalette");
+      },
+    },
   ];
 
   const items: (ContextMenuItem | null)[] = [
@@ -245,7 +254,6 @@ export const build_monaco_context_items = (
     submenu("Peek", peekItems),
 
     sep(),
-    submenu("Refactor", refactorItems),
     submenu("Format", formatItems),
 
     sep(),
@@ -253,9 +261,9 @@ export const build_monaco_context_items = (
     action_item(editor, "editor.action.blockComment", "Shift+Alt+A"),
     action_item(editor, "editor.action.insertLineAfter", ""),
     action_item(editor, "editor.action.insertLineBefore", ""),
-    sep(),
 
-    submenu("View", viewItems),
+    sep(),
+    ...customItems,
   ];
 
   const cleaned = items.filter(Boolean) as ContextMenuItem[];

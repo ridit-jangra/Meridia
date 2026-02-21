@@ -49,7 +49,7 @@ export function ContextMenu(opts?: {
       "fixed z-[10000] hidden",
       opts?.menuClass
         ? ""
-        : "bg-panel-background text-panel-foreground p-0.5 border border-workbench-border rounded-[7px] shadow-sm",
+        : "bg-context-menu-background text-context-menu-foreground p-0.5 border border-workbench-border rounded-[7px] shadow-sm",
       opts?.menuClass,
     ),
   }) as HTMLDivElement;
@@ -81,7 +81,7 @@ export function ContextMenu(opts?: {
     const panel = h("div", {
       class: cn(
         "fixed z-[10001] hidden min-w-[260px]",
-        "bg-panel-background text-panel-foreground p-1",
+        "bg-context-menu-background text-context-menu-foreground p-1",
         "border border-workbench-border rounded-[7px] overflow-hidden shadow-sm",
         opts?.class,
       ),
@@ -123,8 +123,8 @@ export function ContextMenu(opts?: {
             class: cn(
               "flex items-center justify-between px-7 py-1.5 text-[13px] rounded-[7px]",
               it.disabled ? "opacity-50 pointer-events-none" : "cursor-pointer",
-              "hover:bg-titlebar-item-hover-background hover:text-titlebar-item-hover-foreground",
-              "active:bg-titlebar-item-active-background",
+              "hover:bg-context-menu-item-hover-background hover:text-context-menu-item-hover-foreground",
+              "active:bg-context-item-hover-background",
             ),
             on: {
               mouseenter: () => {
@@ -150,8 +150,8 @@ export function ContextMenu(opts?: {
           class: cn(
             "flex items-center justify-between px-7 py-1.5 text-[13px] rounded-[7px]",
             it.disabled ? "opacity-50 pointer-events-none" : "cursor-pointer",
-            "hover:bg-titlebar-item-hover-background hover:text-titlebar-item-hover-foreground",
-            "active:bg-titlebar-item-active-background",
+            "hover:bg-context-menu-item-hover-background hover:text-context-menu-item-hover-foreground",
+            "active:bg-context-menu-item-hover-background",
           ),
           on: {
             mouseenter: cancelClose,
@@ -166,7 +166,7 @@ export function ContextMenu(opts?: {
         h("span", { class: "truncate" }, it.label),
         h(
           "div",
-          { class: "text-[12px] opacity-70" },
+          { class: `text-[12px] ml-8 opacity-70` },
           it.command_id ? it.command_id : "",
         ),
       );

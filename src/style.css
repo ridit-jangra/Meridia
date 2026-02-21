@@ -138,6 +138,7 @@ body {
   --color-statusbar-foreground: var(--statusbar-foreground);
 
   --color-titlebar-background: var(--titlebar-background);
+  --color-titlebar-popover-background: var(--titlebar-popover-background);
   --color-titlebar-foreground: var(--titlebar-foreground);
   --color-titlebar-icon-foreground: var(--titlebar-icon-foreground);
   --color-titlebar-item-hover-foreground: var(
@@ -176,6 +177,16 @@ body {
   --color-command-item-hover-background: var(--command-item-hover-background);
   --color-command-item-active-foreground: var(--command-item-active-foreground);
   --color-command-item-active-background: var(--command-item-active-background);
+
+  --color-context-menu-background: var(--context-menu-background);
+  --color-context-menu-foreground: var(--context-menu-foreground);
+  --color-context-menu-item-foreground: var(--context-menu-item-foreground);
+  --color-context-menu-item-hover-foreground: var(
+    --context-menu-item-hover-foreground
+  );
+  --color-context-menu-item-hover-background: var(
+    --context-menu-item-hover-background
+  );
 
   --color-selection-background: var(--selection-background);
   --color-selection-foreground: var(--selection-foreground);

@@ -68,7 +68,7 @@ export function Menubar(opts: { menus: ITitlebarMenuItem[]; class?: string }) {
     const panel = h("div", {
       class: cn(
         "fixed z-[9999] hidden w-85",
-        "bg-panel-background text-panel-foreground p-1",
+        "bg-titlebar-popover-background text-panel-foreground p-1",
         "border border-workbench-border rounded-[7px] overflow-hidden",
         "shadow-sm",
       ),
