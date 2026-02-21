@@ -1,4 +1,4 @@
-import { INode } from "../../../shared/types/explorer.types";
+import { INode } from "../../../../shared/types/explorer.types";
 
 export type FlatRow = {
   id: string;

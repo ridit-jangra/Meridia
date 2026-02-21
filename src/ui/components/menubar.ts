@@ -107,7 +107,7 @@ export function Menubar(opts: { menus: ITitlebarMenuItem[]; class?: string }) {
         "div",
         {
           class: cn(
-            "flex items-center justify-between px-7 py-1.5 text-[11.5px] rounded-[7px]",
+            "flex items-center justify-between px-7 py-1.5 text-[12.5px] rounded-[7px]",
             "cursor-pointer",
             "hover:bg-titlebar-item-hover-background hover:text-titlebar-item-hover-foreground",
             "active:bg-titlebar-item-active-background",
@@ -132,7 +132,7 @@ export function Menubar(opts: { menus: ITitlebarMenuItem[]; class?: string }) {
         h("span", { class: "truncate" }, item.name),
         h(
           "div",
-          { class: "flex items-center gap-2 text-[14px] opacity-70" },
+          { class: "flex items-center gap-2 ml-5 text-[14px] opacity-70" },
           item.command ? h("span", {}, keyText) : "",
           item.submenu && item.submenu.length > 0
             ? h("span", {}, lucide("chevron-right"))

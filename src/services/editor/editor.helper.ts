@@ -224,20 +224,18 @@ export const build_monaco_context_items = (
     action_item(editor, "editor.action.organizeImports", ""),
   ];
 
+  const commandPaletteKeys = (shortcuts.get_shortcut({
+    command: "app.commandPalette",
+  })?.keys ?? "Ctrl+Shift+P") as string;
+
   const customItems: ContextMenuItem[] = [
     {
       type: "item",
       label: "Command Palette",
-      command_id:
-        (
-          shortcuts.get_shortcut({ command: "app.commandPalette" })
-            ?.keys as string
-        )
-          .split("+")
-          .map((v) => {
-            return v[0].toUpperCase() + v.slice(1);
-          })
-          .join("+") ?? "Ctrl+Shift+P",
+      command_id: commandPaletteKeys
+        .split("+")
+        .map((v) => v[0].toUpperCase() + v.slice(1))
+        .join("+"),
       disabled: false,
       onClick: () => {
         shortcuts.run_shortcut("commandPalette");
