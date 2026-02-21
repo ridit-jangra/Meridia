@@ -1,7 +1,7 @@
-import { INode } from "../../../shared/types/explorer.types";
-import { h } from "../../core/dom/h";
-import { cn } from "../../core/utils/cn";
-import { lucide } from "./icon";
+import { INode } from "../../../../shared/types/explorer.types";
+import { h } from "../../../core/dom/h";
+import { cn } from "../../../core/utils/cn";
+import { lucide } from "../icon";
 import {
   renameNode,
   nameExistsInFolder,

@@ -1,5 +1,5 @@
-import { h } from "../../core/dom/h";
-import { cn } from "../../core/utils/cn";
+import { h } from "../../../core/dom/h";
+import { cn } from "../../../core/utils/cn";
 
 export type VirtualListOpts<T> = {
   items: T[];

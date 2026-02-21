@@ -1,14 +1,14 @@
-import Split from "split.js";
 import { h } from "../../core/dom/h";
 import { set_node_at_path } from "./layout.helper";
 import { layout_engine } from "./layout.engine";
 import type { TLayoutNode, TLayoutPreset } from "./presets/preset.types";
 import type { node_path } from "./layout.types";
-import { cn } from "../../ui";
 import { Titlebar } from "../../workbench/titlebar/titlebar";
 import { PanelComponent } from "../../workbench/panels/panel-component";
 import { ActivityBarPanelComponent } from "../../workbench/activitybar/activitybar-panel-component";
 import { TabsComponent } from "../../workbench/tabs/tabs-component";
+import { Statusbar } from "../../workbench/statusbar/statusbar";
+import { Splitter } from "../../ui/components/splitter/splitter";
 
 type RenderResult = { el: HTMLElement; destroy: () => void };
 
@@ -102,7 +102,7 @@ function renderNode(opts: {
 
     if (enabledIndices.length === 0) return null;
 
-    // If only one child is enabled, render it directly (no split wrapper needed)
+    // Single enabled child — render directly without a split wrapper
     if (enabledIndices.length === 1) {
       const { child, i } = enabledIndices[0];
       return renderNode({
@@ -129,108 +129,50 @@ function renderNode(opts: {
     if (renderedChildren.length === 1) return renderedChildren[0].result;
 
     const dir = node.dir === "col" ? "vertical" : "horizontal";
-
-    const panes = renderedChildren.map(({ result }) =>
-      h("div", { class: "min-h-0 min-w-0 h-full w-full" }, result.el),
-    );
-
-    const container = h(
-      "div",
-      {
-        class: cn(
-          "min-h-0 min-w-0 h-full w-full flex",
-          dir === "vertical" ? "flex-col" : "flex-row",
-        ),
-      },
-      ...panes,
-    );
-
-    const GUTTER_BASE =
-      "bg-split-handle-foreground hover:bg-split-handle-hover-foreground active:bg-split-handle-active-foreground transition-all duration-150";
-
-    const gutterSize = dir === "vertical" ? 1 : 0.5;
-    const gutterClass =
-      dir === "vertical"
-        ? `${GUTTER_BASE} cursor-row-resize relative`
-        : `${GUTTER_BASE} cursor-col-resize relative`;
-
-    // Use stored sizes for the enabled children; fall back to equal split
     const totalEnabled = renderedChildren.length;
+
+    // Map stored sizes for enabled children, fall back to equal split
     const rawSizes = renderedChildren.map(
       ({ i }) => node.sizes?.[i] ?? 100 / totalEnabled,
     );
     const rawTotal = rawSizes.reduce((a, b) => a + b, 0);
-    const sizes = rawSizes.map((s) => (s / rawTotal) * 100);
+    const normSizes = rawSizes.map((s) => (s / rawTotal) * 100);
 
-    const instance = Split(panes, {
+    const splitter = Splitter({
       direction: dir,
-      sizes,
-      minSize: 120,
-      gutterSize,
-      gutter: () => {
-        const g = document.createElement("div");
-        g.className = gutterClass;
-
-        const inner = document.createElement("div");
-        inner.className =
-          "absolute inset-0 bg-split-handle-foreground hover:bg-split-handle-hover-foreground active:bg-split-handle-active-foreground transition-all duration-150";
-
-        if (dir === "vertical") {
-          inner.style.top = "50%";
-          inner.style.transform = "translateY(-50%)";
-          inner.style.height = `${gutterSize}px`;
-          inner.style.width = "100%";
-          g.addEventListener("mouseenter", () => {
-            inner.style.height = "6px";
-          });
-          g.addEventListener("mouseleave", () => {
-            inner.style.height = `${gutterSize}px`;
-          });
-        } else {
-          inner.style.left = "50%";
-          inner.style.transform = "translateX(-50%)";
-          inner.style.width = `${gutterSize}px`;
-          inner.style.height = "100%";
-          g.addEventListener("mouseenter", () => {
-            inner.style.width = "5px";
-          });
-          g.addEventListener("mouseleave", () => {
-            inner.style.width = `${gutterSize}px`;
-          });
-        }
-
-        g.appendChild(inner);
-        return g;
-      },
-      onDrag: (newSizes) => {
-        // Map the dragged sizes back onto the full sizes array
+      gutterSize: dir === "vertical" ? 4 : 3,
+      panels: renderedChildren.map(({ result }, idx) => ({
+        id: String(renderedChildren[idx].i),
+        size: normSizes[idx],
+        minSize: 80,
+        el: result.el,
+      })),
+      onResize: (sizes) => {
         const updatedSizes = [
           ...(node.sizes ??
             node.children.map(() => 100 / node.children.length)),
         ];
-        renderedChildren.forEach(({ i }, idx) => {
-          updatedSizes[i] = newSizes[idx];
+        sizes.forEach(({ id, size }) => {
+          updatedSizes[Number(id)] = size;
         });
         on_update_node(path, { ...node, sizes: updatedSizes }, true);
       },
-      onDragEnd: (newSizes) => {
+      onResizeEnd: (sizes) => {
         const updatedSizes = [
           ...(node.sizes ??
             node.children.map(() => 100 / node.children.length)),
         ];
-        renderedChildren.forEach(({ i }, idx) => {
-          updatedSizes[i] = newSizes[idx];
+        sizes.forEach(({ id, size }) => {
+          updatedSizes[Number(id)] = size;
         });
         on_update_node(path, { ...node, sizes: updatedSizes }, true);
       },
     });
 
     const result: RenderResult = {
-      el: container,
+      el: splitter.el,
       destroy() {
-        try {
-          instance.destroy();
-        } catch {}
+        splitter.destroy();
         renderedChildren.forEach(({ result: r }) => r.destroy());
       },
     };
@@ -290,30 +232,46 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
 
   const nodeCache = new Map<string, CacheEntry>();
 
-  const contentHost = h("div", {
-    class: "min-h-0 min-w-0 h-[calc(100vh-3rem)] max-h-[calc(100vh-3rem)]",
-  });
+  const scrollEls = new Map<HTMLElement, number>();
 
-  const titlebar = Titlebar();
+  const isScrollable = (el: HTMLElement) => {
+    const s = getComputedStyle(el);
+    const oy = s.overflowY;
+    if (oy !== "auto" && oy !== "scroll") return false;
+    return el.scrollHeight > el.clientHeight + 1;
+  };
 
-  const el = h(
-    "div",
-    { class: "h-screen w-screen min-h-0 min-w-0" },
-    titlebar,
-    contentHost,
-  );
+  const collectScrollables = (root: HTMLElement) => {
+    const out: HTMLElement[] = [];
+    const walk = (el: HTMLElement) => {
+      if (isScrollable(el)) out.push(el);
+      for (const c of Array.from(el.children)) walk(c as HTMLElement);
+    };
+    walk(root);
+    return out;
+  };
 
-  const persist = (newRoot: TLayoutNode, delay = 50) => {
-    if (saveTimer) window.clearTimeout(saveTimer);
-    saveTimer = window.setTimeout(() => {
-      suspend_external = true;
-      if (suspend_timer) window.clearTimeout(suspend_timer);
-      suspend_timer = window.setTimeout(() => (suspend_external = false), 120);
-      layout_engine.update_preset(preset.id, { ...preset, root: newRoot });
-    }, delay);
+  const captureScroll = () => {
+    scrollEls.clear();
+    for (const entry of nodeCache.values()) {
+      if (!entry.result.el.isConnected) continue;
+      for (const el of collectScrollables(entry.result.el)) {
+        scrollEls.set(el, el.scrollTop);
+      }
+    }
+  };
+
+  const restoreScroll = () => {
+    for (const [el, top] of scrollEls) {
+      if (el.isConnected) el.scrollTop = top;
+    }
   };
 
   const rerender = () => {
+    captureScroll();
+
+    contentHost.style.visibility = "hidden";
+
     if (mounted && mounted.el.parentElement) mounted.el.remove();
     contentHost.innerHTML = "";
 
@@ -325,11 +283,46 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
     });
     if (!r) {
       mounted = null;
+      contentHost.style.visibility = "";
       return;
     }
 
     mounted = r;
     contentHost.appendChild(r.el);
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        restoreScroll();
+        requestAnimationFrame(() => {
+          contentHost.style.visibility = "";
+        });
+      });
+    });
+  };
+
+  const contentHost = h("div", {
+    class: "min-h-0 min-w-0 h-[calc(100vh-4.7rem)] overflow-hidden",
+  });
+
+  const titlebar = Titlebar();
+  const statusbar = Statusbar();
+
+  const el = h(
+    "div",
+    { class: "h-screen w-screen min-h-0 min-w-0 overflow-hidden" },
+    titlebar,
+    contentHost,
+    statusbar,
+  );
+
+  const persist = (newRoot: TLayoutNode, delay = 50) => {
+    if (saveTimer) window.clearTimeout(saveTimer);
+    saveTimer = window.setTimeout(() => {
+      suspend_external = true;
+      if (suspend_timer) window.clearTimeout(suspend_timer);
+      suspend_timer = window.setTimeout(() => (suspend_external = false), 120);
+      layout_engine.update_preset(preset.id, { ...preset, root: newRoot });
+    }, delay);
   };
 
   const on_update_node = (

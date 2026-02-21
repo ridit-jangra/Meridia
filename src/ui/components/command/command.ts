@@ -1,8 +1,8 @@
-import { h } from "../../core/dom/h";
-import { cn } from "../../core/utils/cn";
-import { shortcuts } from "../../services/shortcut/shortcut.service";
-import { shortcut_def } from "../../services/shortcut/shortcut.types";
-import { ScrollArea } from "./scroll-area";
+import { h } from "../../../core/dom/h";
+import { cn } from "../../../core/utils/cn";
+import { shortcuts } from "../../../services/shortcut/shortcut.service";
+import { shortcut_def } from "../../../services/shortcut/shortcut.types";
+import { ScrollArea } from "../scroll-area";
 
 export interface CommandGroup {
   id: string;

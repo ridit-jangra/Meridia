@@ -1,10 +1,13 @@
-import { IFolderStructure, INode } from "../../../shared/types/explorer.types";
-import { h } from "../../core/dom/h";
-import { cn } from "../../core/utils/cn";
-import { lucide } from "./icon";
-import { Tooltip } from "./tooltip";
+import {
+  IFolderStructure,
+  INode,
+} from "../../../../shared/types/explorer.types";
+import { h } from "../../../core/dom/h";
+import { cn } from "../../../core/utils/cn";
+import { lucide } from "../icon";
+import { Tooltip } from "../tooltip";
 import { VirtualList } from "./virtual-list";
-import { ContextMenu, ContextMenuItem } from "./context-menu";
+import { ContextMenu, ContextMenuItem } from "../context-menu";
 import {
   FlatRow,
   flattenTree,
