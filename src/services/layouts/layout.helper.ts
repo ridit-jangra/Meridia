@@ -32,7 +32,7 @@ export function toggle_node_at_path(
     }
     return root;
   }
-  if (root.type !== "split") return root; // ← BUG: if root is not split, returns unchanged
+  if (root.type !== "split") return root;
 
   const [head, ...rest] = path;
   const newChildren = root.children.map((child, i) =>

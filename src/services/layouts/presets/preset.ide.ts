@@ -6,7 +6,7 @@ export const ide_preset: TLayoutPreset = {
   root: {
     type: "split",
     dir: "row",
-    sizes: [20, 55, 25],
+    sizes: [20, 80],
     children: [
       {
         type: "activity-bar-panel",
@@ -38,7 +38,16 @@ export const ide_preset: TLayoutPreset = {
         dir: "col",
         sizes: [70, 30],
         children: [
-          { type: "panel", id: "editor", enabled: true },
+          {
+            type: "split",
+            dir: "row",
+            sizes: [70, 30],
+            children: [
+              { type: "panel", id: "editor", enabled: true },
+              { type: "panel", id: "preview", enabled: false },
+            ],
+          },
+
           {
             type: "tabs",
             id: "bottom",
@@ -59,8 +68,8 @@ export const ide_preset: TLayoutPreset = {
           },
         ],
       },
-      { type: "panel", id: "ai_chat", enabled: true },
-      { type: "panel", id: "ai_agent", enabled: true },
+      { type: "panel", id: "ai_chat", enabled: false },
+      // { type: "panel", id: "ai_agent", enabled: true },
     ],
   },
 };

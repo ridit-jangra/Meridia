@@ -112,6 +112,7 @@ export const colors = [
   "titlebar.foreground",
   "titlebar.icon.foreground",
   "titlebar.icon.hover.background",
+  "titlebar.popover.background",
   "titlebar.menu.item.hover.background",
   "titlebar.menu.item.hover.foreground",
   "titlebar.menu.item.active.background",
