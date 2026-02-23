@@ -1,5 +1,6 @@
 import "./services/theme/theme.service";
 import "./services/shortcut/shortcut.init";
+import "./services/explorer/explorer.service";
 
 import "@vscode/codicons/dist/codicon.css";
 import "./style.css";

@@ -11,11 +11,6 @@ export const titlebar_menu: ITitlebarMenuItem[] = [
         command: "editor.newFile",
       },
       {
-        id: "new-folder",
-        name: "New Folder",
-        command: "editor.newFolder",
-      },
-      {
         id: "open-file",
         name: "Open File...",
         command: "editor.openFile",
@@ -23,7 +18,7 @@ export const titlebar_menu: ITitlebarMenuItem[] = [
       {
         id: "open-folder",
         name: "Open Folder...",
-        command: "editor.openFolder",
+        command: "app.openFolder",
       },
       { id: "separator-1", name: "separator" },
       {

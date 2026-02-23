@@ -199,7 +199,7 @@ function renderNode(opts: {
 
   if (node.type === "activity-bar-panel") {
     if (node.enabled === false) return null;
-    const view = ActivityBarPanelComponent({ node });
+    const view = ActivityBarPanelComponent({ node, id: node.id });
     const result: RenderResult = { el: view.el, destroy: view.destroy };
     cache.set(cacheKey, { node, result });
     return result;

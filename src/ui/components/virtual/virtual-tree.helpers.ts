@@ -4,7 +4,6 @@ export type FlatRow = {
   id: string;
   label: string;
   depth: number;
-  isFolder: boolean;
   node: INode;
   isRoot?: boolean;
 };
@@ -30,17 +29,20 @@ export function flattenTree(
   const sorted = sortNodes(nodes);
 
   for (const n of sorted) {
-    const isFolder =
-      n.type === "folder" && !!(n.child_nodes && n.child_nodes.length);
     out.push({
       id: n.id,
       label: n.name,
       depth,
-      isFolder,
       node: n,
     });
-    if (isFolder && openSet.has(n.id)) {
-      flattenTree(n.child_nodes!, depth + 1, openSet, out);
+
+    if (
+      n.type === "folder" &&
+      openSet.has(n.id) &&
+      n.child_nodes &&
+      n.child_nodes.length > 0
+    ) {
+      flattenTree(n.child_nodes, depth + 1, openSet, out);
     }
   }
 

@@ -106,14 +106,11 @@ export function get_dir_name(path: string): string {
   return normalized.substring(0, lastSlashIndex);
 }
 
-export function get_base_name(path: string): string {
-  if (!path || path === "/") return "/";
+export function get_base_name(p: string): string {
+  if (!p) return "";
 
-  const normalized = path.replace(/\/+$/, "");
+  const normalized = p.replace(/[\\/]+$/, "");
+  const parts = normalized.split(/[\\/]/);
 
-  const lastSlashIndex = normalized.lastIndexOf("/");
-
-  if (lastSlashIndex === -1) return normalized;
-
-  return normalized.substring(lastSlashIndex + 1);
+  return parts[parts.length - 1] || "";
 }

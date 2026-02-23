@@ -3,4 +3,4 @@ export const SELECTED_LAYOUT_KEY = "workbench.layout.selected";
 export const WORKSPACES_DATA = "workspaces.data";
 export const ACTIVE_PANEL_KEY = "workbench.active.panel.key";
 export const ACTIVE_TAB_KEY = "workbench.active.tab.key";
-export const CURRENT_WORKSPACE = "workspaces.current";
+export const CURRENT_WORKSPACE_PATH = "workspaces.current.path";

@@ -14,8 +14,32 @@ import {
   removeNode,
   findNodeById,
 } from "./virtual-tree.helpers";
-import { createAddNodeInput } from "./add-node.helpers";
-import { createRenameInput } from "./rename-node.helpers";
+import { create_add_node_input } from "./add-node.helpers";
+import { create_rename_input } from "./rename-node.helpers";
+
+function deepCloneNodes(nodes: INode[]): INode[] {
+  return nodes.map((n) => ({
+    ...n,
+    child_nodes: n.child_nodes ? deepCloneNodes(n.child_nodes) : [],
+  }));
+}
+
+function updateNodeInStructure(
+  nodes: INode[],
+  id: string,
+  child_nodes: INode[],
+): boolean {
+  for (const node of nodes) {
+    if (node.id === id) {
+      node.child_nodes = child_nodes;
+      return true;
+    }
+    if (node.child_nodes && node.child_nodes.length > 0) {
+      if (updateNodeInStructure(node.child_nodes, id, child_nodes)) return true;
+    }
+  }
+  return false;
+}
 
 export function VirtualTree(opts: {
   folderStructure: IFolderStructure;
@@ -33,7 +57,17 @@ export function VirtualTree(opts: {
 
   const open = new Set<string>();
   const selected = { id: "" };
-  let editingNodeId: string | null = null;
+  let editing_node_id: string | null = null;
+  const loading = new Set<string>();
+  const loaded = new Set<string>();
+
+  // Queue of pending folder loads — runs them without blocking each other
+  const load_queue = new Map<string, Promise<void>>();
+
+  opts.folderStructure = {
+    ...opts.folderStructure,
+    structure: deepCloneNodes(opts.folderStructure.structure),
+  };
 
   const initOpen = (n: INode) => {
     if (opts.initiallyOpenAll) open.add(n.id);
@@ -63,33 +97,104 @@ export function VirtualTree(opts: {
     list.setItems(rows);
   };
 
-  const toggle = (id: string) => {
-    if (open.has(id)) open.delete(id);
-    else open.add(id);
-    rebuild();
+  const load_children = (folderNode: INode): Promise<void> => {
+    if (loaded.has(folderNode.id)) return Promise.resolve();
+
+    // Return existing promise if already loading — callers share the same promise
+    const existing = load_queue.get(folderNode.id);
+    if (existing) return existing;
+
+    const promise = new Promise<void>((resolve) => {
+      // Use setTimeout to yield to the browser before starting the IPC call
+      // This lets the spinner render before the potential freeze
+      setTimeout(async () => {
+        try {
+          const raw = await window.explorer.get_child_structure(folderNode);
+
+          let result_id: string;
+          let child_nodes: INode[];
+
+          if (Array.isArray(raw)) {
+            result_id = folderNode.id;
+            child_nodes = deepCloneNodes(raw);
+          } else if (raw && typeof raw === "object") {
+            result_id = raw.id;
+            child_nodes = deepCloneNodes(raw.child_nodes ?? []);
+          } else {
+            console.warn("[load_children] unexpected result:", raw);
+            return;
+          }
+
+          if (result_id === opts.folderStructure.path) {
+            opts.folderStructure.structure = child_nodes;
+          } else {
+            updateNodeInStructure(
+              opts.folderStructure.structure,
+              result_id,
+              child_nodes,
+            );
+          }
+
+          loaded.add(folderNode.id);
+        } catch (e) {
+          console.error("[load_children] error:", e);
+        } finally {
+          loading.delete(folderNode.id);
+          load_queue.delete(folderNode.id);
+          // Rebuild after load completes
+          rebuild();
+          resolve();
+        }
+      }, 0);
+    });
+
+    load_queue.set(folderNode.id, promise);
+    return promise;
   };
 
-  const startAddNode = (parentId: string, type: "file" | "folder") => {
+  const handle_folder_click = (row: FlatRow) => {
+    const id = row.id;
+
+    if (loading.has(id)) return; // Don't allow toggling while loading
+
+    if (open.has(id)) {
+      open.delete(id);
+      rebuild();
+      return;
+    }
+
+    // Open immediately and rebuild so caret rotates right away
+    open.add(id);
+
+    if (!loaded.has(id)) {
+      loading.add(id);
+      rebuild(); // Renders with open=true (rotated caret) + spinner
+      load_children(row.node); // Fire and forget — rebuild called inside when done
+    } else {
+      rebuild();
+    }
+  };
+
+  const start_add_node = (parentId: string, type: "file" | "folder") => {
     open.add(parentId);
-    editingNodeId = `__adding_${type}_${parentId}`;
+    editing_node_id = `__adding_${type}_${parentId}`;
 
     const result = findNodeById(opts.folderStructure.structure, parentId);
     if (!result) return;
 
     const parentDepth = rows.find((r) => r.id === parentId)?.depth ?? 0;
-
     const parentIndex = rows.findIndex((r) => r.id === parentId);
+
     if (parentIndex === -1) {
       rebuild();
       return;
     }
 
     const tempRow: FlatRow = {
-      id: editingNodeId,
+      id: editing_node_id,
       label: "",
       depth: parentDepth + 1,
-      isFolder: type === "folder",
-      node: { id: editingNodeId, type, name: "", path: "" } as INode,
+      node: { id: editing_node_id, type, name: "", path: "" } as INode,
     };
 
     const newRows = [...rows];
@@ -98,27 +203,25 @@ export function VirtualTree(opts: {
     list.setItems(rows);
   };
 
-  const startRename = (nodeId: string) => {
-    editingNodeId = `__renaming_${nodeId}`;
+  const start_rename = (nodeId: string) => {
+    editing_node_id = `__renaming_${nodeId}`;
     rebuild();
   };
 
-  const deleteNode = (nodeId: string) => {
+  const delete_node = (nodeId: string) => {
     const result = findNodeById(opts.folderStructure.structure, nodeId);
     if (!result) return;
 
     const type = result.node.type === "folder" ? "folder" : "file";
-    const confirmMsg = `Are you sure you want to delete this ${type}?`;
-
-    if (!confirm(confirmMsg)) return;
+    if (!confirm(`Are you sure you want to delete this ${type}?`)) return;
 
     const success = removeNode(opts.folderStructure.structure, nodeId);
     if (success) {
-      if (selected.id === nodeId) {
-        selected.id = "";
-      }
+      if (selected.id === nodeId) selected.id = "";
       open.delete(nodeId);
-      editingNodeId = null;
+      loaded.delete(nodeId);
+      load_queue.delete(nodeId);
+      editing_node_id = null;
       rebuild();
     }
   };
@@ -126,17 +229,17 @@ export function VirtualTree(opts: {
   const getContextMenuItems = (row: FlatRow): ContextMenuItem[] => {
     const items: ContextMenuItem[] = [];
 
-    if (row.isFolder) {
+    if (row.node.type === "folder") {
       items.push(
         {
           type: "item",
           label: "New File",
-          onClick: () => startAddNode(row.id, "file"),
+          onClick: () => start_add_node(row.id, "file"),
         },
         {
           type: "item",
           label: "New Folder",
-          onClick: () => startAddNode(row.id, "folder"),
+          onClick: () => start_add_node(row.id, "folder"),
         },
         { type: "separator" },
       );
@@ -146,12 +249,12 @@ export function VirtualTree(opts: {
       {
         type: "item",
         label: "Rename",
-        onClick: () => startRename(row.id),
+        onClick: () => start_rename(row.id),
       },
       {
         type: "item",
         label: "Delete",
-        onClick: () => deleteNode(row.id),
+        onClick: () => delete_node(row.id),
       },
     );
 
@@ -166,19 +269,20 @@ export function VirtualTree(opts: {
     height: opts.height,
     class: cn("min-h-0 min-w-0", opts.class),
     overscan: 8,
+    cache: false,
     key: (r) => r.id,
     render: (row) => {
       if (
-        editingNodeId &&
-        editingNodeId.startsWith("__adding_") &&
-        row.id === editingNodeId
+        editing_node_id &&
+        editing_node_id.startsWith("__adding_") &&
+        row.id === editing_node_id
       ) {
-        const type = editingNodeId.includes("_file_") ? "file" : "folder";
-        const parentId = editingNodeId.replace(`__adding_${type}_`, "");
+        const type = editing_node_id.includes("_file_") ? "file" : "folder";
+        const parentId = editing_node_id.replace(`__adding_${type}_`, "");
         const result = findNodeById(opts.folderStructure.structure, parentId);
 
         if (result) {
-          return createAddNodeInput({
+          return create_add_node_input({
             type,
             parentId,
             parentPath: result.node.path,
@@ -186,7 +290,7 @@ export function VirtualTree(opts: {
             indent,
             depth: row.depth,
             onComplete: (newNode) => {
-              editingNodeId = null;
+              editing_node_id = null;
               rebuild();
               if (type === "file") {
                 selected.id = newNode.id;
@@ -194,69 +298,72 @@ export function VirtualTree(opts: {
               }
             },
             onCancel: () => {
-              editingNodeId = null;
+              editing_node_id = null;
               rebuild();
             },
           });
         }
       }
 
-      if (editingNodeId === `__renaming_${row.id}`) {
-        return createRenameInput({
+      if (editing_node_id === `__renaming_${row.id}`) {
+        return create_rename_input({
           nodeId: row.id,
           nodes: opts.folderStructure.structure,
           indent,
           depth: row.depth,
           currentName: row.label,
-          isFolder: row.isFolder,
+          isFolder: row.node.type === "folder",
           get_icon: opts.get_icon,
           icon_folder_name: opts.icon_folder_name,
           onComplete: () => {
-            editingNodeId = null;
+            editing_node_id = null;
             rebuild();
           },
           onCancel: () => {
-            editingNodeId = null;
+            editing_node_id = null;
             rebuild();
           },
         });
       }
 
       const isSel = row.id === selected.id;
+      const isLoading = loading.has(row.id);
+      const isOpen = open.has(row.id);
 
-      let caretIcon: HTMLElement | null = null;
       const caret =
-        row.isFolder &&
+        row.node.type === "folder" &&
         (() => {
           const span = h("span", {
-            class: "mr-1 opacity-70",
-            style: open.has(row.id) ? "transform: rotate(90deg)" : "",
+            class:
+              "mr-1 opacity-70 inline-flex items-center [&_svg]:w-4 [&_svg]:h-4",
+            style: `transform: rotate(${isOpen ? "90deg" : "0deg"}); transition: transform 0.15s ease; display: inline-flex; align-items: center;`,
           });
-          caretIcon = lucide("chevron-right");
-          span.appendChild(caretIcon);
+          span.appendChild(
+            isLoading ? lucide("loader-circle") : lucide("chevron-right"),
+          );
           return span;
         })();
 
-      const icon = !row.isFolder && h("img", { class: "w-4 h-4 mr-1" });
-      if (icon && opts.get_icon && opts.icon_folder_name)
-        icon.src = `./${opts.icon_folder_name}/${opts.get_icon(row.id)}`;
+      const fileIcon =
+        row.node.type !== "folder" && h("img", { class: "w-4 h-4 mr-1" });
+      if (fileIcon && opts.get_icon && opts.icon_folder_name)
+        fileIcon.src = `./${opts.icon_folder_name}/${opts.get_icon(row.id)}`;
 
       const left = h(
         "div",
         { class: "ml-2 flex items-center min-w-0" },
         caret,
-        icon,
+        fileIcon,
         h("span", { class: "truncate font-normal" }, row.label),
       );
 
       const right = opts.renderRight ? opts.renderRight(row) : null;
 
-      const el = h(
+      const rowEl = h(
         "div",
         {
           class: cn(
-            "px-2 flex items-center justify-between select-none cursor-pointer",
-            "text-[13px]",
+            "px-2 flex items-center justify-between select-none cursor-pointer text-[13px]",
             isSel
               ? "bg-explorer-item-active-background text-explorer-item-active-foreground"
               : "hover:bg-explorer-item-hover-background hover:text-explorer-item-hover-foreground text-explorer-foreground",
@@ -265,13 +372,8 @@ export function VirtualTree(opts: {
           on: {
             click: (e: MouseEvent) => {
               if (e.button !== 0) return;
-
-              if (row.isFolder) {
-                if (caret) {
-                  const isOpen = open.has(row.id);
-                  caret.style.transform = isOpen ? "" : "rotate(90deg)";
-                }
-                toggle(row.id);
+              if (row.node.type === "folder") {
+                handle_folder_click(row);
               } else {
                 selected.id = row.id;
                 opts.onSelect?.(row.id, row.node);
@@ -284,22 +386,26 @@ export function VirtualTree(opts: {
         right ?? "",
       );
 
-      contextMenu.bind(el, () => getContextMenuItems(row));
+      contextMenu.bind(rowEl, () => getContextMenuItems(row));
+      Tooltip({ child: rowEl, text: row.id, delay: 200 });
 
-      Tooltip({ child: el, text: row.id, delay: 200 });
-
-      return el;
+      return rowEl;
     },
   });
 
   el.appendChild(list.el);
-
   rebuild();
 
   return {
     el,
     setFolderStructure(next: IFolderStructure) {
-      opts.folderStructure = next;
+      opts.folderStructure = {
+        ...next,
+        structure: deepCloneNodes(next.structure),
+      };
+      loaded.clear();
+      load_queue.clear();
+      open.clear();
       rebuild();
     },
     open(id: string) {
@@ -311,7 +417,8 @@ export function VirtualTree(opts: {
       rebuild();
     },
     toggle(id: string) {
-      toggle(id);
+      const row = rows.find((r) => r.id === id);
+      if (row) handle_folder_click(row);
     },
     select(id: string) {
       selected.id = id;

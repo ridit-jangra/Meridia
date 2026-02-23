@@ -51,7 +51,7 @@ export function Button(
   return h(
     "button",
     {
-      class: cn(base, variants[variant], sizes[size], opts?.class),
+      class: cn(base, variants[variant], sizes[size], "min-w-0", opts?.class),
       attrs: {
         type: opts?.type ?? "button",
         disabled: opts?.disabled ?? false,
@@ -60,6 +60,6 @@ export function Button(
         ? { click: (e) => opts.onClick!(e as MouseEvent) }
         : undefined,
     },
-    label,
+    h("span", { class: "min-w-0 w-full truncate" }, label),
   );
 }

@@ -19,7 +19,7 @@ export type AddNodeOptions = {
   onCancel: () => void;
 };
 
-export function createAddNodeInput(opts: AddNodeOptions): HTMLElement {
+export function create_add_node_input(opts: AddNodeOptions): HTMLElement {
   const {
     type,
     parentId,
@@ -129,7 +129,7 @@ export function createAddNodeInput(opts: AddNodeOptions): HTMLElement {
   return container;
 }
 
-export function addFile(
+export function add_file(
   nodes: INode[],
   parentId: string,
   parentPath: string,

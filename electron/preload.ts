@@ -1,26 +1,10 @@
-import { ipcRenderer, contextBridge } from "electron";
-import { IFolderStructure, INode } from "../shared/types/explorer.types";
-
-contextBridge.exposeInMainWorld("ipcRenderer", {
-  on(...args: Parameters<typeof ipcRenderer.on>) {
-    const [channel, listener] = args;
-    return ipcRenderer.on(channel, (event, ...args) =>
-      listener(event, ...args),
-    );
-  },
-  off(...args: Parameters<typeof ipcRenderer.off>) {
-    const [channel, ...omit] = args;
-    return ipcRenderer.off(channel, ...omit);
-  },
-  send(...args: Parameters<typeof ipcRenderer.send>) {
-    const [channel, ...omit] = args;
-    return ipcRenderer.send(channel, ...omit);
-  },
-  invoke(...args: Parameters<typeof ipcRenderer.invoke>) {
-    const [channel, ...omit] = args;
-    return ipcRenderer.invoke(channel, ...omit);
-  },
-});
+import { contextBridge, ipcRenderer } from "electron";
+import type {
+  IChildStructure,
+  IFolderStructure,
+  INode,
+} from "../shared/types/explorer.types";
+import type { IWorkspace } from "../shared/types/workspace.types";
 
 contextBridge.exposeInMainWorld("storage", {
   get: <T>(key: string, fallback?: T) =>
@@ -37,7 +21,58 @@ contextBridge.exposeInMainWorld("explorer", {
     ) as Promise<IFolderStructure>,
   get_child_structure: (node: INode) =>
     ipcRenderer.invoke(
-      "workbench.storage.get.child.structure",
+      "workbench.explorer.get.child.structure",
       node,
-    ) as Promise<INode[]>,
+    ) as Promise<IChildStructure>,
+});
+
+contextBridge.exposeInMainWorld("workspace", {
+  get_workspace: (folder_path: string) =>
+    ipcRenderer.invoke(
+      "workbench.workspace.get",
+      folder_path,
+    ) as Promise<IWorkspace>,
+  set_workspace: (folder_path: string) =>
+    ipcRenderer.invoke("workbench.workspace.set", folder_path) as Promise<void>,
+  get_current_workspace_path: () =>
+    ipcRenderer.invoke("workbench.workspace.get.current.path") as Promise<
+      string | null
+    >,
+  set_current_workspace_path: (folder_path: string) =>
+    ipcRenderer.invoke(
+      "workbench.workspace.set.current.path",
+      folder_path,
+    ) as Promise<void>,
+  ask_update_workspace: () =>
+    ipcRenderer.invoke("workbench.workspace.ask.update") as Promise<void>,
+});
+
+contextBridge.exposeInMainWorld("files", {
+  exists: (p: string) =>
+    ipcRenderer.invoke("workbench.fs.exists", p) as Promise<boolean>,
+  readdir: (p: string) =>
+    ipcRenderer.invoke("workbench.fs.readdir", p) as Promise<
+      {
+        name: string;
+        isFile: boolean;
+        isDirectory: boolean;
+        isSymbolicLink: boolean;
+      }[]
+    >,
+  stat: (p: string) =>
+    ipcRenderer.invoke("workbench.fs.stat", p) as Promise<{
+      isFile: boolean;
+      isDirectory: boolean;
+      size: number;
+      mtimeMs: number;
+      ctimeMs: number;
+    }>,
+  readFileText: (p: string) =>
+    ipcRenderer.invoke("workbench.fs.readFileText", p) as Promise<string>,
+  writeFileText: (p: string, content: string) =>
+    ipcRenderer.invoke(
+      "workbench.fs.writeFileText",
+      p,
+      content,
+    ) as Promise<boolean>,
 });

@@ -8,6 +8,7 @@ export type VirtualListOpts<T> = {
   class?: string;
   innerClass?: string;
   overscan?: number;
+  cache?: boolean;
   key?: (item: T, index: number) => string;
   render: (item: T, index: number) => HTMLElement;
   onRangeChange?: (start: number, end: number) => void;
@@ -15,6 +16,7 @@ export type VirtualListOpts<T> = {
 
 export function VirtualList<T>(opts: VirtualListOpts<T>) {
   const overscan = opts.overscan ?? 6;
+  const shouldCache = opts.cache ?? false;
 
   const viewport = h("div", {
     class: cn("min-h-0 min-w-0 overflow-auto relative", opts.class),
@@ -121,25 +123,25 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
       const key = getKey(items[i], i);
       newKeys.add(key);
 
-      let row = cache.get(key);
+      let row = shouldCache ? cache.get(key) : undefined;
 
-      const shouldCache = !(items[i] as any).isFolder === false;
-
-      if (!row || !shouldCache) {
+      if (!row) {
         row = opts.render(items[i], i);
-        (row.style as any).height = `${opts.itemHeight}px`;
-        (row as any).dataset.vkey = key;
+        row.style.height = `${opts.itemHeight}px`;
+        row.dataset.vkey = key;
         if (shouldCache) cache.set(key, row);
       } else {
-        (row as any).dataset.vkey = key;
+        row.dataset.vkey = key;
       }
 
       nodes.push(row);
     }
 
-    Array.from(cache.keys()).forEach((k) => {
-      if (!newKeys.has(k)) cache.delete(k);
-    });
+    if (shouldCache) {
+      Array.from(cache.keys()).forEach((k) => {
+        if (!newKeys.has(k)) cache.delete(k);
+      });
+    }
 
     reconcile(nodes);
 
@@ -175,6 +177,7 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
       setSpacer();
       start = -1;
       end = -1;
+      cache.clear();
       schedule();
     },
     updateItems(next: T[]) {
@@ -182,11 +185,13 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
       setSpacer();
       start = -1;
       end = -1;
+      cache.clear();
       schedule();
     },
     refresh() {
       start = -1;
       end = -1;
+      cache.clear();
       schedule();
     },
     invalidate(key: string) {
