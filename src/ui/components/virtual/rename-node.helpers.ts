@@ -21,7 +21,7 @@ export type RenameNodeOptions = {
   icon_folder_name?: string;
 };
 
-export function createRenameInput(opts: RenameNodeOptions): HTMLElement {
+export function create_rename_input(opts: RenameNodeOptions): HTMLElement {
   const {
     nodeId,
     nodes,

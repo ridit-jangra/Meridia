@@ -14,8 +14,9 @@ import { lucide } from "../../ui/components/icon";
 
 export function ActivityBarPanelComponent(opts: {
   node: TActivityBarPanelNode;
+  id: string;
 }) {
-  const toggle_path: ("a" | "b")[] = ["a"];
+  const toggle_path: number[] = [0];
 
   const el = h("div", {
     class: cn(
@@ -28,9 +29,10 @@ export function ActivityBarPanelComponent(opts: {
   });
 
   const scroll = ScrollArea({ class: "flex-1 min-h-0 h-full" });
+  scroll.inner.classList.add("h-full");
   const content = scroll.inner;
 
-  const get_active = () => store.getState().layout.active_panel_key;
+  const get_active = () => store.getState().layout.active_panel_key[opts.id];
 
   let is_initialized = false;
   const btns = new Map<string, HTMLElement>();
@@ -152,12 +154,19 @@ export function ActivityBarPanelComponent(opts: {
       return;
     }
 
-    store.dispatch(set_active_panel_key(panelId));
+    store.dispatch(set_active_panel_key({ key: opts.id, value: panelId }));
   };
 
   const init = async () => {
-    const saved = await window.storage.get(ACTIVE_PANEL_KEY);
-    if (saved) store.dispatch(set_active_panel_key(saved as string));
+    const saved = (await window.storage.get(ACTIVE_PANEL_KEY)) as Record<
+      string,
+      string
+    > | null;
+    if (saved) {
+      for (const [key, value] of Object.entries(saved)) {
+        store.dispatch(set_active_panel_key({ key, value }));
+      }
+    }
 
     is_initialized = true;
     render();

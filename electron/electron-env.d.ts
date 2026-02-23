@@ -1,6 +1,11 @@
 /// <reference types="vite-plugin-electron/electron-env" />
 
-// import { IFolderStructure } from "../shared/explorer.types";
+import type {
+  IChildStructure,
+  IFolderStructure,
+  INode,
+} from "../shared/types/explorer.types";
+import type { IWorkspace } from "../shared/types/workspace.types";
 
 declare namespace NodeJS {
   interface ProcessEnv {
@@ -14,37 +19,47 @@ type storage_api = {
   set(key: string, value: any): Promise<boolean>;
 };
 
-interface INode {
-  id: string;
-  type: "file" | "folder";
-  name: string;
-  path: string;
-  child_nodes: INode[];
-}
-
-interface IRootNode {
-  name: string;
-}
-
-interface IFolderStructure {
-  root: IRootNode;
-  path: string;
-  structure: INode[];
-}
-
-interface IChildStructure {
-  path: string;
-  id: string;
-  child_nodes: INode[];
-}
-
 type explorer_api = {
   get_root_structure(folder_path: string): Promise<IFolderStructure>;
   get_child_structure(node: INode): Promise<IChildStructure>;
 };
 
-interface Window {
-  ipcRenderer: import("electron").IpcRenderer;
-  storage: storage_api;
-  explorer: explorer_api;
+type workspace_api = {
+  get_workspace(folder_path: string): Promise<IWorkspace>;
+  set_workspace(folder_path: string): Promise<void>;
+  get_current_workspace_path(): Promise<string | null>;
+  set_current_workspace_path(folder_path: string): Promise<void>;
+  ask_update_workspace(): Promise<void>;
+};
+
+type files_api = {
+  exists(p: string): Promise<boolean>;
+  readdir(p: string): Promise<
+    {
+      name: string;
+      isFile: boolean;
+      isDirectory: boolean;
+      isSymbolicLink: boolean;
+    }[]
+  >;
+  stat(p: string): Promise<{
+    isFile: boolean;
+    isDirectory: boolean;
+    size: number;
+    mtimeMs: number;
+    ctimeMs: number;
+  }>;
+  readFileText(p: string): Promise<string>;
+  writeFileText(p: string, content: string): Promise<boolean>;
+};
+
+declare global {
+  interface Window {
+    storage: storage_api;
+    explorer: explorer_api;
+    workspace: workspace_api;
+    files: files_api;
+  }
 }
+
+export {};

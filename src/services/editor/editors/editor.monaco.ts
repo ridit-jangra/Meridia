@@ -29,6 +29,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     return this.editor as IMonacoEditor;
   }
 
+  private error_el: HTMLElement | null = null;
   private model_disposers = new Map<string, Disposer[]>();
   private last_saved_at = new Map<string, number>();
   private ctx = ContextMenu();
@@ -42,6 +43,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     if (!editor) return;
 
     editor.classList.toggle("hidden", !visible);
+    if (this.error_el) this.error_el.classList.toggle("hidden", !visible);
   }
 
   public mount(parent?: HTMLElement): void {
@@ -187,9 +189,23 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     this.model_disposers.set(m.uri, disposers);
   }
 
-  public set_model_active(uri: string) {
+  public async set_model_active(uri: string, new_file?: boolean) {
     const model = this.models.find((m) => m.uri === uri) as IMonacoModel;
     if (!model) return;
+
+    const exists = await window.files.exists(uri);
+    if (!exists && !new_file) {
+      this.show_error("File not found.");
+      return;
+    }
+
+    const st = await window.files.stat(uri);
+    if (!st.isFile) {
+      this.show_error("Cannot open folders in the editor.");
+      return;
+    }
+
+    this.hide_error();
 
     this.active_model = model;
 
@@ -217,6 +233,46 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     if (!this.active_model) return;
     const model = this.active_model as IMonacoModel;
     this.monacoEditor.instance.setModel(model.model);
+  }
+
+  private show_error(msg: string) {
+    this.set_visible(false);
+
+    if (!this.error_el) {
+      const wrap = h(
+        "div",
+        {
+          class:
+            "h-full w-full flex items-center justify-center select-none px-6",
+        },
+        h(
+          "div",
+          {
+            class: "flex flex-col items-center gap-2 text-center max-w-[520px]",
+          },
+          h("div", { class: "text-[48px] leading-none opacity-80" }, "✕"),
+          h("div", { class: "text-[14px] opacity-80" }, msg),
+        ),
+      );
+
+      this.error_el = wrap;
+    } else {
+      const msgEl = this.error_el.querySelector(
+        "div div:last-child",
+      ) as HTMLElement | null;
+      if (msgEl) msgEl.textContent = msg;
+    }
+
+    if (this.monacoEditor.parent_el && !this.error_el.parentElement) {
+      this.monacoEditor.parent_el.appendChild(this.error_el);
+    }
+
+    this.error_el.classList.remove("hidden");
+  }
+
+  private hide_error() {
+    this.error_el?.classList.add("hidden");
+    this.set_visible(true);
   }
 
   public dispose_model(uri: string) {

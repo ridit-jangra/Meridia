@@ -25,7 +25,7 @@ shortcuts.register_command({
   run: () => {
     if (!is_node_enabled_at_path_active_preset([0]))
       update_layout([0], enable_node_at_path);
-    store.dispatch(set_active_panel_key("search"));
+    store.dispatch(set_active_panel_key({ key: "left", value: "search" }));
   },
 });
 
@@ -34,7 +34,7 @@ shortcuts.register_command({
   run: () => {
     if (!is_node_enabled_at_path_active_preset([0]))
       update_layout([0], enable_node_at_path);
-    store.dispatch(set_active_panel_key("explorer"));
+    store.dispatch(set_active_panel_key({ key: "left", value: "explorer" }));
   },
 });
 
@@ -43,7 +43,7 @@ shortcuts.register_command({
   run: () => {
     if (!is_node_enabled_at_path_active_preset([0]))
       update_layout([0], enable_node_at_path);
-    store.dispatch(set_active_panel_key("git"));
+    store.dispatch(set_active_panel_key({ key: "left", value: "git" }));
   },
 });
 
@@ -214,9 +214,15 @@ shortcuts.register_command({
   },
 });
 shortcuts.register_command({
-  id: "editor.newTab",
+  id: "editor.newFile",
   run: () => {
     open_new_editor_tab();
+  },
+});
+shortcuts.register_command({
+  id: "app.openFolder",
+  run: () => {
+    window.workspace.ask_update_workspace();
   },
 });
 
@@ -326,11 +332,19 @@ shortcuts.register_shortcuts([
     scope: "app",
   },
   {
-    id: "newTab",
+    id: "newFile",
     label: "New Tab",
     category: "Editor",
     keys: "ctrl+n",
-    command: "editor.newTab",
+    command: "editor.newFile",
+    scope: "app",
+  },
+  {
+    id: "openFolder",
+    label: "Open Folder",
+    category: "App",
+    keys: "ctrl+shift+o",
+    command: "app.openFolder",
     scope: "app",
   },
 ]);

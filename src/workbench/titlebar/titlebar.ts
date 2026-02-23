@@ -32,7 +32,7 @@ export function Titlebar() {
     "span",
     {
       class:
-        "text-sm text-titlebar-foreground hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 px-2 rounded-md",
+        "text-sm text-titlebar-foreground hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 px-2 rounded-md no-drag",
       on: {
         click: () => {
           store.dispatch(set_command_palette_open(true));
@@ -45,7 +45,8 @@ export function Titlebar() {
   const center = h(
     "div",
     {
-      class: "flex-1 flex items-center justify-center min-w-0 px-2 no-drag",
+      class:
+        "flex-1 flex items-center justify-center min-w-0 w-min px-2 drag-region",
     },
     status_item,
   );

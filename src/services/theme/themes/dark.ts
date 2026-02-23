@@ -110,7 +110,7 @@ export const dark: ITheme = {
     "button.danger.hover.background": "#FC6B83",
 
     "statusbar.background": "#121212",
-    "statusbar.foreground": "#E6E6E680",
+    "statusbar.foreground": "#E6E6E6B0",
     "statusbar.item.hover.background": "#FFFFFF10",
 
     "titlebar.background": "#121212",

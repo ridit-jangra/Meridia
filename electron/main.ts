@@ -3,6 +3,10 @@ import { app, BrowserWindow } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import "./ipc/storage-ipc";
+import "./ipc/explorer-ipc";
+import "./ipc/workspace-ipc";
+import "./ipc/files-ipc";
+import { event_emitter } from "./shared/emitter";
 
 // const require = createRequire(import.meta.url);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -42,6 +46,11 @@ function createWindow() {
     webPreferences: {
       preload: path.join(__dirname, "preload.mjs"),
     },
+  });
+
+  event_emitter.on("window.reload", () => {
+    if (!win) return;
+    win.webContents.reload();
   });
 
   win.setMenuBarVisibility(false);

@@ -51,13 +51,13 @@ export function EditorArea() {
     const existing_model = editor.get_model(key.file_path);
 
     if (existing_model) {
-      editor.set_model_active(key.file_path);
+      editor.set_model_active(key.file_path, key.tab_status === "NEW");
       return;
     }
 
     const model = editor.create_model(key.file_path);
     editor.add_model(model);
-    editor.set_model_active(key.file_path);
+    editor.set_model_active(key.file_path, key.tab_status === "NEW");
   };
 
   const init = async () => {
