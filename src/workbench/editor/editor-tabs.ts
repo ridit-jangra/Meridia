@@ -10,6 +10,7 @@ import { store } from "../../services/state/store";
 import { cn, ContextMenu, h, Tooltip, ScrollArea } from "../../ui";
 import { lucide } from "../../ui/components/icon";
 import { TabSwitcher } from "../../ui/components/tab-switcher";
+import { history } from "../../services/history/history.service";
 
 export function EditorTabs() {
   const header = h("div", {
@@ -77,6 +78,7 @@ export function EditorTabs() {
           click: (e: MouseEvent) => {
             e.preventDefault();
             e.stopPropagation();
+            history.push("editor.tab.close", { file_path: tab.file_path });
             close_editor_tab(tab.file_path);
           },
           mousedown: (e: MouseEvent) => {
@@ -115,13 +117,13 @@ export function EditorTabs() {
             if (e.button === 1) {
               e.preventDefault();
               e.stopPropagation();
-              close_editor_tab(tab.file_path);
             }
           },
           auxclick: (e: MouseEvent) => {
             if (e.button === 1) {
               e.preventDefault();
               e.stopPropagation();
+              history.push("editor.tab.close", { file_path: tab.file_path });
               close_editor_tab(tab.file_path);
             }
           },
@@ -287,6 +289,7 @@ export function EditorTabs() {
   };
 
   const handle_click = async (tab: ITab) => {
+    history.push("editor.tab.open", { file_path: tab.file_path });
     open_editor_tab(tab.file_path);
   };
 

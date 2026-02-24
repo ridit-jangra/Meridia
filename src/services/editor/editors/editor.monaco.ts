@@ -1,5 +1,5 @@
 import "../editor.monaco.theme";
-import { ContextMenu, h } from "../../../ui";
+import { Button, ContextMenu, h } from "../../../ui";
 import { editor } from "../editor";
 import { IMonacoEditor, IMonacoModel } from "../editor.types";
 import {
@@ -108,10 +108,16 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     }
   }
 
-  public create_model(file_path: string) {
+  public async create_model(file_path: string) {
     const uri = monaco.Uri.parse(`file://${file_path}`);
+    let content: string;
+
+    if (await window.files.exists(file_path))
+      content = await window.files.readFileText(file_path);
+    else content = "";
+
     const model = monaco.editor.createModel(
-      "",
+      content,
       path_to_language(file_path),
       uri,
     );
@@ -195,11 +201,19 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
     const exists = await window.files.exists(uri);
     if (!exists && !new_file) {
-      this.show_error("File not found.");
+      this.show_error("File not found.", "Create file");
       return;
     }
 
-    const st = await window.files.stat(uri);
+    let st;
+
+    if (await window.files.exists(uri)) st = await window.files.stat(uri);
+    else if (new_file)
+      st = {
+        isFile: true,
+      };
+    else st = { isFile: false };
+
     if (!st.isFile) {
       this.show_error("Cannot open folders in the editor.");
       return;
@@ -235,7 +249,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     this.monacoEditor.instance.setModel(model.model);
   }
 
-  private show_error(msg: string) {
+  private show_error(msg: string, action?: string) {
     this.set_visible(false);
 
     if (!this.error_el) {
@@ -252,6 +266,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
           },
           h("div", { class: "text-[48px] leading-none opacity-80" }, "✕"),
           h("div", { class: "text-[14px] opacity-80" }, msg),
+          action && Button(action, { variant: "default" }),
         ),
       );
 

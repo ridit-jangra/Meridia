@@ -14,7 +14,7 @@ import { tabs_registry } from "../../core/registry";
 type ViewFactory = () => HTMLElement;
 
 export function TabsComponent(opts: { node: TTabNode }) {
-  const toggle_path: ("a" | "b")[] = ["b", "a", "b"];
+  const toggle_path: number[] = [2, 1, 1];
 
   const el = h("div", {
     class: "flex flex-col h-full min-h-0 bg-panel-background",

@@ -34,6 +34,12 @@ contextBridge.exposeInMainWorld("workspace", {
     ) as Promise<IWorkspace>,
   set_workspace: (folder_path: string) =>
     ipcRenderer.invoke("workbench.workspace.set", folder_path) as Promise<void>,
+  update_workspace: (folder_path: string, data: Partial<IWorkspace>) =>
+    ipcRenderer.invoke(
+      "workbench.workspace.update",
+      folder_path,
+      data,
+    ) as Promise<void>,
   get_current_workspace_path: () =>
     ipcRenderer.invoke("workbench.workspace.get.current.path") as Promise<
       string | null

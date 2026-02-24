@@ -131,6 +131,10 @@ export function path_to_language(file_path: string) {
   const language_map: Record<string, string> = {
     ts: "typescript",
     js: "javascript",
+    mts: "typescript",
+    ets: "typescript",
+    ejs: "javascript",
+    mjs: "javascript",
     tsx: "typescript",
     jsx: "javascript",
     html: "html",
