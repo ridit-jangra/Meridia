@@ -20,7 +20,7 @@ export class editor<
     parent;
   }
 
-  public create_model(file_path: string): TModel {
+  public create_model(file_path: string): TModel | Promise<TModel> {
     file_path;
     throw new Error("create_model not implemented");
   }

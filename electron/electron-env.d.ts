@@ -27,6 +27,10 @@ type explorer_api = {
 type workspace_api = {
   get_workspace(folder_path: string): Promise<IWorkspace>;
   set_workspace(folder_path: string): Promise<void>;
+  update_workspace(
+    folder_path: string,
+    workspace: Partial<IWorkspace>,
+  ): Promise<void>;
   get_current_workspace_path(): Promise<string | null>;
   set_current_workspace_path(folder_path: string): Promise<void>;
   ask_update_workspace(): Promise<void>;
