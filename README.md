@@ -1,7 +1,7 @@
 ⚠️ The v2 branch contains the complete core rewrite.
 Main branch holds the stable v1 release.
 
-# Meridia
+# Meridia V2 (Alpha)
 
 <img src="./public/preview/ss.png" style="border-radius: 8px" />
 
