@@ -17,7 +17,7 @@ import type { Insight } from "../../services/insight/insight.types";
 
 export function EditorTabs() {
   const header = h("div", {
-    class: "flex items-center shrink-0 border-b border-b-editor-tab-border",
+    class: "flex items-center shrink-0",
   });
 
   const insights = h("div", {
@@ -110,7 +110,7 @@ export function EditorTabs() {
 
   const scrollArea = ScrollArea({
     dir: "horizontal",
-    innerClass: "flex items-center w-max",
+    innerClass: "flex items-center w-max gap-2 p-3.5",
   });
 
   const container = scrollArea.inner;
@@ -143,7 +143,7 @@ export function EditorTabs() {
     const is_active = tab.active;
 
     const icon = h("img", {
-      class: "w-4 h-4 mt-px",
+      class: "w-5 h-5 mt-px",
     }) as HTMLImageElement;
     icon.src = `./file-icons/${get_file_icon(tab.file_path)}`;
 
@@ -200,9 +200,9 @@ export function EditorTabs() {
       {
         class: cn(
           "group",
-          "px-3.5 py-2.5 text-[14px] flex items-center gap-2 cursor-pointer select-none border-r border-r-editor-tab-border whitespace-nowrap",
+          "px-1.5 py-1.25 text-[15px] rounded-[7px] flex items-center gap-2 cursor-pointer select-none whitespace-nowrap",
           is_active
-            ? "bg-editor-tab-active-background text-editor-tab-active-foreground"
+            ? "bg-editor-tab-active-background text-editor-tab-active-foreground outline-2 outline-editor-tab-active-border"
             : "bg-editor-tab-background text-editor-tab-foreground hover:bg-editor-tab-hover-background hover:text-editor-tab-hover-foreground",
         ),
         on: {
@@ -281,9 +281,9 @@ export function EditorTabs() {
 
     element.className = cn(
       "group",
-      "px-3.5 py-2.5 text-[14px] flex items-center gap-2 cursor-pointer select-none border-r border-r-editor-tab-border whitespace-nowrap",
+      "px-1.5 py-1.25 text-[15px] rounded-[7px] flex items-center gap-2 cursor-pointer select-none whitespace-nowrap",
       is_active
-        ? "bg-editor-tab-active-background text-editor-tab-active-foreground"
+        ? "bg-editor-tab-active-background text-editor-tab-active-foreground outline outline-editor-tab-active-border"
         : "bg-editor-tab-background text-editor-tab-foreground hover:bg-editor-tab-hover-background hover:text-editor-tab-hover-foreground",
     );
 

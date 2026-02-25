@@ -23,6 +23,7 @@ export const colors = [
 
   "editor.tab.background",
   "editor.tab.active.background",
+  "editor.tab.active.border",
   "editor.tab.hover.background",
   "editor.tab.foreground",
   "editor.tab.active.foreground",
