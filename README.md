@@ -3,7 +3,7 @@ Main branch holds the stable v1 release.
 
 # Meridia
 
-<img src="./resources/whole.png" style="border-radius: 8px" />
+<img src="./public/preview/ss.png" style="border-radius: 8px" />
 
 Meridia is a next-gen code editor that blends coding, debugging, and customizable.
 
