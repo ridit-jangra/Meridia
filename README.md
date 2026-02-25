@@ -11,7 +11,7 @@ Visit [meridia.dev](https://meridia.dev) for more info.
 
 # Documentation
 
-If you want to read about using Meridia or developing extensions in Meridia, the [Documentation](https://docs.meridia.dev) is available.
+If you want to read about using Meridia or developing extensions in Meridia, the [Documentation](https://meridia.dev/docs) is available.
 
 # Installing
 
