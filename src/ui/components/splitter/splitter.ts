@@ -51,7 +51,7 @@ export function Splitter(opts: SplitterOpts) {
   const states: PanelState[] = opts.panels.map((p, i) => {
     const paneEl = h("div", {
       class: cn(
-        "min-h-0 min-w-0 overflow-hidden",
+        "min-h-0 min-w-0 overflow-hidden rounded-2xl",
         isHorizontal ? "h-full" : "w-full",
       ),
     });
@@ -88,7 +88,7 @@ export function Splitter(opts: SplitterOpts) {
     const gutterInner = h("div", {
       class: cn(
         "absolute transition-all duration-150",
-        "bg-split-handle-foreground",
+        // "bg-split-handle-foreground",
         "hover:bg-split-handle-hover-foreground",
         "active:bg-split-handle-active-foreground",
       ),
@@ -232,7 +232,7 @@ export function Splitter(opts: SplitterOpts) {
     "div",
     {
       class: cn(
-        "flex min-h-0 min-w-0 h-full w-full",
+        "flex min-h-0 min-w-0 h-full w-full gap-[2.5px]",
         isHorizontal ? "flex-row" : "flex-col",
         opts.class,
       ),

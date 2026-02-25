@@ -25,7 +25,7 @@ export function Statusbar() {
     {
       class: cn(
         "h-[28px] text-[13px] text-statusbar-foreground w-full flex items-center justify-between px-2",
-        "bg-statusbar-background border-t border-workbench-border",
+        "bg-statusbar-background",
         "drag-region",
       ),
     },

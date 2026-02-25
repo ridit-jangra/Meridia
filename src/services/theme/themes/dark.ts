@@ -5,7 +5,7 @@ export const dark: ITheme = {
   name: "Dark",
   base: "dark",
   colors: {
-    "workbench.background": "#121212",
+    "workbench.background": "#090909",
     "workbench.foreground": "#E6E6E6EB",
     "workbench.border": "#FFFFFF14",
 
@@ -13,7 +13,7 @@ export const dark: ITheme = {
     "panel.foreground": "#E6E6E6EB",
     "panel.border": "#FFFFFF14",
 
-    "editor.background": "#181818",
+    "editor.background": "#151515",
     "editor.foreground": "#E6E6E6EB",
     "editor.cursor.foreground": "#E6E6E6EB",
     "editor.selection.background": "#4A4A4A99",
@@ -30,7 +30,7 @@ export const dark: ITheme = {
     "editor.tab.close.hover.background": "#FFFFFF1A",
 
     "view.tab.background": "#151515",
-    "view.tab.active.background": "#1F1F1F",
+    "view.tab.active.background": "#28292B",
     "view.tab.hover.background": "#1A1A1A",
     "view.tab.foreground": "#E6E6E666",
     "view.tab.active.foreground": "#E6E6E6EB",
@@ -109,11 +109,11 @@ export const dark: ITheme = {
     "button.danger.foreground": "#FFFFFF",
     "button.danger.hover.background": "#FC6B83",
 
-    "statusbar.background": "#121212",
+    "statusbar.background": "#090909",
     "statusbar.foreground": "#E6E6E6B0",
     "statusbar.item.hover.background": "#FFFFFF10",
 
-    "titlebar.background": "#121212",
+    "titlebar.background": "#090909",
     "titlebar.foreground": "#E6E6E6B0",
 
     "titlebar.icon.foreground": "#E6E6E6B0",
@@ -153,5 +153,8 @@ export const dark: ITheme = {
     "popover.content.foreground": "#E6E6E6EB",
 
     "popover.shadow": "0 16px 40px rgba(0, 0, 0, 0.6)",
+
+    "insights.background": "#151515",
+    "insights.foreground": "#E6E6E6B0",
   },
 };

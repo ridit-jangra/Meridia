@@ -35,10 +35,10 @@ let win: BrowserWindow | null;
 
 function createWindow() {
   win = new BrowserWindow({
-    icon: path.join(process.env.VITE_PUBLIC, "electron-vite.svg"),
-    backgroundColor: "#141414",
+    icon: path.join(process.env.VITE_PUBLIC!, "electron-vite.svg"),
+    backgroundColor: "#0a0a0a",
     titleBarOverlay: {
-      color: "#141414",
+      color: "#0a0a0a",
       symbolColor: "#E4E4E4A8",
       height: 49,
     },
