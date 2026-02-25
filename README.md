@@ -1,3 +1,5 @@
+Development happens on v2 (branch).
+
 # Meridia
 
 <img src="./resources/whole.png" style="border-radius: 8px" />
