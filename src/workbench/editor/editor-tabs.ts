@@ -7,14 +7,105 @@ import {
 import { ITab } from "../../services/editor/editor.types";
 import { get_file_icon } from "../../services/explorer/explorer.helper";
 import { store } from "../../services/state/store";
-import { cn, ContextMenu, h, Tooltip, ScrollArea } from "../../ui";
+import { cn, ContextMenu, h, Tooltip, ScrollArea, Button } from "../../ui";
 import { lucide } from "../../ui/components/icon";
 import { TabSwitcher } from "../../ui/components/tab-switcher";
 import { history } from "../../services/history/history.service";
+import { insights as insights_service } from "../../services/insight/insight.service";
+import { insights_events } from "../../events/insights.events";
+import type { Insight } from "../../services/insight/insight.types";
 
 export function EditorTabs() {
   const header = h("div", {
-    class: "flex items-center shrink-0 border-b-editor-tab-border",
+    class: "flex items-center shrink-0 border-b border-b-editor-tab-border",
+  });
+
+  const insights = h("div", {
+    class: cn(
+      "hidden",
+      "h-[38px] px-3",
+      "flex items-center justify-between",
+      "bg-insights-background text-insights-foreground",
+      "border-b border-b-editor-tab-border",
+      "select-none",
+    ),
+  });
+
+  const insights_left = h("div", {
+    class: "flex items-center gap-2 min-w-0",
+  });
+
+  const insights_dot = h("span", {
+    class: "w-1.5 h-1.5 rounded-full bg-insights-foreground/50 shrink-0",
+  });
+
+  const insights_label = h("span", {
+    class: "text-[13px] opacity-70 shrink-0",
+  });
+
+  const insights_msg = h("span", {
+    class: "text-[13px] truncate min-w-0",
+  });
+
+  insights_left.appendChild(insights_dot);
+  insights_left.appendChild(insights_label);
+  insights_left.appendChild(insights_msg);
+
+  const insights_right = h("div", {
+    class: "flex items-center gap-1 shrink-0",
+  });
+
+  const btn_generate = Button("Generate", {
+    size: "sm",
+  });
+  const btn_dismiss = Button("Dismiss", { variant: "ghost", size: "sm" });
+
+  insights_right.appendChild(btn_generate);
+  insights_right.appendChild(btn_dismiss);
+
+  insights.appendChild(insights_left);
+  insights.appendChild(insights_right);
+
+  let current_insight: Insight | null = null;
+
+  const hide_insights = () => {
+    current_insight = null;
+    insights.classList.add("hidden");
+    insights_label.textContent = "";
+    insights_msg.textContent = "";
+  };
+
+  const show_insights = (i: Insight) => {
+    current_insight = i;
+
+    insights.classList.remove("hidden");
+    insights_label.textContent = "Suggestion:";
+    insights_msg.textContent = i.message.replace(/\?$/, "");
+
+    btn_generate.disabled = false;
+    btn_generate.textContent = "Generate";
+  };
+
+  btn_dismiss.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!current_insight) return;
+    insights_service.act("dismiss");
+    hide_insights();
+  });
+
+  btn_generate.addEventListener("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!current_insight) return;
+    btn_generate.disabled = true;
+    btn_generate.textContent = "Generating…";
+    insights_service.act("generate");
+  });
+
+  insights_events.on("insight.change.ui", (i: Insight | null) => {
+    if (!i) return hide_insights();
+    show_insights(i);
   });
 
   const scrollArea = ScrollArea({
@@ -80,6 +171,11 @@ export function EditorTabs() {
             e.stopPropagation();
             history.push("editor.tab.close", { file_path: tab.file_path });
             close_editor_tab(tab.file_path);
+            insights_service.evaluate();
+            insights_events.emit(
+              "insight.change.ui",
+              insights_service.get_current(),
+            );
           },
           mousedown: (e: MouseEvent) => {
             if (e.button === 1) {
@@ -125,6 +221,11 @@ export function EditorTabs() {
               e.stopPropagation();
               history.push("editor.tab.close", { file_path: tab.file_path });
               close_editor_tab(tab.file_path);
+              insights_service.evaluate();
+              insights_events.emit(
+                "insight.change.ui",
+                insights_service.get_current(),
+              );
             }
           },
         },
@@ -213,8 +314,6 @@ export function EditorTabs() {
   const renderTabs = () => {
     const tabs = store.getState().editor.tabs;
 
-    header.classList.toggle("border-b", tabs.length > 0);
-
     if (Math.abs(tabs.length - prevTabs.length) > 1) {
       container.innerHTML = "";
       tabElements.clear();
@@ -291,6 +390,9 @@ export function EditorTabs() {
   const handle_click = async (tab: ITab) => {
     history.push("editor.tab.open", { file_path: tab.file_path });
     open_editor_tab(tab.file_path);
+
+    insights_service.evaluate();
+    insights_events.emit("insight.change.ui", insights_service.get_current());
   };
 
   const onKeyDown = (e: KeyboardEvent) => {
@@ -314,14 +416,17 @@ export function EditorTabs() {
 
   header.appendChild(scrollArea.el);
 
+  const el = h("div", {}, header, insights);
+
   return {
-    el: header,
+    el,
     destroy() {
       unsub();
       document.removeEventListener("keydown", onKeyDown, true);
       switcher.destroy();
       scrollArea.destroy();
       header.remove();
+      insights.remove();
       tabElements.clear();
     },
   };

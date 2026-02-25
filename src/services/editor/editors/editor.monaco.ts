@@ -64,6 +64,8 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       find: {
         addExtraSpaceOnTop: false,
       },
+      cursorSmoothCaretAnimation: "on",
+      cursorBlinking: "expand",
     });
 
     this.monacoEditor.instance.addCommand(

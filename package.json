@@ -9,9 +9,12 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "rebuild": "electron-rebuild",
+    "postinstall": "npm run rebuild"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.0.3",
     "@types/node": "^25.3.0",
     "electron": "^30.0.1",
     "electron-builder": "^24.13.3",
@@ -29,6 +32,7 @@
     "@vscode/codicons": "^0.0.44",
     "golden-layout": "^2.6.0",
     "lucide-static": "^0.564.0",
+    "node-pty": "^1.1.0",
     "react-redux": "^9.2.0",
     "split.js": "^1.6.5",
     "tailwindcss": "^4.1.18",

@@ -151,6 +151,9 @@ export const colors = [
   "popover.content.foreground",
 
   "popover.shadow",
+
+  "insights.background",
+  "insights.foreground",
 ] as const;
 
 export type TColors = (typeof colors)[number];

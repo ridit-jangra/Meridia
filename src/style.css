@@ -221,6 +221,9 @@ body {
   --color-popover-content-background: var(--popover-content-background);
   --color-popover-content-foreground: var(--popover-content-foreground);
 
+  --color-insights-background: var(--insights-background);
+  --color-insights-foreground: var(--insights-foerground);
+
   --font-inter: "Inter", sans-serif;
 }
 

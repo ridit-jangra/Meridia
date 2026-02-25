@@ -93,7 +93,6 @@ function renderNode(opts: {
       .map((child, i) => ({ child, i }))
       .filter(({ child }) => isNodeEnabled(child));
 
-    // Clean up disabled branches
     node.children.forEach((_, i) => {
       if (!enabledIndices.find((e) => e.i === i)) {
         cleanupCacheBranch(cache, [...path, i]);
@@ -102,7 +101,6 @@ function renderNode(opts: {
 
     if (enabledIndices.length === 0) return null;
 
-    // Single enabled child — render directly without a split wrapper
     if (enabledIndices.length === 1) {
       const { child, i } = enabledIndices[0];
       return renderNode({
@@ -131,7 +129,6 @@ function renderNode(opts: {
     const dir = node.dir === "col" ? "vertical" : "horizontal";
     const totalEnabled = renderedChildren.length;
 
-    // Map stored sizes for enabled children, fall back to equal split
     const rawSizes = renderedChildren.map(
       ({ i }) => node.sizes?.[i] ?? 100 / totalEnabled,
     );
@@ -309,7 +306,10 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
 
   const el = h(
     "div",
-    { class: "h-screen w-screen min-h-0 min-w-0 overflow-hidden" },
+    {
+      class:
+        "h-screen w-screen min-h-0 min-w-0 overflow-hidden bg-background p-2",
+    },
     titlebar,
     contentHost,
     statusbar,

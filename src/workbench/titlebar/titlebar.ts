@@ -179,8 +179,8 @@ export function Titlebar() {
     "div",
     {
       class: cn(
-        "h-[38px] w-full flex items-center justify-between px-2",
-        "bg-titlebar-background border-b border-workbench-border",
+        "h-[30px] w-full flex items-center justify-between px-2",
+        "bg-titlebar-background",
         "drag-region",
       ),
     },
