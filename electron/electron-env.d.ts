@@ -1,5 +1,9 @@
 /// <reference types="vite-plugin-electron/electron-env" />
 
+import type { IpcRendererEvent } from "electron";
+
+type IpcListener = (event: IpcRendererEvent, ...args: any[]) => void;
+
 import type {
   IChildStructure,
   IFolderStructure,
@@ -58,12 +62,26 @@ type files_api = {
   writeFileText(p: string, content: string): Promise<boolean>;
 };
 
+type watcher_api = {
+  stop(p: string): Promise<boolean>;
+  start(p: string): Promise<boolean>;
+};
+
 declare global {
   interface Window {
     storage: storage_api;
     explorer: explorer_api;
     workspace: workspace_api;
     files: files_api;
+    watcher: watcher_api;
+    ipc: {
+      on(channel: string, listener: IpcListener): () => void;
+      once(channel: string, listener: IpcListener): void;
+      off(channel: string, listener: IpcListener): void;
+      removeAllListeners(channel: string): void;
+      send(channel: string, ...args: any[]): void;
+      invoke<T = any>(channel: string, ...args: any[]): Promise<T>;
+    };
   }
 }
 

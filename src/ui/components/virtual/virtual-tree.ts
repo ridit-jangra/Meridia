@@ -392,7 +392,7 @@ export function VirtualTree(opts: {
       );
 
       contextMenu.bind(rowEl, () => getContextMenuItems(row));
-      Tooltip({ child: rowEl, text: row.id, delay: 200 });
+      Tooltip({ child: rowEl, text: row.node.path, delay: 200 });
 
       return rowEl;
     },

@@ -1,9 +1,8 @@
 import "../editor.monaco.theme";
-import { Button, ContextMenu, h } from "../../../ui";
+import { Button, h } from "../../../ui";
 import { editor } from "../editor";
 import { IMonacoEditor, IMonacoModel } from "../editor.types";
 import {
-  build_monaco_context_items,
   build_monaco_shortcuts,
   monaco,
   path_to_language,
@@ -36,7 +35,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   private model_disposers = new Map<string, Disposer[]>();
   private last_touched_at = new Map<string, number>();
   private last_saved_at = new Map<string, number>();
-  private ctx = ContextMenu();
 
   constructor() {
     super(_);
@@ -63,7 +61,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       automaticLayout: true,
       minimap: { enabled: false },
       fontSize: 15,
-      contextmenu: false,
       folding: true,
       find: {
         addExtraSpaceOnTop: false,
@@ -78,24 +75,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     );
 
     this.monacoEditor.instance.addCommand(monaco.KeyCode.F1, function () {});
-
-    this.monacoEditor.instance.onContextMenu((e) => {
-      e.event.preventDefault();
-      e.event.stopPropagation();
-
-      const ev = e.event.browserEvent as MouseEvent;
-
-      if (e.target.position) {
-        this.monacoEditor.instance.setPosition(e.target.position);
-        this.monacoEditor.instance.focus();
-      }
-
-      const items = build_monaco_context_items(this.monacoEditor.instance);
-
-      if (items.length === 0) return;
-
-      this.ctx.openAt(ev.clientX, ev.clientY, items);
-    });
 
     const monaco_shortcuts = build_monaco_shortcuts(this.monacoEditor.instance);
 
@@ -138,6 +117,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
                 is_touched: false,
                 file_path: res.path,
                 name: get_base_name(res.path),
+                tab_status: "EXISTS" as const,
               }
             : tab,
         );
@@ -179,12 +159,11 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
                     is_touched: false,
                     file_path: res.path,
                     name: get_base_name(res.path),
+                    tab_status: "EXISTS" as const,
                   }
                 : tab,
             );
           }
-
-          console.log(next);
 
           store.dispatch(update_tabs(next));
         } else {
@@ -455,6 +434,5 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     this.model_disposers.clear();
 
     this.monacoEditor.instance?.dispose();
-    this.ctx.destroy();
   }
 }

@@ -1,10 +1,39 @@
-import { contextBridge, ipcRenderer } from "electron";
+import { contextBridge, ipcRenderer, IpcRendererEvent } from "electron";
 import type {
   IChildStructure,
   IFolderStructure,
   INode,
 } from "../shared/types/explorer.types";
 import type { IWorkspace } from "../shared/types/workspace.types";
+
+type Listener = (event: IpcRendererEvent, ...args: any[]) => void;
+
+contextBridge.exposeInMainWorld("ipc", {
+  on(channel: string, listener: Listener) {
+    ipcRenderer.on(channel, listener);
+    return () => ipcRenderer.removeListener(channel, listener);
+  },
+
+  once(channel: string, listener: Listener) {
+    ipcRenderer.once(channel, listener);
+  },
+
+  off(channel: string, listener: Listener) {
+    ipcRenderer.removeListener(channel, listener);
+  },
+
+  removeAllListeners(channel: string) {
+    ipcRenderer.removeAllListeners(channel);
+  },
+
+  send(channel: string, ...args: any[]) {
+    ipcRenderer.send(channel, ...args);
+  },
+
+  invoke<T = any>(channel: string, ...args: any[]) {
+    return ipcRenderer.invoke(channel, ...args) as Promise<T>;
+  },
+});
 
 contextBridge.exposeInMainWorld("storage", {
   get: <T>(key: string, fallback?: T) =>
@@ -86,4 +115,11 @@ contextBridge.exposeInMainWorld("files", {
       p,
       content,
     ) as Promise<boolean>,
+});
+
+contextBridge.exposeInMainWorld("watcher", {
+  start: (p: string) =>
+    ipcRenderer.invoke("workbench.watcher.start", p) as Promise<boolean>,
+  stop: (p: string) =>
+    ipcRenderer.invoke("workbench.watcher.stop", p) as Promise<boolean>,
 });

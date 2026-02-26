@@ -5,6 +5,7 @@ import path from "node:path";
 import "./ipc/storage-ipc";
 import "./ipc/explorer-ipc";
 import "./ipc/workspace-ipc";
+import "./ipc/watcher-ipc";
 import "./ipc/files-ipc";
 import { event_emitter } from "./shared/emitter";
 
@@ -52,6 +53,14 @@ function createWindow() {
     if (!win) return;
     win.webContents.reload();
   });
+
+  event_emitter.on(
+    "window.webContents.send",
+    (channel: string, ...args: any[]) => {
+      if (!win) return;
+      win.webContents.send(channel, ...args);
+    },
+  );
 
   win.setMenuBarVisibility(false);
 
