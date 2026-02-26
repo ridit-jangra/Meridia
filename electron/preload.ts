@@ -56,6 +56,11 @@ contextBridge.exposeInMainWorld("workspace", {
 contextBridge.exposeInMainWorld("files", {
   exists: (p: string) =>
     ipcRenderer.invoke("workbench.fs.exists", p) as Promise<boolean>,
+  saveAs: (c: string, p?: string) =>
+    ipcRenderer.invoke("workbench.fs.saveAs", c, p) as Promise<{
+      cancel: boolean;
+      path: string;
+    }>,
   readdir: (p: string) =>
     ipcRenderer.invoke("workbench.fs.readdir", p) as Promise<
       {

@@ -38,6 +38,7 @@ type workspace_api = {
 
 type files_api = {
   exists(p: string): Promise<boolean>;
+  saveAs(c: string, p?: string): Promise<{ cancel: boolean; path: string }>;
   readdir(p: string): Promise<
     {
       name: string;

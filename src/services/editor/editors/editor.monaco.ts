@@ -9,6 +9,9 @@ import {
   path_to_language,
 } from "../editor.helper";
 import { shortcuts } from "../../shortcut/shortcut.service";
+import { store } from "../../state/store";
+import { update_tabs } from "../../state/slices/editor.slice";
+import { get_base_name } from "../../explorer/explorer.helper";
 
 const el = h("div", { class: "monaco-editor h-full w-full" });
 
@@ -31,6 +34,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
   private error_el: HTMLElement | null = null;
   private model_disposers = new Map<string, Disposer[]>();
+  private last_touched_at = new Map<string, number>();
   private last_saved_at = new Map<string, number>();
   private ctx = ContextMenu();
 
@@ -108,6 +112,114 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
       shortcuts.add_shortcut(s);
     }
+
+    const save_as_file = async () => {
+      const m = this.active_model;
+      if (!m) return;
+
+      const now = Date.now();
+      const last = this.last_touched_at.get(m.uri) ?? 0;
+      if (now - last < 100) return;
+      this.last_touched_at.set(m.uri, now);
+
+      const tabs = store.getState().editor.tabs;
+      const idx = tabs.findIndex((t) => t.file_path === m.uri);
+      if (idx === -1) return;
+
+      try {
+        const res = await window.files.saveAs(m.model.getValue());
+
+        if (res.cancel) return;
+
+        const next = tabs.map((tab) =>
+          tab.file_path === m.uri
+            ? {
+                ...tab,
+                is_touched: false,
+                file_path: res.path,
+                name: get_base_name(res.path),
+              }
+            : tab,
+        );
+
+        store.dispatch(update_tabs(next));
+      } catch {}
+    };
+
+    const save_file = async () => {
+      const m = this.active_model;
+      if (!m) return;
+
+      const now = Date.now();
+      const last = this.last_touched_at.get(m.uri) ?? 0;
+      if (now - last < 100) return;
+      this.last_touched_at.set(m.uri, now);
+
+      const tabs = store.getState().editor.tabs;
+      const idx = tabs.findIndex((t) => t.file_path === m.uri);
+      if (idx === -1) return;
+
+      const t = tabs[idx];
+
+      try {
+        if (t.tab_status === "NEW") {
+          const res = await window.files.saveAs(m.model.getValue());
+
+          let next;
+
+          if (!res.cancel) {
+            next = tabs.map((tab) =>
+              tab.file_path === m.uri ? { ...tab, is_touched: true } : tab,
+            );
+          } else {
+            next = tabs.map((tab) =>
+              tab.file_path === m.uri
+                ? {
+                    ...tab,
+                    is_touched: false,
+                    file_path: res.path,
+                    name: get_base_name(res.path),
+                  }
+                : tab,
+            );
+          }
+
+          store.dispatch(update_tabs(next));
+        } else {
+          const res = await window.files.writeFileText(
+            m.uri,
+            m.model.getValue(),
+          );
+          let next;
+
+          if (!res) {
+            next = tabs.map((tab) =>
+              tab.file_path === m.uri ? { ...tab, is_touched: true } : tab,
+            );
+          } else {
+            next = tabs.map((tab) =>
+              tab.file_path === m.uri ? { ...tab, is_touched: false } : tab,
+            );
+          }
+
+          store.dispatch(update_tabs(next));
+        }
+      } catch {}
+    };
+
+    this.monacoEditor.instance.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
+      async () => {
+        await save_file();
+      },
+    );
+
+    this.monacoEditor.instance.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyS,
+      () => {
+        save_as_file();
+      },
+    );
   }
 
   public async create_model(file_path: string) {
@@ -152,6 +264,26 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
     const editor = this.monacoEditor.instance;
 
+    const mark_touched = () => {
+      const now = Date.now();
+      const last = this.last_touched_at.get(m.uri) ?? 0;
+      if (now - last < 100) return;
+      this.last_touched_at.set(m.uri, now);
+
+      const tabs = store.getState().editor.tabs;
+      const idx = tabs.findIndex((t) => t.file_path === m.uri);
+      if (idx === -1) return;
+
+      const t = tabs[idx];
+      if (t.is_touched) return;
+
+      const next = tabs.map((tab) =>
+        tab.file_path === m.uri ? { ...tab, is_touched: true } : tab,
+      );
+
+      store.dispatch(update_tabs(next));
+    };
+
     const save_state = () => {
       const active = editor.getModel();
       if (!active) return;
@@ -190,10 +322,12 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     };
 
     const d1 = editor.onDidChangeCursorSelection(() => save_state());
-    const d2 = m.model.onDidChangeContent(() => save_state());
+    const d2 = m.model.onDidChangeContent(() => {
+      save_state();
+      mark_touched();
+    });
 
     const disposers: Disposer[] = [() => d1.dispose(), () => d2.dispose()];
-
     this.model_disposers.set(m.uri, disposers);
   }
 
@@ -304,6 +438,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       this.model_disposers.delete(uri);
     }
     this.last_saved_at.delete(uri);
+    this.last_touched_at.delete(uri);
 
     model.dispose();
     this.models.splice(index, 1);
@@ -313,6 +448,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     for (const [uri, ds] of this.model_disposers) {
       for (const d of ds) d();
       this.last_saved_at.delete(uri);
+      this.last_touched_at.delete(uri);
     }
     this.model_disposers.clear();
 

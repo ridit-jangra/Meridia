@@ -360,11 +360,13 @@ export function EditorTabs() {
         element = createTabElement(tab);
         tabElements.set(tab.file_path, element);
       } else if (prevTab) {
-        if (prevTab.active !== tab.active) {
+        if (
+          prevTab.active !== tab.active ||
+          (prevTab.is_touched ?? false) !== (tab.is_touched ?? false) ||
+          prevTab.name !== tab.name
+        ) {
           updateTabElement(element, tab);
-          if (tab.active) {
-            newActiveElement = element;
-          }
+          if (tab.active) newActiveElement = element;
         }
       } else if (tab.active) {
         newActiveElement = element;
