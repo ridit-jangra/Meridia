@@ -13,6 +13,9 @@ import {
   flattenTree,
   removeNode,
   findNodeById,
+  rename_by_path,
+  remove_node_by_path,
+  add_node,
 } from "./virtual-tree.helpers";
 import { create_add_node_input } from "./add-node.helpers";
 import { create_rename_input } from "./rename-node.helpers";
@@ -393,6 +396,15 @@ export function VirtualTree(opts: {
     },
   });
 
+  let rebuild_raf = 0;
+  const rebuild_debounced = () => {
+    if (rebuild_raf) cancelAnimationFrame(rebuild_raf);
+    rebuild_raf = requestAnimationFrame(() => {
+      rebuild_raf = 0;
+      rebuild();
+    });
+  };
+
   el.appendChild(list.el);
   rebuild();
 
@@ -423,6 +435,61 @@ export function VirtualTree(opts: {
     select(id: string) {
       selected.id = id;
       list.setItems(rows);
+    },
+    mutate(fn: (nodes: INode[]) => void) {
+      fn(opts.folderStructure.structure);
+      rebuild();
+    },
+    add(node: INode) {
+      add_node(opts.folderStructure.structure, node);
+      rebuild_debounced();
+    },
+
+    remove(path: string) {
+      remove_node_by_path(opts.folderStructure.structure, path);
+
+      const fixSet = (set: Set<string>) => {
+        for (const id of [...set]) {
+          if (id === path || id.startsWith(path + "/")) {
+            set.delete(id);
+          }
+        }
+      };
+
+      fixSet(open);
+      fixSet(loaded);
+      load_queue.forEach((_, key) => {
+        if (key === path || key.startsWith(path + "/")) {
+          load_queue.delete(key);
+        }
+      });
+
+      if (selected.id === path || selected.id.startsWith(path + "/")) {
+        selected.id = "";
+      }
+
+      rebuild_debounced();
+    },
+    rename(prevPath: string, nextPath: string) {
+      rename_by_path(opts.folderStructure.structure, prevPath, nextPath);
+
+      const fixSet = (set: Set<string>) => {
+        for (const id of [...set]) {
+          if (id === prevPath || id.startsWith(prevPath + "/")) {
+            set.delete(id);
+            set.add(nextPath + id.slice(prevPath.length));
+          }
+        }
+      };
+
+      fixSet(open);
+      fixSet(loaded);
+
+      if (selected.id === prevPath || selected.id.startsWith(prevPath + "/")) {
+        selected.id = nextPath + selected.id.slice(prevPath.length);
+      }
+
+      rebuild_debounced();
     },
     destroy() {
       list.destroy();

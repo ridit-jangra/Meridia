@@ -173,3 +173,88 @@ export function nameExistsInFolder(
   const children = result.node.child_nodes || [];
   return children.some((child) => child.name === name);
 }
+
+export function add_node(nodes: INode[], newNode: INode): boolean {
+  const parts = newNode.path.split("/").filter(Boolean);
+  parts.pop();
+  const parentPath = parts.length === 0 ? "/" : "/" + parts.join("/");
+
+  if (parentPath === "/") {
+    nodes.push(newNode);
+    return true;
+  }
+
+  return add_node_recursive(nodes, parentPath, newNode);
+}
+
+function add_node_recursive(
+  nodes: INode[],
+  parentPath: string,
+  newNode: INode,
+): boolean {
+  for (const node of nodes) {
+    if (node.path === parentPath) {
+      if (node.type !== "folder") return false;
+      if (!node.child_nodes) node.child_nodes = [];
+      node.child_nodes.push(newNode);
+      return true;
+    }
+    if (node.child_nodes && node.child_nodes.length > 0) {
+      if (add_node_recursive(node.child_nodes, parentPath, newNode))
+        return true;
+    }
+  }
+  return false;
+}
+
+export function remove_node_by_path(nodes: INode[], path: string): boolean {
+  for (let i = 0; i < nodes.length; i++) {
+    if (nodes[i].path === path) {
+      nodes.splice(i, 1);
+      return true;
+    }
+    if (nodes[i].child_nodes && nodes[i].child_nodes!.length > 0) {
+      if (remove_node_by_path(nodes[i].child_nodes!, path)) return true;
+    }
+  }
+  return false;
+}
+
+export function rename_by_path(
+  nodes: INode[],
+  prevPath: string,
+  nextPath: string,
+): boolean {
+  for (const node of nodes) {
+    if (node.path === prevPath) {
+      node.name = nextPath.split("/").filter(Boolean).pop() ?? nextPath;
+      node.path = nextPath;
+      node.id = nextPath;
+
+      if (node.type === "folder" && node.child_nodes) {
+        update_child_paths_by_prefix(node.child_nodes, prevPath, nextPath);
+      }
+      return true;
+    }
+
+    if (node.child_nodes && node.child_nodes.length > 0) {
+      if (rename_by_path(node.child_nodes, prevPath, nextPath)) return true;
+    }
+  }
+  return false;
+}
+
+function update_child_paths_by_prefix(
+  nodes: INode[],
+  oldPrefix: string,
+  newPrefix: string,
+): void {
+  for (const node of nodes) {
+    node.path = newPrefix + node.path.slice(oldPrefix.length);
+    node.id = node.path;
+
+    if (node.type === "folder" && node.child_nodes) {
+      update_child_paths_by_prefix(node.child_nodes, oldPrefix, newPrefix);
+    }
+  }
+}
