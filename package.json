@@ -30,6 +30,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "@tailwindcss/vite": "^4.1.18",
     "@vscode/codicons": "^0.0.44",
+    "chokidar": "^5.0.0",
     "golden-layout": "^2.6.0",
     "lucide-static": "^0.564.0",
     "node-pty": "^1.1.0",

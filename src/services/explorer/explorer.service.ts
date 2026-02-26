@@ -2,13 +2,27 @@ import { set_folder_structure } from "../state/slices/explorer.slice";
 import { store } from "../state/store";
 import { explorer_actions } from "./explorer.actions";
 import { explorer_state } from "./explorer.state";
+import { explorer_watcher } from "./explorer.watcher";
 
 class explorer_service {
   public readonly actions = new explorer_actions();
   public readonly state = new explorer_state();
+  public readonly watcher = new explorer_watcher();
 
   constructor() {
-    this.init_structure();
+    this.init();
+  }
+
+  private async init() {
+    const structure = await this.init_structure();
+    if (!structure) return;
+
+    this.init_watcher(structure.path);
+  }
+
+  private async init_watcher(path: string) {
+    await this.watcher.start_watcher(path);
+    await this.watcher.attach_listener();
   }
 
   private async init_structure() {
@@ -17,6 +31,8 @@ class explorer_service {
     if (!structure) return;
 
     store.dispatch(set_folder_structure(structure));
+
+    return structure;
   }
 }
 

@@ -58,25 +58,11 @@ export function open_new_editor_tab() {
 
 export function close_active_editor_tab() {
   const tabs = store.getState().editor.tabs;
-  const activeIndex = tabs.findIndex((t) => t.active);
+  const active = tabs.find((t) => t.active);
 
-  if (activeIndex === -1) return;
+  if (!active) return;
 
-  const nextTabs = tabs.filter((_, i) => i !== activeIndex);
-
-  if (nextTabs.length === 0) {
-    store.dispatch(update_tabs([]));
-    return;
-  }
-
-  const nextActiveIndex = Math.max(0, activeIndex - 1);
-
-  const updated = nextTabs.map((t, i) => ({
-    ...t,
-    active: i === nextActiveIndex,
-  }));
-
-  store.dispatch(update_tabs(updated));
+  close_editor_tab(active.file_path);
 }
 
 export function close_editor_tab(file_path: string) {
@@ -84,6 +70,8 @@ export function close_editor_tab(file_path: string) {
   const index = tabs.findIndex((t) => t.file_path === file_path);
 
   if (index === -1) return;
+
+  const active = tabs[index];
 
   const wasActive = tabs[index].active;
   const nextTabs = tabs.filter((_, i) => i !== index);
@@ -100,12 +88,15 @@ export function close_editor_tab(file_path: string) {
 
   const nextActiveIndex = Math.max(0, index - 1);
 
-  const updated = nextTabs.map((t, i) => ({
-    ...t,
-    active: i === nextActiveIndex,
-  }));
+  if (active.is_touched) {
+  } else {
+    const updated = nextTabs.map((t, i) => ({
+      ...t,
+      active: i === nextActiveIndex,
+    }));
 
-  store.dispatch(update_tabs(updated));
+    store.dispatch(update_tabs(updated));
+  }
 }
 
 export function close_other_tabs(file_path: string) {
