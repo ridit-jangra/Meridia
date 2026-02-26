@@ -60,6 +60,8 @@ type files_api = {
   }>;
   readFileText(p: string): Promise<string>;
   writeFileText(p: string, content: string): Promise<boolean>;
+  createdir(p: string): Promise<boolean>;
+  remove(p: string): Promise<boolean>;
 };
 
 type watcher_api = {

@@ -99,6 +99,10 @@ contextBridge.exposeInMainWorld("files", {
         isSymbolicLink: boolean;
       }[]
     >,
+  createdir: (p: string) =>
+    ipcRenderer.invoke("workbench.fs.createdir", p) as Promise<boolean>,
+  remove: (p: string) =>
+    ipcRenderer.invoke("workbench.fs.remove", p) as Promise<boolean>,
   stat: (p: string) =>
     ipcRenderer.invoke("workbench.fs.stat", p) as Promise<{
       isFile: boolean;

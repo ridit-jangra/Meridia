@@ -20,16 +20,7 @@ export type AddNodeOptions = {
 };
 
 export function create_add_node_input(opts: AddNodeOptions): HTMLElement {
-  const {
-    type,
-    parentId,
-    parentPath,
-    nodes,
-    indent,
-    depth,
-    onComplete,
-    onCancel,
-  } = opts;
+  const { type, parentPath, indent, depth, onComplete, onCancel } = opts;
 
   let submitted = false;
 
@@ -63,6 +54,7 @@ export function create_add_node_input(opts: AddNodeOptions): HTMLElement {
     input,
   );
 
+  // add-node.helpers.ts
   const submit = () => {
     if (submitted) return;
     submitted = true;
@@ -73,28 +65,16 @@ export function create_add_node_input(opts: AddNodeOptions): HTMLElement {
       return;
     }
 
-    // Check if name already exists
-    if (nameExistsInFolder(nodes, parentId, name)) {
-      alert(`A ${type} with the name "${name}" already exists.`);
-      onCancel();
-      return;
-    }
-
     const newId = generateNodeId(parentPath, name);
     const newNode: INode = {
       id: newId,
       type,
       name,
       path: newId,
-      child_nodes: type === "folder" ? [] : [],
+      child_nodes: [],
     };
 
-    const success = addNodeToParent(nodes, parentId, newNode);
-    if (success) {
-      onComplete(newNode);
-    } else {
-      onCancel();
-    }
+    onComplete(newNode);
   };
 
   const cancel = () => {
@@ -103,7 +83,6 @@ export function create_add_node_input(opts: AddNodeOptions): HTMLElement {
     onCancel();
   };
 
-  // Handle input events
   input.addEventListener("keydown", (e: KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
@@ -117,13 +96,11 @@ export function create_add_node_input(opts: AddNodeOptions): HTMLElement {
   });
 
   input.addEventListener("blur", () => {
-    // Small delay to allow click events to fire first
     setTimeout(() => {
       if (!submitted) cancel();
     }, 150);
   });
 
-  // Focus the input immediately
   setTimeout(() => input.focus(), 0);
 
   return container;
