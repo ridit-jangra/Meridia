@@ -213,15 +213,9 @@ export function VirtualTree(opts: {
     const type = result.node.type === "folder" ? "folder" : "file";
     if (!confirm(`Are you sure you want to delete this ${type}?`)) return;
 
-    const success = removeNode(opts.folderStructure.structure, nodeId);
-    if (success) {
-      if (selected.id === nodeId) selected.id = "";
-      open.delete(nodeId);
-      loaded.delete(nodeId);
-      load_queue.delete(nodeId);
-      editing_node_id = null;
-      rebuild();
-    }
+    try {
+      window.files.remove(result.node.path);
+    } catch {}
   };
 
   const getContextMenuItems = (row: FlatRow): ContextMenuItem[] => {
@@ -287,17 +281,24 @@ export function VirtualTree(opts: {
             nodes: opts.folderStructure.structure,
             indent,
             depth: row.depth,
-            onComplete: (newNode) => {
+            onComplete: async (newNode) => {
               editing_node_id = null;
-              rebuild();
+
               if (type === "file") {
                 selected.id = newNode.id;
                 opts.onSelect?.(newNode.id, newNode);
+
+                try {
+                  await window.files.writeFileText(newNode.path, "");
+                } catch {}
+              } else {
+                try {
+                  await window.files.createdir(newNode.path);
+                } catch {}
               }
             },
             onCancel: () => {
               editing_node_id = null;
-              rebuild();
             },
           });
         }

@@ -62,6 +62,14 @@ ipcMain.handle("workbench.fs.readFileText", async (_, p: string) => {
   return fs.readFile(p, "utf8");
 });
 
+ipcMain.handle("workbench.fs.createdir", async (_, p: string) => {
+  return fs.mkdir(p, { recursive: true });
+});
+
+ipcMain.handle("workbench.fs.remove", async (_, p: string) => {
+  return fs.rm(p, { recursive: true });
+});
+
 ipcMain.handle(
   "workbench.fs.writeFileText",
   async (_, p: string, content: string) => {
