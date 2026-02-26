@@ -1,11 +1,12 @@
 import { ipcMain } from "electron";
-import { storage } from "../services/storage-service";
+import { storage } from "../main-services/storage-service";
+import { STORAGE_GET, STORAGE_SET } from "../../shared/ipc/channels";
 
-ipcMain.handle("workbench.storage.get", (_, key: string, fallback?: any) => {
+ipcMain.handle(STORAGE_GET, (_, key: string, fallback?: any) => {
   return storage.get(key, fallback);
 });
 
-ipcMain.handle("workbench.storage.set", (_, key: string, value: any) => {
+ipcMain.handle(STORAGE_SET, (_, key: string, value: any) => {
   storage.set(key, value);
   return true;
 });

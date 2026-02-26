@@ -5,6 +5,36 @@ import type {
   INode,
 } from "../shared/types/explorer.types";
 import type { IWorkspace } from "../shared/types/workspace.types";
+import {
+  STORAGE_GET,
+  STORAGE_SET,
+  WORKSPACE_GET,
+  WORKSPACE_STORE,
+  WORKSPACE_UPDATE,
+  WORKSPACE_GET_CURRENT_PATH,
+  WORKSPACE_SET_CURRENT_PATH,
+  WORKSPACE_ASK_UPDATE,
+  EXPLORER_GET_ROOT_STRUCTURE,
+  EXPLORER_GET_CHILD_STRUCTURE,
+  FS_EXISTS,
+  FS_SAVE_AS,
+  FS_READDIR,
+  FS_STAT,
+  FS_READ_FILE_TEXT,
+  FS_CREATE_DIR,
+  FS_REMOVE,
+  FS_WRITE_FILE_TEXT,
+  FS_RENAME,
+  WATCHER_START,
+  WATCHER_STOP,
+  WATCHER_EVENT,
+  NODE_PTY_CREATE,
+  NODE_PTY_WRITE,
+  NODE_PTY_RESIZE,
+  NODE_PTY_KILL,
+  NODE_PTY_DATA,
+  NODE_PTY_EXIT,
+} from "../shared/ipc/channels";
 
 type Listener = (event: IpcRendererEvent, ...args: any[]) => void;
 
@@ -13,23 +43,18 @@ contextBridge.exposeInMainWorld("ipc", {
     ipcRenderer.on(channel, listener);
     return () => ipcRenderer.removeListener(channel, listener);
   },
-
   once(channel: string, listener: Listener) {
     ipcRenderer.once(channel, listener);
   },
-
   off(channel: string, listener: Listener) {
     ipcRenderer.removeListener(channel, listener);
   },
-
   removeAllListeners(channel: string) {
     ipcRenderer.removeAllListeners(channel);
   },
-
   send(channel: string, ...args: any[]) {
     ipcRenderer.send(channel, ...args);
   },
-
   invoke<T = any>(channel: string, ...args: any[]) {
     return ipcRenderer.invoke(channel, ...args) as Promise<T>;
   },
@@ -37,61 +62,51 @@ contextBridge.exposeInMainWorld("ipc", {
 
 contextBridge.exposeInMainWorld("storage", {
   get: <T>(key: string, fallback?: T) =>
-    ipcRenderer.invoke("workbench.storage.get", key, fallback) as Promise<T>,
+    ipcRenderer.invoke(STORAGE_GET, key, fallback) as Promise<T>,
   set: (key: string, value: any) =>
-    ipcRenderer.invoke("workbench.storage.set", key, value) as Promise<boolean>,
+    ipcRenderer.invoke(STORAGE_SET, key, value) as Promise<boolean>,
 });
 
 contextBridge.exposeInMainWorld("explorer", {
   get_root_structure: (folder_path: string) =>
     ipcRenderer.invoke(
-      "workbench.explorer.get.root.structure",
+      EXPLORER_GET_ROOT_STRUCTURE,
       folder_path,
     ) as Promise<IFolderStructure>,
   get_child_structure: (node: INode) =>
     ipcRenderer.invoke(
-      "workbench.explorer.get.child.structure",
+      EXPLORER_GET_CHILD_STRUCTURE,
       node,
     ) as Promise<IChildStructure>,
 });
 
 contextBridge.exposeInMainWorld("workspace", {
   get_workspace: (folder_path: string) =>
-    ipcRenderer.invoke(
-      "workbench.workspace.get",
-      folder_path,
-    ) as Promise<IWorkspace>,
+    ipcRenderer.invoke(WORKSPACE_GET, folder_path) as Promise<IWorkspace>,
   set_workspace: (folder_path: string) =>
-    ipcRenderer.invoke("workbench.workspace.set", folder_path) as Promise<void>,
+    ipcRenderer.invoke(WORKSPACE_STORE, folder_path) as Promise<void>,
   update_workspace: (folder_path: string, data: Partial<IWorkspace>) =>
-    ipcRenderer.invoke(
-      "workbench.workspace.update",
-      folder_path,
-      data,
-    ) as Promise<void>,
+    ipcRenderer.invoke(WORKSPACE_UPDATE, folder_path, data) as Promise<void>,
   get_current_workspace_path: () =>
-    ipcRenderer.invoke("workbench.workspace.get.current.path") as Promise<
-      string | null
-    >,
+    ipcRenderer.invoke(WORKSPACE_GET_CURRENT_PATH) as Promise<string | null>,
   set_current_workspace_path: (folder_path: string) =>
     ipcRenderer.invoke(
-      "workbench.workspace.set.current.path",
+      WORKSPACE_SET_CURRENT_PATH,
       folder_path,
     ) as Promise<void>,
   ask_update_workspace: () =>
-    ipcRenderer.invoke("workbench.workspace.ask.update") as Promise<void>,
+    ipcRenderer.invoke(WORKSPACE_ASK_UPDATE) as Promise<void>,
 });
 
 contextBridge.exposeInMainWorld("files", {
-  exists: (p: string) =>
-    ipcRenderer.invoke("workbench.fs.exists", p) as Promise<boolean>,
+  exists: (p: string) => ipcRenderer.invoke(FS_EXISTS, p) as Promise<boolean>,
   saveAs: (c: string, p?: string) =>
-    ipcRenderer.invoke("workbench.fs.saveAs", c, p) as Promise<{
+    ipcRenderer.invoke(FS_SAVE_AS, c, p) as Promise<{
       cancel: boolean;
       path: string;
     }>,
   readdir: (p: string) =>
-    ipcRenderer.invoke("workbench.fs.readdir", p) as Promise<
+    ipcRenderer.invoke(FS_READDIR, p) as Promise<
       {
         name: string;
         isFile: boolean;
@@ -100,11 +115,10 @@ contextBridge.exposeInMainWorld("files", {
       }[]
     >,
   create_dir: (p: string) =>
-    ipcRenderer.invoke("workbench.fs.createdir", p) as Promise<boolean>,
-  remove: (p: string) =>
-    ipcRenderer.invoke("workbench.fs.remove", p) as Promise<boolean>,
+    ipcRenderer.invoke(FS_CREATE_DIR, p) as Promise<boolean>,
+  remove: (p: string) => ipcRenderer.invoke(FS_REMOVE, p) as Promise<boolean>,
   stat: (p: string) =>
-    ipcRenderer.invoke("workbench.fs.stat", p) as Promise<{
+    ipcRenderer.invoke(FS_STAT, p) as Promise<{
       isFile: boolean;
       isDirectory: boolean;
       size: number;
@@ -112,20 +126,36 @@ contextBridge.exposeInMainWorld("files", {
       ctimeMs: number;
     }>,
   read_file_text: (p: string) =>
-    ipcRenderer.invoke("workbench.fs.readFileText", p) as Promise<string>,
+    ipcRenderer.invoke(FS_READ_FILE_TEXT, p) as Promise<string>,
   write_file_text: (p: string, content: string) =>
-    ipcRenderer.invoke(
-      "workbench.fs.writeFileText",
-      p,
-      content,
-    ) as Promise<boolean>,
-  rename: (f: string, t: string) =>
-    ipcRenderer.invoke("workbench.fs.rename", f, t),
+    ipcRenderer.invoke(FS_WRITE_FILE_TEXT, p, content) as Promise<boolean>,
+  rename: (from: string, to: string) =>
+    ipcRenderer.invoke(FS_RENAME, from, to) as Promise<boolean>,
 });
 
 contextBridge.exposeInMainWorld("watcher", {
   start: (p: string) =>
-    ipcRenderer.invoke("workbench.watcher.start", p) as Promise<boolean>,
-  stop: (p: string) =>
-    ipcRenderer.invoke("workbench.watcher.stop", p) as Promise<boolean>,
+    ipcRenderer.invoke(WATCHER_START, p) as Promise<boolean>,
+  stop: (p: string) => ipcRenderer.invoke(WATCHER_STOP, p) as Promise<boolean>,
+  on_event: (listener: Listener) => {
+    ipcRenderer.on(WATCHER_EVENT, listener);
+    return () => ipcRenderer.removeListener(WATCHER_EVENT, listener);
+  },
+});
+
+contextBridge.exposeInMainWorld("pty", {
+  create: (opts: any) => ipcRenderer.invoke(NODE_PTY_CREATE, opts),
+  write: (id: string, data: string) =>
+    ipcRenderer.invoke(NODE_PTY_WRITE, id, data),
+  resize: (id: string, cols: number, rows: number) =>
+    ipcRenderer.invoke(NODE_PTY_RESIZE, id, cols, rows),
+  kill: (id: string) => ipcRenderer.invoke(NODE_PTY_KILL, id),
+  on_data: (listener: Listener) => {
+    ipcRenderer.on(NODE_PTY_DATA, listener);
+    return () => ipcRenderer.removeListener(NODE_PTY_DATA, listener);
+  },
+  on_exit: (listener: Listener) => {
+    ipcRenderer.on(NODE_PTY_EXIT, listener);
+    return () => ipcRenderer.removeListener(NODE_PTY_EXIT, listener);
+  },
 });
