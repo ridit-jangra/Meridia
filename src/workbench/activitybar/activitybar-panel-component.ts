@@ -29,7 +29,7 @@ export function ActivityBarPanelComponent(opts: {
   });
 
   const scroll = ScrollArea({ class: "flex-1 min-h-0 h-full" });
-  scroll.inner.classList.add("h-full");
+  scroll.inner.classList.add("h-full", "activity-scroll-viewport");
   const content = scroll.inner;
 
   const get_active = () => store.getState().layout.active_panel_key[opts.id];

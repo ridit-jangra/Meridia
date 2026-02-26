@@ -14,6 +14,7 @@ import { history } from "../../services/history/history.service";
 import { insights as insights_service } from "../../services/insight/insight.service";
 import { insights_events } from "../../events/insights.events";
 import type { Insight } from "../../services/insight/insight.types";
+import { explorer_events } from "../../events/explorer.events";
 
 export function EditorTabs() {
   const header = h("div", {
@@ -412,6 +413,11 @@ export function EditorTabs() {
 
   const unsub = store.subscribe(() => {
     renderTabs();
+
+    const active = store.getState().editor.tabs.find((t) => t.active);
+    if (!active) return;
+
+    explorer_events.emit("highlight", active.file_path);
   });
 
   renderTabs();

@@ -3,9 +3,9 @@ import { h } from "../../../core/dom/h";
 import { cn } from "../../../core/utils/cn";
 import { lucide } from "../icon";
 import {
-  addNodeToParent,
-  generateNodeId,
-  nameExistsInFolder,
+  add_node_to_parent,
+  generate_node_id,
+  name_exists_in_folder,
 } from "./virtual-tree.helpers";
 
 export type AddNodeOptions = {
@@ -65,7 +65,7 @@ export function create_add_node_input(opts: AddNodeOptions): HTMLElement {
       return;
     }
 
-    const newId = generateNodeId(parentPath, name);
+    const newId = generate_node_id(parentPath, name);
     const newNode: INode = {
       id: newId,
       type,
@@ -112,11 +112,11 @@ export function add_file(
   parentPath: string,
   fileName: string,
 ): INode | null {
-  if (nameExistsInFolder(nodes, parentId, fileName)) {
+  if (name_exists_in_folder(nodes, parentId, fileName)) {
     return null;
   }
 
-  const newId = generateNodeId(parentPath, fileName);
+  const newId = generate_node_id(parentPath, fileName);
   const newNode: INode = {
     id: newId,
     type: "file",
@@ -125,7 +125,7 @@ export function add_file(
     child_nodes: [],
   };
 
-  const success = addNodeToParent(nodes, parentId, newNode);
+  const success = add_node_to_parent(nodes, parentId, newNode);
   return success ? newNode : null;
 }
 
@@ -135,11 +135,11 @@ export function addFolder(
   parentPath: string,
   folderName: string,
 ): INode | null {
-  if (nameExistsInFolder(nodes, parentId, folderName)) {
+  if (name_exists_in_folder(nodes, parentId, folderName)) {
     return null;
   }
 
-  const newId = generateNodeId(parentPath, folderName);
+  const newId = generate_node_id(parentPath, folderName);
   const newNode: INode = {
     id: newId,
     type: "folder",
@@ -148,6 +148,6 @@ export function addFolder(
     child_nodes: [],
   };
 
-  const success = addNodeToParent(nodes, parentId, newNode);
+  const success = add_node_to_parent(nodes, parentId, newNode);
   return success ? newNode : null;
 }

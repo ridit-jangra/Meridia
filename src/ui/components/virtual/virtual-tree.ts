@@ -10,24 +10,32 @@ import { VirtualList } from "./virtual-list";
 import { ContextMenu, ContextMenuItem } from "../context-menu";
 import {
   FlatRow,
-  flattenTree,
-  removeNode,
-  findNodeById,
+  flatten_tree,
+  find_node_by_id,
   rename_by_path,
   remove_node_by_path,
   add_node,
 } from "./virtual-tree.helpers";
 import { create_add_node_input } from "./add-node.helpers";
 import { create_rename_input } from "./rename-node.helpers";
+import {
+  norm,
+  uris_equal,
+  is_descendant_of,
+  rebase_uri,
+  get_parent_uri,
+} from "../../../../shared/uri/generate";
 
-function deepCloneNodes(nodes: INode[]): INode[] {
+function deep_clone_nodes(nodes: INode[]): INode[] {
   return nodes.map((n) => ({
     ...n,
-    child_nodes: n.child_nodes ? deepCloneNodes(n.child_nodes) : [],
+    id: norm(n.id),
+    path: norm(n.path),
+    child_nodes: n.child_nodes ? deep_clone_nodes(n.child_nodes) : [],
   }));
 }
 
-function updateNodeInStructure(
+function update_node_in_structure(
   nodes: INode[],
   id: string,
   child_nodes: INode[],
@@ -38,7 +46,8 @@ function updateNodeInStructure(
       return true;
     }
     if (node.child_nodes && node.child_nodes.length > 0) {
-      if (updateNodeInStructure(node.child_nodes, id, child_nodes)) return true;
+      if (update_node_in_structure(node.child_nodes, id, child_nodes))
+        return true;
     }
   }
   return false;
@@ -55,6 +64,7 @@ export function VirtualTree(opts: {
   renderRight?: (row: FlatRow) => HTMLElement | null;
   get_icon?: (name: string) => string;
   icon_folder_name?: string;
+  scrollViewport?: HTMLElement;
 }) {
   const indent = opts.indent ?? 14;
 
@@ -68,17 +78,51 @@ export function VirtualTree(opts: {
 
   opts.folderStructure = {
     ...opts.folderStructure,
-    structure: deepCloneNodes(opts.folderStructure.structure),
+    structure: deep_clone_nodes(opts.folderStructure.structure),
   };
 
-  const initOpen = (n: INode) => {
+  const init_open = (n: INode) => {
     if (opts.initiallyOpenAll) open.add(n.id);
-    (n.child_nodes ?? []).forEach(initOpen);
+    (n.child_nodes ?? []).forEach(init_open);
   };
-  opts.folderStructure.structure.forEach(initOpen);
+  opts.folderStructure.structure.forEach(init_open);
 
   let rows: FlatRow[] = [];
   const contextMenu = ContextMenu();
+
+  const expand_to = async (id: string) => {
+    const workspace = norm(opts.folderStructure.path);
+
+    const ancestors: string[] = [];
+    let current = get_parent_uri(norm(id));
+
+    while (
+      current &&
+      !uris_equal(current, workspace) &&
+      is_descendant_of(current, workspace)
+    ) {
+      ancestors.unshift(current);
+      current = get_parent_uri(current);
+    }
+
+    for (const ancestor of ancestors) {
+      open.add(ancestor);
+
+      if (!loaded.has(ancestor)) {
+        const result =
+          find_node_by_id(opts.folderStructure.structure, ancestor) ??
+          find_node_by_id(
+            opts.folderStructure.structure,
+            ancestor.replace(/\//g, "\\"),
+          );
+
+        if (result) {
+          loading.add(ancestor);
+          await load_children(result.node);
+        }
+      }
+    }
+  };
 
   const rebuild = () => {
     const out: FlatRow[] = [];
@@ -94,65 +138,66 @@ export function VirtualTree(opts: {
 
     el.prepend(node);
 
-    flattenTree(opts.folderStructure.structure, 0, open, out);
+    flatten_tree(opts.folderStructure.structure, 0, open, out);
     rows = out;
     list.setItems(rows);
   };
 
-  const load_children = (folderNode: INode): Promise<void> => {
-    if (loaded.has(folderNode.id)) return Promise.resolve();
+  const load_children = (folder_node: INode): Promise<void> => {
+    if (loaded.has(folder_node.id)) return Promise.resolve();
 
-    const existing = load_queue.get(folderNode.id);
+    const existing = load_queue.get(folder_node.id);
     if (existing) return existing;
 
     const promise = new Promise<void>((resolve) => {
       setTimeout(async () => {
         try {
-          const raw = await window.explorer.get_child_structure(folderNode);
+          const raw = await window.explorer.get_child_structure(folder_node);
 
           let result_id: string;
           let child_nodes: INode[];
 
           if (Array.isArray(raw)) {
-            result_id = folderNode.id;
-            child_nodes = deepCloneNodes(raw);
+            result_id = folder_node.id;
+            child_nodes = deep_clone_nodes(raw);
           } else if (raw && typeof raw === "object") {
             result_id = raw.id;
-            child_nodes = deepCloneNodes(raw.child_nodes ?? []);
+            child_nodes = deep_clone_nodes(raw.child_nodes ?? []);
           } else {
             console.warn("[load_children] unexpected result:", raw);
             return;
           }
 
-          if (result_id === opts.folderStructure.path) {
+          if (uris_equal(result_id, opts.folderStructure.path)) {
             opts.folderStructure.structure = child_nodes;
           } else {
-            updateNodeInStructure(
+            update_node_in_structure(
               opts.folderStructure.structure,
               result_id,
               child_nodes,
             );
           }
 
-          loaded.add(folderNode.id);
+          loaded.add(folder_node.id);
         } catch (e) {
           console.error("[load_children] error:", e);
         } finally {
-          loading.delete(folderNode.id);
-          load_queue.delete(folderNode.id);
-
+          loading.delete(folder_node.id);
+          load_queue.delete(folder_node.id);
           rebuild();
           resolve();
         }
       }, 0);
     });
 
-    load_queue.set(folderNode.id, promise);
+    load_queue.set(folder_node.id, promise);
     return promise;
   };
 
   const handle_folder_click = (row: FlatRow) => {
     const id = row.id;
+
+    selected.id = id;
 
     if (loading.has(id)) return;
 
@@ -173,41 +218,58 @@ export function VirtualTree(opts: {
     }
   };
 
-  const start_add_node = (parentId: string, type: "file" | "folder") => {
-    open.add(parentId);
-    editing_node_id = `__adding_${type}_${parentId}`;
+  const scroll_to_id = (id: string) => {
+    const index = rows.findIndex((r) => uris_equal(r.id, id));
+    if (index === -1) return;
 
-    const result = findNodeById(opts.folderStructure.structure, parentId);
+    const scroll_el = opts.scrollViewport ?? list.viewport;
+    const item_top = index * opts.rowHeight;
+    const item_bottom = item_top + opts.rowHeight;
+    const view_top = scroll_el.scrollTop;
+    const view_bottom = view_top + scroll_el.clientHeight;
+
+    if (item_top < view_top) {
+      scroll_el.scrollTop = item_top;
+    } else if (item_bottom > view_bottom) {
+      scroll_el.scrollTop = item_bottom - scroll_el.clientHeight;
+    }
+  };
+
+  const start_add_node = (parent_id: string, type: "file" | "folder") => {
+    open.add(parent_id);
+    editing_node_id = `__adding_${type}_${parent_id}`;
+
+    const result = find_node_by_id(opts.folderStructure.structure, parent_id);
     if (!result) return;
 
-    const parentDepth = rows.find((r) => r.id === parentId)?.depth ?? 0;
-    const parentIndex = rows.findIndex((r) => r.id === parentId);
+    const parent_depth = rows.find((r) => r.id === parent_id)?.depth ?? 0;
+    const parent_index = rows.findIndex((r) => r.id === parent_id);
 
-    if (parentIndex === -1) {
+    if (parent_index === -1) {
       rebuild();
       return;
     }
 
-    const tempRow: FlatRow = {
+    const temp_row: FlatRow = {
       id: editing_node_id,
       label: "",
-      depth: parentDepth + 1,
+      depth: parent_depth + 1,
       node: { id: editing_node_id, type, name: "", path: "" } as INode,
     };
 
-    const newRows = [...rows];
-    newRows.splice(parentIndex + 1, 0, tempRow);
-    rows = newRows;
+    const new_rows = [...rows];
+    new_rows.splice(parent_index + 1, 0, temp_row);
+    rows = new_rows;
     list.setItems(rows);
   };
 
-  const start_rename = (nodeId: string) => {
-    editing_node_id = `__renaming_${nodeId}`;
+  const start_rename = (node_id: string) => {
+    editing_node_id = `__renaming_${node_id}`;
     rebuild();
   };
 
-  const delete_node = (nodeId: string) => {
-    const result = findNodeById(opts.folderStructure.structure, nodeId);
+  const delete_node = (node_id: string) => {
+    const result = find_node_by_id(opts.folderStructure.structure, node_id);
     if (!result) return;
 
     const type = result.node.type === "folder" ? "folder" : "file";
@@ -218,7 +280,7 @@ export function VirtualTree(opts: {
     } catch {}
   };
 
-  const getContextMenuItems = (row: FlatRow): ContextMenuItem[] => {
+  const get_context_menu_items = (row: FlatRow): ContextMenuItem[] => {
     const items: ContextMenuItem[] = [];
 
     if (row.node.type === "folder") {
@@ -226,12 +288,20 @@ export function VirtualTree(opts: {
         {
           type: "item",
           label: "New File",
-          onClick: () => start_add_node(row.id, "file"),
+          onClick: () => {
+            selected.id = row.id;
+            list.refresh();
+            start_add_node(row.id, "file");
+          },
         },
         {
           type: "item",
           label: "New Folder",
-          onClick: () => start_add_node(row.id, "folder"),
+          onClick: () => {
+            selected.id = row.id;
+            list.refresh();
+            start_add_node(row.id, "folder");
+          },
         },
         { type: "separator" },
       );
@@ -241,17 +311,27 @@ export function VirtualTree(opts: {
       {
         type: "item",
         label: "Rename",
-        onClick: () => start_rename(row.id),
+        onClick: () => {
+          selected.id = row.id;
+          list.refresh();
+          start_rename(row.id);
+        },
       },
       {
         type: "item",
         label: "Delete",
-        onClick: () => delete_node(row.id),
+        onClick: () => {
+          selected.id = row.id;
+          list.refresh();
+          delete_node(row.id);
+        },
       },
     );
 
     return items;
   };
+
+  const is_active = (id: string) => uris_equal(id, selected.id);
 
   const el = h("div", { class: "flex flex-col gap-2 overflow-hidden" });
 
@@ -259,10 +339,11 @@ export function VirtualTree(opts: {
     items: rows,
     itemHeight: opts.rowHeight,
     height: opts.height,
-    class: cn("min-h-0 min-w-0", opts.class),
+    class: cn("min-h-0 min-w-0 overflow-hidden", opts.class),
     overscan: 8,
     cache: false,
-    key: (r) => `${r.id}:${open.has(r.id)}:${loading.has(r.id)}`,
+    key: (r) =>
+      `${r.id}:${open.has(r.id)}:${loading.has(r.id)}:${is_active(r.id)}`,
     render: (row) => {
       if (
         editing_node_id &&
@@ -270,30 +351,33 @@ export function VirtualTree(opts: {
         row.id === editing_node_id
       ) {
         const type = editing_node_id.includes("_file_") ? "file" : "folder";
-        const parentId = editing_node_id.replace(`__adding_${type}_`, "");
-        const result = findNodeById(opts.folderStructure.structure, parentId);
+        const parent_id = editing_node_id.replace(`__adding_${type}_`, "");
+        const result = find_node_by_id(
+          opts.folderStructure.structure,
+          parent_id,
+        );
 
         if (result) {
           return create_add_node_input({
             type,
-            parentId,
+            parentId: parent_id,
             parentPath: result.node.path,
             nodes: opts.folderStructure.structure,
             indent,
             depth: row.depth,
-            onComplete: async (newNode) => {
+            onComplete: async (new_node) => {
               editing_node_id = null;
 
               if (type === "file") {
-                selected.id = newNode.id;
-                opts.onSelect?.(newNode.id, newNode);
+                selected.id = new_node.id;
+                opts.onSelect?.(new_node.id, new_node);
 
                 try {
-                  await window.files.writeFileText(newNode.path, "");
+                  await window.files.writeFileText(new_node.path, "");
                 } catch {}
               } else {
                 try {
-                  await window.files.createdir(newNode.path);
+                  await window.files.createdir(new_node.path);
                 } catch {}
               }
             },
@@ -325,9 +409,9 @@ export function VirtualTree(opts: {
         });
       }
 
-      const isSel = row.id === selected.id;
-      const isLoading = loading.has(row.id);
-      const isOpen = open.has(row.id);
+      const is_loading = loading.has(row.id);
+      const is_open = open.has(row.id);
+      const active = is_active(row.id);
 
       const caret =
         row.node.type === "folder" &&
@@ -337,37 +421,37 @@ export function VirtualTree(opts: {
               "mr-1 opacity-70 inline-flex items-center [&_svg]:w-4 [&_svg]:h-4",
             style: "display: inline-flex; align-items: center;",
           });
-          span.style.transform = `rotate(${isOpen ? "90deg" : "0deg"})`;
+          span.style.transform = `rotate(${is_open ? "90deg" : "0deg"})`;
           span.style.transition = "transform 0.15s ease";
           span.appendChild(
-            isLoading ? lucide("loader-circle") : lucide("chevron-right"),
+            is_loading ? lucide("loader-circle") : lucide("chevron-right"),
           );
           return span;
         })();
 
-      const fileIcon =
+      const file_icon =
         row.node.type !== "folder" && h("img", { class: "w-4 h-4 mr-1" });
-      if (fileIcon && opts.get_icon && opts.icon_folder_name)
-        fileIcon.src = `./${opts.icon_folder_name}/${opts.get_icon(row.id)}`;
+      if (file_icon && opts.get_icon && opts.icon_folder_name)
+        file_icon.src = `./${opts.icon_folder_name}/${opts.get_icon(row.id)}`;
 
       const left = h(
         "div",
         { class: "ml-2 flex items-center min-w-0" },
         caret,
-        fileIcon,
+        file_icon,
         h("span", { class: "truncate font-normal" }, row.label),
       );
 
       const right = opts.renderRight ? opts.renderRight(row) : null;
 
-      const rowEl = h(
+      const row_el = h(
         "div",
         {
           class: cn(
             "px-2 flex items-center justify-between select-none cursor-pointer text-[13px]",
-            isSel
+            active
               ? "bg-explorer-item-active-background text-explorer-item-active-foreground"
-              : "hover:bg-explorer-item-hover-background hover:text-explorer-item-hover-foreground text-explorer-foreground",
+              : "text-explorer-foreground hover:bg-explorer-item-hover-background hover:text-explorer-item-hover-foreground",
           ),
           style: `padding-left:${6 + row.depth * indent}px;`,
           on: {
@@ -387,10 +471,10 @@ export function VirtualTree(opts: {
         right ?? "",
       );
 
-      contextMenu.bind(rowEl, () => getContextMenuItems(row));
-      Tooltip({ child: rowEl, text: row.node.path, delay: 200 });
+      contextMenu.bind(row_el, () => get_context_menu_items(row));
+      Tooltip({ child: row_el, text: norm(row.node.path), delay: 200 });
 
-      return rowEl;
+      return row_el;
     },
   });
 
@@ -403,6 +487,17 @@ export function VirtualTree(opts: {
     });
   };
 
+  const fix_set = (set: Set<string>, path: string, next_path?: string) => {
+    for (const id of [...set]) {
+      if (uris_equal(id, path) || is_descendant_of(id, path)) {
+        set.delete(id);
+        if (next_path) {
+          set.add(rebase_uri(id, path, next_path));
+        }
+      }
+    }
+  };
+
   el.appendChild(list.el);
   rebuild();
 
@@ -411,7 +506,7 @@ export function VirtualTree(opts: {
     setFolderStructure(next: IFolderStructure) {
       opts.folderStructure = {
         ...next,
-        structure: deepCloneNodes(next.structure),
+        structure: deep_clone_nodes(next.structure),
       };
       loaded.clear();
       load_queue.clear();
@@ -430,61 +525,63 @@ export function VirtualTree(opts: {
       const row = rows.find((r) => r.id === id);
       if (row) handle_folder_click(row);
     },
-    select(id: string) {
-      selected.id = id;
-      list.setItems(rows);
+    select: async (id: string) => {
+      selected.id = norm(id);
+      await expand_to(id);
+      rebuild();
+
+      requestAnimationFrame(() => scroll_to_id(norm(id)));
+    },
+    highlight: async (id: string) => {
+      selected.id = norm(id);
+      await expand_to(id);
+      rebuild();
+      requestAnimationFrame(() => scroll_to_id(norm(id)));
+    },
+    clear_highlight() {
+      selected.id = "";
+      list.refresh();
     },
     mutate(fn: (nodes: INode[]) => void) {
       fn(opts.folderStructure.structure);
       rebuild();
     },
     add(node: INode) {
-      add_node(opts.folderStructure.structure, node);
+      add_node(opts.folderStructure.structure, node, opts.folderStructure.path);
       rebuild_debounced();
     },
-
     remove(path: string) {
       remove_node_by_path(opts.folderStructure.structure, path);
 
-      const fixSet = (set: Set<string>) => {
-        for (const id of [...set]) {
-          if (id === path || id.startsWith(path + "/")) {
-            set.delete(id);
-          }
-        }
-      };
+      fix_set(open, path);
+      fix_set(loaded, path);
 
-      fixSet(open);
-      fixSet(loaded);
       load_queue.forEach((_, key) => {
-        if (key === path || key.startsWith(path + "/")) {
+        if (uris_equal(key, path) || is_descendant_of(key, path)) {
           load_queue.delete(key);
         }
       });
 
-      if (selected.id === path || selected.id.startsWith(path + "/")) {
+      if (
+        uris_equal(selected.id, path) ||
+        is_descendant_of(selected.id, path)
+      ) {
         selected.id = "";
       }
 
       rebuild_debounced();
     },
-    rename(prevPath: string, nextPath: string) {
-      rename_by_path(opts.folderStructure.structure, prevPath, nextPath);
+    rename(prev_path: string, next_path: string) {
+      rename_by_path(opts.folderStructure.structure, prev_path, next_path);
 
-      const fixSet = (set: Set<string>) => {
-        for (const id of [...set]) {
-          if (id === prevPath || id.startsWith(prevPath + "/")) {
-            set.delete(id);
-            set.add(nextPath + id.slice(prevPath.length));
-          }
-        }
-      };
+      fix_set(open, prev_path, next_path);
+      fix_set(loaded, prev_path, next_path);
 
-      fixSet(open);
-      fixSet(loaded);
-
-      if (selected.id === prevPath || selected.id.startsWith(prevPath + "/")) {
-        selected.id = nextPath + selected.id.slice(prevPath.length);
+      if (
+        uris_equal(selected.id, prev_path) ||
+        is_descendant_of(selected.id, prev_path)
+      ) {
+        selected.id = rebase_uri(selected.id, prev_path, next_path);
       }
 
       rebuild_debounced();

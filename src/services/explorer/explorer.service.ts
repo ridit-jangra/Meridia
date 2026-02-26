@@ -2,12 +2,15 @@ import { set_folder_structure } from "../state/slices/explorer.slice";
 import { store } from "../state/store";
 import { explorer_actions } from "./explorer.actions";
 import { explorer_state } from "./explorer.state";
+import { explorer_tree } from "./explorer.tree";
+import { VirtualTreeInstance } from "./explorer.types";
 import { explorer_watcher } from "./explorer.watcher";
 
 class explorer_service {
   public readonly actions = new explorer_actions();
   public readonly state = new explorer_state();
   public readonly watcher = new explorer_watcher();
+  public readonly tree = new explorer_tree();
 
   constructor() {
     this.init();
@@ -17,12 +20,14 @@ class explorer_service {
     const structure = await this.init_structure();
     if (!structure) return;
 
-    this.init_watcher(structure.path);
+    const tree = this.tree.register_tree(structure);
+    this.init_watcher(structure.path, tree);
   }
 
-  private async init_watcher(path: string) {
+  private async init_watcher(path: string, tree: VirtualTreeInstance) {
     await this.watcher.start_watcher(path);
-    await this.watcher.attach_listener();
+    this.watcher.attach_listener();
+    this.watcher.attach_tree_listener(tree);
   }
 
   private async init_structure() {

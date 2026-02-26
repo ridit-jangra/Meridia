@@ -1,5 +1,6 @@
 import type { INode } from "../../../shared/types/explorer.types";
 import { explorer_events } from "../../events/explorer.events";
+import { VirtualTreeInstance } from "./explorer.types";
 
 export class explorer_watcher {
   private disposers: (() => void)[] = [];
@@ -11,6 +12,24 @@ export class explorer_watcher {
 
   async stop_watcher(path: string) {
     await window.watcher.stop(path);
+  }
+
+  public async attach_tree_listener(tree: VirtualTreeInstance) {
+    explorer_events.on("add", (node: INode) => {
+      tree.add(node);
+    });
+
+    explorer_events.on("remove", (path: string) => {
+      tree.remove(path);
+    });
+
+    explorer_events.on("rename", (from: string, to: string) => {
+      tree.rename(from, to);
+    });
+
+    explorer_events.on("highlight", (id: string) => {
+      tree.highlight(id);
+    });
   }
 
   attach_listener() {
