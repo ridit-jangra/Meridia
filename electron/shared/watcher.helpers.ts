@@ -1,8 +1,7 @@
 import path from "path";
-import { INode } from "../../shared/types/explorer.types";
+import { INode, TWatchEvent } from "../../shared/types/explorer.types";
 import { generate_uri } from "../../shared/uri/generate";
 import { event_emitter } from "./emitter";
-import { TWatchEvent } from "./types/explorer-service.types";
 
 export function attach_event_listener(e: TWatchEvent) {
   if (e.type === "add") {

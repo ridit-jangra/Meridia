@@ -1,8 +1,11 @@
-import { IFolderStructure, INode } from "../../shared/types/explorer.types";
+import {
+  IFolderStructure,
+  INode,
+  TWatchEvent,
+} from "../../shared/types/explorer.types";
 import path from "path";
 import fs from "fs/promises";
 import chokidar, { FSWatcher } from "chokidar";
-import { TWatchEvent } from "../shared/types/explorer-service.types";
 
 class explorer_services {
   private watchers: Map<string, FSWatcher> = new Map();
