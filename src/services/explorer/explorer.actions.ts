@@ -4,17 +4,22 @@ import { history } from "../../services/history/history.service";
 export class explorer_actions {
   public async create_file(path: string, content: string) {
     history.push("explorer.create_file", { path });
-    await window.files.writeFileText(path, content);
+    return await window.files.write_file_text(path, content);
   }
 
   public async create_dir(path: string) {
     history.push("explorer.create_dir", { path });
-    await window.files.createdir(path);
+    return await window.files.create_dir(path);
   }
 
   public async read_file(path: string) {
     history.push("explorer.read_file", { path });
-    return await window.files.readFileText(path);
+    return await window.files.read_file_text(path);
+  }
+
+  public async rename(from: string, to: string) {
+    history.push("explorer.rename", { from, to });
+    return await window.files.rename(from, to);
   }
 
   public async read_dir(path: string) {
@@ -24,12 +29,12 @@ export class explorer_actions {
 
   public async delete_file(path: string) {
     history.push("explorer.delete_file", { path });
-    await window.files.remove(path);
+    return await window.files.remove(path);
   }
 
   public async delete_dir(path: string) {
     history.push("explorer.delete_dir", { path });
-    await window.files.remove(path);
+    return await window.files.remove(path);
   }
 
   public async stat(path: string) {

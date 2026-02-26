@@ -99,7 +99,7 @@ contextBridge.exposeInMainWorld("files", {
         isSymbolicLink: boolean;
       }[]
     >,
-  createdir: (p: string) =>
+  create_dir: (p: string) =>
     ipcRenderer.invoke("workbench.fs.createdir", p) as Promise<boolean>,
   remove: (p: string) =>
     ipcRenderer.invoke("workbench.fs.remove", p) as Promise<boolean>,
@@ -111,14 +111,16 @@ contextBridge.exposeInMainWorld("files", {
       mtimeMs: number;
       ctimeMs: number;
     }>,
-  readFileText: (p: string) =>
+  read_file_text: (p: string) =>
     ipcRenderer.invoke("workbench.fs.readFileText", p) as Promise<string>,
-  writeFileText: (p: string, content: string) =>
+  write_file_text: (p: string, content: string) =>
     ipcRenderer.invoke(
       "workbench.fs.writeFileText",
       p,
       content,
     ) as Promise<boolean>,
+  rename: (f: string, t: string) =>
+    ipcRenderer.invoke("workbench.fs.rename", f, t),
 });
 
 contextBridge.exposeInMainWorld("watcher", {

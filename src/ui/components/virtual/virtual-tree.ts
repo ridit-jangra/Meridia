@@ -26,6 +26,8 @@ import {
   get_parent_uri,
 } from "../../../../shared/uri/generate";
 import { explorer } from "../../../services/explorer/explorer.service";
+import { editors_registry } from "../../../core/registry";
+import { get_file_extension } from "../../../services/editor/editor.helper";
 
 function deep_clone_nodes(nodes: INode[]): INode[] {
   return nodes.map((n) => ({
@@ -267,7 +269,10 @@ export function VirtualTree(opts: {
 
   const start_rename = (node_id: string) => {
     editing_node_id = `__renaming_${node_id}`;
-    rebuild();
+
+    setTimeout(() => {
+      rebuild();
+    }, 100);
   };
 
   const delete_node = async (node_id: string) => {
@@ -346,7 +351,7 @@ export function VirtualTree(opts: {
     overscan: 8,
     cache: false,
     key: (r) =>
-      `${r.id}:${open.has(r.id)}:${loading.has(r.id)}:${is_active(r.id)}`,
+      `${r.id}:${open.has(r.id)}:${loading.has(r.id)}:${is_active(r.id)}:${editing_node_id === `__renaming_${r.id}`}`,
     render: (row) => {
       if (
         editing_node_id &&
@@ -401,9 +406,20 @@ export function VirtualTree(opts: {
           isFolder: row.node.type === "folder",
           get_icon: opts.get_icon,
           icon_folder_name: opts.icon_folder_name,
-          onComplete: () => {
+          onComplete: async (old_uri: string, new_uri: string) => {
             editing_node_id = null;
             rebuild();
+
+            try {
+              await explorer.actions.rename(old_uri, new_uri);
+
+              const editor = editors_registry[get_file_extension(new_uri)];
+              if (!editor) return;
+
+              editor.update_model_uri(old_uri, new_uri);
+            } catch (e) {
+              console.error("[rename] failed:", e);
+            }
           },
           onCancel: () => {
             editing_node_id = null;

@@ -19,7 +19,7 @@ export type rename_node_options = {
   depth: number;
   currentName: string;
   isFolder: boolean;
-  onComplete: (newName: string) => void;
+  onComplete: (old_path: string, new_path: string) => void;
   onCancel: () => void;
   get_icon?: (name: string) => string;
   icon_folder_name?: string;
@@ -79,18 +79,31 @@ export function create_rename_input(opts: rename_node_options): HTMLElement {
     submitted = true;
 
     const new_name = input.value.trim();
+    console.log("[rename] new_name:", new_name, "currentName:", currentName);
+
     if (!new_name || new_name === currentName) {
+      console.log("[rename] bailing early - empty or same name");
       onCancel();
       return;
     }
 
-    // Use URI system to derive parent and check for conflicts
     const parent_uri = get_parent_uri(nodeId);
     const new_uri = generate_child_uri(parent_uri, new_name);
+    console.log(
+      "[rename] nodeId:",
+      nodeId,
+      "parent_uri:",
+      parent_uri,
+      "new_uri:",
+      new_uri,
+    );
 
     const result = find_node_by_id(nodes, nodeId);
+    console.log("[rename] find_node_by_id result:", result);
+
     if (result && result.parent) {
       if (name_exists_in_folder(nodes, result.parent.id, new_name)) {
+        console.log("[rename] name already exists in folder");
         alert(
           `A ${isFolder ? "folder" : "file"} with the name "${new_name}" already exists.`,
         );
@@ -100,9 +113,13 @@ export function create_rename_input(opts: rename_node_options): HTMLElement {
     }
 
     const success = rename_node(nodes, nodeId, new_name);
+    console.log("[rename] rename_node success:", success);
+
     if (success) {
-      onComplete(new_uri);
+      console.log("[rename] calling onComplete with:", nodeId, new_uri);
+      onComplete(nodeId, new_uri);
     } else {
+      console.log("[rename] rename failed, calling onCancel");
       onCancel();
     }
   };
@@ -128,7 +145,7 @@ export function create_rename_input(opts: rename_node_options): HTMLElement {
   input.addEventListener("blur", () => {
     setTimeout(() => {
       if (!submitted) cancel();
-    }, 150);
+    }, 300);
   });
 
   setTimeout(() => {
