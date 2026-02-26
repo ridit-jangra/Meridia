@@ -79,8 +79,6 @@ export function EditorArea() {
 
       const updates: Partial<IWorkspace> = { editor_tabs: tabs };
 
-      console.log("updating", updates);
-
       await window.workspace.update_workspace(current_workspace_path, updates);
     } finally {
       saving = false;

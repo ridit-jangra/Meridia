@@ -1,4 +1,5 @@
 import { ipcMain } from "electron";
+import { dialog } from "electron";
 import fs from "node:fs/promises";
 import type { Stats } from "node:fs";
 
@@ -10,6 +11,31 @@ ipcMain.handle("workbench.fs.exists", async (_, p: string) => {
     return false;
   }
 });
+
+ipcMain.handle(
+  "workbench.fs.saveAs",
+  async (_, content: string, path?: string) => {
+    try {
+      if (path) {
+        await fs.writeFile(path, content, "utf-8");
+
+        return { cancel: false, path: path };
+      } else {
+        const result = await dialog.showSaveDialog({
+          buttonLabel: "Save",
+        });
+        if (result.canceled || !result.filePath)
+          return { cancel: true, path: result.filePath };
+
+        await fs.writeFile(result.filePath, content, "utf8");
+
+        return { cancel: false, path: result.filePath };
+      }
+    } catch {
+      return { cancel: true, path: "" };
+    }
+  },
+);
 
 ipcMain.handle("workbench.fs.readdir", async (_, p: string) => {
   const items = await fs.readdir(p, { withFileTypes: true });
