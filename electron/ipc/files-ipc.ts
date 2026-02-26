@@ -77,3 +77,8 @@ ipcMain.handle(
     return true;
   },
 );
+
+ipcMain.handle("workbench.fs.rename", async (_, f: string, t: string) => {
+  await fs.rename(f, t);
+  return true;
+});

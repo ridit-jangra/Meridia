@@ -58,10 +58,11 @@ type files_api = {
     mtimeMs: number;
     ctimeMs: number;
   }>;
-  readFileText(p: string): Promise<string>;
-  writeFileText(p: string, content: string): Promise<boolean>;
-  createdir(p: string): Promise<boolean>;
+  read_file_text(p: string): Promise<string>;
+  write_file_text(p: string, content: string): Promise<boolean>;
+  create_dir(p: string): Promise<boolean>;
   remove(p: string): Promise<boolean>;
+  rename(f: string, t: string): Promise<boolean>;
 };
 
 type watcher_api = {

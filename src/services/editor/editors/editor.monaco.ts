@@ -6,11 +6,13 @@ import {
   build_monaco_shortcuts,
   monaco,
   path_to_language,
+  update_editor_tab,
 } from "../editor.helper";
 import { shortcuts } from "../../shortcut/shortcut.service";
 import { store } from "../../state/store";
 import { update_tabs } from "../../state/slices/editor.slice";
 import { get_base_name } from "../../explorer/explorer.helper";
+import { explorer } from "../../explorer/explorer.service";
 
 const el = h("div", { class: "monaco-editor h-full w-full" });
 
@@ -167,7 +169,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
           store.dispatch(update_tabs(next));
         } else {
-          const res = await window.files.writeFileText(
+          const res = await explorer.actions.create_file(
             m.uri,
             m.model.getValue(),
           );
@@ -208,7 +210,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     let content: string;
 
     if (await window.files.exists(file_path))
-      content = await window.files.readFileText(file_path);
+      content = await explorer.actions.read_file(file_path);
     else content = "";
 
     const model = monaco.editor.createModel(
@@ -238,6 +240,57 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   public add_model(model: IMonacoModel) {
     this.models.push(model);
     this.bind_model_tracking(model);
+  }
+
+  public update_model_uri(old_path: string, new_path: string) {
+    const model = this.models.find((m) => m.uri === old_path) as
+      | IMonacoModel
+      | undefined;
+    if (!model) return;
+
+    const new_uri = monaco.Uri.parse(`file://${new_path}`);
+    const new_model = monaco.editor.createModel(
+      model.model.getValue(),
+      path_to_language(new_path),
+      new_uri,
+    );
+
+    const old_cursor = model.cursor_position;
+    const old_selection = model.selection;
+
+    const disposers = this.model_disposers.get(old_path);
+    if (disposers) {
+      for (const d of disposers) d();
+      this.model_disposers.delete(old_path);
+    }
+    this.last_saved_at.delete(old_path);
+    this.last_touched_at.delete(old_path);
+
+    model.model.dispose();
+
+    model.uri = new_path;
+    model.model = new_model;
+    model.cursor_position = old_cursor;
+    model.selection = old_selection;
+
+    this.bind_model_tracking(model);
+
+    if (
+      this.active_model?.uri === old_path ||
+      this.active_model?.uri === new_path
+    ) {
+      this.active_model = model;
+      this.monacoEditor.instance.setModel(new_model);
+
+      if (old_selection) {
+        const s = old_selection;
+        this.monacoEditor.instance.setSelection(
+          new monaco.Selection(s.startLine, s.startCol, s.endLine, s.endCol),
+        );
+      }
+    }
+
+    update_editor_tab(old_path, new_path);
   }
 
   private bind_model_tracking(m: IMonacoModel) {

@@ -65,7 +65,7 @@ export function close_active_editor_tab() {
   close_editor_tab(active.file_path);
 }
 
-export function close_editor_tab(file_path: string) {
+export function close_editor_tab(file_path: string, force: boolean = false) {
   const tabs = store.getState().editor.tabs;
   const index = tabs.findIndex((t) => t.file_path === file_path);
 
@@ -89,6 +89,14 @@ export function close_editor_tab(file_path: string) {
   const nextActiveIndex = Math.max(0, index - 1);
 
   if (active.is_touched) {
+    if (force) {
+      const updated = nextTabs.map((t, i) => ({
+        ...t,
+        active: i === nextActiveIndex,
+      }));
+
+      store.dispatch(update_tabs(updated));
+    }
   } else {
     const updated = nextTabs.map((t, i) => ({
       ...t,
@@ -388,6 +396,24 @@ export function build_monaco_shortcuts(
       prevent_default: false,
     };
   });
+}
+
+export function update_editor_tab(old_path: string, new_path: string) {
+  const tabs = store.getState().editor.tabs;
+  const index = tabs.findIndex((t) => t.file_path === old_path);
+  if (index === -1) return;
+
+  const updated = tabs.map((tab) =>
+    tab.file_path === old_path
+      ? {
+          ...tab,
+          file_path: new_path,
+          name: get_base_name(new_path),
+        }
+      : tab,
+  );
+
+  store.dispatch(update_tabs(updated));
 }
 
 export { monaco };

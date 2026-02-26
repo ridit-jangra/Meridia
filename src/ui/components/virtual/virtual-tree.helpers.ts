@@ -140,13 +140,7 @@ export function rename_node(
   node.name = new_name;
 
   const old_path = node.path;
-  const new_path = rebase_uri(
-    generate_child_uri(old_path.slice(0, old_path.lastIndexOf("/")), new_name),
-    old_path.slice(0, old_path.lastIndexOf("/")),
-    old_path.slice(0, old_path.lastIndexOf("/")),
-  );
 
-  // Simpler: just replace last segment
   const parts = path_parts(old_path);
   parts[parts.length - 1] = new_name;
   const drive = get_drive(old_path);
@@ -305,7 +299,7 @@ export function remove_node_by_path(nodes: INode[], path: string): boolean {
     }
     if (nodes[i].child_nodes && nodes[i].child_nodes!.length > 0) {
       if (remove_node_by_path(nodes[i].child_nodes!, path)) {
-        close_editor_tab(path);
+        close_editor_tab(path, true);
         return true;
       }
     }
