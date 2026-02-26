@@ -25,6 +25,7 @@ import {
   rebase_uri,
   get_parent_uri,
 } from "../../../../shared/uri/generate";
+import { explorer } from "../../../services/explorer/explorer.service";
 
 function deep_clone_nodes(nodes: INode[]): INode[] {
   return nodes.map((n) => ({
@@ -152,7 +153,8 @@ export function VirtualTree(opts: {
     const promise = new Promise<void>((resolve) => {
       setTimeout(async () => {
         try {
-          const raw = await window.explorer.get_child_structure(folder_node);
+          const raw = await explorer.actions.get_child_structure(folder_node);
+          console.log(raw);
 
           let result_id: string;
           let child_nodes: INode[];
@@ -268,7 +270,7 @@ export function VirtualTree(opts: {
     rebuild();
   };
 
-  const delete_node = (node_id: string) => {
+  const delete_node = async (node_id: string) => {
     const result = find_node_by_id(opts.folderStructure.structure, node_id);
     if (!result) return;
 
@@ -276,7 +278,8 @@ export function VirtualTree(opts: {
     if (!confirm(`Are you sure you want to delete this ${type}?`)) return;
 
     try {
-      window.files.remove(result.node.path);
+      if (type === "file") await explorer.actions.delete_file(result.node.path);
+      else await explorer.actions.delete_file(result.node.path);
     } catch {}
   };
 
@@ -373,11 +376,11 @@ export function VirtualTree(opts: {
                 opts.onSelect?.(new_node.id, new_node);
 
                 try {
-                  await window.files.writeFileText(new_node.path, "");
+                  await explorer.actions.create_file(new_node.path, "");
                 } catch {}
               } else {
                 try {
-                  await window.files.createdir(new_node.path);
+                  await explorer.actions.create_dir(new_node.path);
                 } catch {}
               }
             },

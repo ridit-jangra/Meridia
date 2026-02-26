@@ -2,39 +2,39 @@ import { IChildStructure, INode } from "../../../shared/types/explorer.types";
 import { history } from "../../services/history/history.service";
 
 export class explorer_actions {
-  public create_file(path: string) {
+  public async create_file(path: string, content: string) {
     history.push("explorer.create_file", { path });
-    path;
+    await window.files.writeFileText(path, content);
   }
 
-  public create_dir(path: string) {
+  public async create_dir(path: string) {
     history.push("explorer.create_dir", { path });
-    path;
+    await window.files.createdir(path);
   }
 
-  public read_file(path: string) {
+  public async read_file(path: string) {
     history.push("explorer.read_file", { path });
-    path;
+    return await window.files.readFileText(path);
   }
 
-  public read_dir(path: string) {
+  public async read_dir(path: string) {
     history.push("explorer.read_dir", { path });
-    path;
+    return await window.files.readdir(path);
   }
 
-  public delete_file(path: string) {
+  public async delete_file(path: string) {
     history.push("explorer.delete_file", { path });
-    path;
+    await window.files.remove(path);
   }
 
-  public delete_dir(path: string) {
+  public async delete_dir(path: string) {
     history.push("explorer.delete_dir", { path });
-    path;
+    await window.files.remove(path);
   }
 
-  public stat(path: string) {
+  public async stat(path: string) {
     history.push("explorer.stat", { path });
-    path;
+    return await window.files.stat(path);
   }
 
   public async get_child_structure(
@@ -46,12 +46,16 @@ export class explorer_actions {
       kind: (node as any).kind ?? (node as any).type,
     });
 
-    const child_structure = await window.explorer.get_child_structure(node);
-    if (!child_structure) return null;
+    const raw = await window.explorer.get_child_structure(node);
+    if (!raw) return null;
+
+    const child_structure: IChildStructure = Array.isArray(raw)
+      ? { id: node.id, child_nodes: raw, path: node.path }
+      : raw;
 
     history.push("explorer.get_child_structure.ok", {
       node_id: node.id,
-      count: child_structure.child_nodes.length ?? 0,
+      count: child_structure.child_nodes?.length ?? 0,
     });
 
     return child_structure;
