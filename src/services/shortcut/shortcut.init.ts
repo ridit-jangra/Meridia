@@ -214,6 +214,12 @@ shortcuts.register_command({
   },
 });
 shortcuts.register_command({
+  id: "editor.close",
+  run: () => {
+    close_active_editor_tab();
+  },
+});
+shortcuts.register_command({
   id: "editor.newFile",
   run: () => {
     open_new_editor_tab();
@@ -332,6 +338,14 @@ shortcuts.register_shortcuts([
     scope: "app",
   },
   {
+    id: "close",
+    label: "Close",
+    category: "Editor",
+    keys: "ctrl+f4",
+    command: "editor.close",
+    scope: "app",
+  },
+  {
     id: "newFile",
     label: "New Tab",
     category: "Editor",
@@ -345,6 +359,22 @@ shortcuts.register_shortcuts([
     category: "App",
     keys: "ctrl+shift+o",
     command: "app.openFolder",
+    scope: "app",
+  },
+  {
+    id: "save",
+    label: "Save",
+    category: "Editor",
+    keys: "ctrl+s",
+    command: "editor.save",
+    scope: "app",
+  },
+  {
+    id: "saveAs",
+    label: "Save As",
+    category: "Editor",
+    keys: "ctrl+shift+s",
+    command: "editor.saveAs",
     scope: "app",
   },
 ]);
