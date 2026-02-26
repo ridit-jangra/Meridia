@@ -3,12 +3,16 @@ import { h } from "../../../core/dom/h";
 import { cn } from "../../../core/utils/cn";
 import { lucide } from "../icon";
 import {
-  renameNode,
-  nameExistsInFolder,
-  findNodeById,
+  rename_node,
+  name_exists_in_folder,
+  find_node_by_id,
 } from "./virtual-tree.helpers";
+import {
+  generate_child_uri,
+  get_parent_uri,
+} from "../../../../shared/uri/generate";
 
-export type RenameNodeOptions = {
+export type rename_node_options = {
   nodeId: string;
   nodes: INode[];
   indent: number;
@@ -21,7 +25,7 @@ export type RenameNodeOptions = {
   icon_folder_name?: string;
 };
 
-export function create_rename_input(opts: RenameNodeOptions): HTMLElement {
+export function create_rename_input(opts: rename_node_options): HTMLElement {
   const {
     nodeId,
     nodes,
@@ -74,26 +78,30 @@ export function create_rename_input(opts: RenameNodeOptions): HTMLElement {
     if (submitted) return;
     submitted = true;
 
-    const newName = input.value.trim();
-    if (!newName || newName === currentName) {
+    const new_name = input.value.trim();
+    if (!new_name || new_name === currentName) {
       onCancel();
       return;
     }
 
-    const result = findNodeById(nodes, nodeId);
+    // Use URI system to derive parent and check for conflicts
+    const parent_uri = get_parent_uri(nodeId);
+    const new_uri = generate_child_uri(parent_uri, new_name);
+
+    const result = find_node_by_id(nodes, nodeId);
     if (result && result.parent) {
-      if (nameExistsInFolder(nodes, result.parent.id, newName)) {
+      if (name_exists_in_folder(nodes, result.parent.id, new_name)) {
         alert(
-          `A ${isFolder ? "folder" : "file"} with the name "${newName}" already exists.`,
+          `A ${isFolder ? "folder" : "file"} with the name "${new_name}" already exists.`,
         );
         onCancel();
         return;
       }
     }
 
-    const success = renameNode(nodes, nodeId, newName);
+    const success = rename_node(nodes, nodeId, new_name);
     if (success) {
-      onComplete(newName);
+      onComplete(new_uri);
     } else {
       onCancel();
     }
@@ -126,8 +134,8 @@ export function create_rename_input(opts: RenameNodeOptions): HTMLElement {
   setTimeout(() => {
     input.focus();
     if (!isFolder && currentName.includes(".")) {
-      const dotIndex = currentName.lastIndexOf(".");
-      input.setSelectionRange(0, dotIndex);
+      const dot_index = currentName.lastIndexOf(".");
+      input.setSelectionRange(0, dot_index);
     } else {
       input.select();
     }

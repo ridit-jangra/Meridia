@@ -1,15 +1,17 @@
 import path from "path";
 import { INode } from "../../shared/types/explorer.types";
+import { generate_uri } from "../../shared/uri/generate";
 import { event_emitter } from "./emitter";
 import { TWatchEvent } from "./types/explorer-service.types";
 
 export function attach_event_listener(e: TWatchEvent) {
   if (e.type === "add") {
+    const normalized_path = generate_uri(e.path);
     const node: INode = {
       child_nodes: [],
-      id: e.path,
+      id: normalized_path,
       name: path.basename(e.path),
-      path: e.path,
+      path: normalized_path,
       type: e.isDir ? "folder" : "file",
     };
     event_emitter.emit(
@@ -21,20 +23,20 @@ export function attach_event_listener(e: TWatchEvent) {
     event_emitter.emit(
       "window.webContents.send",
       "workbench.explorer.remove",
-      e.path,
+      generate_uri(e.path),
     );
   } else if (e.type === "rename") {
     event_emitter.emit(
       "window.webContents.send",
       "workbench.explorer.rename",
-      e.from,
-      e.to,
+      generate_uri(e.from),
+      generate_uri(e.to),
     );
   } else {
     event_emitter.emit(
       "window.webContents.send",
       "workbench.explorer.change",
-      e.path,
+      generate_uri(e.path),
     );
   }
 }
