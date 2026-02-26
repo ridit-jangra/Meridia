@@ -207,19 +207,19 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       } catch {}
     };
 
-    this.monacoEditor.instance.addCommand(
-      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
-      async () => {
+    shortcuts.register_command({
+      id: "editor.save",
+      run: async () => {
         await save_file();
       },
-    );
+    });
 
-    this.monacoEditor.instance.addCommand(
-      monaco.KeyMod.CtrlCmd | monaco.KeyMod.Shift | monaco.KeyCode.KeyS,
-      () => {
-        save_as_file();
+    shortcuts.register_command({
+      id: "editor.saveAs",
+      run: async () => {
+        await save_as_file();
       },
-    );
+    });
   }
 
   public async create_model(file_path: string) {

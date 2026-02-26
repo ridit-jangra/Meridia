@@ -49,12 +49,6 @@ export const titlebar_menu: ITitlebarMenuItem[] = [
       },
       { id: "separator-3", name: "separator" },
       {
-        id: "preferences",
-        name: "Preferences",
-        command: "app.preferences",
-      },
-      { id: "separator-4", name: "separator" },
-      {
         id: "exit",
         name: "Exit",
         command: "app.exit",
