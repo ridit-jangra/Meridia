@@ -273,7 +273,7 @@ export function VirtualTree(opts: {
     class: cn("min-h-0 min-w-0", opts.class),
     overscan: 8,
     cache: false,
-    key: (r) => r.id,
+    key: (r) => `${r.id}:${open.has(r.id)}:${loading.has(r.id)}`,
     render: (row) => {
       if (
         editing_node_id &&
@@ -339,8 +339,10 @@ export function VirtualTree(opts: {
           const span = h("span", {
             class:
               "mr-1 opacity-70 inline-flex items-center [&_svg]:w-4 [&_svg]:h-4",
-            style: `transform: rotate(${isOpen ? "90deg" : "0deg"}); transition: transform 0.15s ease; display: inline-flex; align-items: center;`,
+            style: "display: inline-flex; align-items: center;",
           });
+          span.style.transform = `rotate(${isOpen ? "90deg" : "0deg"})`;
+          span.style.transition = "transform 0.15s ease";
           span.appendChild(
             isLoading ? lucide("loader-circle") : lucide("chevron-right"),
           );

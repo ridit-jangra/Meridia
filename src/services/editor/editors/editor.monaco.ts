@@ -167,7 +167,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
           let next;
 
-          if (!res.cancel) {
+          if (res.cancel) {
             next = tabs.map((tab) =>
               tab.file_path === m.uri ? { ...tab, is_touched: true } : tab,
             );
@@ -183,6 +183,8 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
                 : tab,
             );
           }
+
+          console.log(next);
 
           store.dispatch(update_tabs(next));
         } else {

@@ -1,4 +1,3 @@
-import { IFolderStructure } from "../../../shared/types/explorer.types";
 import { set_folder_structure } from "../state/slices/explorer.slice";
 import { store } from "../state/store";
 import { explorer_actions } from "./explorer.actions";

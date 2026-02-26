@@ -1,5 +1,5 @@
 import { shortcuts } from "../../../services/shortcut/shortcut.service";
-import { CommandGroup } from "../command";
+import { CommandGroup } from "./command";
 
 const to_id = (s: string) => s.toLowerCase().replace(/\s+/g, "-");
 
