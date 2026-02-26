@@ -64,7 +64,6 @@ export function VirtualTree(opts: {
   const loading = new Set<string>();
   const loaded = new Set<string>();
 
-  // Queue of pending folder loads — runs them without blocking each other
   const load_queue = new Map<string, Promise<void>>();
 
   opts.folderStructure = {
@@ -103,13 +102,10 @@ export function VirtualTree(opts: {
   const load_children = (folderNode: INode): Promise<void> => {
     if (loaded.has(folderNode.id)) return Promise.resolve();
 
-    // Return existing promise if already loading — callers share the same promise
     const existing = load_queue.get(folderNode.id);
     if (existing) return existing;
 
     const promise = new Promise<void>((resolve) => {
-      // Use setTimeout to yield to the browser before starting the IPC call
-      // This lets the spinner render before the potential freeze
       setTimeout(async () => {
         try {
           const raw = await window.explorer.get_child_structure(folderNode);
@@ -144,7 +140,7 @@ export function VirtualTree(opts: {
         } finally {
           loading.delete(folderNode.id);
           load_queue.delete(folderNode.id);
-          // Rebuild after load completes
+
           rebuild();
           resolve();
         }
@@ -158,7 +154,7 @@ export function VirtualTree(opts: {
   const handle_folder_click = (row: FlatRow) => {
     const id = row.id;
 
-    if (loading.has(id)) return; // Don't allow toggling while loading
+    if (loading.has(id)) return;
 
     if (open.has(id)) {
       open.delete(id);
@@ -166,13 +162,12 @@ export function VirtualTree(opts: {
       return;
     }
 
-    // Open immediately and rebuild so caret rotates right away
     open.add(id);
 
     if (!loaded.has(id)) {
       loading.add(id);
-      rebuild(); // Renders with open=true (rotated caret) + spinner
-      load_children(row.node); // Fire and forget — rebuild called inside when done
+      rebuild();
+      load_children(row.node);
     } else {
       rebuild();
     }

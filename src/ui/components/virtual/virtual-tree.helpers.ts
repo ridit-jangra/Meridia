@@ -8,6 +8,8 @@ export type FlatRow = {
   isRoot?: boolean;
 };
 
+const norm = (p: string) => p.replace(/\\/g, "/");
+
 export function sortNodes(nodes: INode[]): INode[] {
   return [...nodes].sort((a, b) => {
     const aIsFolder = a.type === "folder";
@@ -174,15 +176,59 @@ export function nameExistsInFolder(
   return children.some((child) => child.name === name);
 }
 
+function find_node_by_path(nodes: INode[], path: string): INode | null {
+  const target = norm(path);
+  for (const node of nodes) {
+    if (norm(node.path) === target) return node;
+    if (node.child_nodes?.length) {
+      const found = find_node_by_path(node.child_nodes, path);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function ensure_parents(nodes: INode[], normalizedPath: string): void {
+  const parts = normalizedPath.split("/").filter(Boolean);
+  parts.pop();
+
+  for (let i = 1; i <= parts.length; i++) {
+    const ancestorPath = parts.slice(0, i).join("/");
+    if (!find_node_by_path(nodes, ancestorPath)) {
+      const folderNode: INode = {
+        id: ancestorPath,
+        name: parts[i - 1],
+        path: ancestorPath,
+        type: "folder",
+        child_nodes: [],
+      };
+
+      const grandParentParts = parts.slice(0, i - 1);
+      if (grandParentParts.length === 0) {
+        nodes.push(folderNode);
+      } else {
+        const grandParentPath = grandParentParts.join("/");
+        add_node_recursive(nodes, grandParentPath, folderNode);
+      }
+    }
+  }
+}
+
 export function add_node(nodes: INode[], newNode: INode): boolean {
+  newNode.path = norm(newNode.path);
+  newNode.id = norm(newNode.id);
+
   const parts = newNode.path.split("/").filter(Boolean);
   parts.pop();
-  const parentPath = parts.length === 0 ? "/" : "/" + parts.join("/");
 
-  if (parentPath === "/") {
+  if (parts.length === 0) {
     nodes.push(newNode);
     return true;
   }
+
+  const parentPath = parts.join("/");
+
+  ensure_parents(nodes, newNode.path);
 
   return add_node_recursive(nodes, parentPath, newNode);
 }
@@ -193,7 +239,7 @@ function add_node_recursive(
   newNode: INode,
 ): boolean {
   for (const node of nodes) {
-    if (node.path === parentPath) {
+    if (norm(node.path) === parentPath) {
       if (node.type !== "folder") return false;
       if (!node.child_nodes) node.child_nodes = [];
       node.child_nodes.push(newNode);
@@ -208,8 +254,9 @@ function add_node_recursive(
 }
 
 export function remove_node_by_path(nodes: INode[], path: string): boolean {
+  const target = norm(path);
   for (let i = 0; i < nodes.length; i++) {
-    if (nodes[i].path === path) {
+    if (norm(nodes[i].path) === target) {
       nodes.splice(i, 1);
       return true;
     }
@@ -225,14 +272,22 @@ export function rename_by_path(
   prevPath: string,
   nextPath: string,
 ): boolean {
+  const normalizedPrev = norm(prevPath);
+  const normalizedNext = norm(nextPath);
+
   for (const node of nodes) {
-    if (node.path === prevPath) {
-      node.name = nextPath.split("/").filter(Boolean).pop() ?? nextPath;
-      node.path = nextPath;
-      node.id = nextPath;
+    if (norm(node.path) === normalizedPrev) {
+      node.name =
+        normalizedNext.split("/").filter(Boolean).pop() ?? normalizedNext;
+      node.path = normalizedNext;
+      node.id = normalizedNext;
 
       if (node.type === "folder" && node.child_nodes) {
-        update_child_paths_by_prefix(node.child_nodes, prevPath, nextPath);
+        update_child_paths_by_prefix(
+          node.child_nodes,
+          normalizedPrev,
+          normalizedNext,
+        );
       }
       return true;
     }
@@ -250,7 +305,8 @@ function update_child_paths_by_prefix(
   newPrefix: string,
 ): void {
   for (const node of nodes) {
-    node.path = newPrefix + node.path.slice(oldPrefix.length);
+    const normalizedPath = norm(node.path);
+    node.path = newPrefix + normalizedPath.slice(oldPrefix.length);
     node.id = node.path;
 
     if (node.type === "folder" && node.child_nodes) {
