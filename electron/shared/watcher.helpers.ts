@@ -3,7 +3,7 @@ import { INode, TWatchEvent } from "../../shared/types/explorer.types";
 import { generate_uri } from "../../shared/uri/generate";
 import { event_emitter } from "./emitter";
 
-export function attach_event_listener(e: TWatchEvent) {
+export function attach_event_emitter(e: TWatchEvent) {
   if (e.type === "add") {
     const normalized_path = generate_uri(e.path);
     const node: INode = {

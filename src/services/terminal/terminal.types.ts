@@ -9,3 +9,9 @@ export interface ITerminalTab {
   active: boolean;
   el: HTMLElement;
 }
+
+export interface IPersistedTerminalTab {
+  id: string;
+  name: string;
+  active: boolean;
+}

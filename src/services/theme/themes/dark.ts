@@ -66,7 +66,7 @@ export const dark: ITheme = {
     "chat.input.background": "#FFFFFF0D",
     "chat.input.foreground": "#E6E6E6EB",
 
-    "terminal.background": "#121212",
+    "terminal.background": "#151515",
     "terminal.foreground": "#E6E6E6EB",
     "terminal.cursor.foreground": "#E6E6E6EB",
 

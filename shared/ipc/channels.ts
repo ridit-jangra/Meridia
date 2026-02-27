@@ -35,3 +35,5 @@ export const NODE_PTY_EXIT = "workbench.pty.exit";
 export const WATCHER_START = "workbench.watcher.start";
 export const WATCHER_STOP = "workbench.watcher.stop";
 export const WATCHER_EVENT = "workbench.watcher.event";
+
+export const SHELL_OPEN_EXTERNAL = "workbench.shell.openExternal";

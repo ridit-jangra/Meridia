@@ -8,23 +8,18 @@ import { storage } from "./storage-service";
 import { dialog } from "electron";
 import path from "path";
 
-function parse_json<T>(value: unknown, fallback: T): T {
-  if (typeof value !== "string" || value.trim() === "") return fallback;
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return fallback;
-  }
-}
-
 class workspace_service {
   private async read_all(): Promise<IWorkspace[]> {
     const raw = await storage.get(WORKSPACES_DATA);
-    return parse_json<IWorkspace[]>(raw, []);
+    if (!raw || !Array.isArray(raw)) return [];
+    return raw as IWorkspace[];
   }
 
   private async write_all(list: IWorkspace[]): Promise<void> {
-    await storage.set(WORKSPACES_DATA, JSON.stringify(list));
+    // Deduplicate by path before writing — last entry wins
+    const seen = new Map<string, IWorkspace>();
+    for (const w of list) seen.set(w.path, w);
+    await storage.set(WORKSPACES_DATA, Array.from(seen.values()));
   }
 
   public async store_workspace(
@@ -32,19 +27,31 @@ class workspace_service {
     data: Partial<IWorkspace>,
   ): Promise<void> {
     const current = await this.read_all();
+    const existing = current.find((w) => w.path === workspace_path);
 
     const normalized: IWorkspace = {
-      name: data.name ?? path.basename(workspace_path),
-      path: data.path ?? workspace_path,
-      editor_tabs: data.editor_tabs ?? [],
+      ...existing,
+      ...data,
+      name: data.name ?? existing?.name ?? path.basename(workspace_path),
+      path: workspace_path,
+      editor_tabs: data.editor_tabs ?? existing?.editor_tabs ?? [],
+      terminal_tabs: data.terminal_tabs ?? existing?.terminal_tabs ?? [],
     };
 
-    const next = [
+    // Deduplicate terminal_tabs by id
+    normalized.terminal_tabs = Array.from(
+      new Map(normalized.terminal_tabs.map((t) => [t.id, t])).values(),
+    );
+
+    // Deduplicate editor_tabs by file_path
+    normalized.editor_tabs = Array.from(
+      new Map(normalized.editor_tabs.map((t) => [t.file_path, t])).values(),
+    );
+
+    await this.write_all([
       ...current.filter((w) => w.path !== workspace_path),
       normalized,
-    ];
-
-    await this.write_all(next);
+    ]);
   }
 
   public async get_workspace(
@@ -55,14 +62,9 @@ class workspace_service {
   }
 
   public async get_current_workspace_path(): Promise<string | null> {
-    const current_workspace_path = (await storage.get(
-      CURRENT_WORKSPACE_PATH,
-    )) as string | undefined;
-
-    if (!current_workspace_path || current_workspace_path.trim() === "")
-      return null;
-
-    return current_workspace_path;
+    const val = await storage.get(CURRENT_WORKSPACE_PATH);
+    if (!val || typeof val !== "string" || val.trim() === "") return null;
+    return val;
   }
 
   public async set_current_workspace_path(folder_path: string): Promise<void> {
@@ -90,16 +92,9 @@ class workspace_service {
     const existing = await this.get_workspace(folder_path);
     if (!existing) return null;
 
-    const updated: IWorkspace = {
-      ...existing,
-      ...updates,
-      path: updates.path ?? existing.path,
-      name: updates.name ?? existing.name,
-      editor_tabs: updates.editor_tabs ?? existing.editor_tabs,
-    };
+    await this.store_workspace(folder_path, { ...existing, ...updates });
 
-    await this.store_workspace(folder_path, updated);
-    return updated;
+    return await this.get_workspace(folder_path);
   }
 }
 
