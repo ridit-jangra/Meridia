@@ -4,7 +4,9 @@ import { panels_registry } from "../../core/registry";
 type ViewFactory = () => HTMLElement;
 
 export function PanelComponent(opts: { id: string }) {
-  const container = h("div", { class: "w-full h-full" });
+  const container = h("div", {
+    class: "w-full h-full bg-panel-background text-panel-foreground",
+  });
 
   const panel = (panels_registry as Record<string, ViewFactory | undefined>)[
     opts.id

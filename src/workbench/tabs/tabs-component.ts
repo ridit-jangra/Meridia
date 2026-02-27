@@ -22,7 +22,8 @@ export function TabsComponent(opts: { node: TTabNode }) {
 
   const header = h("div", { class: "flex items-center gap-2 p-3 shrink-0" });
 
-  const scroll = ScrollArea({ class: "flex-1 min-h-0" });
+  const scroll = ScrollArea({ class: "flex-1 min-h-0 h-full" });
+  scroll.inner.classList.add("h-full");
   const content = scroll.inner;
 
   const get_active = () => store.getState().layout.active_tab_key;

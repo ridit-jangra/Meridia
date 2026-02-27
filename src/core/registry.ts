@@ -5,12 +5,16 @@ import {
   IMonacoEditor,
   IMonacoModel,
 } from "../services/editor/editor.types";
+import { TerminalPanel } from "../ui/components/terminal/terminal-panel";
 import { EditorArea } from "../workbench/editor/editor-area";
 import { Explorer } from "../workbench/explorer/explorer";
 import { h } from "./dom/h";
 
 export const tabs_registry: Record<string, () => HTMLElement> = {
-  terminal: () => h("div", { class: "p-2" }, "Terminal view"),
+  terminal: () => {
+    const el = TerminalPanel();
+    return el.el;
+  },
   problems: () => h("div", { class: "p-2" }, "Problems view"),
 };
 
