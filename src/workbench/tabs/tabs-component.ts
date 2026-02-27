@@ -10,6 +10,7 @@ import { set_active_tab_key } from "../../services/state/slices/layout.slice";
 import { ACTIVE_TAB_KEY } from "../../../shared/storage-keys";
 import type { TTabNode } from "../../services/layouts/presets/preset.types";
 import { tabs_registry } from "../../core/registry";
+import { codicon, lucide } from "../../ui/components/icon";
 
 type ViewFactory = () => HTMLElement;
 
@@ -90,13 +91,14 @@ export function TabsComponent(opts: { node: TTabNode }) {
         "div",
         {
           class: cn(
-            "px-2.5 py-1 text-[13px] rounded-[7px] cursor-pointer select-none",
+            "px-2.5 py-1 text-[13px] rounded-[7px] cursor-pointer select-none flex items-center gap-2",
             is_active
               ? "bg-view-tab-active-background text-view-tab-active-foreground"
               : "bg-view-tab-background text-view-tab-foreground hover:bg-view-tab-hover-background hover:text-view-tab-hover-foreground",
           ),
           on: { click: () => handle_click(tab.id) },
         },
+        tab.icon && (lucide(tab.icon) ?? codicon(tab.icon)),
         tab.label,
       );
 

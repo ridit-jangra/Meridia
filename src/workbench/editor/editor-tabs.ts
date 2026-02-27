@@ -21,7 +21,7 @@ export function EditorTabs() {
     class: "flex items-center shrink-0 border-b border-workbench-border",
   });
 
-  insights_events.on("insight.change.ui", (i: Insight | null) => {});
+  insights_events.on("insight.change.ui", (_: Insight | null) => {});
 
   const scrollArea = ScrollArea({
     dir: "horizontal",
@@ -72,7 +72,7 @@ export function EditorTabs() {
         ),
       },
       h("span", {
-        class: "w-[9px] h-[9px] rounded-full bg-editor-tab-foreground/70",
+        class: "w-[9px] h-[9px] rounded-full bg-editor-tab-icon-foreground",
       }),
     );
 
@@ -82,7 +82,7 @@ export function EditorTabs() {
         attrs: { "data-role": "close-btn" },
         class: cn(
           "absolute inset-0 flex items-center justify-center",
-          "rounded [&_svg]:w-5 [&_svg]:h-5",
+          "rounded [&_svg]:w-5 [&_svg]:h-5 text-editor-tab-close-foreground",
           tab.is_touched ? "opacity-0 group-hover:opacity-100" : "opacity-100",
         ),
         on: {
@@ -223,7 +223,7 @@ export function EditorTabs() {
 
     if (close) {
       close.className = cn(
-        "absolute inset-0 flex items-center justify-center",
+        "absolute inset-0 flex items-center justify-center text-editor-tab-close-foreground",
         "rounded [&_svg]:w-5 [&_svg]:h-5",
         tab.is_touched ? "opacity-0 group-hover:opacity-100" : "opacity-100",
       );

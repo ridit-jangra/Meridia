@@ -107,6 +107,11 @@ body {
   --color-editor-tab-active-foreground: var(--editor-tab-active-foreground);
   --color-editor-tab-hover-foreground: var(--editor-tab-hover-foreground);
   --color-editor-tab-border: var(--editor-tab-border);
+  --color-editor-tab-icon-foreground: var(--editor-tab-icon-foreground);
+  --color-editor-tab-close-foreground: var(--editor-tab-close-foreground);
+  --color-editor-tab-close-hover-foreground: var(
+    --editor-tab-close-hover-foreground
+  );
 
   --color-view-tab-background: var(--view-tab-background);
   --color-view-tab-active-background: var(--view-tab-active-background);
