@@ -190,6 +190,17 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       } catch {}
     };
 
+    monaco.editor.registerLinkOpener({
+      open(resource) {
+        const url = resource.toString();
+        if (url.startsWith("http://") || url.startsWith("https://")) {
+          window.shell.open_external(url);
+          return true;
+        }
+        return false;
+      },
+    });
+
     shortcuts.register_command({
       id: "editor.save",
       run: async () => {
