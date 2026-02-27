@@ -38,7 +38,7 @@ export class editor<
     this.models.splice(idx, 1);
   }
 
-  public update_model_uri(from: string, to: string) {}
+  public update_model_uri(__: string, _: string) {}
 
   public set_model_active(uri: string, _?: boolean) {
     const model = this.models.find((m) => m.uri === uri);

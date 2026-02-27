@@ -59,7 +59,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     this.monacoEditor.instance = monaco.editor.create(this.monacoEditor.el, {
       language: "plaintext",
       theme: "theme",
-      fontFamily: "JetBrains Mono",
+      fontFamily: "JetBrains Mono, monospace",
       selectionHighlight: true,
       renderLineHighlight: "all",
       automaticLayout: true,
