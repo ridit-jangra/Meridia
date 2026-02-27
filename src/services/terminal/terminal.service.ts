@@ -68,7 +68,8 @@ class terminal_service {
 
     const terminal = new Terminal({
       cursorBlink: true,
-      cursorStyle: "block",
+      cursorStyle: "bar",
+      cursorInactiveStyle: "bar",
       fontFamily: "JetBrains Mono",
       fontSize: 15,
 
@@ -155,7 +156,6 @@ class terminal_service {
         },
       }),
     );
-
     const el = document.createElement("div");
     el.className = "terminal-instance-viewport";
     el.style.cssText = "width:100%;height:100%;display:none;";

@@ -38,8 +38,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
   private error_el: HTMLElement | null = null;
   private model_disposers = new Map<string, Disposer[]>();
-  private last_touched_at = new Map<string, number>();
-  private last_saved_at = new Map<string, number>();
 
   constructor() {
     super(_);
@@ -103,44 +101,35 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       const m = this.active_model;
       if (!m) return;
 
-      const now = Date.now();
-      const last = this.last_touched_at.get(m.uri) ?? 0;
-      if (now - last < 100) return;
-      this.last_touched_at.set(m.uri, now);
-
       const tabs = store.getState().editor.tabs;
       const idx = tabs.findIndex((t) => t.file_path === m.uri);
       if (idx === -1) return;
 
       try {
         const res = await window.files.saveAs(m.model.getValue());
-
         if (res.cancel) return;
 
-        const next = tabs.map((tab) =>
-          tab.file_path === m.uri
-            ? {
-                ...tab,
-                is_touched: false,
-                file_path: res.path,
-                name: get_base_name(res.path),
-                tab_status: "EXISTS" as const,
-              }
-            : tab,
+        store.dispatch(
+          update_tabs(
+            tabs.map((tab) =>
+              tab.file_path === m.uri
+                ? {
+                    ...tab,
+                    is_touched: false,
+                    file_path: res.path,
+                    name: get_base_name(res.path),
+                    tab_status: "EXISTS" as const,
+                  }
+                : tab,
+            ),
+          ),
         );
-
-        store.dispatch(update_tabs(next));
       } catch {}
     };
 
     const save_file = async () => {
       const m = this.active_model;
       if (!m) return;
-
-      const now = Date.now();
-      const last = this.last_touched_at.get(m.uri) ?? 0;
-      if (now - last < 100) return;
-      this.last_touched_at.set(m.uri, now);
 
       const tabs = store.getState().editor.tabs;
       const idx = tabs.findIndex((t) => t.file_path === m.uri);
@@ -152,45 +141,40 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
         if (t.tab_status === "NEW") {
           const res = await window.files.saveAs(m.model.getValue());
 
-          let next;
-
-          if (res.cancel) {
-            next = tabs.map((tab) =>
-              tab.file_path === m.uri ? { ...tab, is_touched: true } : tab,
-            );
-          } else {
-            next = tabs.map((tab) =>
-              tab.file_path === m.uri
-                ? {
-                    ...tab,
-                    is_touched: false,
-                    file_path: res.path,
-                    name: get_base_name(res.path),
-                    tab_status: "EXISTS" as const,
-                  }
-                : tab,
-            );
-          }
-
-          store.dispatch(update_tabs(next));
+          store.dispatch(
+            update_tabs(
+              res.cancel
+                ? tabs.map((tab) =>
+                    tab.file_path === m.uri
+                      ? { ...tab, is_touched: true }
+                      : tab,
+                  )
+                : tabs.map((tab) =>
+                    tab.file_path === m.uri
+                      ? {
+                          ...tab,
+                          is_touched: false,
+                          file_path: res.path,
+                          name: get_base_name(res.path),
+                          tab_status: "EXISTS" as const,
+                        }
+                      : tab,
+                  ),
+            ),
+          );
         } else {
           const res = await explorer.actions.create_file(
             m.uri,
             m.model.getValue(),
           );
-          let next;
 
-          if (!res) {
-            next = tabs.map((tab) =>
-              tab.file_path === m.uri ? { ...tab, is_touched: true } : tab,
-            );
-          } else {
-            next = tabs.map((tab) =>
-              tab.file_path === m.uri ? { ...tab, is_touched: false } : tab,
-            );
-          }
-
-          store.dispatch(update_tabs(next));
+          store.dispatch(
+            update_tabs(
+              tabs.map((tab) =>
+                tab.file_path === m.uri ? { ...tab, is_touched: !res } : tab,
+              ),
+            ),
+          );
         }
       } catch {}
     };
@@ -206,28 +190,16 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       },
     });
 
-    shortcuts.register_command({
-      id: "editor.save",
-      run: async () => {
-        await save_file();
-      },
-    });
-
-    shortcuts.register_command({
-      id: "editor.saveAs",
-      run: async () => {
-        await save_as_file();
-      },
-    });
+    shortcuts.register_command({ id: "editor.save", run: save_file });
+    shortcuts.register_command({ id: "editor.saveAs", run: save_as_file });
   }
 
   public async create_model(file_path: string) {
     const uri = monaco.Uri.parse(`file://${file_path}`);
-    let content: string;
 
-    if (await window.files.exists(file_path))
-      content = await explorer.actions.read_file(file_path);
-    else content = "";
+    const content = (await window.files.exists(file_path))
+      ? await explorer.actions.read_file(file_path)
+      : "";
 
     const model = monaco.editor.createModel(
       content,
@@ -279,8 +251,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       for (const d of disposers) d();
       this.model_disposers.delete(old_path);
     }
-    this.last_saved_at.delete(old_path);
-    this.last_touched_at.delete(old_path);
 
     model.model.dispose();
 
@@ -314,35 +284,9 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
     const editor = this.monacoEditor.instance;
 
-    const mark_touched = () => {
-      const now = Date.now();
-      const last = this.last_touched_at.get(m.uri) ?? 0;
-      if (now - last < 100) return;
-      this.last_touched_at.set(m.uri, now);
-
-      const tabs = store.getState().editor.tabs;
-      const idx = tabs.findIndex((t) => t.file_path === m.uri);
-      if (idx === -1) return;
-
-      const t = tabs[idx];
-      if (t.is_touched) return;
-
-      const next = tabs.map((tab) =>
-        tab.file_path === m.uri ? { ...tab, is_touched: true } : tab,
-      );
-
-      store.dispatch(update_tabs(next));
-    };
-
-    const save_state = () => {
-      const active = editor.getModel();
-      if (!active) return;
-      if (active !== m.model) return;
-
-      const now = Date.now();
-      const last = this.last_saved_at.get(m.uri) ?? 0;
-      if (now - last < 100) return;
-      this.last_saved_at.set(m.uri, now);
+    // Save cursor/selection so it can be restored when switching back to this tab
+    const save_cursor = () => {
+      if (editor.getModel() !== m.model) return;
 
       const sel = editor.getSelection();
       if (sel) {
@@ -352,7 +296,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
           endLine: sel.positionLineNumber,
           endCol: sel.positionColumn,
         };
-
         m.cursor_position = {
           line: sel.positionLineNumber,
           col: sel.positionColumn,
@@ -371,14 +314,25 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       }
     };
 
-    const d1 = editor.onDidChangeCursorSelection(() => save_state());
-    const d2 = m.model.onDidChangeContent(() => {
-      save_state();
-      mark_touched();
-    });
+    // Mark tab as touched on first content change
+    const mark_touched = () => {
+      const tabs = store.getState().editor.tabs;
+      const tab = tabs.find((t) => t.file_path === m.uri);
+      if (!tab || tab.is_touched) return;
 
-    const disposers: Disposer[] = [() => d1.dispose(), () => d2.dispose()];
-    this.model_disposers.set(m.uri, disposers);
+      store.dispatch(
+        update_tabs(
+          tabs.map((t) =>
+            t.file_path === m.uri ? { ...t, is_touched: true } : t,
+          ),
+        ),
+      );
+    };
+
+    const d1 = editor.onDidChangeCursorSelection(save_cursor);
+    const d2 = m.model.onDidChangeContent(mark_touched);
+
+    this.model_disposers.set(m.uri, [() => d1.dispose(), () => d2.dispose()]);
   }
 
   public async set_model_active(uri: string, status?: tab_status) {
@@ -387,15 +341,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
     const exists = await window.files.exists(uri);
 
-    if (status === "DELETED") {
-      this.show_error("File not found.", "Create file", async () => {
-        await explorer.actions.create_file(uri, "");
-        update_editor_tab_status(uri, "EXISTS");
-        await this.set_model_active(uri, "EXISTS");
-      });
-      return;
-    }
-    if (!exists && status !== "NEW") {
+    if (status === "DELETED" || (!exists && status !== "NEW")) {
       this.show_error("File not found.", "Create file", async () => {
         await explorer.actions.create_file(uri, "");
         update_editor_tab_status(uri, "EXISTS");
@@ -405,12 +351,8 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     }
 
     let st;
-
-    if (await window.files.exists(uri)) st = await window.files.stat(uri);
-    else if (status === "NEW")
-      st = {
-        isFile: true,
-      };
+    if (exists) st = await window.files.stat(uri);
+    else if (status === "NEW") st = { isFile: true };
     else st = { isFile: false };
 
     if (!st.isFile) {
@@ -445,7 +387,12 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   public update_editor(): void {
     if (!this.active_model) return;
     const model = this.active_model as IMonacoModel;
-    this.monacoEditor.instance.setModel(model.model);
+    const editor = this.monacoEditor.instance;
+
+    // Don't reset the model if it's already active — causes cursor drift
+    if (editor.getModel() === model.model) return;
+
+    editor.setModel(model.model);
   }
 
   private show_error(msg: string, action?: string, actionClick?: () => void) {
@@ -493,21 +440,16 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       for (const d of disposers) d();
       this.model_disposers.delete(uri);
     }
-    this.last_saved_at.delete(uri);
-    this.last_touched_at.delete(uri);
 
     model.dispose();
     this.models.splice(index, 1);
   }
 
   public dispose() {
-    for (const [uri, ds] of this.model_disposers) {
-      for (const d of ds) d();
-      this.last_saved_at.delete(uri);
-      this.last_touched_at.delete(uri);
+    for (const disposers of this.model_disposers.values()) {
+      for (const d of disposers) d();
     }
     this.model_disposers.clear();
-
     this.monacoEditor.instance?.dispose();
   }
 }
