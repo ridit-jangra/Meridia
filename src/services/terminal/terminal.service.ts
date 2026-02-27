@@ -7,14 +7,14 @@ import { ImageAddon } from "@xterm/addon-image";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { SearchAddon } from "@xterm/addon-search";
-import { IPersistedTerminalTab, ITerminalTab } from "./terminal.types";
-import { theme } from "../theme/theme.service";
-import { explorer } from "../explorer/explorer.service";
-import { open_editor_tab } from "../editor/editor.helper";
 import {
   Base64Provider,
   ClipboardProvider,
 } from "./addons/provider-clipboard.addon";
+import { IPersistedTerminalTab, ITerminalTab } from "./terminal.types";
+import { theme } from "../theme/theme.service";
+import { explorer } from "../explorer/explorer.service";
+import { open_editor_tab } from "../editor/editor.helper";
 
 type terminal_service_listener = () => void;
 
