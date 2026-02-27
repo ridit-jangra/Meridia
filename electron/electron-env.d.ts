@@ -40,6 +40,10 @@ type workspace_api = {
   ask_update_workspace(): Promise<void>;
 };
 
+type shell_api = {
+  open_external(url: string): void;
+};
+
 type files_api = {
   exists(p: string): Promise<boolean>;
   saveAs(c: string, p?: string): Promise<{ cancel: boolean; path: string }>;
@@ -70,6 +74,15 @@ type watcher_api = {
   start(p: string): Promise<boolean>;
 };
 
+type pty_api = {
+  create(id: string): Promise<boolean>;
+  write(id: string, data: string): void;
+  resize(id: string, cols: number, rows: number): Promise<boolean>;
+  kill(id: string): Promise<boolean>;
+  on_data(listener: IpcListener): () => void;
+  on_exit(listener: IpcListener): () => void;
+};
+
 declare global {
   interface Window {
     storage: storage_api;
@@ -77,6 +90,8 @@ declare global {
     workspace: workspace_api;
     files: files_api;
     watcher: watcher_api;
+    pty: pty_api;
+    shell: shell_api;
     ipc: {
       on(channel: string, listener: IpcListener): () => void;
       once(channel: string, listener: IpcListener): void;

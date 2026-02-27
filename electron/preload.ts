@@ -34,6 +34,7 @@ import {
   NODE_PTY_KILL,
   NODE_PTY_DATA,
   NODE_PTY_EXIT,
+  SHELL_OPEN_EXTERNAL,
 } from "../shared/ipc/channels";
 
 type Listener = (event: IpcRendererEvent, ...args: any[]) => void;
@@ -143,13 +144,19 @@ contextBridge.exposeInMainWorld("watcher", {
   },
 });
 
+contextBridge.exposeInMainWorld("shell", {
+  open_external: (url: string) => ipcRenderer.invoke(SHELL_OPEN_EXTERNAL, url),
+});
+
 contextBridge.exposeInMainWorld("pty", {
-  create: (opts: any) => ipcRenderer.invoke(NODE_PTY_CREATE, opts),
+  create: (id: string) =>
+    ipcRenderer.invoke(NODE_PTY_CREATE, id) as Promise<boolean>,
   write: (id: string, data: string) =>
-    ipcRenderer.invoke(NODE_PTY_WRITE, id, data),
+    ipcRenderer.send(NODE_PTY_WRITE, id, data),
   resize: (id: string, cols: number, rows: number) =>
-    ipcRenderer.invoke(NODE_PTY_RESIZE, id, cols, rows),
-  kill: (id: string) => ipcRenderer.invoke(NODE_PTY_KILL, id),
+    ipcRenderer.invoke(NODE_PTY_RESIZE, id, cols, rows) as Promise<boolean>,
+  kill: (id: string) =>
+    ipcRenderer.invoke(NODE_PTY_KILL, id) as Promise<boolean>,
   on_data: (listener: Listener) => {
     ipcRenderer.on(NODE_PTY_DATA, listener);
     return () => ipcRenderer.removeListener(NODE_PTY_DATA, listener);

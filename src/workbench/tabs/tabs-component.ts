@@ -31,13 +31,30 @@ export function TabsComponent(opts: { node: TTabNode }) {
   let is_initialized = false;
   const pills = new Map<string, HTMLElement>();
 
+  const panel_cache = new Map<string, HTMLElement>();
+
   const mountPanel = () => {
-    content.innerHTML = "";
     const key = get_active();
-    const panel = (tabs_registry as Record<string, ViewFactory | undefined>)[
+    const active_el = panel_cache.get(key);
+
+    for (const [, panel_el] of panel_cache) {
+      panel_el.style.display = "none";
+    }
+
+    if (active_el) {
+      active_el.style.display = "";
+      return;
+    }
+
+    const factory = (tabs_registry as Record<string, ViewFactory | undefined>)[
       key
     ];
-    if (panel) content.appendChild(panel());
+    if (!factory) return;
+
+    const new_el = factory();
+    new_el.style.height = "100%";
+    panel_cache.set(key, new_el);
+    content.appendChild(new_el);
   };
 
   const updatePills = () => {
@@ -152,6 +169,11 @@ export function TabsComponent(opts: { node: TTabNode }) {
     el,
     destroy() {
       unsub();
+
+      for (const [, panel_el] of panel_cache) {
+        (panel_el as any).destroy?.();
+      }
+      panel_cache.clear();
       el.remove();
     },
   };

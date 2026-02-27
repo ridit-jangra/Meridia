@@ -4,25 +4,77 @@ import { cn } from "../../../core/utils/cn";
 import { lucide } from "../icon";
 import { terminal } from "../../../services/terminal/terminal.service";
 import { ITerminalTab } from "../../../services/terminal/terminal.types";
+import { ScrollArea } from "../scroll-area";
+import { IWorkspace } from "../../../../shared/types/workspace.types";
 
 export function TerminalPanel(opts?: { class?: string }) {
   let unsub: (() => void) | null = null;
   let resizeObserver: ResizeObserver | null = null;
+  let is_initializing = true;
 
-  const tabBar = h("div", {
+  let saving = false;
+  let queued_save: ReturnType<typeof terminal.serialize_tabs> | null = null;
+
+  const save_tabs_to_workspace = async (
+    tabs: ReturnType<typeof terminal.serialize_tabs>,
+  ) => {
+    if (saving) {
+      queued_save = tabs;
+      return;
+    }
+
+    saving = true;
+
+    try {
+      const current_workspace_path =
+        await window.workspace.get_current_workspace_path();
+      if (!current_workspace_path) return;
+
+      const current_workspace = await window.workspace.get_workspace(
+        current_workspace_path,
+      );
+      if (!current_workspace) return;
+
+      const updates: Partial<IWorkspace> = { terminal_tabs: tabs };
+      await window.workspace.update_workspace(current_workspace_path, updates);
+    } finally {
+      saving = false;
+
+      if (queued_save) {
+        const next = queued_save;
+        queued_save = null;
+        await save_tabs_to_workspace(next);
+      }
+    }
+  };
+
+  let save_timer: ReturnType<typeof setTimeout> | null = null;
+  const schedule_save = () => {
+    if (is_initializing) return;
+    if (save_timer) clearTimeout(save_timer);
+    save_timer = setTimeout(() => {
+      save_timer = null;
+      void save_tabs_to_workspace(terminal.serialize_tabs());
+    }, 1000);
+  };
+
+  const scrollArea = ScrollArea({
     class: cn(
-      "flex items-center gap-0.5 px-1 shrink-0",
-      "h-8 overflow-x-auto scrollbar-hide",
-      "border-b border-workbench-border",
+      "shrink-0 w-8",
+      "border-l border-workbench-border",
       "bg-editor-tab-background",
     ),
+    innerClass: "flex flex-col items-stretch gap-0.5 py-1 px-0.5",
+    dir: "vertical",
   });
+
+  const tabBar = scrollArea.inner;
 
   const addBtn = h(
     "button",
     {
       class: cn(
-        "ml-1 shrink-0 flex items-center justify-center",
+        "mt-1 mx-auto shrink-0 flex items-center justify-center",
         "h-6 w-6 rounded-[5px] cursor-pointer",
         "text-foreground/50 hover:text-foreground hover:bg-button-secondary-hover-background/40",
         "transition-colors",
@@ -32,10 +84,11 @@ export function TerminalPanel(opts?: { class?: string }) {
     lucide("plus", 14),
   );
 
-  addBtn.addEventListener("click", () => {
-    const tab = terminal.create_tab();
+  addBtn.addEventListener("click", async () => {
+    const tab = await terminal.create_tab();
     mountTab(tab);
     renderTabs();
+    schedule_save();
   });
 
   tabBar.appendChild(addBtn);
@@ -46,17 +99,19 @@ export function TerminalPanel(opts?: { class?: string }) {
 
   const root = h("div", {
     class: cn(
-      "flex flex-col h-full min-h-0 min-w-0",
-      "bg-[var(--terminal-background,#0d0d0d)]",
-      "text-[var(--terminal-foreground,#e0e0e0)]",
+      "flex flex-row h-full min-h-0 min-w-0",
+      "bg-terminal-background",
+      "text-terminal-foreground",
       opts?.class,
     ),
   });
 
-  root.appendChild(tabBar);
   root.appendChild(viewport);
+  root.appendChild(scrollArea.inner);
 
   const mountTab = (tab: ITerminalTab) => {
+    if (viewport.contains(tab.el)) return;
+
     tab.el.style.cssText =
       "position:absolute;inset:0;display:none;padding:4px 4px 0 4px;";
     viewport.appendChild(tab.el);
@@ -85,14 +140,15 @@ export function TerminalPanel(opts?: { class?: string }) {
         "span",
         {
           class: cn(
-            "flex items-center justify-center ml-1 rounded-[3px]",
+            "absolute top-0.5 right-0.5",
+            "flex items-center justify-center rounded-[3px]",
             "opacity-0 group-hover:opacity-60 hover:!opacity-100",
             "hover:bg-button-secondary-hover-background/60",
-            "transition-opacity w-4 h-4 shrink-0",
+            "transition-opacity w-3 h-3 shrink-0",
           ),
           attrs: { title: "Close terminal" },
         },
-        lucide("x", 11),
+        lucide("x", 9),
       );
 
       closeBtn.addEventListener("mousedown", (e) => {
@@ -100,22 +156,43 @@ export function TerminalPanel(opts?: { class?: string }) {
         e.stopPropagation();
         terminal.close_tab(tab.id);
         renderTabs();
+        schedule_save();
       });
+
+      const label = h(
+        "span",
+        {
+          class: cn(
+            "text-[10px] truncate leading-none",
+            "rotate-90 origin-center whitespace-nowrap",
+            "max-w-[56px]",
+          ),
+        },
+        tab.name,
+      );
 
       const pill = h(
         "div",
         {
           class: cn(
-            "group flex items-center gap-1 px-2 h-6 shrink-0 max-w-[180px]",
-            "text-[12px] rounded-[5px] cursor-pointer select-none",
+            "group relative flex flex-col items-center justify-center gap-1",
+            "py-2 w-full min-h-[52px] shrink-0",
+            "text-[12px] cursor-pointer select-none",
             "transition-colors",
             isActive
-              ? "bg-button-secondary-hover-background/60 text-foreground"
-              : "text-foreground/50 hover:text-foreground/80 hover:bg-button-secondary-hover-background/30",
+              ? cn(
+                  "bg-button-secondary-hover-background/60 text-foreground",
+                  "border-r-2 border-r-foreground/70 border-l-2 border-l-transparent",
+                )
+              : cn(
+                  "text-foreground/50 hover:text-foreground/80",
+                  "hover:bg-button-secondary-hover-background/30",
+                  "border-r-2 border-r-transparent border-l-2 border-l-transparent",
+                ),
           ),
         },
         lucide("terminal", 12),
-        h("span", { class: "truncate max-w-[100px]" }, tab.name),
+        label,
         closeBtn,
       );
 
@@ -125,32 +202,12 @@ export function TerminalPanel(opts?: { class?: string }) {
         e.preventDefault();
         terminal.set_active(tab.id);
         renderTabs();
+        schedule_save();
       });
 
       tabBar.insertBefore(pill, addBtn);
     });
-
-    emptyState.style.display = tabs.length === 0 ? "flex" : "none";
   };
-
-  const emptyState = h(
-    "div",
-    {
-      class: cn(
-        "absolute inset-0 flex flex-col items-center justify-center gap-3",
-        "text-foreground/30 select-none pointer-events-none",
-      ),
-    },
-    lucide("terminal", 28),
-    h("span", { class: "text-[13px]" }, "No terminals open"),
-    h(
-      "span",
-      { class: "text-[11px] opacity-60" },
-      "Click + to open a new terminal",
-    ),
-  );
-
-  viewport.appendChild(emptyState);
 
   resizeObserver = new ResizeObserver(() => {
     terminal.fit_active();
@@ -162,13 +219,57 @@ export function TerminalPanel(opts?: { class?: string }) {
     renderTabs();
   });
 
-  terminal.get_tabs().forEach((tab) => mountTab(tab));
-  renderTabs();
+  const init = async () => {
+    try {
+      if (terminal.get_tabs().length > 0) {
+        terminal.get_tabs().forEach((tab) => mountTab(tab));
+        renderTabs();
+        return;
+      }
 
-  const new_terminal = () => {
-    const tab = terminal.create_tab();
+      const current_workspace_path =
+        await window.workspace.get_current_workspace_path();
+
+      if (current_workspace_path) {
+        const current_workspace = await window.workspace.get_workspace(
+          current_workspace_path,
+        );
+
+        const persisted = current_workspace?.terminal_tabs;
+
+        if (persisted && persisted.length > 0) {
+          for (const saved of persisted) {
+            const tab = await terminal.create_tab(saved.name);
+            mountTab(tab);
+          }
+
+          const active_saved = persisted.find((t) => t.active);
+          const active_tab = terminal
+            .get_tabs()
+            .find((t) => t.name === active_saved?.name);
+          if (active_tab) {
+            terminal.set_active(active_tab.id);
+          }
+
+          renderTabs();
+          return;
+        }
+      }
+
+      terminal.get_tabs().forEach((tab) => mountTab(tab));
+      renderTabs();
+    } finally {
+      is_initializing = false;
+    }
+  };
+
+  void init();
+
+  const new_terminal = async () => {
+    const tab = await terminal.create_tab();
     mountTab(tab);
     renderTabs();
+    schedule_save();
     return tab;
   };
 
@@ -178,6 +279,8 @@ export function TerminalPanel(opts?: { class?: string }) {
     destroy() {
       unsub?.();
       resizeObserver?.disconnect();
+      scrollArea.destroy();
+      if (save_timer) clearTimeout(save_timer);
       root.remove();
     },
   };

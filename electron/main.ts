@@ -3,9 +3,11 @@ import { app, BrowserWindow } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import "./ipc/storage-ipc";
+import "./ipc/shell-ipc";
 import "./ipc/explorer-ipc";
 import "./ipc/workspace-ipc";
 import "./ipc/watcher-ipc";
+import "./ipc/terminal-ipc";
 import "./ipc/files-ipc";
 import { event_emitter } from "./shared/emitter";
 
