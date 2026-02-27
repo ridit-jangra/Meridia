@@ -20,6 +20,7 @@ import {
   open_new_editor_tab,
 } from "../editor/editor.helper";
 import { terminal } from "../terminal/terminal.service";
+import { terminal_events } from "../../events/terminal.events";
 
 shortcuts.register_command({
   id: "layout.toggleSearch",
@@ -241,6 +242,12 @@ shortcuts.register_command({
   id: "app.openSettings",
   run: () => {},
 });
+shortcuts.register_command({
+  id: "terminal.new",
+  run: () => {
+    terminal_events.emit("newTab");
+  },
+});
 
 shortcuts.register_shortcuts([
   {
@@ -401,6 +408,14 @@ shortcuts.register_shortcuts([
     category: "App",
     keys: "ctrl+,",
     command: "app.openSettings",
+    scope: "app",
+  },
+  {
+    id: "newTerminal",
+    label: "New Terminal",
+    category: "Terminal",
+    keys: "ctrl+alt+t",
+    command: "terminal.new",
     scope: "app",
   },
 ]);

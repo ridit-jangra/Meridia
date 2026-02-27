@@ -25,6 +25,7 @@ export function EditorArea() {
 
   let is_initialized = false;
   let last_active_path = "";
+  let last_active_status = "";
   let saving = false;
   let queued_tabs: any = null;
 
@@ -37,7 +38,11 @@ export function EditorArea() {
       return;
     }
 
-    if (key.file_path === last_active_path) return;
+    if (
+      key.file_path === last_active_path &&
+      key.tab_status === last_active_status
+    )
+      return;
     last_active_path = key.file_path;
 
     const extension = get_file_extension(key.file_path);
@@ -50,13 +55,13 @@ export function EditorArea() {
     const existing_model = editor.get_model(key.file_path);
 
     if (existing_model) {
-      editor.set_model_active(key.file_path, key.tab_status === "NEW");
+      editor.set_model_active(key.file_path, key.tab_status);
       return;
     }
 
     const model = await editor.create_model(key.file_path);
     editor.add_model(model);
-    editor.set_model_active(key.file_path, key.tab_status === "NEW");
+    editor.set_model_active(key.file_path, key.tab_status);
   };
 
   const save_tabs_to_workspace = async (tabs: any) => {

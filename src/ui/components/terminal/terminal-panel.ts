@@ -6,6 +6,7 @@ import { terminal } from "../../../services/terminal/terminal.service";
 import { ITerminalTab } from "../../../services/terminal/terminal.types";
 import { ScrollArea } from "../scroll-area";
 import { IWorkspace } from "../../../../shared/types/workspace.types";
+import { terminal_events } from "../../../events/terminal.events";
 
 export function TerminalPanel(opts?: { class?: string }) {
   let unsub: (() => void) | null = null;
@@ -80,11 +81,19 @@ export function TerminalPanel(opts?: { class?: string }) {
     lucide("plus", 14),
   );
 
-  addBtn.addEventListener("click", async () => {
+  const add = async () => {
     const tab = await terminal.create_tab();
     mountTab(tab);
     renderTabs();
     schedule_save();
+  };
+
+  addBtn.addEventListener("click", async () => {
+    await add();
+  });
+
+  terminal_events.on("newTab", async () => {
+    await add();
   });
 
   tabBar.appendChild(addBtn);

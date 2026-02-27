@@ -1,12 +1,13 @@
 import "../editor.monaco.theme";
 import { Button, h } from "../../../ui";
 import { editor } from "../editor";
-import { IMonacoEditor, IMonacoModel } from "../editor.types";
+import { IMonacoEditor, IMonacoModel, tab_status } from "../editor.types";
 import {
   build_monaco_shortcuts,
   monaco,
   path_to_language,
   update_editor_tab,
+  update_editor_tab_status,
 } from "../editor.helper";
 import { shortcuts } from "../../shortcut/shortcut.service";
 import { store } from "../../state/store";
@@ -380,20 +381,33 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     this.model_disposers.set(m.uri, disposers);
   }
 
-  public async set_model_active(uri: string, new_file?: boolean) {
+  public async set_model_active(uri: string, status?: tab_status) {
     const model = this.models.find((m) => m.uri === uri) as IMonacoModel;
     if (!model) return;
 
     const exists = await window.files.exists(uri);
-    if (!exists && !new_file) {
-      this.show_error("File not found.", "Create file");
+
+    if (status === "DELETED") {
+      this.show_error("File not found.", "Create file", async () => {
+        await explorer.actions.create_file(uri, "");
+        update_editor_tab_status(uri, "EXISTS");
+        await this.set_model_active(uri, "EXISTS");
+      });
+      return;
+    }
+    if (!exists && status !== "NEW") {
+      this.show_error("File not found.", "Create file", async () => {
+        await explorer.actions.create_file(uri, "");
+        update_editor_tab_status(uri, "EXISTS");
+        await this.set_model_active(uri, "EXISTS");
+      });
       return;
     }
 
     let st;
 
     if (await window.files.exists(uri)) st = await window.files.stat(uri);
-    else if (new_file)
+    else if (status === "NEW")
       st = {
         isFile: true,
       };
@@ -434,34 +448,27 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     this.monacoEditor.instance.setModel(model.model);
   }
 
-  private show_error(msg: string, action?: string) {
+  private show_error(msg: string, action?: string, actionClick?: () => void) {
     this.set_visible(false);
 
-    if (!this.error_el) {
-      const wrap = h(
+    const wrap = h(
+      "div",
+      {
+        class:
+          "h-full w-full flex items-center justify-center select-none px-6",
+      },
+      h(
         "div",
         {
-          class:
-            "h-full w-full flex items-center justify-center select-none px-6",
+          class: "flex flex-col items-center gap-2 text-center max-w-[520px]",
         },
-        h(
-          "div",
-          {
-            class: "flex flex-col items-center gap-2 text-center max-w-[520px]",
-          },
-          h("div", { class: "text-[48px] leading-none opacity-80" }, "✕"),
-          h("div", { class: "text-[14px] opacity-80" }, msg),
-          action && Button(action, { variant: "default" }),
-        ),
-      );
+        h("div", { class: "text-[48px] leading-none opacity-80" }, "✕"),
+        h("div", { class: "text-[14px] opacity-80" }, msg),
+        action && Button(action, { variant: "default", onClick: actionClick }),
+      ),
+    );
 
-      this.error_el = wrap;
-    } else {
-      const msgEl = this.error_el.querySelector(
-        "div div:last-child",
-      ) as HTMLElement | null;
-      if (msgEl) msgEl.textContent = msg;
-    }
+    this.error_el = wrap;
 
     if (this.monacoEditor.parent_el && !this.error_el.parentElement) {
       this.monacoEditor.parent_el.appendChild(this.error_el);
