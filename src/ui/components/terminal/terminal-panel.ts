@@ -68,18 +68,7 @@ export function TerminalPanel(opts?: { class?: string }) {
 
   const tabBar = scrollArea.inner;
 
-  const addBtn = h(
-    "button",
-    {
-      class: cn(
-        "mt-1 mx-auto shrink-0 flex items-center justify-center",
-        "h-6 w-6 rounded-[5px] cursor-pointer",
-        "text-foreground/50 hover:text-foreground hover:bg-button-secondary-hover-background/40",
-      ),
-      attrs: { type: "button" },
-    },
-    lucide("plus", 14),
-  );
+  const addBtn = h("button", {});
 
   const add = async () => {
     const tab = await terminal.create_tab();
@@ -147,11 +136,10 @@ export function TerminalPanel(opts?: { class?: string }) {
         "span",
         {
           class: cn(
-            "absolute top-0.5 right-0.5 close",
+            "absolute top-1 right-4 [&_svg]:w-5 [&_svg]:h-5 close",
             "flex items-center justify-center rounded-[3px]",
             "opacity-0 group-hover:opacity-60 hover:!opacity-100",
             "hover:bg-button-secondary-hover-background/60",
-            "transition-opacity w-3 h-3 shrink-0",
           ),
         },
         lucide("x", 9),
@@ -170,7 +158,7 @@ export function TerminalPanel(opts?: { class?: string }) {
         {
           class: cn(
             "text-[10px] truncate leading-none",
-            "origin-center whitespace-nowrap",
+            "origin-center whitespace-nowrap truncate flex items-center gap-1 text-[12px] min-w-0",
           ),
         },
         lucide("terminal"),
@@ -180,7 +168,7 @@ export function TerminalPanel(opts?: { class?: string }) {
         "div",
         {
           class: cn(
-            "group relative flex flex-col items-center justify-center gap-1",
+            "group relative flex items-center justify-center gap-1",
             "w-full py-1.5 shrink-0",
             "text-[12px] cursor-pointer select-none",
             isActive
