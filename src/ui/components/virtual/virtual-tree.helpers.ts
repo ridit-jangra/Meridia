@@ -260,7 +260,12 @@ export function add_node(
     return true;
   }
 
-  const parent_path = join_path(drive, parts);
+  const parent_path = norm(join_path(drive, parts));
+
+  if (workspace_path && uris_equal(parent_path, norm(workspace_path))) {
+    nodes.push(new_node);
+    return true;
+  }
 
   ensure_parents(
     nodes,
@@ -277,6 +282,13 @@ function add_node_recursive(
   new_node: INode,
 ): boolean {
   for (const node of nodes) {
+    console.log(
+      "[add_node_recursive] comparing",
+      node.path,
+      "vs",
+      parent_path,
+      uris_equal(node.path, parent_path),
+    );
     if (uris_equal(node.path, parent_path)) {
       if (node.type !== "folder") return false;
       if (!node.child_nodes) node.child_nodes = [];
