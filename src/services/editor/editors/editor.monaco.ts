@@ -60,6 +60,8 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       language: "plaintext",
       theme: "theme",
       fontFamily: "JetBrains Mono",
+      selectionHighlight: true,
+      renderLineHighlight: "all",
       automaticLayout: true,
       minimap: { enabled: false },
       fontSize: 15,
