@@ -26,7 +26,7 @@ export function ActivityBarPanelComponent(opts: {
 
   const top = h("div", {
     class: cn(
-      "flex items-center justify-center gap-1.5 p-2 shrink-0",
+      "flex items-center justify-center gap-1.5 p-2 shrink-0 mb-2",
       "[&_.activity-label]:inline",
       "[&_.activity-label]:whitespace-nowrap",
       "[&_.activity-label]:truncate",
