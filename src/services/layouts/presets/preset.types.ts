@@ -14,12 +14,13 @@ export type TTab = {
   id: string;
   label: string;
   shortcut_id?: string;
+  icon?: string;
 };
 
 export type TSplitNode = {
   type: "split";
   dir: "row" | "col";
-  sizes: number[]; // one entry per child, should sum to 100
+  sizes: number[];
   children: TLayoutNode[];
 };
 
@@ -36,6 +37,7 @@ export type TActivityBarPanelNode = {
   panels: {
     id: string;
     icon: string;
+    label: string;
     tooltip?: string;
     shortcut_id?: string;
   }[];

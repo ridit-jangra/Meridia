@@ -237,6 +237,10 @@ shortcuts.register_command({
   id: "app.closeFolder",
   run: () => {},
 });
+shortcuts.register_command({
+  id: "app.openSettings",
+  run: () => {},
+});
 
 shortcuts.register_shortcuts([
   {
@@ -389,6 +393,14 @@ shortcuts.register_shortcuts([
     category: "Editor",
     keys: "ctrl+m",
     command: "app.closeFolder",
+    scope: "app",
+  },
+  {
+    id: "openSettings",
+    label: "Open Settings",
+    category: "App",
+    keys: "ctrl+,",
+    command: "app.openSettings",
     scope: "app",
   },
 ]);

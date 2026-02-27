@@ -89,7 +89,27 @@ class terminal_service {
       theme: {
         background: theme.get_color("terminal.background"),
         foreground: theme.get_color("terminal.foreground"),
-        cursor: theme.get_color("terminal.foreground"),
+        cursor: theme.get_color("terminal.cursor.foreground"),
+        cursorAccent: theme.get_color("terminal.background"),
+        selectionBackground: theme.get_color("terminal.selection.background"),
+
+        black: theme.get_color("terminal.black"),
+        red: theme.get_color("terminal.red"),
+        green: theme.get_color("terminal.green"),
+        yellow: theme.get_color("terminal.yellow"),
+        blue: theme.get_color("terminal.blue"),
+        magenta: theme.get_color("terminal.magenta"),
+        cyan: theme.get_color("terminal.cyan"),
+        white: theme.get_color("terminal.white"),
+
+        brightBlack: theme.get_color("terminal.bright.black"),
+        brightRed: theme.get_color("terminal.bright.red"),
+        brightGreen: theme.get_color("terminal.bright.green"),
+        brightYellow: theme.get_color("terminal.bright.yellow"),
+        brightBlue: theme.get_color("terminal.bright.blue"),
+        brightMagenta: theme.get_color("terminal.bright.magenta"),
+        brightCyan: theme.get_color("terminal.bright.cyan"),
+        brightWhite: theme.get_color("terminal.bright.white"),
       },
     });
 

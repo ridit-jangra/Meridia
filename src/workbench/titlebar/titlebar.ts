@@ -2,9 +2,7 @@ import LogoSvg from "../../assets/images/logo.svg?raw";
 import { h } from "../../core/dom/h";
 import { cn } from "../../core/utils/cn";
 import { shortcuts } from "../../services/shortcut/shortcut.service";
-import { set_command_palette_open } from "../../services/state/slices/layout.slice";
-import { store } from "../../services/state/store";
-import { Popover, Tooltip } from "../../ui";
+import { Tooltip } from "../../ui";
 import { codicon, lucide } from "../../ui/components/icon";
 import { Menubar } from "../../ui/components/menubar";
 import { titlebar_menu } from "./titlebar.menu";
@@ -26,29 +24,6 @@ export function Titlebar() {
       { class: "flex items-center min-w-0" },
       ...(menus ? [Menubar({ menus }).el] : []),
     ),
-  );
-
-  const status_item = h(
-    "span",
-    {
-      class:
-        "text-sm text-titlebar-foreground hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 px-2 rounded-md no-drag",
-      on: {
-        click: () => {
-          store.dispatch(set_command_palette_open(true));
-        },
-      },
-    },
-    "MeridiaV2",
-  );
-
-  const center = h(
-    "div",
-    {
-      class:
-        "flex-1 flex items-center justify-center min-w-0 w-min px-2 drag-region",
-    },
-    status_item,
   );
 
   const layout_btn = h(
@@ -137,14 +112,6 @@ export function Titlebar() {
   const content = h("div");
   content.textContent = "Hello popover";
 
-  Popover(layout_btn, content, {
-    trigger: "click",
-    placement: "bottom",
-    align: "start",
-    closeOnOutsideClick: true,
-    closeOnEsc: true,
-  });
-
   Tooltip({
     text: `New Custom Agent`,
     child: new_custom_agent,
@@ -166,13 +133,8 @@ export function Titlebar() {
   });
 
   Tooltip({
-    text: `Change Layout`,
+    text: `Settings (${shortcuts.get_shortcut({ id: "openSettings" })?.keys})`,
     child: layout_btn,
-  });
-
-  Tooltip({
-    text: `Open Command Palette (${shortcuts.get_shortcut({ id: "commandPalette" })?.keys})`,
-    child: status_item,
   });
 
   const el = h(
@@ -185,7 +147,6 @@ export function Titlebar() {
       ),
     },
     left,
-    center,
     right,
   );
 

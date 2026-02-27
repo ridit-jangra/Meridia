@@ -25,7 +25,15 @@ export function ActivityBarPanelComponent(opts: {
   });
 
   const top = h("div", {
-    class: "flex items-center justify-center gap-1.5 p-2 shrink-0",
+    class: cn(
+      "flex items-center justify-center gap-1.5 p-2 shrink-0",
+      "[&_.activity-label]:inline",
+      "[&_.activity-label]:whitespace-nowrap",
+      "[&_.activity-label]:truncate",
+      "[&_.activity-label]:max-w-[120px]",
+      "[&_.activity-icon_svg]:w-5 [&_.activity-icon_svg]:h-5",
+      "[&.compact_._activity-label]:hidden",
+    ),
   });
 
   const scroll = ScrollArea({ class: "flex-1 min-h-0 h-full" });
@@ -36,7 +44,6 @@ export function ActivityBarPanelComponent(opts: {
 
   let is_initialized = false;
   const btns = new Map<string, HTMLElement>();
-
   const panelCache = new Map<string, HTMLElement>();
 
   const updateButtons = () => {
@@ -74,7 +81,7 @@ export function ActivityBarPanelComponent(opts: {
 
       const btn = h("div", {
         class: cn(
-          "p-[6px] rounded-[7px] cursor-pointer flex items-center justify-center transition-colors",
+          "p-[6px] rounded-[7px] cursor-pointer flex items-center justify-center transition-colors min-w-0",
           is_active
             ? "bg-explorer-item-active-background/80"
             : "hover:bg-explorer-item-hover-background hover:text-explorer-item-hover-foreground text-explorer-icon-foreground",
@@ -85,8 +92,13 @@ export function ActivityBarPanelComponent(opts: {
       btn.appendChild(
         h(
           "span",
-          { class: cn("[&_svg]:w-5 [&_svg]:h-5 leading-none") },
-          lucide(panel.icon),
+          { class: cn("flex items-center gap-2 min-w-0") },
+          h(
+            "span",
+            { class: "activity-icon flex items-center" },
+            lucide(panel.icon),
+          ),
+          h("span", { class: "activity-label" }, panel.label),
         ),
       );
 
@@ -122,11 +134,7 @@ export function ActivityBarPanelComponent(opts: {
     }
 
     for (const [panelId, el] of panelCache.entries()) {
-      if (panelId === active) {
-        el.style.display = "";
-      } else {
-        el.style.display = "none";
-      }
+      el.style.display = panelId === active ? "" : "none";
     }
   };
 
@@ -157,11 +165,19 @@ export function ActivityBarPanelComponent(opts: {
     store.dispatch(set_active_panel_key({ key: opts.id, value: panelId }));
   };
 
+  const applyCompact = () => {
+    const w = top.getBoundingClientRect().width;
+    top.classList.toggle("compact", w < 260);
+  };
+
+  const ro = new ResizeObserver(() => applyCompact());
+
   const init = async () => {
     const saved = (await window.storage.get(ACTIVE_PANEL_KEY)) as Record<
       string,
       string
     > | null;
+
     if (saved) {
       for (const [key, value] of Object.entries(saved)) {
         store.dispatch(set_active_panel_key({ key, value }));
@@ -170,6 +186,8 @@ export function ActivityBarPanelComponent(opts: {
 
     is_initialized = true;
     render();
+    applyCompact();
+    ro.observe(top);
   };
 
   const unsub = store.subscribe(() => {
@@ -180,6 +198,7 @@ export function ActivityBarPanelComponent(opts: {
     }
 
     render();
+    applyCompact();
   });
 
   renderButtons();
@@ -191,6 +210,7 @@ export function ActivityBarPanelComponent(opts: {
   return {
     el,
     destroy() {
+      ro.disconnect();
       unsub();
 
       for (const [_, panelEl] of panelCache.entries()) {

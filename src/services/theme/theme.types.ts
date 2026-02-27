@@ -30,6 +30,7 @@ export const colors = [
   "editor.tab.hover.foreground",
   "editor.tab.border",
   "editor.tab.close.foreground",
+  "editor.tab.icon.foreground",
   "editor.tab.close.hover.background",
 
   "view.tab.background",
@@ -71,6 +72,25 @@ export const colors = [
   "terminal.background",
   "terminal.foreground",
   "terminal.cursor.foreground",
+  "terminal.selection.background",
+
+  "terminal.black",
+  "terminal.red",
+  "terminal.green",
+  "terminal.yellow",
+  "terminal.blue",
+  "terminal.magenta",
+  "terminal.cyan",
+  "terminal.white",
+
+  "terminal.bright.black",
+  "terminal.bright.red",
+  "terminal.bright.green",
+  "terminal.bright.yellow",
+  "terminal.bright.blue",
+  "terminal.bright.magenta",
+  "terminal.bright.cyan",
+  "terminal.bright.white",
 
   "input.background",
   "input.foreground",
