@@ -7,7 +7,7 @@ import {
 import { ITab } from "../../services/editor/editor.types";
 import { get_file_icon } from "../../services/explorer/explorer.helper";
 import { store } from "../../services/state/store";
-import { cn, ContextMenu, h, Tooltip, ScrollArea, Button } from "../../ui";
+import { cn, ContextMenu, h, Tooltip, ScrollArea } from "../../ui";
 import { lucide } from "../../ui/components/icon";
 import { TabSwitcher } from "../../ui/components/tab-switcher";
 import { history } from "../../services/history/history.service";
@@ -18,100 +18,14 @@ import { explorer_events } from "../../events/explorer.events";
 
 export function EditorTabs() {
   const header = h("div", {
-    class: "flex items-center shrink-0",
+    class: "flex items-center shrink-0 border-b border-workbench-border",
   });
 
-  const insights = h("div", {
-    class: cn(
-      "hidden",
-      "h-[38px] px-3",
-      "flex items-center justify-between",
-      "bg-insights-background text-insights-foreground",
-      "border-b border-b-editor-tab-border",
-      "select-none",
-    ),
-  });
-
-  const insights_left = h("div", {
-    class: "flex items-center gap-2 min-w-0",
-  });
-
-  const insights_dot = h("span", {
-    class: "w-1.5 h-1.5 rounded-full bg-insights-foreground/50 shrink-0",
-  });
-
-  const insights_label = h("span", {
-    class: "text-[13px] opacity-70 shrink-0",
-  });
-
-  const insights_msg = h("span", {
-    class: "text-[13px] truncate min-w-0",
-  });
-
-  insights_left.appendChild(insights_dot);
-  insights_left.appendChild(insights_label);
-  insights_left.appendChild(insights_msg);
-
-  const insights_right = h("div", {
-    class: "flex items-center gap-1 shrink-0",
-  });
-
-  const btn_generate = Button("Generate", {
-    size: "sm",
-  });
-  const btn_dismiss = Button("Dismiss", { variant: "ghost", size: "sm" });
-
-  insights_right.appendChild(btn_generate);
-  insights_right.appendChild(btn_dismiss);
-
-  insights.appendChild(insights_left);
-  insights.appendChild(insights_right);
-
-  let current_insight: Insight | null = null;
-
-  const hide_insights = () => {
-    current_insight = null;
-    insights.classList.add("hidden");
-    insights_label.textContent = "";
-    insights_msg.textContent = "";
-  };
-
-  const show_insights = (i: Insight) => {
-    current_insight = i;
-
-    insights.classList.remove("hidden");
-    insights_label.textContent = "Suggestion:";
-    insights_msg.textContent = i.message.replace(/\?$/, "");
-
-    btn_generate.disabled = false;
-    btn_generate.textContent = "Generate";
-  };
-
-  btn_dismiss.addEventListener("click", (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!current_insight) return;
-    insights_service.act("dismiss");
-    hide_insights();
-  });
-
-  btn_generate.addEventListener("click", async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!current_insight) return;
-    btn_generate.disabled = true;
-    btn_generate.textContent = "Generating…";
-    insights_service.act("generate");
-  });
-
-  insights_events.on("insight.change.ui", (i: Insight | null) => {
-    if (!i) return hide_insights();
-    show_insights(i);
-  });
+  insights_events.on("insight.change.ui", (i: Insight | null) => {});
 
   const scrollArea = ScrollArea({
     dir: "horizontal",
-    innerClass: "flex items-center w-max gap-2 p-3.5",
+    innerClass: "flex items-center w-max",
   });
 
   const container = scrollArea.inner;
@@ -148,23 +62,28 @@ export function EditorTabs() {
     }) as HTMLImageElement;
     icon.src = `./file-icons/${get_file_icon(tab.file_path)}`;
 
-    const dirtyDot = h("span", {
-      attrs: { "data-role": "dirty-dot" },
-      class: cn(
-        "w-[9px] h-[9px] rounded-full",
-        "bg-editor-tab-foreground/70",
-        tab.is_touched ? "" : "hidden",
-        tab.is_touched ? "group-hover:hidden" : "",
-      ),
-    });
+    const dirtyDot = h(
+      "span",
+      {
+        attrs: { "data-role": "dirty-dot" },
+        class: cn(
+          "absolute inset-0 flex items-center justify-center",
+          tab.is_touched ? "opacity-100 group-hover:opacity-0" : "opacity-0",
+        ),
+      },
+      h("span", {
+        class: "w-[9px] h-[9px] rounded-full bg-editor-tab-foreground/70",
+      }),
+    );
 
     const closeBtn = h(
       "span",
       {
         attrs: { "data-role": "close-btn" },
         class: cn(
-          "rounded p-0.5 [&_svg]:w-5 [&_svg]:h-5",
-          tab.is_touched ? "hidden group-hover:flex" : "",
+          "absolute inset-0 flex items-center justify-center",
+          "rounded [&_svg]:w-5 [&_svg]:h-5",
+          tab.is_touched ? "opacity-0 group-hover:opacity-100" : "opacity-100",
         ),
         on: {
           click: (e: MouseEvent) => {
@@ -191,7 +110,7 @@ export function EditorTabs() {
 
     const endSlot = h(
       "div",
-      { class: "shrink-0 w-6 flex items-center justify-center" },
+      { class: "relative shrink-0 w-6 h-6 flex items-center justify-center" },
       dirtyDot,
       closeBtn,
     );
@@ -201,9 +120,9 @@ export function EditorTabs() {
       {
         class: cn(
           "group",
-          "px-1.5 py-1.25 text-[15px] rounded-[7px] flex items-center gap-2 cursor-pointer select-none whitespace-nowrap",
+          "px-3.5 py-2.5 text-[14px] flex items-center gap-2 cursor-pointer select-none border-r border-r-editor-tab-border whitespace-nowrap",
           is_active
-            ? "bg-editor-tab-active-background text-editor-tab-active-foreground outline-2 outline-editor-tab-active-border"
+            ? "bg-editor-tab-active-background text-editor-tab-active-foreground"
             : "bg-editor-tab-background text-editor-tab-foreground hover:bg-editor-tab-hover-background hover:text-editor-tab-hover-foreground",
         ),
         on: {
@@ -282,9 +201,9 @@ export function EditorTabs() {
 
     element.className = cn(
       "group",
-      "px-1.5 py-1.25 text-[15px] rounded-[7px] flex items-center gap-2 cursor-pointer select-none whitespace-nowrap",
+      "px-3.5 py-2.5 text-[14px] flex items-center gap-2 cursor-pointer select-none border-r border-r-editor-tab-border whitespace-nowrap",
       is_active
-        ? "bg-editor-tab-active-background text-editor-tab-active-foreground outline outline-editor-tab-active-border"
+        ? "bg-editor-tab-active-background text-editor-tab-active-foreground"
         : "bg-editor-tab-background text-editor-tab-foreground hover:bg-editor-tab-hover-background hover:text-editor-tab-hover-foreground",
     );
 
@@ -297,17 +216,16 @@ export function EditorTabs() {
 
     if (dot) {
       dot.className = cn(
-        "w-[9px] h-[9px] rounded-full",
-        "bg-editor-tab-foreground/70",
-        tab.is_touched ? "" : "hidden",
-        tab.is_touched ? "group-hover:hidden" : "",
+        "absolute inset-0 flex items-center justify-center",
+        tab.is_touched ? "opacity-100 group-hover:opacity-0" : "opacity-0",
       );
     }
 
     if (close) {
       close.className = cn(
-        "rounded p-0.5 [&_svg]:w-5 [&_svg]:h-5",
-        tab.is_touched ? "hidden group-hover:flex" : "",
+        "absolute inset-0 flex items-center justify-center",
+        "rounded [&_svg]:w-5 [&_svg]:h-5",
+        tab.is_touched ? "opacity-0 group-hover:opacity-100" : "opacity-100",
       );
     }
   };
@@ -424,7 +342,7 @@ export function EditorTabs() {
 
   header.appendChild(scrollArea.el);
 
-  const el = h("div", {}, header, insights);
+  const el = h("div", {}, header);
 
   return {
     el,
@@ -434,7 +352,6 @@ export function EditorTabs() {
       switcher.destroy();
       scrollArea.destroy();
       header.remove();
-      insights.remove();
       tabElements.clear();
     },
   };

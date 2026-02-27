@@ -59,12 +59,9 @@ export function TerminalPanel(opts?: { class?: string }) {
   };
 
   const scrollArea = ScrollArea({
-    class: cn(
-      "shrink-0 w-8",
-      "border-l border-workbench-border",
-      "bg-editor-tab-background",
-    ),
-    innerClass: "flex flex-col items-stretch gap-0.5 py-1 px-0.5",
+    class: cn("shrink-0", "z-5", "bg-editor-tab-background"),
+    innerClass:
+      "flex flex-col items-stretch border-l border-workbench-border w-30",
     dir: "vertical",
   });
 
@@ -77,9 +74,8 @@ export function TerminalPanel(opts?: { class?: string }) {
         "mt-1 mx-auto shrink-0 flex items-center justify-center",
         "h-6 w-6 rounded-[5px] cursor-pointer",
         "text-foreground/50 hover:text-foreground hover:bg-button-secondary-hover-background/40",
-        "transition-colors",
       ),
-      attrs: { type: "button", title: "New Terminal" },
+      attrs: { type: "button" },
     },
     lucide("plus", 14),
   );
@@ -99,7 +95,7 @@ export function TerminalPanel(opts?: { class?: string }) {
 
   const root = h("div", {
     class: cn(
-      "flex flex-row h-full min-h-0 min-w-0 pl-2",
+      "flex flex-row h-full min-h-0 min-w-0 pl-2 pb-2",
       "bg-terminal-background",
       "text-terminal-foreground",
       opts?.class,
@@ -119,9 +115,11 @@ export function TerminalPanel(opts?: { class?: string }) {
     if (!tab.terminal.element) {
       tab.terminal.open(tab.el);
       requestAnimationFrame(() => {
-        try {
-          tab.fitAddon.fit();
-        } catch {}
+        requestAnimationFrame(() => {
+          try {
+            tab.fitAddon.fit();
+          } catch {}
+        });
       });
     }
   };
@@ -140,13 +138,12 @@ export function TerminalPanel(opts?: { class?: string }) {
         "span",
         {
           class: cn(
-            "absolute top-0.5 right-0.5",
+            "absolute top-0.5 right-0.5 close",
             "flex items-center justify-center rounded-[3px]",
             "opacity-0 group-hover:opacity-60 hover:!opacity-100",
             "hover:bg-button-secondary-hover-background/60",
             "transition-opacity w-3 h-3 shrink-0",
           ),
-          attrs: { title: "Close terminal" },
         },
         lucide("x", 9),
       );
@@ -164,11 +161,10 @@ export function TerminalPanel(opts?: { class?: string }) {
         {
           class: cn(
             "text-[10px] truncate leading-none",
-            "rotate-90 origin-center whitespace-nowrap",
-            "max-w-[56px]",
+            "origin-center whitespace-nowrap",
           ),
         },
-        tab.name,
+        lucide("terminal"),
       );
 
       const pill = h(
@@ -176,9 +172,8 @@ export function TerminalPanel(opts?: { class?: string }) {
         {
           class: cn(
             "group relative flex flex-col items-center justify-center gap-1",
-            "py-2 w-full min-h-[52px] shrink-0",
+            "w-full py-1.5 shrink-0",
             "text-[12px] cursor-pointer select-none",
-            "transition-colors",
             isActive
               ? cn(
                   "bg-button-secondary-hover-background/60 text-foreground",
@@ -191,14 +186,12 @@ export function TerminalPanel(opts?: { class?: string }) {
                 ),
           ),
         },
-        lucide("terminal", 12),
         label,
         closeBtn,
       );
 
       pill.addEventListener("mousedown", (e) => {
-        if ((e.target as HTMLElement).closest("span[title='Close terminal']"))
-          return;
+        if ((e.target as HTMLElement).closest("span[class='close']")) return;
         e.preventDefault();
         terminal.set_active(tab.id);
         renderTabs();
