@@ -57,9 +57,9 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     parent.appendChild(this.monacoEditor.el);
 
     this.monacoEditor.instance = monaco.editor.create(this.monacoEditor.el, {
-      value: "",
       language: "plaintext",
       theme: "theme",
+      fontFamily: "JetBrains Mono",
       automaticLayout: true,
       minimap: { enabled: false },
       fontSize: 15,

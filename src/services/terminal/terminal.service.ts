@@ -69,9 +69,9 @@ class terminal_service {
     const terminal = new Terminal({
       cursorBlink: true,
       cursorStyle: "block",
-      fontFamily: "monospace",
-      fontSize: 13,
-      lineHeight: 1.5,
+      fontFamily: "JetBrains Mono",
+      fontSize: 14,
+      lineHeight: 1.3,
       letterSpacing: 0,
       fontWeight: "normal",
       fontWeightBold: "bold",
