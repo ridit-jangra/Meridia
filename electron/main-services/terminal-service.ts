@@ -3,6 +3,7 @@ import os from "node:os";
 import { attach_event_emitter } from "../shared/terminal.helpers";
 import { WebContents } from "electron";
 import { NODE_PTY_EXIT } from "../../shared/ipc/channels";
+import { workspace } from "./workspace-service";
 
 function get_shell(): { shell: string; args: string[] } {
   if (os.platform() === "win32") {
@@ -23,14 +24,20 @@ function get_shell(): { shell: string; args: string[] } {
 class terminal_service {
   private terminals = new Map<string, IPty>();
 
-  public create(id: string, sender: WebContents) {
+  public async create(id: string, sender: WebContents, cwd?: string) {
     const { shell, args } = get_shell();
+
+    const current_workspace_path = await workspace.get_current_workspace_path();
 
     const t = pty.spawn(shell, args, {
       name: "xterm-256color",
       cols: 80,
       rows: 24,
-      cwd: process.env.HOME ?? process.env.USERPROFILE ?? "C:\\",
+      cwd:
+        cwd ??
+        current_workspace_path ??
+        process.env.HOME ??
+        process.env.USERPROFILE,
       env: {
         ...(process.env as Record<string, string>),
         TERM: "xterm-256color",

@@ -7,8 +7,8 @@ import {
   NODE_PTY_KILL,
 } from "../../shared/ipc/channels";
 
-ipcMain.handle(NODE_PTY_CREATE, (event, id: string) => {
-  terminal.create(id, event.sender);
+ipcMain.handle(NODE_PTY_CREATE, async (event, id: string, cwd?: string) => {
+  await terminal.create(id, event.sender, cwd);
   return true;
 });
 

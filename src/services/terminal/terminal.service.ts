@@ -11,6 +11,10 @@ import { IPersistedTerminalTab, ITerminalTab } from "./terminal.types";
 import { theme } from "../theme/theme.service";
 import { explorer } from "../explorer/explorer.service";
 import { open_editor_tab } from "../editor/editor.helper";
+import {
+  Base64Provider,
+  ClipboardProvider,
+} from "./addons/provider-clipboard.addon";
 
 type terminal_service_listener = () => void;
 
@@ -64,7 +68,7 @@ class terminal_service {
 
     const terminal = new Terminal({
       cursorBlink: true,
-      cursorStyle: "block", // vs "bar" or "underline"
+      cursorStyle: "block",
       fontFamily: "monospace",
       fontSize: 13,
       lineHeight: 1.5,
@@ -72,20 +76,20 @@ class terminal_service {
       fontWeight: "normal",
       fontWeightBold: "bold",
 
-      scrollback: 10000, // VS Code default is 10000, not 5000
-      scrollOnUserInput: true, // hold Alt for fast scroll
+      disableStdin: false,
+      scrollback: 10000,
+      scrollOnUserInput: true,
       fastScrollSensitivity: 5,
-      smoothScrollDuration: 0, // 0 = instant, >0 = animated (ms)
-      // mouseEvents: true,
+      smoothScrollDuration: 0,
 
       allowTransparency: true,
-      allowProposedApi: true, // required by ImageAddon and some others
+      allowProposedApi: true,
 
       convertEol: false,
-      drawBoldTextInBrightColors: true, // VS Code default
-      minimumContrastRatio: 1, // 1 = disabled; VS Code lets users set this
-      rescaleOverlappingGlyphs: true, // prevents wide glyphs bleeding into next cell
-      customGlyphs: true, // VS Code draws box/powerline chars itself, not via font
+      drawBoldTextInBrightColors: true,
+      minimumContrastRatio: 1,
+      rescaleOverlappingGlyphs: true,
+      customGlyphs: true,
 
       overviewRuler: {
         width: 15,
@@ -95,11 +99,6 @@ class terminal_service {
         background: theme.get_color("terminal.background"),
         foreground: theme.get_color("terminal.foreground"),
         cursor: theme.get_color("terminal.foreground"),
-        // selectionBackground: theme.get_color("terminal.selectionBackground"),
-        // selectionForeground: theme.get_color("terminal.selectionForeground"),
-        // selectionInactiveBackground: theme.get_color(
-        //   "terminal.inactiveSelectionBackground",
-        // ),
       },
     });
 
@@ -110,7 +109,12 @@ class terminal_service {
         window.shell.open_external(url);
       }),
     );
-    terminal.loadAddon(new ClipboardAddon());
+
+    const clipboardAddon = new ClipboardAddon(
+      new Base64Provider(),
+      new ClipboardProvider(),
+    );
+    terminal.loadAddon(clipboardAddon);
 
     const webgl = new WebglAddon();
     webgl.onContextLoss(() => webgl.dispose());
@@ -119,6 +123,7 @@ class terminal_service {
     terminal.loadAddon(new SearchAddon());
     terminal.loadAddon(new ImageAddon());
     terminal.loadAddon(new Unicode11Addon());
+
     terminal.loadAddon(
       new FileLinksAddon({
         resolvePath: (raw) => {
