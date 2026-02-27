@@ -99,7 +99,7 @@ export function TerminalPanel(opts?: { class?: string }) {
 
   const root = h("div", {
     class: cn(
-      "flex flex-row h-full min-h-0 min-w-0",
+      "flex flex-row h-full min-h-0 min-w-0 pl-2",
       "bg-terminal-background",
       "text-terminal-foreground",
       opts?.class,
