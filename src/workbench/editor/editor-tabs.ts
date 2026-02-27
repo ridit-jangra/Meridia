@@ -105,9 +105,15 @@ export function EditorTabs() {
 
       const title = h(
         "div",
-        { class: "flex items-center gap-1.5" },
+        {
+          class: `flex items-center gap-1.5`,
+        },
         icon,
-        h("span", { attrs: { "data-role": "name" } }, tab.name),
+        h(
+          "span",
+          { attrs: { "data-role": "name" } },
+          `${tab.name} ${tab.tab_status === "DELETED" ? "Deleted" : ""}`,
+        ),
       );
 
       element = h("div", {
