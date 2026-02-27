@@ -17,6 +17,16 @@ const _scrollbarThumbActive = theme.get_color(
   "scrollbar.thumb.active.foreground",
 );
 
+const _contextMenuBackground = theme.get_color("context.menu.background");
+const _contextMenuForeground = theme.get_color("context.menu.foreground");
+const _contextMenuBorder = theme.get_color("context.menu.border");
+const _contextMenuItemHoverBackground = theme.get_color(
+  "context.menu.item.hover.background",
+);
+const _contextMenuItemHoverForeground = theme.get_color(
+  "context.menu.item.hover.foreground",
+);
+
 monaco.editor.defineTheme("theme", {
   base: _kind === "light" ? "vs" : "vs-dark",
   inherit: true,
@@ -50,10 +60,13 @@ monaco.editor.defineTheme("theme", {
     "peekViewResult.selectionForeground": _foreground,
     "peekViewTitleLabel.foreground": _foreground,
 
-    "menu.foreground": _foreground,
-    "menu.border": _borderForeground,
-    "menu.selectionForeground": _foreground,
-    "menu.separatorBackground": _borderForeground,
+    "menu.background": _contextMenuBackground,
+    "menu.foreground": _contextMenuForeground,
+    "menu.border": _contextMenuBorder,
+    "menu.selectionBackground": _contextMenuItemHoverBackground,
+    "menu.selectionForeground": _contextMenuItemHoverForeground,
+    // "menu.selectionBorder": _contextMenuBorder,
+    "menu.separatorBackground": _contextMenuBorder,
 
     "input.background": _inputBackground,
     "input.foreground": _foreground,
