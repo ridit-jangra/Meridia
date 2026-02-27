@@ -69,7 +69,7 @@ class terminal_service {
     const terminal = new Terminal({
       cursorBlink: true,
       cursorStyle: "bar",
-      cursorInactiveStyle: "bar",
+      cursorInactiveStyle: "none",
       fontFamily: "JetBrains Mono",
       fontSize: 15,
 

@@ -145,6 +145,26 @@ body {
 
   --color-terminal-background: var(--terminal-background);
   --color-terminal-foreground: var(--terminal-foreground);
+  --color-terminal-cursor-foreground: var(--terminal-cursor-foreground);
+  --color-terminal-selection-background: var(--terminal-selection-background);
+
+  --color-terminal-black: var(--terminal-black);
+  --color-terminal-red: var(--terminal-red);
+  --color-terminal-green: var(--terminal-green);
+  --color-terminal-yellow: var(--terminal-yellow);
+  --color-terminal-blue: var(--terminal-blue);
+  --color-terminal-magenta: var(--terminal-magenta);
+  --color-terminal-cyan: var(--terminal-cyan);
+  --color-terminal-white: var(--terminal-white);
+
+  --color-terminal-bright-black: var(--terminal-bright-black);
+  --color-terminal-bright-red: var(--terminal-bright-red);
+  --color-terminal-bright-green: var(--terminal-bright-green);
+  --color-terminal-bright-yellow: var(--terminal-bright-yellow);
+  --color-terminal-bright-blue: var(--terminal-bright-blue);
+  --color-terminal-bright-magenta: var(--terminal-bright-magenta);
+  --color-terminal-bright-cyan: var(--terminal-bright-cyan);
+  --color-terminal-bright-white: var(--terminal-bright-white);
 
   --color-input-background: var(--input-background);
   --color-input-foreground: var(--input-foreground);
@@ -284,7 +304,6 @@ body {
   min-height: 0;
 }
 
-/* Vertical Scrollbar */
 .overlay-scrollbar-track {
   position: absolute;
   top: 2px;

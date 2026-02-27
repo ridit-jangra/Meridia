@@ -27,7 +27,10 @@ import {
 } from "../../../../shared/uri/generate";
 import { explorer } from "../../../services/explorer/explorer.service";
 import { editors_registry } from "../../../core/registry";
-import { get_file_extension } from "../../../services/editor/editor.helper";
+import {
+  get_file_extension,
+  open_editor_tab,
+} from "../../../services/editor/editor.helper";
 
 function deep_clone_nodes(nodes: INode[]): INode[] {
   return nodes.map((n) => ({
@@ -339,7 +342,41 @@ export function VirtualTree(opts: {
   const get_context_menu_items = (row: FlatRow): ContextMenuItem[] => {
     const items: ContextMenuItem[] = [];
 
+    if (row.node.type === "file") {
+      items.push(
+        {
+          type: "item",
+          label: "Open in editor",
+          onClick: () => {
+            selected.id = row.id;
+            list.refresh();
+            open_editor_tab(row.node.path);
+          },
+        },
+        {
+          type: "separator",
+        },
+      );
+    }
+
     if (row.node.type === "folder") {
+      items.push(
+        {
+          type: "item",
+          label: "Highlight in tree",
+          onClick: () => {
+            selected.id = row.id;
+            list.refresh();
+            const tree = explorer.tree.tree;
+            if (!tree) return;
+
+            tree.highlight(row.node.id);
+          },
+        },
+        {
+          type: "separator",
+        },
+      );
       items.push(
         {
           type: "item",
@@ -372,6 +409,7 @@ export function VirtualTree(opts: {
           list.refresh();
           start_rename(row.id);
         },
+        command_id: "F2",
       },
       {
         type: "item",
@@ -381,6 +419,7 @@ export function VirtualTree(opts: {
           list.refresh();
           delete_node(row.id);
         },
+        command_id: "Delete",
       },
     );
 
@@ -390,7 +429,7 @@ export function VirtualTree(opts: {
   const is_active = (id: string) => uris_equal(id, selected.id);
 
   const el = h("div", {
-    class: "flex flex-col gap-2 overflow-hidden focus:outline-0 h-full",
+    class: "flex flex-col gap-2 overflow-hidden focus:outline-0",
   });
 
   const is_typing_target = (t: EventTarget | null) => {
@@ -433,6 +472,16 @@ export function VirtualTree(opts: {
     start_rename(row.id);
   };
 
+  const delete_selected = () => {
+    const id = selected.id;
+    if (!id) return;
+
+    const row = rows.find((r) => uris_equal(r.id, id));
+    if (!row) return;
+
+    delete_node(row.id);
+  };
+
   const on_local_key = (e: KeyboardEvent) => {
     if (e.defaultPrevented) return;
     if (is_typing_target(e.target)) return;
@@ -441,6 +490,12 @@ export function VirtualTree(opts: {
     if (e.key === "F2") {
       e.preventDefault();
       rename_selected();
+      return;
+    }
+
+    if (e.key === "Delete") {
+      e.preventDefault();
+      delete_selected();
       return;
     }
 
