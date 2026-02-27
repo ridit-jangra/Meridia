@@ -40,7 +40,7 @@ export class editor<
 
   public update_model_uri(__: string, _: string) {}
 
-  public set_model_active(uri: string, _?: boolean) {
+  public set_model_active(uri: string, _?: any) {
     const model = this.models.find((m) => m.uri === uri);
     if (!model) return;
 

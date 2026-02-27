@@ -1,6 +1,7 @@
 import { INode } from "../../../../shared/types/explorer.types";
 import { h } from "../../../core/dom/h";
 import { cn } from "../../../core/utils/cn";
+import { get_file_icon } from "../../../services/explorer/explorer.helper";
 import { lucide } from "../icon";
 import {
   add_node_to_parent,
@@ -12,6 +13,7 @@ export type AddNodeOptions = {
   type: "file" | "folder";
   parentId: string;
   parentPath: string;
+  name: string;
   nodes: INode[];
   indent: number;
   depth: number;
@@ -35,11 +37,17 @@ export function create_add_node_input(opts: AddNodeOptions): HTMLElement {
     ),
   }) as HTMLInputElement;
 
-  const icon = h(
-    "span",
-    { class: "opacity-70 mr-1" },
-    type === "folder" ? lucide("folder") : lucide("file"),
-  );
+  let icon: HTMLElement;
+  if (type === "folder") {
+    icon = h(
+      "span",
+      { class: "ml-2 opacity-70 mr-1" },
+      lucide("chevron-right"),
+    );
+  } else {
+    icon = h("img", { class: "ml-2 w-4 h-4 mr-1" }) as HTMLImageElement;
+    (icon as HTMLImageElement).src = `./file-icons/${get_file_icon(opts.name)}`;
+  }
 
   const container = h(
     "div",
@@ -54,7 +62,6 @@ export function create_add_node_input(opts: AddNodeOptions): HTMLElement {
     input,
   );
 
-  // add-node.helpers.ts
   const submit = () => {
     if (submitted) return;
     submitted = true;
@@ -94,6 +101,13 @@ export function create_add_node_input(opts: AddNodeOptions): HTMLElement {
       cancel();
     }
   });
+
+  input.oninput = (e) => {
+    if (type === "file") {
+      const v = (e.currentTarget as HTMLInputElement).value;
+      (icon as HTMLImageElement).src = `./file-icons/${get_file_icon(v)}`;
+    }
+  };
 
   input.addEventListener("blur", () => {
     setTimeout(() => {

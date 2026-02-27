@@ -54,80 +54,73 @@ export function EditorTabs() {
     }, 50);
   };
 
-  const createTabElement = (tab: ITab) => {
-    const is_active = tab.active;
+  const closeTabByPath = (file_path: string) => {
+    history.push("editor.tab.close", { file_path });
+    close_editor_tab(file_path);
+    insights_service.evaluate();
+    insights_events.emit("insight.change.ui", insights_service.get_current());
+  };
 
-    const icon = h("img", {
-      class: "w-5 h-5 mt-px",
-    }) as HTMLImageElement;
-    icon.src = `./file-icons/${get_file_icon(tab.file_path)}`;
+  const openTabByPath = (file_path: string) => {
+    history.push("editor.tab.open", { file_path });
+    open_editor_tab(file_path);
+    insights_service.evaluate();
+    insights_events.emit("insight.change.ui", insights_service.get_current());
+  };
 
-    const dirtyDot = h(
-      "span",
-      {
-        attrs: { "data-role": "dirty-dot" },
-        class: cn(
-          "absolute inset-0 flex items-center justify-center",
-          tab.is_touched ? "opacity-100 group-hover:opacity-0" : "opacity-0",
-        ),
-      },
-      h("span", {
-        class: "w-[9px] h-[9px] rounded-full bg-editor-tab-icon-foreground",
-      }),
-    );
+  const renderTab = (tab: ITab, element?: HTMLElement) => {
+    if (!element) {
+      const icon = h("img", {
+        attrs: { "data-role": "icon" },
+        class: "w-5 h-5 mt-px",
+      }) as HTMLImageElement;
 
-    const closeBtn = h(
-      "span",
-      {
-        attrs: { "data-role": "close-btn" },
-        class: cn(
-          "absolute inset-0 flex items-center justify-center",
-          "rounded [&_svg]:w-5 [&_svg]:h-5 text-editor-tab-close-foreground",
-          tab.is_touched ? "opacity-0 group-hover:opacity-100" : "opacity-100",
-        ),
-        on: {
-          click: (e: MouseEvent) => {
-            e.preventDefault();
-            e.stopPropagation();
-            history.push("editor.tab.close", { file_path: tab.file_path });
-            close_editor_tab(tab.file_path);
-            insights_service.evaluate();
-            insights_events.emit(
-              "insight.change.ui",
-              insights_service.get_current(),
-            );
-          },
-          mousedown: (e: MouseEvent) => {
-            if (e.button === 1) {
-              e.preventDefault();
-              e.stopPropagation();
-            }
-          },
+      const dirtyDot = h(
+        "span",
+        {
+          attrs: { "data-role": "dirty-dot" },
+          class: "absolute inset-0 flex items-center justify-center opacity-0",
         },
-      },
-      lucide("x"),
-    );
+        h("span", {
+          class: "w-[9px] h-[9px] rounded-full bg-editor-tab-icon-foreground",
+        }),
+      );
 
-    const endSlot = h(
-      "div",
-      { class: "relative shrink-0 w-6 h-6 flex items-center justify-center" },
-      dirtyDot,
-      closeBtn,
-    );
+      const closeBtn = h(
+        "span",
+        {
+          attrs: { "data-role": "close-btn" },
+          class:
+            "absolute inset-0 flex items-center justify-center rounded [&_svg]:w-5 [&_svg]:h-5 text-editor-tab-close-foreground opacity-100",
+        },
+        lucide("x"),
+      );
 
-    const pill = h(
-      "div",
-      {
+      const endSlot = h(
+        "div",
+        { class: "relative shrink-0 w-6 h-6 flex items-center justify-center" },
+        dirtyDot,
+        closeBtn,
+      );
+
+      const title = h(
+        "div",
+        { class: "flex items-center gap-1.5" },
+        icon,
+        h("span", { attrs: { "data-role": "name" } }, tab.name),
+      );
+
+      element = h("div", {
         class: cn(
           "group",
           "px-3.5 py-2.5 text-[14px] flex items-center gap-2 cursor-pointer select-none border-r border-r-editor-tab-border whitespace-nowrap",
-          is_active
-            ? "bg-editor-tab-active-background text-editor-tab-active-foreground"
-            : "bg-editor-tab-background text-editor-tab-foreground hover:bg-editor-tab-hover-background hover:text-editor-tab-hover-foreground",
         ),
         on: {
           click: (e: MouseEvent) => {
-            if (e.button === 0) handle_click(tab);
+            if (e.button !== 0) return;
+            const file_path = (element as HTMLElement).dataset.path;
+            if (!file_path) return;
+            openTabByPath(file_path);
           },
           mousedown: (e: MouseEvent) => {
             if (e.button === 1) {
@@ -136,84 +129,97 @@ export function EditorTabs() {
             }
           },
           auxclick: (e: MouseEvent) => {
-            if (e.button === 1) {
-              e.preventDefault();
-              e.stopPropagation();
-              history.push("editor.tab.close", { file_path: tab.file_path });
-              close_editor_tab(tab.file_path);
-              insights_service.evaluate();
-              insights_events.emit(
-                "insight.change.ui",
-                insights_service.get_current(),
-              );
-            }
+            if (e.button !== 1) return;
+            e.preventDefault();
+            e.stopPropagation();
+            const file_path = (element as HTMLElement).dataset.path;
+            if (!file_path) return;
+            closeTabByPath(file_path);
           },
         },
-      },
-      h("div", { class: "flex items-center gap-1.5" }, icon, tab.name),
-      endSlot,
-    );
+      });
 
-    Tooltip({
-      child: pill,
-      text: tab.file_path,
-      position: "bottom",
-      delay: 200,
-    });
+      closeBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const file_path = (element as HTMLElement).dataset.path;
+        if (!file_path) return;
+        closeTabByPath(file_path);
+      });
 
-    const ctx = ContextMenu();
+      closeBtn.addEventListener("mousedown", (e) => {
+        if ((e as MouseEvent).button === 1) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+      });
 
-    ctx.bind(pill, () => {
-      const pills = store.getState().editor.tabs;
-      return [
-        {
-          type: "item",
-          label: "Close Tab",
-          onClick: () => close_editor_tab(tab.file_path),
-        },
-        {
-          type: "item",
-          label: "Close Other Tabs",
-          onClick: () => close_other_tabs(tab.file_path),
-          disabled: pills.length <= 1,
-        },
-        {
-          type: "item",
-          label: "Close All Tabs",
-          onClick: () => close_all_tabs(),
-        },
-        { type: "separator" },
-        {
-          type: "item",
-          label: "Copy Path",
-          onClick: () => {
-            navigator.clipboard.writeText(tab.file_path);
+      element.appendChild(title);
+      element.appendChild(endSlot);
+
+      Tooltip({
+        child: element,
+        text: tab.file_path,
+        position: "bottom",
+        delay: 200,
+      });
+
+      const ctx = ContextMenu();
+      ctx.bind(element, () => {
+        const file_path = element!.dataset.path ?? tab.file_path;
+        const pills = store.getState().editor.tabs;
+
+        return [
+          {
+            type: "item",
+            label: "Close Tab",
+            onClick: () => close_editor_tab(file_path),
           },
-        },
-      ];
-    });
+          {
+            type: "item",
+            label: "Close Other Tabs",
+            onClick: () => close_other_tabs(file_path),
+            disabled: pills.length <= 1,
+          },
+          {
+            type: "item",
+            label: "Close All Tabs",
+            onClick: () => close_all_tabs(),
+          },
+          { type: "separator" },
+          {
+            type: "item",
+            label: "Copy Path",
+            onClick: () => navigator.clipboard.writeText(file_path),
+          },
+        ];
+      });
+    }
 
-    return pill;
-  };
-
-  const updateTabElement = (element: HTMLElement, tab: ITab) => {
-    const is_active = tab.active;
+    element.dataset.path = tab.file_path;
 
     element.className = cn(
       "group",
       "px-3.5 py-2.5 text-[14px] flex items-center gap-2 cursor-pointer select-none border-r border-r-editor-tab-border whitespace-nowrap",
-      is_active
+      tab.active
         ? "bg-editor-tab-active-background text-editor-tab-active-foreground"
         : "bg-editor-tab-background text-editor-tab-foreground hover:bg-editor-tab-hover-background hover:text-editor-tab-hover-foreground",
     );
 
+    const icon = element.querySelector(
+      '[data-role="icon"]',
+    ) as HTMLImageElement | null;
+    if (icon) icon.src = `./file-icons/${get_file_icon(tab.file_path)}`;
+
+    const nameEl = element.querySelector(
+      '[data-role="name"]',
+    ) as HTMLElement | null;
+    if (nameEl && nameEl.textContent !== tab.name)
+      nameEl.textContent = tab.name;
+
     const dot = element.querySelector(
       '[data-role="dirty-dot"]',
     ) as HTMLElement | null;
-    const close = element.querySelector(
-      '[data-role="close-btn"]',
-    ) as HTMLElement | null;
-
     if (dot) {
       dot.className = cn(
         "absolute inset-0 flex items-center justify-center",
@@ -221,6 +227,9 @@ export function EditorTabs() {
       );
     }
 
+    const close = element.querySelector(
+      '[data-role="close-btn"]',
+    ) as HTMLElement | null;
     if (close) {
       close.className = cn(
         "absolute inset-0 flex items-center justify-center text-editor-tab-close-foreground",
@@ -228,6 +237,8 @@ export function EditorTabs() {
         tab.is_touched ? "opacity-0 group-hover:opacity-100" : "opacity-100",
       );
     }
+
+    return element;
   };
 
   const renderTabs = () => {
@@ -238,7 +249,7 @@ export function EditorTabs() {
       tabElements.clear();
 
       for (const tab of tabs) {
-        const element = createTabElement(tab);
+        const element = renderTab(tab);
         tabElements.set(tab.file_path, element);
         container.appendChild(element);
       }
@@ -248,9 +259,7 @@ export function EditorTabs() {
       const activeTab = tabs.find((t) => t.active);
       if (activeTab) {
         const activeElement = tabElements.get(activeTab.file_path);
-        if (activeElement) {
-          scrollToTab(activeElement);
-        }
+        if (activeElement) scrollToTab(activeElement);
       }
       return;
     }
@@ -276,7 +285,7 @@ export function EditorTabs() {
       let element = tabElements.get(tab.file_path);
 
       if (!element) {
-        element = createTabElement(tab);
+        element = renderTab(tab);
         tabElements.set(tab.file_path, element);
       } else if (prevTab) {
         if (
@@ -284,12 +293,13 @@ export function EditorTabs() {
           (prevTab.is_touched ?? false) !== (tab.is_touched ?? false) ||
           prevTab.name !== tab.name
         ) {
-          updateTabElement(element, tab);
-          if (tab.active) newActiveElement = element;
+          renderTab(tab, element);
         }
-      } else if (tab.active) {
-        newActiveElement = element;
+      } else {
+        renderTab(tab, element);
       }
+
+      if (tab.active) newActiveElement = element;
 
       const currentChild = container.children[i];
       if (currentChild !== element) {
@@ -303,17 +313,7 @@ export function EditorTabs() {
 
     prevTabs = [...tabs];
 
-    if (newActiveElement) {
-      scrollToTab(newActiveElement);
-    }
-  };
-
-  const handle_click = async (tab: ITab) => {
-    history.push("editor.tab.open", { file_path: tab.file_path });
-    open_editor_tab(tab.file_path);
-
-    insights_service.evaluate();
-    insights_events.emit("insight.change.ui", insights_service.get_current());
+    if (newActiveElement) scrollToTab(newActiveElement);
   };
 
   const onKeyDown = (e: KeyboardEvent) => {

@@ -14,7 +14,7 @@ export function TabSwitcher() {
     class: cn(
       "fixed z-[9999] hidden",
       "left-1/2 top-[5%] -translate-x-1/2",
-      "w-[560px] max-w-[calc(100vw-24px)] p-1.5",
+      "w-[560px] max-w-[calc(100vw-24px)] p-1.5 px-0.5",
       "bg-command-background text-command-item-foreground",
       "border border-workbench-border rounded-xl overflow-hidden",
       "shadow-lg",

@@ -4,9 +4,10 @@ import type { ContextMenuItem } from "../../ui/components/context-menu";
 import { get_base_name } from "../explorer/explorer.helper";
 import { update_tabs } from "../state/slices/editor.slice";
 import { store } from "../state/store";
-import { ITab } from "./editor.types";
+import { ITab, tab_status } from "./editor.types";
 import { shortcut_def } from "../shortcut/shortcut.types";
 import { shortcuts } from "../shortcut/shortcut.service";
+import { uris_equal } from "../../../shared/uri/generate";
 
 export function open_editor_tab(file_path: string) {
   const current_tabs = store.getState().editor.tabs;
@@ -411,6 +412,18 @@ export function update_editor_tab(old_path: string, new_path: string) {
           name: get_base_name(new_path),
         }
       : tab,
+  );
+
+  store.dispatch(update_tabs(updated));
+}
+
+export function update_editor_tab_status(path: string, status: tab_status) {
+  const tabs = store.getState().editor.tabs;
+
+  const p = norm(path);
+
+  const updated = tabs.map((tab) =>
+    uris_equal(norm(tab.file_path), p) ? { ...tab, tab_status: status } : tab,
   );
 
   store.dispatch(update_tabs(updated));

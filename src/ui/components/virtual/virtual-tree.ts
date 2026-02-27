@@ -94,8 +94,6 @@ export function VirtualTree(opts: {
 
   const load_queue = new Map<string, Promise<void>>();
 
-  // Stores the folder that was just clicked and which direction it toggled.
-  // flush_caret_anim() reads this after the DOM has been updated.
   let pending_caret_anim: { id: string; direction: "open" | "close" } | null =
     null;
 
@@ -147,7 +145,6 @@ export function VirtualTree(opts: {
     }
   };
 
-  // Tracks the last toggled folder so flush_caret_anim knows what to animate.
   const flush_caret_anim = () => {
     if (!pending_caret_anim) return;
     const { id, direction } = pending_caret_anim;
@@ -205,7 +202,6 @@ export function VirtualTree(opts: {
       setTimeout(async () => {
         try {
           const raw = await explorer.actions.get_child_structure(folder_node);
-          console.log(raw);
 
           let result_id: string;
           let child_nodes: INode[];
@@ -393,7 +389,79 @@ export function VirtualTree(opts: {
 
   const is_active = (id: string) => uris_equal(id, selected.id);
 
-  const el = h("div", { class: "flex flex-col gap-2 overflow-hidden" });
+  const el = h("div", {
+    class: "flex flex-col gap-2 overflow-hidden focus:outline-0 h-full",
+  });
+
+  const is_typing_target = (t: EventTarget | null) => {
+    const el = t as HTMLElement | null;
+    if (!el) return false;
+    const tag = el.tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return true;
+    if ((el as any).isContentEditable) return true;
+    return false;
+  };
+
+  const is_context_menu_open = () => {
+    const cm = contextMenu.el as HTMLElement;
+    return cm && cm.style.display !== "none";
+  };
+
+  const click_selected = () => {
+    const id = selected.id;
+    if (!id) return;
+
+    const row = rows.find((r) => uris_equal(r.id, id));
+    if (!row) return;
+
+    if (row.node.type === "folder") {
+      handle_folder_click(row);
+      return;
+    }
+
+    opts.onSelect?.(row.id, row.node);
+    list.refresh();
+  };
+
+  const rename_selected = () => {
+    const id = selected.id;
+    if (!id) return;
+
+    const row = rows.find((r) => uris_equal(r.id, id));
+    if (!row) return;
+
+    start_rename(row.id);
+  };
+
+  const on_local_key = (e: KeyboardEvent) => {
+    if (e.defaultPrevented) return;
+    if (is_typing_target(e.target)) return;
+    if (is_context_menu_open()) return;
+
+    if (e.key === "F2") {
+      e.preventDefault();
+      rename_selected();
+      return;
+    }
+
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      click_selected();
+      return;
+    }
+  };
+
+  el.tabIndex = 0;
+
+  el.addEventListener("keydown", on_local_key, true);
+
+  el.addEventListener(
+    "mousedown",
+    () => {
+      if (document.activeElement !== el) el.focus();
+    },
+    true,
+  );
 
   const list = VirtualList<FlatRow>({
     items: rows,
@@ -422,6 +490,7 @@ export function VirtualTree(opts: {
             type,
             parentId: parent_id,
             parentPath: result.node.path,
+            name: row.node.name,
             nodes: opts.folderStructure.structure,
             indent,
             depth: row.depth,
@@ -490,9 +559,6 @@ export function VirtualTree(opts: {
           const span = h("span", {
             class:
               "mr-1 opacity-70 inline-flex items-center [&_svg]:w-4 [&_svg]:h-4",
-            // data-caret is the query target for flush_caret_anim.
-            // The inline transform sets the correct resting position for
-            // all non-animated renders (initial paint, hover, selection).
             "data-caret": "1",
             style: `display:inline-flex;align-items:center;transform:rotate(${is_open ? "90deg" : "0deg"});`,
           });
@@ -526,8 +592,6 @@ export function VirtualTree(opts: {
       const row_el = h(
         "div",
         {
-          // data-row-id is how flush_caret_anim finds this element
-          // in the live layer DOM after the render cycle completes.
           "data-row-id": row.id,
           class: cn(
             "px-2 flex items-center justify-between select-none cursor-pointer text-[13px]",
@@ -672,6 +736,7 @@ export function VirtualTree(opts: {
     destroy() {
       list.destroy();
       contextMenu.destroy();
+      el.removeEventListener("keydown", on_local_key, true);
     },
   };
 }

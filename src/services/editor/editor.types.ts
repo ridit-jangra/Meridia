@@ -7,7 +7,7 @@ export type cursor_position = {
   line: number;
   col: number;
 };
-export type tab_status = "EXISTS" | "NEW";
+export type tab_status = "EXISTS" | "NEW" | "DELETED";
 export type selection = {
   startLine: number;
   startCol: number;

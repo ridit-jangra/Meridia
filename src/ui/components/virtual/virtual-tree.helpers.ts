@@ -10,7 +10,10 @@ import {
   uris_equal,
   is_descendant_of,
 } from "../../../../shared/uri/generate";
-import { close_editor_tab } from "../../../services/editor/editor.helper";
+import {
+  close_editor_tab,
+  update_editor_tab_status,
+} from "../../../services/editor/editor.helper";
 
 export type FlatRow = {
   id: string;
@@ -304,7 +307,7 @@ export function remove_node_by_path(nodes: INode[], path: string): boolean {
     }
     if (nodes[i].child_nodes && nodes[i].child_nodes!.length > 0) {
       if (remove_node_by_path(nodes[i].child_nodes!, path)) {
-        close_editor_tab(path, true);
+        update_editor_tab_status(path, "DELETED");
         return true;
       }
     }

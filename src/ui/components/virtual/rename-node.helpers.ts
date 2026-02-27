@@ -46,15 +46,21 @@ export function create_rename_input(opts: rename_node_options): HTMLElement {
     value: currentName,
     class: cn(
       "bg-transparent text-explorer-foreground outline-none border-none",
-      "text-[12.5px] flex-1 min-w-0 px-1",
+      "text-[13.5px] flex-1 min-w-0 px-1",
     ),
   }) as HTMLInputElement;
 
+  input.spellcheck = false;
+
   let iconEl: HTMLElement;
   if (isFolder) {
-    iconEl = h("span", { class: "opacity-70 mr-1" }, lucide("folder"));
+    iconEl = h(
+      "span",
+      { class: "ml-2 inline-flex items-center [&_svg]:w-4 [&_svg]:h-4" },
+      lucide("chevron-right"),
+    );
   } else {
-    iconEl = h("img", { class: "w-4 h-4 mr-1" }) as HTMLImageElement;
+    iconEl = h("img", { class: "ml-2 w-4 h-4" }) as HTMLImageElement;
     if (get_icon && icon_folder_name) {
       (iconEl as HTMLImageElement).src =
         `./${icon_folder_name}/${get_icon(nodeId)}`;
@@ -79,31 +85,19 @@ export function create_rename_input(opts: rename_node_options): HTMLElement {
     submitted = true;
 
     const new_name = input.value.trim();
-    console.log("[rename] new_name:", new_name, "currentName:", currentName);
 
     if (!new_name || new_name === currentName) {
-      console.log("[rename] bailing early - empty or same name");
       onCancel();
       return;
     }
 
     const parent_uri = get_parent_uri(nodeId);
     const new_uri = generate_child_uri(parent_uri, new_name);
-    console.log(
-      "[rename] nodeId:",
-      nodeId,
-      "parent_uri:",
-      parent_uri,
-      "new_uri:",
-      new_uri,
-    );
 
     const result = find_node_by_id(nodes, nodeId);
-    console.log("[rename] find_node_by_id result:", result);
 
     if (result && result.parent) {
       if (name_exists_in_folder(nodes, result.parent.id, new_name)) {
-        console.log("[rename] name already exists in folder");
         alert(
           `A ${isFolder ? "folder" : "file"} with the name "${new_name}" already exists.`,
         );
@@ -113,13 +107,10 @@ export function create_rename_input(opts: rename_node_options): HTMLElement {
     }
 
     const success = rename_node(nodes, nodeId, new_name);
-    console.log("[rename] rename_node success:", success);
 
     if (success) {
-      console.log("[rename] calling onComplete with:", nodeId, new_uri);
       onComplete(nodeId, new_uri);
     } else {
-      console.log("[rename] rename failed, calling onCancel");
       onCancel();
     }
   };
