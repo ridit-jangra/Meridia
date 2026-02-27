@@ -10,10 +10,7 @@ import {
   uris_equal,
   is_descendant_of,
 } from "../../../../shared/uri/generate";
-import {
-  close_editor_tab,
-  update_editor_tab_status,
-} from "../../../services/editor/editor.helper";
+import { update_editor_tab_status } from "../../../services/editor/editor.helper";
 
 export type FlatRow = {
   id: string;
