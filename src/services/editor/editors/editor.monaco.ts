@@ -14,7 +14,9 @@ import { update_tabs } from "../../state/slices/editor.slice";
 import { get_base_name } from "../../explorer/explorer.helper";
 import { explorer } from "../../explorer/explorer.service";
 
-const el = h("div", { class: "monaco-editor h-full w-full" });
+const el = h("div", {
+  class: "monaco-editor h-full w-full [&_span]:font-normal",
+});
 
 const _: IMonacoEditor = {
   el,

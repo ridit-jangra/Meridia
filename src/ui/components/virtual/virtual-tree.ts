@@ -56,6 +56,19 @@ function update_node_in_structure(
   return false;
 }
 
+function inject_animations() {
+  if (document.getElementById("vt-animations")) return;
+  const style = document.createElement("style");
+  style.id = "vt-animations";
+  style.textContent = `
+    @keyframes vt-spin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 export function VirtualTree(opts: {
   folderStructure: IFolderStructure;
   rowHeight: number;
@@ -69,6 +82,8 @@ export function VirtualTree(opts: {
   icon_folder_name?: string;
   scrollViewport?: HTMLElement;
 }) {
+  inject_animations();
+
   const indent = opts.indent ?? 14;
 
   const open = new Set<string>();
@@ -78,6 +93,11 @@ export function VirtualTree(opts: {
   const loaded = new Set<string>();
 
   const load_queue = new Map<string, Promise<void>>();
+
+  // Stores the folder that was just clicked and which direction it toggled.
+  // flush_caret_anim() reads this after the DOM has been updated.
+  let pending_caret_anim: { id: string; direction: "open" | "close" } | null =
+    null;
 
   opts.folderStructure = {
     ...opts.folderStructure,
@@ -127,6 +147,31 @@ export function VirtualTree(opts: {
     }
   };
 
+  // Tracks the last toggled folder so flush_caret_anim knows what to animate.
+  const flush_caret_anim = () => {
+    if (!pending_caret_anim) return;
+    const { id, direction } = pending_caret_anim;
+    pending_caret_anim = null;
+
+    const row_el = list.layer.querySelector<HTMLElement>(
+      `[data-row-id="${CSS.escape(id)}"]`,
+    );
+    if (!row_el) return;
+
+    const caret = row_el.querySelector<HTMLElement>("[data-caret]");
+    if (!caret) return;
+
+    caret.style.transition = "none";
+    caret.style.transform =
+      direction === "open" ? "rotate(0deg)" : "rotate(90deg)";
+
+    requestAnimationFrame(() => {
+      caret.style.transition = "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1)";
+      caret.style.transform =
+        direction === "open" ? "rotate(90deg)" : "rotate(0deg)";
+    });
+  };
+
   const rebuild = () => {
     const out: FlatRow[] = [];
 
@@ -143,7 +188,11 @@ export function VirtualTree(opts: {
 
     flatten_tree(opts.folderStructure.structure, 0, open, out);
     rows = out;
+
     list.setItems(rows);
+    requestAnimationFrame(() => {
+      flush_caret_anim();
+    });
   };
 
   const load_children = (folder_node: INode): Promise<void> => {
@@ -200,12 +249,15 @@ export function VirtualTree(opts: {
 
   const handle_folder_click = (row: FlatRow) => {
     const id = row.id;
-
     selected.id = id;
 
     if (loading.has(id)) return;
 
-    if (open.has(id)) {
+    const direction: "open" | "close" = open.has(id) ? "close" : "open";
+
+    pending_caret_anim = { id, direction };
+
+    if (direction === "close") {
       open.delete(id);
       rebuild();
       return;
@@ -438,10 +490,18 @@ export function VirtualTree(opts: {
           const span = h("span", {
             class:
               "mr-1 opacity-70 inline-flex items-center [&_svg]:w-4 [&_svg]:h-4",
-            style: "display: inline-flex; align-items: center;",
+            // data-caret is the query target for flush_caret_anim.
+            // The inline transform sets the correct resting position for
+            // all non-animated renders (initial paint, hover, selection).
+            "data-caret": "1",
+            style: `display:inline-flex;align-items:center;transform:rotate(${is_open ? "90deg" : "0deg"});`,
           });
-          span.style.transform = `rotate(${is_open ? "90deg" : "0deg"})`;
-          span.style.transition = "transform 0.15s ease";
+
+          if (is_loading) {
+            span.style.animation = "vt-spin 1s linear infinite";
+            span.style.transition = "none";
+          }
+
           span.appendChild(
             is_loading ? lucide("loader-circle") : lucide("chevron-right"),
           );
@@ -466,6 +526,9 @@ export function VirtualTree(opts: {
       const row_el = h(
         "div",
         {
+          // data-row-id is how flush_caret_anim finds this element
+          // in the live layer DOM after the render cycle completes.
+          "data-row-id": row.id,
           class: cn(
             "px-2 flex items-center justify-between select-none cursor-pointer text-[13px]",
             active
@@ -530,6 +593,7 @@ export function VirtualTree(opts: {
       loaded.clear();
       load_queue.clear();
       open.clear();
+      pending_caret_anim = null;
       rebuild();
     },
     open(id: string) {

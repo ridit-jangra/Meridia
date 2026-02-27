@@ -172,6 +172,7 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
     el: viewport,
     viewport,
     inner,
+    layer, // <-- exposed so callers can query live DOM nodes directly
     setItems(next: T[]) {
       items = next;
       setSpacer();

@@ -70,11 +70,7 @@ class terminal_service {
       cursorBlink: true,
       cursorStyle: "block",
       fontFamily: "JetBrains Mono",
-      fontSize: 14,
-      lineHeight: 1.3,
-      letterSpacing: 0,
-      fontWeight: "normal",
-      fontWeightBold: "bold",
+      fontSize: 15,
 
       disableStdin: false,
       scrollback: 10000,
@@ -86,14 +82,9 @@ class terminal_service {
       allowProposedApi: true,
 
       convertEol: false,
-      drawBoldTextInBrightColors: true,
       minimumContrastRatio: 1,
       rescaleOverlappingGlyphs: true,
       customGlyphs: true,
-
-      overviewRuler: {
-        width: 15,
-      },
 
       theme: {
         background: theme.get_color("terminal.background"),
@@ -193,10 +184,13 @@ class terminal_service {
       next.active = true;
       next.el.style.display = "block";
       requestAnimationFrame(() => {
-        try {
-          next.fitAddon.fit();
-        } catch {}
-        next.terminal.focus();
+        requestAnimationFrame(() => {
+          try {
+            next.fitAddon.fit();
+          } catch {}
+          next.terminal.refresh(0, next.terminal.rows - 1);
+          next.terminal.focus();
+        });
       });
     }
 
@@ -222,10 +216,13 @@ class terminal_service {
         next.active = true;
         next.el.style.display = "block";
         requestAnimationFrame(() => {
-          try {
-            next.fitAddon.fit();
-          } catch {}
-          next.terminal.focus();
+          requestAnimationFrame(() => {
+            try {
+              next.fitAddon.fit();
+            } catch {}
+            next.terminal.refresh(0, next.terminal.rows - 1);
+            next.terminal.focus();
+          });
         });
       }
     }
@@ -281,6 +278,34 @@ class terminal_service {
     this.tabs = [];
     this._active_id = null;
     this.listeners = [];
+  }
+
+  focus() {
+    this.tabs.forEach((t) => {
+      t.terminal.focus();
+    });
+  }
+
+  refresh_active() {
+    const active = this.get_active();
+    if (!active) return;
+
+    const attempt = (tries = 0) => {
+      if (active.el.offsetWidth > 0 && active.el.offsetHeight > 0) {
+        if (!active.terminal.element || !active.terminal.element.isConnected) {
+          active.terminal.open(active.el);
+        }
+        try {
+          active.fitAddon.fit();
+        } catch {}
+        active.terminal.refresh(0, active.terminal.rows - 1);
+        active.terminal.focus();
+      } else if (tries < 30) {
+        requestAnimationFrame(() => attempt(tries + 1));
+      }
+    };
+
+    attempt();
   }
 }
 

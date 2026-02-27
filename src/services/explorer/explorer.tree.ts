@@ -6,6 +6,7 @@ import { VirtualTreeInstance } from "./explorer.types";
 
 export class explorer_tree {
   public tree: VirtualTreeInstance | null = null;
+  public structure: IFolderStructure | null = null;
 
   public register_tree(structure: IFolderStructure) {
     const viewport_el = document.querySelector(
@@ -21,6 +22,8 @@ export class explorer_tree {
       onSelect: (id) => open_editor_tab(id),
       scrollViewport: viewport_el,
     });
+
+    this.structure = structure;
 
     return this.tree;
   }

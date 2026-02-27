@@ -9,6 +9,7 @@ import { ActivityBarPanelComponent } from "../../workbench/activitybar/activityb
 import { TabsComponent } from "../../workbench/tabs/tabs-component";
 import { Statusbar } from "../../workbench/statusbar/statusbar";
 import { Splitter } from "../../ui/components/splitter/splitter";
+import { terminal } from "../terminal/terminal.service";
 
 type RenderResult = { el: HTMLElement; destroy: () => void };
 
@@ -292,6 +293,7 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
         restoreScroll();
         requestAnimationFrame(() => {
           contentHost.style.visibility = "";
+          terminal.refresh_active();
         });
       });
     });

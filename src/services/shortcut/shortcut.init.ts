@@ -19,6 +19,7 @@ import {
   close_active_editor_tab,
   open_new_editor_tab,
 } from "../editor/editor.helper";
+import { terminal } from "../terminal/terminal.service";
 
 shortcuts.register_command({
   id: "layout.toggleSearch",
@@ -60,7 +61,6 @@ shortcuts.register_command({
 
       let new_root;
 
-      // [1] = center split, [1] = bottom tabs
       if (
         active_tab_key === "terminal" &&
         is_node_enabled_at_path(preset.root, [1, 1])
@@ -79,6 +79,8 @@ shortcuts.register_command({
         });
 
       store.dispatch(set_active_tab_key("terminal"));
+
+      terminal.refresh_active();
     });
   },
 });
@@ -231,6 +233,10 @@ shortcuts.register_command({
     window.workspace.ask_update_workspace();
   },
 });
+shortcuts.register_command({
+  id: "app.closeFolder",
+  run: () => {},
+});
 
 shortcuts.register_shortcuts([
   {
@@ -375,6 +381,14 @@ shortcuts.register_shortcuts([
     category: "Editor",
     keys: "ctrl+shift+s",
     command: "editor.saveAs",
+    scope: "app",
+  },
+  {
+    id: "closeFolder",
+    label: "Close Folder",
+    category: "Editor",
+    keys: "ctrl+m",
+    command: "app.closeFolder",
     scope: "app",
   },
 ]);

@@ -18,7 +18,10 @@ class explorer_services {
     folder_path: string,
   ): Promise<IFolderStructure> {
     try {
-      const entries = await fs.readdir(folder_path, { withFileTypes: true });
+      const entries = await fs.readdir(folder_path, {
+        withFileTypes: true,
+        recursive: false,
+      });
 
       const structure: INode[] = [];
 
@@ -52,7 +55,10 @@ class explorer_services {
     if (node.type !== "folder") return [];
 
     try {
-      const entries = await fs.readdir(node.path, { withFileTypes: true });
+      const entries = await fs.readdir(node.path, {
+        withFileTypes: true,
+        recursive: false,
+      });
 
       const child_nodes: INode[] = [];
 
