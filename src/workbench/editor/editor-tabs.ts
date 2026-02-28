@@ -90,8 +90,9 @@ export function EditorTabs() {
         "span",
         {
           attrs: { "data-role": "close-btn" },
-          class:
+          class: cn(
             "absolute inset-0 flex items-center justify-center rounded [&_svg]:w-5 [&_svg]:h-5 text-editor-tab-close-foreground opacity-100",
+          ),
         },
         lucide("x"),
       );
@@ -236,10 +237,14 @@ export function EditorTabs() {
     const close = element.querySelector(
       '[data-role="close-btn"]',
     ) as HTMLElement | null;
+
     if (close) {
       close.className = cn(
-        "absolute inset-0 flex items-center justify-center text-editor-tab-close-foreground",
-        "rounded [&_svg]:w-5 [&_svg]:h-5",
+        "absolute inset-0 flex items-center justify-center rounded [&_svg]:w-5 [&_svg]:h-5",
+        tab.active
+          ? "text-editor-tab-close-active-foreground"
+          : "text-editor-tab-close-foreground",
+        "group-hover:text-editor-tab-close-hover-foreground",
         tab.is_touched ? "opacity-0 group-hover:opacity-100" : "opacity-100",
       );
     }

@@ -1,5 +1,4 @@
 import * as monaco from "monaco-editor";
-import "monaco-editor/esm/vs/editor/contrib/clipboard/browser/clipboard";
 import type { ContextMenuItem } from "../../ui/components/context-menu";
 import { get_base_name } from "../explorer/explorer.helper";
 import { update_tabs } from "../state/slices/editor.slice";

@@ -2,14 +2,12 @@ import { defineConfig } from "vite";
 import path from "node:path";
 import electron from "vite-plugin-electron/simple";
 import tailwindcss from "@tailwindcss/vite";
-import monacoEditorPluginImport from "vite-plugin-monaco-editor";
-
-const monacoEditorPlugin =
-  (monacoEditorPluginImport as any).default ?? monacoEditorPluginImport;
 
 export default defineConfig({
+  optimizeDeps: {
+    include: ["monaco-languageclient", "vscode-ws-jsonrpc"],
+  },
   plugins: [
-    monacoEditorPlugin({}),
     tailwindcss(),
     electron({
       main: {
@@ -17,7 +15,7 @@ export default defineConfig({
         vite: {
           build: {
             rollupOptions: {
-              external: ["node-pty"],
+              external: ["node-pty", "bufferutil", "utf-8-validate"],
             },
           },
         },

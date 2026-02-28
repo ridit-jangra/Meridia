@@ -30,8 +30,9 @@ export const colors = [
   "editor.tab.hover.foreground",
   "editor.tab.border",
   "editor.tab.close.foreground",
-  "editor.tab.icon.foreground",
+  "editor.tab.close.active.background",
   "editor.tab.close.hover.background",
+  "editor.tab.icon.foreground",
 
   "view.tab.background",
   "view.tab.active.background",
