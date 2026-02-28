@@ -187,6 +187,18 @@ shortcuts.register_command({
   run: () => console.log("reset zoom"),
 });
 shortcuts.register_command({
+  id: "app.zoomIn",
+  run: () => {
+    window.ipc.invoke("workbench.zoom");
+  },
+});
+shortcuts.register_command({
+  id: "app.zoomOut",
+  run: () => {
+    window.ipc.invoke("workbench.zoomout");
+  },
+});
+shortcuts.register_command({
   id: "app.toggleFullscreen",
   run: () => console.log("toggle fullscreen"),
 });
@@ -328,6 +340,14 @@ shortcuts.register_shortcuts([
     category: "App",
     keys: "ctrl+=",
     command: "app.zoomIn",
+    scope: "app",
+  },
+  {
+    id: "zoomOut",
+    label: "Zoom Out",
+    category: "App",
+    keys: "ctrl+-",
+    command: "app.zoomOut",
     scope: "app",
   },
   {
