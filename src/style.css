@@ -278,6 +278,9 @@ body {
   --color-insights-background: var(--insights-background);
   --color-insights-foreground: var(--insights-foerground);
 
+  --color-link-foreground: var(--link-foreground);
+  --color-link-hover-foreground: var(--link-hover-foreground);
+
   --font-inter: "Inter", sans-serif;
   --font-jetbrains: "Jetbrains", monospace;
 }

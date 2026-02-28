@@ -15,6 +15,7 @@ import { IPersistedTerminalTab, ITerminalTab } from "./terminal.types";
 import { theme } from "../theme/theme.service";
 import { explorer } from "../explorer/explorer.service";
 import { open_editor_tab } from "../editor/editor.helper";
+import { h, Link, Tooltip } from "../../ui";
 
 type terminal_service_listener = () => void;
 
@@ -116,10 +117,54 @@ class terminal_service {
 
     const fitAddon = new FitAddon();
     terminal.loadAddon(fitAddon);
+
+    const linkAnchor = document.createElement("div");
+    linkAnchor.style.cssText =
+      "position:fixed;width:1px;height:1px;pointer-events:none;";
+    document.body.appendChild(linkAnchor);
+
+    const followLink = Link({ text: "Follow Link", class: "text-lg" }).el;
+
+    Tooltip({
+      content: h(
+        "div",
+        { class: "flex items-center gap-2 text-lg" },
+        followLink,
+        "(ctrl+click)",
+      ),
+      child: linkAnchor,
+      position: "top",
+      delay: 100,
+      class: "-translate-y-2",
+      hide_delay: 200,
+    });
+
     terminal.loadAddon(
-      new WebLinksAddon((_, url) => {
-        window.shell.open_external(url);
-      }),
+      new WebLinksAddon(
+        (event, url) => {
+          if (event.ctrlKey) {
+            window.shell.open_external(url);
+          }
+        },
+        {
+          hover: (event: MouseEvent, url) => {
+            followLink.onclick = () => {
+              window.shell.open_external(url);
+            };
+
+            linkAnchor.style.left = `${event.clientX}px`;
+            linkAnchor.style.top = `${event.clientY}px`;
+            linkAnchor.dispatchEvent(
+              new MouseEvent("mouseenter", { bubbles: false }),
+            );
+          },
+          leave: () => {
+            linkAnchor.dispatchEvent(
+              new MouseEvent("mouseleave", { bubbles: false }),
+            );
+          },
+        },
+      ),
     );
 
     const clipboardAddon = new ClipboardAddon(

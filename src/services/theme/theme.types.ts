@@ -175,6 +175,9 @@ export const colors = [
 
   "insights.background",
   "insights.foreground",
+
+  "link.foreground",
+  "link.hover.foreground",
 ] as const;
 
 export type TColors = (typeof colors)[number];

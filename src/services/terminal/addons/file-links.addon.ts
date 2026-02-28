@@ -1,4 +1,5 @@
 import { Terminal, ITerminalAddon, IDisposable } from "@xterm/xterm";
+import { h, Link, Tooltip } from "../../../ui";
 
 export interface IFileLinksAddonOptions {
   onOpen: (path: string, location?: { line: number; col: number }) => void;
@@ -13,7 +14,33 @@ export class FileLinksAddon implements ITerminalAddon {
   private _terminal: Terminal | undefined;
   private _disposables: IDisposable[] = [];
 
-  constructor(private readonly _opts: IFileLinksAddonOptions) {}
+  private _linkAnchor: HTMLDivElement;
+  private _followLink: HTMLAnchorElement;
+  private _linkTooltip: ReturnType<typeof Tooltip>;
+
+  constructor(private readonly _opts: IFileLinksAddonOptions) {
+    this._linkAnchor = document.createElement("div");
+    this._linkAnchor.style.cssText =
+      "position:fixed;width:1px;height:1px;pointer-events:none;";
+    document.body.appendChild(this._linkAnchor);
+
+    this._followLink = Link({ text: "Open / Highlight", class: "text-lg" })
+      .el as HTMLAnchorElement;
+
+    this._linkTooltip = Tooltip({
+      content: h(
+        "div",
+        { class: "flex items-center gap-2 text-lg" },
+        this._followLink,
+        h("span", {}, "(ctrl+click)"),
+      ),
+      child: this._linkAnchor,
+      position: "top",
+      delay: 100,
+      hide_delay: 200,
+      class: "-translate-y-2",
+    });
+  }
 
   activate(terminal: Terminal): void {
     this._terminal = terminal;
@@ -62,7 +89,23 @@ export class FileLinksAddon implements ITerminalAddon {
             links.push({
               range,
               text: rawMatch,
-              activate: () => this._opts.onOpen(resolved, location),
+              activate: (event: MouseEvent) => {
+                if (event.ctrlKey) this._opts.onOpen(resolved, location);
+              },
+              hover: (event: MouseEvent) => {
+                this._followLink.onclick = () =>
+                  this._opts.onOpen(resolved, location);
+                this._linkAnchor.style.left = `${event.clientX}px`;
+                this._linkAnchor.style.top = `${event.clientY}px`;
+                this._linkAnchor.dispatchEvent(
+                  new MouseEvent("mouseenter", { bubbles: false }),
+                );
+              },
+              leave: () => {
+                this._linkAnchor.dispatchEvent(
+                  new MouseEvent("mouseleave", { bubbles: false }),
+                );
+              },
             });
           }
 
@@ -76,6 +119,8 @@ export class FileLinksAddon implements ITerminalAddon {
     this._disposables.forEach((d) => d.dispose());
     this._disposables = [];
     this._terminal = undefined;
+    this._linkTooltip.destroy();
+    this._linkAnchor.remove();
   }
 
   private _translateBufferLineToStringWithWrap(
