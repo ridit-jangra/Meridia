@@ -172,14 +172,10 @@ export function TerminalPanel(opts?: { class?: string }) {
             "w-full py-1.5 shrink-0",
             "text-[12px] cursor-pointer select-none",
             isActive
-              ? cn(
-                  "bg-button-secondary-hover-background/60 text-foreground",
-                  "border-r-2 border-r-foreground/70 border-l-2 border-l-transparent",
-                )
+              ? cn("bg-button-secondary-hover-background/60 text-foreground")
               : cn(
                   "text-foreground/50 hover:text-foreground/80",
                   "hover:bg-button-secondary-hover-background/30",
-                  "border-r-2 border-r-transparent border-l-2 border-l-transparent",
                 ),
           ),
         },
