@@ -94,6 +94,15 @@ class terminal_service {
         cursor: theme.get_color("terminal.cursor.foreground"),
         cursorAccent: theme.get_color("terminal.background"),
         selectionBackground: theme.get_color("terminal.selection.background"),
+        scrollbarSliderBackground: theme.get_color(
+          "scrollbar.thumb.foreground",
+        ),
+        scrollbarSliderHoverBackground: theme.get_color(
+          "scrollbar.thumb.hover.foreground",
+        ),
+        scrollbarSliderActiveBackground: theme.get_color(
+          "scrollbar.thumb.active.foreground",
+        ),
 
         black: theme.get_color("terminal.black"),
         red: theme.get_color("terminal.red"),
@@ -349,6 +358,20 @@ class terminal_service {
     this.tabs.forEach((t) => {
       t.terminal.focus();
     });
+  }
+
+  is_focus(): boolean {
+    const active = this.get_active();
+    if (!active) return false;
+
+    const ae = document.activeElement as HTMLElement | null;
+    if (!ae) return false;
+
+    if (ae.classList.contains("xterm-helper-textarea")) {
+      return active.el.contains(ae);
+    }
+
+    return active.el.contains(ae);
   }
 
   refresh_active() {

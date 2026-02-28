@@ -182,7 +182,6 @@ export function Titlebar() {
 
   window.ipc.on("titlebar-insets", (_, inset: number) => {
     const el = document.querySelector(".titlebar-inset") as HTMLDivElement;
-    console.log(inset, el);
     if (!el) return;
 
     el.style.marginRight = `${inset}px`;

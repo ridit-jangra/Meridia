@@ -5,7 +5,10 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   optimizeDeps: {
-    include: ["monaco-languageclient", "vscode-ws-jsonrpc"],
+    // Pre-bundle CJS packages into ESM for the renderer dev server.
+    // vscode-jsonrpc and vscode-ws-jsonrpc are CJS — without this they
+    // throw "does not provide an export named X".
+    include: ["vscode-jsonrpc", "vscode-ws-jsonrpc"],
   },
   plugins: [
     tailwindcss(),
@@ -15,7 +18,7 @@ export default defineConfig({
         vite: {
           build: {
             rollupOptions: {
-              external: ["node-pty", "bufferutil", "utf-8-validate"],
+              external: ["node-pty", "bufferutil", "utf-8-validate", "ws"],
             },
           },
         },

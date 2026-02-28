@@ -15,6 +15,7 @@ import { insights as insights_service } from "../../services/insight/insight.ser
 import { insights_events } from "../../events/insights.events";
 import type { Insight } from "../../services/insight/insight.types";
 import { explorer_events } from "../../events/explorer.events";
+import { shortcuts } from "../../services/shortcut/shortcut.service";
 
 export function EditorTabs() {
   const header = h("div", {
@@ -181,6 +182,8 @@ export function EditorTabs() {
             type: "item",
             label: "Close Tab",
             onClick: () => close_editor_tab(file_path),
+            command_id: shortcuts.get_shortcut({ command: "editor.close" })
+              ?.keys as string,
           },
           {
             type: "item",

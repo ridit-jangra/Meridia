@@ -17,10 +17,12 @@ import { update_layout } from "../layouts/layout.helper";
 import { debounce } from "../../core/utils/utils";
 import {
   close_active_editor_tab,
+  monaco,
   open_new_editor_tab,
 } from "../editor/editor.helper";
 import { terminal } from "../terminal/terminal.service";
 import { terminal_events } from "../../events/terminal.events";
+import { focus_terminal } from "../../common/focus";
 
 shortcuts.register_command({
   id: "layout.toggleSearch",
@@ -62,12 +64,17 @@ shortcuts.register_command({
 
       let new_root;
 
+      console.log("is terminal focus", terminal.is_focus());
       if (
         active_tab_key === "terminal" &&
         is_node_enabled_at_path(preset.root, [1, 1])
       ) {
-        if (is_node_enabled_at_path_active_preset([1, 1]))
-          new_root = disable_node_at_path(preset.root, [1, 1]);
+        if (terminal.is_focus()) {
+          if (is_node_enabled_at_path_active_preset([1, 1]))
+            new_root = disable_node_at_path(preset.root, [1, 1]);
+        } else {
+          focus_terminal();
+        }
       } else {
         if (!is_node_enabled_at_path_active_preset([1, 1]))
           new_root = enable_node_at_path(preset.root, [1, 1]);
@@ -394,7 +401,7 @@ shortcuts.register_shortcuts([
     id: "openFolder",
     label: "Open Folder",
     category: "App",
-    keys: "ctrl+shift+o",
+    keys: "ctrl+alt+o",
     command: "app.openFolder",
     scope: "app",
   },
