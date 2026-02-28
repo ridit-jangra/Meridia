@@ -1,5 +1,5 @@
-import { ITab } from "../../src/services/editor/editor.types";
-import { IPersistedTerminalTab } from "../../src/services/terminal/terminal.types";
+import { ITab } from "../../src/types/editor.types";
+import { IPersistedTerminalTab } from "../../src/types/terminal.types";
 
 export interface IWorkspace {
   editor_tabs: ITab[];
