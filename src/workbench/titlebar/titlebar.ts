@@ -1,6 +1,8 @@
 import LogoSvg from "../../assets/images/logo.svg?raw";
 import { h } from "../../core/dom/h";
 import { cn } from "../../core/utils/cn";
+import { layout_engine } from "../../services/layouts/layout.engine";
+import { is_node_enabled_at_path_active_preset } from "../../services/layouts/layout.helper";
 import { shortcuts } from "../../services/shortcut/shortcut.service";
 import { Tooltip } from "../../ui";
 import { codicon, lucide } from "../../ui/components/icon";
@@ -26,7 +28,26 @@ export function Titlebar() {
     ),
   );
 
-  const layout_btn = h(
+  const update_layout_btns = () => {
+    const left_active = is_node_enabled_at_path_active_preset([0]);
+    const right_active = is_node_enabled_at_path_active_preset([2]);
+    const bottom_active = is_node_enabled_at_path_active_preset([1, 1]);
+
+    left_panel.innerHTML = "";
+    right_panel.innerHTML = "";
+    bottom_panel.innerHTML = "";
+
+    if (left_active) left_panel.appendChild(codicon("layout-sidebar-left"));
+    else left_panel.appendChild(codicon("layout-sidebar-left-off"));
+
+    if (right_active) right_panel.appendChild(codicon("layout-sidebar-right"));
+    else right_panel.appendChild(codicon("layout-sidebar-right-off"));
+
+    if (bottom_active) bottom_panel.appendChild(codicon("layout-panel"));
+    else bottom_panel.appendChild(codicon("layout-panel-off"));
+  };
+
+  const settings_btn = h(
     "span",
     {
       class:
@@ -106,7 +127,7 @@ export function Titlebar() {
     left_panel,
     bottom_panel,
     right_panel,
-    layout_btn,
+    settings_btn,
   );
 
   const content = h("div");
@@ -134,8 +155,14 @@ export function Titlebar() {
 
   Tooltip({
     text: `Settings (${shortcuts.get_shortcut({ id: "openSettings" })?.keys})`,
-    child: layout_btn,
+    child: settings_btn,
   });
+
+  layout_engine.subscribe(() => {
+    update_layout_btns();
+  });
+
+  update_layout_btns();
 
   const el = h(
     "div",
