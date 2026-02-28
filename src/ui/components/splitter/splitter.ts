@@ -232,7 +232,7 @@ export function Splitter(opts: SplitterOpts) {
     "div",
     {
       class: cn(
-        "flex min-h-0 min-w-0 h-full w-full gap-[2.5px]",
+        "flex min-h-0 min-w-0 h-full w-full overflow-hidden",
         isHorizontal ? "flex-row" : "flex-col",
         opts.class,
       ),
