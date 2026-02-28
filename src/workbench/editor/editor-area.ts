@@ -15,8 +15,10 @@ export function EditorArea() {
 
   const tabs_ui = EditorTabs();
 
-  const scroll = ScrollArea({ class: "flex-1 min-h-0" });
-  scroll.inner.classList.add("editor-area", "h-full");
+  const scroll = ScrollArea({
+    class: "flex-1 min-h-0",
+    innerClass: "editor-area h-full",
+  });
 
   const get_active = () => store.getState().editor.tabs.find((v) => v.active);
 

@@ -1,26 +1,27 @@
-import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
-import JsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
-import CssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
-import HtmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker";
+import editor_worker from "monaco-editor/esm/vs/editor/editor.worker?worker";
+import json_worker from "monaco-editor/esm/vs/language/json/json.worker?worker";
+import css_worker from "monaco-editor/esm/vs/language/css/css.worker?worker";
+import html_worker from "monaco-editor/esm/vs/language/html/html.worker?worker";
 
 (self as any).MonacoEnvironment = {
   getWorker(_: unknown, label: string) {
-    if (label === "json") return new JsonWorker();
+    if (label === "json") return new json_worker();
     if (label === "css" || label === "scss" || label === "less")
-      return new CssWorker();
+      return new css_worker();
     if (label === "html" || label === "handlebars" || label === "razor")
-      return new HtmlWorker();
+      return new html_worker();
 
     if (label === "typescript" || label === "javascript") {
       return new Worker(
         URL.createObjectURL(new Blob([""], { type: "application/javascript" })),
       );
     }
-    return new EditorWorker();
+    return new editor_worker();
   },
 };
 
 import "../editor.monaco.theme";
+import "../editor.monaco.customize";
 import { Button, h } from "../../../ui";
 import { editor } from "../editor";
 import { IMonacoEditor, IMonacoModel, tab_status } from "../editor.types";
@@ -44,7 +45,55 @@ const el = h("div", {
 const _: IMonacoEditor = {
   el,
   parent_el: null as any,
-  extensions: ["ts", "tsx", "js", "jsx", "json", "css", "html", "md", "py"],
+  extensions: [
+    "js",
+    "jsx",
+    "mjs",
+    "cjs",
+    "ts",
+    "tsx",
+    "html",
+    "htm",
+    "css",
+    "scss",
+    "sass",
+    "less",
+    "json",
+    "jsonc",
+    "md",
+    "markdown",
+    "py",
+    "sh",
+    "bash",
+    "yaml",
+    "yml",
+    "toml",
+    "xml",
+    "sql",
+    "graphql",
+    "gql",
+    "dockerfile",
+    "env",
+    "ini",
+    "conf",
+    "c",
+    "h",
+    "cpp",
+    "hpp",
+    "cc",
+    "hh",
+    "cs",
+    "java",
+    "go",
+    "rs",
+    "php",
+    "rb",
+    "swift",
+    "kt",
+    "kts",
+    "vue",
+    "svelte",
+  ],
   instance: null as any,
   dispose() {
     _.instance?.dispose();
@@ -54,7 +103,7 @@ const _: IMonacoEditor = {
 type Disposer = () => void;
 
 export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
-  private get monacoEditor() {
+  private get monaco_editor() {
     return this.editor as IMonacoEditor;
   }
 
@@ -66,7 +115,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   }
 
   public set_visible(visible?: boolean): void {
-    const editor = this.monacoEditor.parent_el.querySelector(".monaco-editor");
+    const editor = this.monaco_editor.parent_el.querySelector(".monaco-editor");
     if (!editor) return;
     editor.classList.toggle("hidden", !visible);
     if (this.error_el) this.error_el.classList.toggle("hidden", !visible);
@@ -75,10 +124,10 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   public mount(parent?: HTMLElement): void {
     if (!parent) return;
 
-    this.monacoEditor.parent_el = parent;
-    parent.appendChild(this.monacoEditor.el);
+    this.monaco_editor.parent_el = parent;
+    parent.appendChild(this.monaco_editor.el);
 
-    this.monacoEditor.instance = monaco.editor.create(this.monacoEditor.el, {
+    this.monaco_editor.instance = monaco.editor.create(this.monaco_editor.el, {
       language: "plaintext",
       theme: "theme",
       fontFamily: "JetBrains Mono, monospace",
@@ -93,11 +142,11 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       cursorBlinking: "expand",
     });
 
-    this.monacoEditor.instance.addCommand(
+    this.monaco_editor.instance.addCommand(
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF,
       () => {},
     );
-    this.monacoEditor.instance.addCommand(monaco.KeyCode.F1, function () {});
+    this.monaco_editor.instance.addCommand(monaco.KeyCode.F1, function () {});
 
     const save_as_file = async () => {
       const m = this.active_model;
@@ -173,17 +222,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       } catch {}
     };
 
-    monaco.editor.registerLinkOpener({
-      open(resource) {
-        const url = resource.toString();
-        if (url.startsWith("http://") || url.startsWith("https://")) {
-          window.shell.open_external(url);
-          return true;
-        }
-        return false;
-      },
-    });
-
     shortcuts.register_command({ id: "editor.save", run: save_file });
     shortcuts.register_command({ id: "editor.saveAs", run: save_as_file });
   }
@@ -254,10 +292,10 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       this.active_model?.uri === new_path
     ) {
       this.active_model = model;
-      this.monacoEditor.instance.setModel(new_model);
+      this.monaco_editor.instance.setModel(new_model);
       if (old_selection) {
         const s = old_selection;
-        this.monacoEditor.instance.setSelection(
+        this.monaco_editor.instance.setSelection(
           new monaco.Selection(s.startLine, s.startCol, s.endLine, s.endCol),
         );
       }
@@ -267,8 +305,8 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   }
 
   private bind_model_tracking(m: IMonacoModel) {
-    if (!this.monacoEditor.instance) return;
-    const editor = this.monacoEditor.instance;
+    if (!this.monaco_editor.instance) return;
+    const editor = this.monaco_editor.instance;
 
     const save_cursor = () => {
       if (editor.getModel() !== m.model) return;
@@ -344,7 +382,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     this.hide_error();
     this.active_model = model;
 
-    const editor = this.monacoEditor.instance;
+    const editor = this.monaco_editor.instance;
     editor.setModel(model.model);
 
     if (model.selection) {
@@ -367,7 +405,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   public update_editor(): void {
     if (!this.active_model) return;
     const model = this.active_model as IMonacoModel;
-    const editor = this.monacoEditor.instance;
+    const editor = this.monaco_editor.instance;
     if (editor.getModel() === model.model) return;
     editor.setModel(model.model);
   }
@@ -389,8 +427,8 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       ),
     );
     this.error_el = wrap;
-    if (this.monacoEditor.parent_el && !this.error_el.parentElement) {
-      this.monacoEditor.parent_el.appendChild(this.error_el);
+    if (this.monaco_editor.parent_el && !this.error_el.parentElement) {
+      this.monaco_editor.parent_el.appendChild(this.error_el);
     }
     this.error_el.classList.remove("hidden");
   }
@@ -418,6 +456,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       for (const d of disposers) d();
     }
     this.model_disposers.clear();
-    this.monacoEditor.instance?.dispose();
+    this.monaco_editor.instance?.dispose();
   }
 }

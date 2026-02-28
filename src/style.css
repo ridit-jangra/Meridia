@@ -394,3 +394,58 @@ body {
     transform: rotate(360deg);
   }
 }
+
+.scroll-decoration {
+  display: none;
+}
+
+.code svg.default path {
+  fill: var(--workbench-icon-foreground);
+  stroke: var(--workbench-icon-foreground);
+}
+
+.code svg.markdown {
+  width: 20px !important;
+  height: auto;
+}
+
+.code svg.license path {
+  fill: var(--workbench-terminal-color4);
+}
+
+.code svg.terminal rect,
+.code svg.terminal path {
+  stroke: var(--workbench-foreground);
+}
+
+.code svg.image path {
+  fill: var(--workbench-foreground);
+}
+
+.code svg.font path {
+  fill: var(--terminal-red);
+}
+
+.code svg.toml path {
+  fill: var(--terminal-black);
+}
+
+.code svg.rs path {
+  stroke: var(--workbench-foreground);
+}
+
+.code svg.binary path {
+  stroke: var(-terminal-black);
+}
+
+.code svg.gear path {
+  fill: var(--terminal-yellow);
+}
+
+.code svg.background path {
+  fill: var(--workbench-foreground);
+}
+
+.code svg.music path {
+  stroke: var(--terminal-magenta);
+}
