@@ -1,19 +1,19 @@
-import "./services/theme/theme.service";
-import "./services/shortcut/shortcut.init";
-import "./services/explorer/explorer.service";
+import "./code/workbench/contrib/theme/theme.service";
+import "./code/workbench/common/shortcut/shortcut.init";
+import "./code/platform/explorer/explorer.service";
 
 import "@vscode/codicons/dist/codicon.css";
 import "./style.css";
-import { layout_engine } from "./services/layouts/layout.engine";
-import { LayoutRenderer } from "./services/layouts/layout.renderer";
-import { shortcuts } from "./services/shortcut/shortcut.service";
-import { ide_preset } from "./services/layouts/presets/preset.ide";
-import { agent_preset } from "./services/layouts/presets/preset.agent";
-import { editor_preset } from "./services/layouts/presets/preset.editor";
-import { Command } from "./ui";
-import { store } from "./services/state/store";
-import { set_command_palette_open } from "./services/state/slices/layout.slice";
-import { build_command_groups } from "./ui/components/command/command.groups";
+import { build_command_groups } from "./code/workbench/browser/parts/components/command/command.groups";
+import { layout_engine } from "./code/workbench/browser/layouts/layout.engine";
+import { ide_preset } from "./code/workbench/browser/layouts/presets/preset.ide";
+import { agent_preset } from "./code/workbench/browser/layouts/presets/preset.agent";
+import { editor_preset } from "./code/workbench/browser/layouts/presets/preset.editor";
+import { LayoutRenderer } from "./code/workbench/browser/layouts/layout.renderer";
+import { shortcuts } from "./code/workbench/common/shortcut/shortcut.service";
+import { Command } from "./code/workbench/browser/parts/components/command/command";
+import { store } from "./code/workbench/common/state/store";
+import { set_command_palette_open } from "./code/workbench/common/state/slices/layout.slice";
 
 async function init() {
   const root = document.getElementById("app")!;

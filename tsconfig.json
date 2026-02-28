@@ -19,5 +19,30 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "electron", "shared"]
+  "include": [
+    "src",
+    "electron",
+    "shared",
+    "src/types/theme.types.ts",
+    "src/types/terminal.types.ts",
+    "src/types/shortcut.types.ts",
+    "src/types/layout.types.ts",
+    "src/types/insight.types.ts",
+    "src/types/explorer.types.ts",
+    "src/types/editor.types.ts",
+    "src/types/core.types.ts",
+    "src/code/workbench/browser/parts/activitybar",
+    "src/code/workbench/browser/parts/panels",
+    "src/code/workbench/browser/parts/tabs",
+    "src/code/workbench/browser/parts/statusbar",
+    "src/code/contrib/terminal/browser/terminal.ts",
+    "src/code/contrib/terminal/common/addons",
+    "src/code/contrib/terminal/common/terminal.service.ts",
+    "src/main.ts",
+    "src/vite-env.d.ts",
+    "src/code/platform/insight",
+    "src/code/workbench/browser/parts/components",
+    "src/code/workbench/contrib/core",
+    "src/code/workbench/common/focus.ts"
+  ]
 }
