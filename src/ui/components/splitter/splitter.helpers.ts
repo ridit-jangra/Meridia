@@ -142,9 +142,9 @@ export function panelSizeStyle(
   sizePct: number,
 ): string {
   if (direction === "horizontal") {
-    return `width:${sizePct}%; height:100%; flex-shrink:0;`;
+    return `width:${sizePct}%; height:100%; flex-shrink:1;`;
   }
-  return `height:${sizePct}%; width:100%; flex-shrink:0;`;
+  return `height:${sizePct}%; width:100%; flex-shrink:1;`;
 }
 
 export function gutterSizeStyle(
