@@ -36,10 +36,11 @@ import { store } from "../../state/store";
 import { update_tabs } from "../../state/slices/editor.slice";
 import { get_base_name } from "../../explorer/explorer.helper";
 import { explorer } from "../../explorer/explorer.service";
+import { lspClientManager } from "../editor.monaco.lsp";
 
 const el = h("div", {
   class:
-    "monaco-editor h-full w-full [&_span]:font-normal [&_a]:text-link-foreground [&_a]:hover:underline",
+    "monaco-editor relative min-h-0 h-full w-full overflow-hidden [&_span]:font-normal [&_a]:text-link-foreground [&_a]:hover:underline",
 });
 
 const _: IMonacoEditor = {
@@ -121,7 +122,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     if (this.error_el) this.error_el.classList.toggle("hidden", !visible);
   }
 
-  public mount(parent?: HTMLElement): void {
+  public async mount(parent?: HTMLElement): Promise<void> {
     if (!parent) return;
 
     this.monaco_editor.parent_el = parent;
@@ -137,15 +138,26 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       minimap: { enabled: false },
       fontSize: 15,
       folding: true,
-      find: { addExtraSpaceOnTop: false },
+      // find: { addExtraSpaceOnTop: true },
       cursorSmoothCaretAnimation: "on",
       cursorBlinking: "expand",
+      // useShadowDOM: false,
+      fixedOverflowWidgets: true,
     });
 
-    this.monaco_editor.instance.addCommand(
-      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyF,
-      () => {},
-    );
+    lspClientManager.register({
+      languageId: "typescript",
+      extensions: ["ts", "tsx", "mts", "cts"],
+    });
+    lspClientManager.register({
+      languageId: "javascript",
+      extensions: ["js", "jsx", "mjs", "cjs"],
+    });
+    lspClientManager.register({ languageId: "python", extensions: ["py"] });
+    lspClientManager.register({ languageId: "rust", extensions: ["rs"] });
+
+    await lspClientManager.start();
+
     this.monaco_editor.instance.addCommand(monaco.KeyCode.F1, function () {});
 
     const save_as_file = async () => {

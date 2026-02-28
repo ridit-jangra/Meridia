@@ -284,6 +284,8 @@ body {
   --color-link-foreground: var(--link-foreground);
   --color-link-hover-foreground: var(--link-hover-foreground);
 
+  --color-loader-foreground: var(--loader-foreground);
+
   --font-inter: "Inter", sans-serif;
   --font-jetbrains: "Jetbrains", monospace;
 }
@@ -399,53 +401,86 @@ body {
   display: none;
 }
 
-.code svg.default path {
-  fill: var(--workbench-icon-foreground);
-  stroke: var(--workbench-icon-foreground);
+.find-widget * {
+  font-weight: normal;
+  letter-spacing: 0.7px !important;
 }
 
-.code svg.markdown {
-  width: 20px !important;
-  height: auto;
+.find-widget textarea {
+  font-family: "JetBrains Mono" !important;
+  line-height: 1.4rem !important;
 }
 
-.code svg.license path {
-  fill: var(--workbench-terminal-color4);
+.find-widget.visible {
+  top: 32px !important;
 }
 
-.code svg.terminal rect,
-.code svg.terminal path {
-  stroke: var(--workbench-foreground);
+.find-widget .codicon-widget-close {
+  margin-top: 2.5px;
+  margin-right: 2px;
 }
 
-.code svg.image path {
-  fill: var(--workbench-foreground);
+.suggest-widget {
+  font-weight: normal;
+  letter-spacing: 0.7px !important;
 }
 
-.code svg.font path {
-  fill: var(--terminal-red);
+.quick-input-widget {
+  font-weight: normal;
+  letter-spacing: 0.7px !important;
 }
 
-.code svg.toml path {
-  fill: var(--terminal-black);
+.monaco-editor input {
+  background: var(--input-background) !important;
+  color: var(--input-foreground) !important;
 }
 
-.code svg.rs path {
-  stroke: var(--workbench-foreground);
+.monaco-editor textarea {
+  background: var(--input-background) !important;
+  color: var(--input-foreground) !important;
 }
 
-.code svg.binary path {
-  stroke: var(-terminal-black);
+.monaco-sash:hover,
+.monaco-sash:hover::before,
+.monaco-sash.active,
+.monaco-sash.active::before {
+  background-color: var(--split-handle-active-foreground) !important;
 }
 
-.code svg.gear path {
-  fill: var(--terminal-yellow);
+.hover-contents {
+  min-width: max-content !important;
 }
 
-.code svg.background path {
-  fill: var(--workbench-foreground);
+.workbench-hover-container {
+  animation: fade_zoom_in 150ms ease-out;
 }
 
-.code svg.music path {
-  stroke: var(--terminal-magenta);
+.monaco-hover {
+  background: var(--tooltip-background) !important;
+  border: 1.5px solid var(--tooltip-border) !important;
+}
+
+@keyframes fade_zoom_in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes loading {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+.animate-loading {
+  animation: loading 0.9s ease-in-out infinite;
+  will-change: transform;
 }

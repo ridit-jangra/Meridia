@@ -17,7 +17,6 @@ export type SplitterDirection = "horizontal" | "vertical";
 
 export type SplitterPanel = {
   id: string;
-
   size?: number;
   minSize?: number;
   collapsible?: boolean;

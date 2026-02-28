@@ -13,7 +13,7 @@ export const dark: ITheme = {
     "panel.foreground": "#E6E6E6EB",
     "panel.border": "#FFFFFF14",
 
-    "editor.background": "#151515",
+    "editor.background": "#181818",
     "editor.foreground": "#E6E6E6EB",
     "editor.cursor.foreground": "#E6E6E6EB",
     "editor.selection.background": "#4A4A4A99",
@@ -73,7 +73,7 @@ export const dark: ITheme = {
     "terminal.cursor.foreground": "#E6E6E6EB",
     "terminal.selection.background": "#FFFFFF22",
 
-    "terminal.black": "#151515",
+    "terminal.black": "#555555",
     "terminal.red": "#FC6B83",
     "terminal.green": "#A3D977",
     "terminal.yellow": "#F1B467",
@@ -82,7 +82,7 @@ export const dark: ITheme = {
     "terminal.cyan": "#88C0D0",
     "terminal.white": "#E6E6E6EB",
 
-    "terminal.bright.black": "#2A2A2A",
+    "terminal.bright.black": "#3A3A3A",
     "terminal.bright.red": "#FF7D92",
     "terminal.bright.green": "#B6F28A",
     "terminal.bright.yellow": "#FFD08A",
@@ -90,6 +90,8 @@ export const dark: ITheme = {
     "terminal.bright.magenta": "#E0B3FF",
     "terminal.bright.cyan": "#9FE7FF",
     "terminal.bright.white": "#FFFFFF",
+
+    "loader.foreground": "#81A1C1",
 
     "command.background": "#101010",
     "command.item.foreground": "#E6E6E6EB",
