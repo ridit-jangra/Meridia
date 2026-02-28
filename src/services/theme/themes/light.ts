@@ -148,5 +148,36 @@ export const light: ITheme = {
     "popover.content.foreground": "#1F2937",
 
     "popover.shadow": "0 10px 40px rgba(0, 0, 0, 0.08)",
+
+    "terminal.selection.background": "#BFDBFE",
+
+    "terminal.black": "#1F2937",
+    "terminal.red": "#DC2626",
+    "terminal.green": "#16A34A",
+    "terminal.yellow": "#D97706",
+    "terminal.blue": "#2563EB",
+    "terminal.magenta": "#7C3AED",
+    "terminal.cyan": "#0284C7",
+    "terminal.white": "#F9FAFB",
+
+    "terminal.bright.black": "#6B7280",
+    "terminal.bright.red": "#EF4444",
+    "terminal.bright.green": "#22C55E",
+    "terminal.bright.yellow": "#F59E0B",
+    "terminal.bright.blue": "#3B82F6",
+    "terminal.bright.magenta": "#8B5CF6",
+    "terminal.bright.cyan": "#0EA5E9",
+    "terminal.bright.white": "#FFFFFF",
+
+    "editor.tab.active.border": "#FFFFFF",
+    "editor.tab.icon.foreground": "#1F2937",
+
+    "titlebar.popover.background": "#FFFFFF",
+
+    "insights.background": "#F4F6FA",
+    "insights.foreground": "#6B7280",
+
+    "link.foreground": "#2563EB",
+    "link.hover.foreground": "#1D4ED8",
   },
 };
