@@ -28,8 +28,9 @@ export const dark: ITheme = {
     "editor.tab.hover.foreground": "#E6E6E6D6",
     "editor.tab.border": "#FFFFFF14",
     "editor.tab.icon.foreground": "#E6E6E6EB",
-    "editor.tab.close.foreground": "#E6E6E6EB",
-    "editor.tab.close.hover.background": "#FFFFFF1A",
+    "editor.tab.close.foreground": "#E6E6E666",
+    "editor.tab.close.active.background": "#E6E6E6EB",
+    "editor.tab.close.hover.background": "#E6E6E6EB",
 
     "view.tab.background": "#151515",
     "view.tab.active.background": "#28292B",

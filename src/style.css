@@ -109,6 +109,9 @@ body {
   --color-editor-tab-border: var(--editor-tab-border);
   --color-editor-tab-icon-foreground: var(--editor-tab-icon-foreground);
   --color-editor-tab-close-foreground: var(--editor-tab-close-foreground);
+  --color-editor-tab-close-active-foreground: var(
+    --editor-tab-close-active-foreground
+  );
   --color-editor-tab-close-hover-foreground: var(
     --editor-tab-close-hover-foreground
   );
