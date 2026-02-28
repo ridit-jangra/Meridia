@@ -2,35 +2,53 @@ import { cn } from "../../core/utils/cn";
 import { h } from "../../core/dom/h";
 
 export function Tooltip(opts: {
-  text: string;
+  text?: string;
+  content?: HTMLElement;
   child: HTMLElement;
   class?: string;
   position?: "top" | "bottom" | "left" | "right" | "auto";
   delay?: number;
+  hide_delay?: number;
 }) {
-  const tip = h(
-    "div",
-    {
-      class: cn(
-        "pointer-events-none fixed z-[9999] hidden px-2 py-1 text-[12.5px] " +
-          "bg-tooltip-background text-tooltip-foreground border border-tooltip-border rounded-[8px] " +
-          "animate-in fade-in zoom-in-95 duration-150",
-        opts.class,
-      ),
-    },
-    opts.text,
-  );
+  const tip = h("div", {
+    class: cn(
+      "fixed z-[9999] hidden px-2 py-1 text-[12.5px] " +
+        "bg-tooltip-background text-tooltip-foreground border border-tooltip-border rounded-[8px] " +
+        "animate-in fade-in zoom-in-95 duration-150",
+      opts.class,
+    ),
+  });
+
+  if (opts.content) {
+    tip.appendChild(opts.content);
+  } else if (opts.text) {
+    tip.textContent = opts.text;
+  }
 
   document.body.appendChild(tip);
 
   let showTimeout: number | null = null;
+  let hideTimeout: number | null = null;
 
   const hide = () => {
     if (showTimeout !== null) {
       window.clearTimeout(showTimeout);
       showTimeout = null;
     }
-    tip.style.display = "none";
+    if (opts.hide_delay) {
+      hideTimeout = window.setTimeout(() => {
+        tip.style.display = "none";
+      }, opts.hide_delay);
+    } else {
+      tip.style.display = "none";
+    }
+  };
+
+  const cancel_hide = () => {
+    if (hideTimeout !== null) {
+      window.clearTimeout(hideTimeout);
+      hideTimeout = null;
+    }
   };
 
   const show = () => {
@@ -102,6 +120,7 @@ export function Tooltip(opts: {
   };
 
   const handleMouseEnter = () => {
+    cancel_hide();
     if (opts.delay) {
       showTimeout = window.setTimeout(() => show(), opts.delay);
     } else {
@@ -113,6 +132,9 @@ export function Tooltip(opts: {
   opts.child.addEventListener("mouseleave", hide);
   opts.child.addEventListener("blur", hide);
   opts.child.addEventListener("mousedown", hide);
+
+  tip.addEventListener("mouseenter", cancel_hide);
+  tip.addEventListener("mouseleave", hide);
 
   const observer = new MutationObserver(() => {
     if (!document.body.contains(opts.child)) {
@@ -126,14 +148,25 @@ export function Tooltip(opts: {
 
   return {
     el: opts.child,
+    update_text(text: string) {
+      tip.innerHTML = "";
+      tip.textContent = text;
+    },
+    update_content(content: HTMLElement) {
+      tip.innerHTML = "";
+
+      tip.appendChild(content);
+    },
     destroy() {
-      if (showTimeout !== null) {
-        window.clearTimeout(showTimeout);
-      }
-      opts.child.removeEventListener("mouseenter", handleMouseEnter);
-      opts.child.removeEventListener("mouseleave", hide);
-      opts.child.removeEventListener("blur", hide);
-      opts.child.removeEventListener("mousedown", hide);
+      if (showTimeout !== null) window.clearTimeout(showTimeout);
+      if (hideTimeout !== null) window.clearTimeout(hideTimeout);
+      opts.child.addEventListener("mouseenter", handleMouseEnter);
+      opts.child.addEventListener("mouseleave", hide);
+      opts.child.addEventListener("blur", hide);
+      opts.child.addEventListener("mousedown", hide);
+
+      tip.addEventListener("mouseenter", cancel_hide);
+      tip.addEventListener("mouseleave", hide);
       observer.disconnect();
       tip.remove();
     },

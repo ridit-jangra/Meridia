@@ -177,5 +177,8 @@ export const dark: ITheme = {
 
     "insights.background": "#151515",
     "insights.foreground": "#E6E6E6B0",
+
+    "link.foreground": "#81A1C1",
+    "link.hover.foreground": "#9AB6E3",
   },
 };

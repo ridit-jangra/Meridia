@@ -10,6 +10,8 @@ export * from "./components/select";
 export * from "./components/menubar";
 export * from "./components/context-menu";
 export * from "./components/popover";
+export * from "./components/link";
 export * from "./components/command/command";
 export * from "./components/virtual/virtual-list";
 export * from "./components/virtual/virtual-tree";
+export * from "./components/splitter/splitter";
