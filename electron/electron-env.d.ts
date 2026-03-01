@@ -68,6 +68,7 @@ type files_api = {
   create_dir(p: string): Promise<boolean>;
   remove(p: string): Promise<boolean>;
   rename(f: string, t: string): Promise<boolean>;
+  relative(f: string, t: string): Promise<string>;
 };
 
 type watcher_api = {

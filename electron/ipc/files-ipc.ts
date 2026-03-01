@@ -11,7 +11,9 @@ import {
   FS_REMOVE,
   FS_WRITE_FILE_TEXT,
   FS_RENAME,
+  FS_RELATIVE,
 } from "../../shared/ipc/channels";
+import path from "node:path";
 
 ipcMain.handle(FS_EXISTS, async (_, p: string) => {
   try {
@@ -20,6 +22,10 @@ ipcMain.handle(FS_EXISTS, async (_, p: string) => {
   } catch {
     return false;
   }
+});
+
+ipcMain.handle(FS_RELATIVE, async (_, f: string, t: string) => {
+  return path.relative(f, t);
 });
 
 ipcMain.handle(FS_SAVE_AS, async (_, content: string, path: string) => {
