@@ -3,7 +3,7 @@ import * as monaco from "monaco-editor";
 import { ITab, tab_status } from "../../types/editor.types";
 import { shortcut_def } from "../../types/shortcut.types";
 
-import { uris_equal } from "../../../shared/uri/generate";
+import { generate_uri, uris_equal } from "../../../shared/uri/generate";
 import { store } from "../workbench/common/state/store";
 import { update_tabs } from "../workbench/common/state/slices/editor.slice";
 import { get_base_name } from "../platform/explorer/explorer.helper";
@@ -12,12 +12,12 @@ import { shortcuts } from "../workbench/common/shortcut/shortcut.service";
 
 export function open_editor_tab(file_path: string) {
   const current_tabs = store.getState().editor.tabs;
-  const target = current_tabs.find((v) => v.file_path === file_path);
+  const target = current_tabs.find((v) => uris_equal(v.file_path, file_path));
 
   if (target) {
     const updated_tabs = current_tabs.map((tab) => ({
       ...tab,
-      active: tab.file_path === file_path,
+      active: uris_equal(tab.file_path, file_path),
     }));
 
     store.dispatch(update_tabs(updated_tabs));
@@ -30,7 +30,7 @@ export function open_editor_tab(file_path: string) {
   }));
 
   const new_tab: ITab = {
-    file_path: file_path,
+    file_path: generate_uri(file_path),
     name: get_base_name(file_path),
     active: true,
     tab_status: "EXISTS",
@@ -69,7 +69,7 @@ export function close_active_editor_tab() {
 
 export function close_editor_tab(file_path: string, force: boolean = false) {
   const tabs = store.getState().editor.tabs;
-  const index = tabs.findIndex((t) => t.file_path === file_path);
+  const index = tabs.findIndex((t) => uris_equal(t.file_path, file_path));
 
   if (index === -1) return;
 

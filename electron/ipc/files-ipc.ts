@@ -12,6 +12,7 @@ import {
   FS_WRITE_FILE_TEXT,
   FS_RENAME,
   FS_RELATIVE,
+  FS_OPEN,
 } from "../../shared/ipc/channels";
 import path from "node:path";
 
@@ -46,6 +47,19 @@ ipcMain.handle(FS_SAVE_AS, async (_, content: string, path: string) => {
   } catch {
     return { cancel: true, path: "" };
   }
+});
+
+ipcMain.handle(FS_OPEN, async () => {
+  const result = await dialog.showOpenDialog({
+    buttonLabel: "Open",
+    properties: ["openFile"],
+  });
+
+  if (result.canceled || result.filePaths.length === 0) {
+    return { cancel: true, path: null };
+  }
+
+  return { cancel: false, path: result.filePaths[0] };
 });
 
 ipcMain.handle(FS_READDIR, async (_, p: string) => {

@@ -1,11 +1,42 @@
+import { statusbar_events } from "../../../../platform/events/statusbar.events";
 import { explorer } from "../../../../platform/explorer/explorer.service";
 import { store } from "../../../common/state/store";
 import { h } from "../../../contrib/core/dom/h";
 import { cn } from "../../../contrib/core/utils/cn";
 import { Breadcrumb } from "../components/breadcrumb";
+import { Tooltip } from "../components/tooltip";
+
+function StatusbarItem(text?: string) {
+  const el = h(
+    "div",
+    {
+      class:
+        "px-2.5 h-full items-center cursor-pointer rounded-[7px] hover:bg-statusbar-item-hover-background select-none whitespace-nowrap",
+      style: "display: none;",
+    },
+    text ?? "",
+  );
+
+  return {
+    el,
+    setText(t: string | null) {
+      if (t === null || t === undefined) {
+        el.style.display = "none";
+      } else {
+        el.style.display = "flex";
+        el.textContent = t;
+      }
+    },
+  };
+}
 
 export function Statusbar() {
   const left = h("div", { class: "flex items-center min-w-0" });
+
+  const lineColItem = StatusbarItem();
+  const indentItem = StatusbarItem();
+  const encodingItem = StatusbarItem();
+  const languageItem = StatusbarItem();
 
   store.subscribe(async () => {
     const { tabs } = store.getState().editor;
@@ -17,6 +48,11 @@ export function Statusbar() {
 
       left.textContent = tree.root.name;
 
+      lineColItem.setText(null);
+      indentItem.setText(null);
+      encodingItem.setText(null);
+      languageItem.setText(null);
+
       return;
     }
 
@@ -26,15 +62,77 @@ export function Statusbar() {
     } else {
       left.innerHTML = "";
       const relative = await window.files.relative(tree.path, active.file_path);
-
       const crumb = Breadcrumb({ path: relative });
       left.appendChild(crumb.el);
     }
   });
 
-  const right = h("div", {
-    class: "mr-30 no-drag flex items-center justify-center gap-1 min-w-0",
+  let has_active = false;
+
+  store.subscribe(() => {
+    has_active = !!store.getState().editor.tabs.find((t) => t.active);
   });
+
+  statusbar_events.on(
+    "updateLineCol",
+    (line: number | null, col: number | null) => {
+      if (!has_active) return;
+      lineColItem.setText(
+        line !== null && col !== null ? `Ln ${line}, Col ${col}` : null,
+      );
+    },
+  );
+
+  statusbar_events.on("updateIndentation", (space: number | null) => {
+    if (!has_active) return;
+    indentItem.setText(space !== null ? `Spaces: ${space}` : null);
+  });
+
+  statusbar_events.on("updateEncoding", (encoding: string | null) => {
+    if (!has_active) return;
+    encodingItem.setText(encoding);
+  });
+
+  statusbar_events.on("updateLanguage", (language: string | null) => {
+    if (!has_active) return;
+    languageItem.setText(language);
+  });
+
+  Tooltip({
+    child: lineColItem.el,
+    text: "Go to Line/Column",
+    position: "top",
+    delay: 300,
+  });
+  Tooltip({
+    child: indentItem.el,
+    text: "Select Indentation",
+    position: "top",
+    delay: 300,
+  });
+  Tooltip({
+    child: encodingItem.el,
+    text: "Select Encoding",
+    position: "top",
+    delay: 300,
+  });
+  Tooltip({
+    child: languageItem.el,
+    text: "Select Language Mode",
+    position: "top",
+    delay: 300,
+  });
+
+  const right = h(
+    "div",
+    {
+      class: "flex items-center justify-center gap-0.5 min-w-0",
+    },
+    lineColItem.el,
+    indentItem.el,
+    encodingItem.el,
+    languageItem.el,
+  );
 
   const el = h(
     "div",
@@ -42,7 +140,6 @@ export function Statusbar() {
       class: cn(
         "h-[28px] text-[13px] text-statusbar-foreground w-full flex items-center justify-between px-2",
         "bg-statusbar-background",
-        "drag-region",
       ),
     },
     left,

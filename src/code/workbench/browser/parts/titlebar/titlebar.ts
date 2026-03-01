@@ -60,56 +60,44 @@ export function Titlebar() {
     ),
   );
 
-  const left_panel = h(
-    "span",
-    {
-      class:
-        "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
-      on: {
-        click: (e: Event) => {
-          e.preventDefault();
-          shortcuts.run_shortcut("layout.togglePrimarySideBar");
-        },
+  const left_panel = h("span", {
+    class:
+      "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
+    on: {
+      click: (e: Event) => {
+        e.preventDefault();
+        shortcuts.run_shortcut("layout.togglePrimarySideBar");
       },
     },
-    codicon("layout-sidebar-left", "text-titlebar-foreground"),
-  );
+  });
 
-  const bottom_panel = h(
-    "span",
-    {
-      class:
-        "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
-      on: {
-        click: (e: Event) => {
-          e.preventDefault();
-          shortcuts.run_shortcut("layout.toggleBottomPanel");
-        },
+  const bottom_panel = h("span", {
+    class:
+      "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
+    on: {
+      click: (e: Event) => {
+        e.preventDefault();
+        shortcuts.run_shortcut("layout.toggleBottomPanel");
       },
     },
-    codicon("layout-panel", "text-titlebar-foreground"),
-  );
+  });
 
-  const right_panel = h(
-    "span",
-    {
-      class:
-        "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
-      on: {
-        click: (e: Event) => {
-          e.preventDefault();
-          shortcuts.run_shortcut("layout.toggleSecondarySideBar");
-        },
+  const right_panel = h("span", {
+    class:
+      "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
+    on: {
+      click: (e: Event) => {
+        e.preventDefault();
+        shortcuts.run_shortcut("layout.toggleSecondarySideBar");
       },
     },
-    codicon("layout-sidebar-right-off", "text-titlebar-foreground"),
-  );
+  });
 
   const new_custom_agent = h(
     "span",
     {
       class:
-        "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
+        "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer mb-px p-1 rounded-md",
     },
     lucide(
       "plus",
@@ -122,7 +110,7 @@ export function Titlebar() {
     "div",
     {
       class:
-        "titlebar-inset no-drag flex items-center justify-center gap-1 min-w-0",
+        "titlebar-inset titlebar-foreground opacity-80 no-drag flex items-center justify-center gap-1 min-w-0",
     },
     new_custom_agent,
     left_panel,

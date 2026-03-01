@@ -64,6 +64,7 @@ type files_api = {
     ctimeMs: number;
   }>;
   read_file_text(p: string): Promise<string>;
+  open_file(): Promise<{ cancel: boolean; path: string }>;
   write_file_text(p: string, content: string): Promise<boolean>;
   create_dir(p: string): Promise<boolean>;
   remove(p: string): Promise<boolean>;

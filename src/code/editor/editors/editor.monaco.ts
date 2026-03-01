@@ -2,6 +2,7 @@ import editor_worker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import json_worker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 import css_worker from "monaco-editor/esm/vs/language/css/css.worker?worker";
 import html_worker from "monaco-editor/esm/vs/language/html/html.worker?worker";
+// import typescript_worker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
 
 (self as any).MonacoEnvironment = {
   getWorker(_: unknown, label: string) {
@@ -10,12 +11,11 @@ import html_worker from "monaco-editor/esm/vs/language/html/html.worker?worker";
       return new css_worker();
     if (label === "html" || label === "handlebars" || label === "razor")
       return new html_worker();
-
-    if (label === "typescript" || label === "javascript") {
+    if (label === "typescript" || label === "javascript")
       return new Worker(
         URL.createObjectURL(new Blob([""], { type: "application/javascript" })),
       );
-    }
+    // return new typescript_worker();
     return new editor_worker();
   },
 };
@@ -36,23 +36,26 @@ import {
   update_editor_tab,
   update_editor_tab_status,
 } from "../editor.helper";
-
-import { lspClientManager } from "../editor.monaco.lsp";
+import { lsp_client } from "../editor.monaco.lsp";
 import { store } from "../../workbench/common/state/store";
 import { update_tabs } from "../../workbench/common/state/slices/editor.slice";
 import { get_base_name } from "../../platform/explorer/explorer.helper";
 import { explorer } from "../../platform/explorer/explorer.service";
 import { shortcuts } from "../../workbench/common/shortcut/shortcut.service";
 import { editor_events } from "../../platform/events/editor.events";
+import { statusbar_events } from "../../platform/events/statusbar.events";
 
-const el = h("div", {
+type Disposer = () => void;
+
+const root_el = h("div", {
   class:
     "monaco-editor relative min-h-0 h-full w-full overflow-hidden [&_span]:font-normal [&_a]:text-link-foreground [&_a]:hover:underline",
 });
 
-const _: IMonacoEditor = {
-  el,
+const EDITOR_DEF: IMonacoEditor = {
+  el: root_el,
   parent_el: null as any,
+  instance: null as any,
   extensions: [
     "js",
     "jsx",
@@ -102,40 +105,49 @@ const _: IMonacoEditor = {
     "vue",
     "svelte",
   ],
-  instance: null as any,
   dispose() {
-    _.instance?.dispose();
+    EDITOR_DEF.instance?.dispose();
   },
 };
 
-type Disposer = () => void;
+function get_tab_size(instance: monaco.editor.IStandaloneCodeEditor): number {
+  return instance.getModel()?.getOptions()?.tabSize ?? 2;
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
 export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
-  private get monaco_editor() {
-    return this.editor as IMonacoEditor;
+  private get instance() {
+    return (this.editor as IMonacoEditor).instance;
+  }
+
+  private get parent_el() {
+    return (this.editor as IMonacoEditor).parent_el;
   }
 
   private error_el: HTMLElement | null = null;
   private model_disposers = new Map<string, Disposer[]>();
 
   constructor() {
-    super(_);
+    super(EDITOR_DEF);
   }
 
-  public set_visible(visible?: boolean): void {
-    const editor = this.monaco_editor.parent_el.querySelector(".monaco-editor");
-    if (!editor) return;
-    editor.classList.toggle("hidden", !visible);
-    if (this.error_el) this.error_el.classList.toggle("hidden", !visible);
+  public set_visible(visible = true): void {
+    this.parent_el
+      .querySelector(".monaco-editor")
+      ?.classList.toggle("hidden", !visible);
+    this.error_el?.classList.toggle("hidden", !visible);
   }
 
   public async mount(parent?: HTMLElement): Promise<void> {
     if (!parent) return;
 
-    this.monaco_editor.parent_el = parent;
-    parent.appendChild(this.monaco_editor.el);
+    (this.editor as IMonacoEditor).parent_el = parent;
+    parent.appendChild(root_el);
 
-    this.monaco_editor.instance = monaco.editor.create(this.monaco_editor.el, {
+    (this.editor as IMonacoEditor).instance = monaco.editor.create(root_el, {
       language: "plaintext",
       theme: "theme",
       fontFamily: "JetBrains Mono, monospace",
@@ -145,111 +157,130 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       minimap: { enabled: false },
       fontSize: 15,
       folding: true,
-      // find: { addExtraSpaceOnTop: true },
       cursorSmoothCaretAnimation: "on",
       cursorBlinking: "expand",
-      // useShadowDOM: false,
       fixedOverflowWidgets: true,
     });
 
-    editor_events.on("focus", () => {
-      this.monaco_editor.instance.focus();
+    this.setup_editor_events();
+    this.setup_statusbar_events();
+    await this.setup_lsp();
+
+    this.instance.addCommand(monaco.KeyCode.F1, () => {});
+
+    shortcuts.register_command({
+      id: "editor.save",
+      run: () => this.save_file(),
+    });
+    shortcuts.register_command({
+      id: "editor.saveAs",
+      run: () => this.save_file_as(),
+    });
+  }
+
+  private setup_editor_events(): void {
+    editor_events.on("focus", () => this.instance.focus());
+  }
+
+  private setup_statusbar_events(): void {
+    this.instance.onDidChangeCursorPosition((e) => {
+      statusbar_events.emit(
+        "updateLineCol",
+        e.position.lineNumber,
+        e.position.column,
+      );
     });
 
-    lspClientManager.register({
+    this.instance.onDidChangeModel(() => {
+      const model = this.instance.getModel();
+      if (!model) {
+        statusbar_events.emit("updateLineCol", null, null);
+        statusbar_events.emit("updateLanguage", null);
+        statusbar_events.emit("updateEncoding", null);
+        statusbar_events.emit("updateIndentation", null);
+        return;
+      }
+
+      const pos = this.instance.getPosition();
+      statusbar_events.emit(
+        "updateLineCol",
+        pos?.lineNumber ?? 1,
+        pos?.column ?? 1,
+      );
+      statusbar_events.emit(
+        "updateLanguage",
+        capitalize(model.getLanguageId()),
+      );
+      statusbar_events.emit("updateEncoding", "UTF-8");
+      statusbar_events.emit("updateIndentation", get_tab_size(this.instance));
+    });
+
+    this.instance.onDidChangeConfiguration(() => {
+      if (!this.instance.getModel()) return;
+      statusbar_events.emit("updateIndentation", get_tab_size(this.instance));
+    });
+  }
+
+  private async setup_lsp(): Promise<void> {
+    lsp_client.register({
       languageId: "typescript",
       extensions: ["ts", "tsx", "mts", "cts"],
     });
-    lspClientManager.register({
+    lsp_client.register({
       languageId: "javascript",
       extensions: ["js", "jsx", "mjs", "cjs"],
     });
-    lspClientManager.register({ languageId: "python", extensions: ["py"] });
-    lspClientManager.register({ languageId: "rust", extensions: ["rs"] });
-
-    await lspClientManager.start();
-
-    this.monaco_editor.instance.addCommand(monaco.KeyCode.F1, function () {});
-
-    const save_as_file = async () => {
-      const m = this.active_model;
-      if (!m) return;
-      const tabs = store.getState().editor.tabs;
-      const idx = tabs.findIndex((t) => t.file_path === m.uri);
-      if (idx === -1) return;
-      try {
-        const res = await window.files.saveAs(m.model.getValue(), m.uri);
-        if (res.cancel) return;
-        store.dispatch(
-          update_tabs(
-            tabs.map((tab) =>
-              tab.file_path === m.uri
-                ? {
-                    ...tab,
-                    is_touched: false,
-                    file_path: res.path,
-                    name: get_base_name(res.path),
-                    tab_status: "EXISTS" as const,
-                  }
-                : tab,
-            ),
-          ),
-        );
-      } catch {}
-    };
-
-    const save_file = async () => {
-      const m = this.active_model;
-      if (!m) return;
-      const tabs = store.getState().editor.tabs;
-      const idx = tabs.findIndex((t) => t.file_path === m.uri);
-      if (idx === -1) return;
-      const t = tabs[idx];
-      try {
-        if (t.tab_status === "NEW") {
-          const res = await window.files.saveAs(m.model.getValue(), m.uri);
-          store.dispatch(
-            update_tabs(
-              res.cancel
-                ? tabs.map((tab) =>
-                    tab.file_path === m.uri
-                      ? { ...tab, is_touched: true }
-                      : tab,
-                  )
-                : tabs.map((tab) =>
-                    tab.file_path === m.uri
-                      ? {
-                          ...tab,
-                          is_touched: false,
-                          file_path: res.path,
-                          name: get_base_name(res.path),
-                          tab_status: "EXISTS" as const,
-                        }
-                      : tab,
-                  ),
-            ),
-          );
-        } else {
-          const res = await explorer.actions.create_file(
-            m.uri,
-            m.model.getValue(),
-          );
-          store.dispatch(
-            update_tabs(
-              tabs.map((tab) =>
-                tab.file_path === m.uri ? { ...tab, is_touched: !res } : tab,
-              ),
-            ),
-          );
-        }
-      } catch {}
-    };
-
-    shortcuts.register_command({ id: "editor.save", run: save_file });
-    shortcuts.register_command({ id: "editor.saveAs", run: save_as_file });
+    lsp_client.register({ languageId: "python", extensions: ["py"] });
+    lsp_client.register({ languageId: "rust", extensions: ["rs"] });
+    await lsp_client.start();
   }
 
-  public async create_model(file_path: string) {
+  private async save_file(): Promise<void> {
+    const m = this.active_model;
+    if (!m) return;
+    const tabs = store.getState().editor.tabs;
+    const tab = tabs.find((t) => t.file_path === m.uri);
+    if (!tab) return;
+
+    if (tab.tab_status === "NEW") return this.save_file_as();
+
+    const res = await explorer.actions.create_file(m.uri, m.model.getValue());
+    store.dispatch(
+      update_tabs(
+        tabs.map((t) =>
+          t.file_path === m.uri ? { ...t, is_touched: !res } : t,
+        ),
+      ),
+    );
+  }
+
+  private async save_file_as(): Promise<void> {
+    const m = this.active_model;
+    if (!m) return;
+    const tabs = store.getState().editor.tabs;
+    if (!tabs.find((t) => t.file_path === m.uri)) return;
+
+    const res = await window.files.saveAs(m.model.getValue(), m.uri);
+    if (res.cancel) return;
+
+    store.dispatch(
+      update_tabs(
+        tabs.map((tab) =>
+          tab.file_path === m.uri
+            ? {
+                ...tab,
+                is_touched: false,
+                file_path: res.path,
+                name: get_base_name(res.path),
+                tab_status: "EXISTS" as const,
+              }
+            : tab,
+        ),
+      ),
+    );
+  }
+
+  public async create_model(file_path: string): Promise<IMonacoModel> {
     const uri = monaco.Uri.file(file_path);
     const content = (await window.files.exists(file_path))
       ? await explorer.actions.read_file(file_path)
@@ -259,54 +290,45 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     const model =
       existing ??
       monaco.editor.createModel(content, path_to_language(file_path), uri);
+    if (existing && existing.getValue() !== content) existing.setValue(content);
 
-    if (existing && existing.getValue() !== content) {
-      existing.setValue(content);
-    }
-    const m: IMonacoModel = {
+    return {
       uri: file_path,
       model,
-      dispose() {
-        model.dispose();
-      },
+      dispose: () => model.dispose(),
       cursor_position: { line: 1, col: 1 },
       selection: { startLine: 1, startCol: 1, endLine: 1, endCol: 1 },
     };
-    return m;
   }
 
-  public add_model(model: IMonacoModel) {
+  public add_model(model: IMonacoModel): void {
     this.models.push(model);
     this.bind_model_tracking(model);
   }
 
-  public update_model_uri(old_path: string, new_path: string) {
+  public update_model_uri(old_path: string, new_path: string): void {
     const model = this.models.find((m) => m.uri === old_path) as
       | IMonacoModel
       | undefined;
     if (!model) return;
 
-    const new_uri = monaco.Uri.file(new_path);
+    this.model_disposers.get(old_path)?.forEach((d) => d());
+    this.model_disposers.delete(old_path);
+
     const new_model = monaco.editor.createModel(
       model.model.getValue(),
       path_to_language(new_path),
-      new_uri,
+      monaco.Uri.file(new_path),
     );
 
-    const old_cursor = model.cursor_position;
-    const old_selection = model.selection;
-
-    const disposers = this.model_disposers.get(old_path);
-    if (disposers) {
-      for (const d of disposers) d();
-      this.model_disposers.delete(old_path);
-    }
-
+    const { cursor_position, selection } = model;
     model.model.dispose();
-    model.uri = new_path;
-    model.model = new_model;
-    model.cursor_position = old_cursor;
-    model.selection = old_selection;
+    Object.assign(model, {
+      uri: new_path,
+      model: new_model,
+      cursor_position,
+      selection,
+    });
 
     this.bind_model_tracking(model);
 
@@ -315,10 +337,10 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       this.active_model?.uri === new_path
     ) {
       this.active_model = model;
-      this.monaco_editor.instance.setModel(new_model);
-      if (old_selection) {
-        const s = old_selection;
-        this.monaco_editor.instance.setSelection(
+      this.instance.setModel(new_model);
+      if (selection) {
+        const s = selection;
+        this.instance.setSelection(
           new monaco.Selection(s.startLine, s.startCol, s.endLine, s.endCol),
         );
       }
@@ -327,13 +349,12 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     update_editor_tab(old_path, new_path);
   }
 
-  private bind_model_tracking(m: IMonacoModel) {
-    if (!this.monaco_editor.instance) return;
-    const editor = this.monaco_editor.instance;
+  private bind_model_tracking(m: IMonacoModel): void {
+    if (!this.instance) return;
 
     const save_cursor = () => {
-      if (editor.getModel() !== m.model) return;
-      const sel = editor.getSelection();
+      if (this.instance.getModel() !== m.model) return;
+      const sel = this.instance.getSelection();
       if (sel) {
         m.selection = {
           startLine: sel.selectionStartLineNumber,
@@ -346,7 +367,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
           col: sel.positionColumn,
         };
       } else {
-        const pos = editor.getPosition();
+        const pos = this.instance.getPosition();
         if (pos) {
           m.cursor_position = { line: pos.lineNumber, col: pos.column };
           m.selection = {
@@ -372,12 +393,15 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       );
     };
 
-    const d1 = editor.onDidChangeCursorSelection(save_cursor);
+    const d1 = this.instance.onDidChangeCursorSelection(save_cursor);
     const d2 = m.model.onDidChangeContent(mark_touched);
     this.model_disposers.set(m.uri, [() => d1.dispose(), () => d2.dispose()]);
   }
 
-  public async set_model_active(uri: string, status?: tab_status) {
+  public async set_model_active(
+    uri: string,
+    status?: tab_status,
+  ): Promise<void> {
     const model = this.models.find((m) => m.uri === uri) as IMonacoModel;
     if (!model) return;
 
@@ -392,50 +416,55 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       return;
     }
 
-    let st;
-    if (exists) st = await window.files.stat(uri);
-    else if (status === "NEW") st = { isFile: true };
-    else st = { isFile: false };
+    const stat = exists
+      ? await window.files.stat(uri)
+      : status === "NEW"
+        ? { isFile: true }
+        : { isFile: false };
 
-    if (!st.isFile) {
+    if (!stat.isFile) {
       this.show_error("Cannot open folders in the editor.");
       return;
     }
 
     this.hide_error();
     this.active_model = model;
-
-    const editor = this.monaco_editor.instance;
-    editor.setModel(model.model);
+    this.instance.setModel(model.model);
 
     if (model.selection) {
       const s = model.selection;
-      editor.setSelection(
+      this.instance.setSelection(
         new monaco.Selection(s.startLine, s.startCol, s.endLine, s.endCol),
       );
-      editor.revealRangeInCenter(
+      this.instance.revealRangeInCenter(
         new monaco.Range(s.startLine, s.startCol, s.endLine, s.endCol),
       );
     } else {
       const pos = model.cursor_position ?? { line: 1, col: 1 };
-      editor.setPosition({ lineNumber: pos.line, column: pos.col });
-      editor.revealPositionInCenter({ lineNumber: pos.line, column: pos.col });
+      this.instance.setPosition({ lineNumber: pos.line, column: pos.col });
+      this.instance.revealPositionInCenter({
+        lineNumber: pos.line,
+        column: pos.col,
+      });
     }
 
-    editor.focus();
+    this.instance.focus();
   }
 
   public update_editor(): void {
     if (!this.active_model) return;
     const model = this.active_model as IMonacoModel;
-    const editor = this.monaco_editor.instance;
-    if (editor.getModel() === model.model) return;
-    editor.setModel(model.model);
+    if (this.instance.getModel() !== model.model)
+      this.instance.setModel(model.model);
   }
 
-  private show_error(msg: string, action?: string, actionClick?: () => void) {
+  private show_error(
+    msg: string,
+    action?: string,
+    actionClick?: () => void,
+  ): void {
     this.set_visible(false);
-    const wrap = h(
+    this.error_el = h(
       "div",
       {
         class:
@@ -449,36 +478,28 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
         action && Button(action, { variant: "default", onClick: actionClick }),
       ),
     );
-    this.error_el = wrap;
-    if (this.monaco_editor.parent_el && !this.error_el.parentElement) {
-      this.monaco_editor.parent_el.appendChild(this.error_el);
-    }
+    if (!this.error_el.parentElement) this.parent_el.appendChild(this.error_el);
     this.error_el.classList.remove("hidden");
   }
 
-  private hide_error() {
+  private hide_error(): void {
     this.error_el?.classList.add("hidden");
     this.set_visible(true);
   }
 
-  public dispose_model(uri: string) {
+  public dispose_model(uri: string): void {
     const index = this.models.findIndex((m) => m.uri === uri);
     if (index === -1) return;
     const model = this.models[index] as IMonacoModel;
-    const disposers = this.model_disposers.get(uri);
-    if (disposers) {
-      for (const d of disposers) d();
-      this.model_disposers.delete(uri);
-    }
+    this.model_disposers.get(uri)?.forEach((d) => d());
+    this.model_disposers.delete(uri);
     model.dispose();
     this.models.splice(index, 1);
   }
 
-  public dispose() {
-    for (const disposers of this.model_disposers.values()) {
-      for (const d of disposers) d();
-    }
+  public dispose(): void {
+    this.model_disposers.forEach((disposers) => disposers.forEach((d) => d()));
     this.model_disposers.clear();
-    this.monaco_editor.instance?.dispose();
+    this.instance?.dispose();
   }
 }

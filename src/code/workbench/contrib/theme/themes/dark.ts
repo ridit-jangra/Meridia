@@ -161,7 +161,7 @@ export const dark: ITheme = {
 
     "selection.background": "#FFFFFF22",
     "selection.foreground": "#FFFFFF",
-    "focus.border": "#FFFFFF26",
+    "focus.border": "#81A1C199",
 
     "context.menu.background": "#101010",
     "context.menu.foreground": "#E6E6E6EB",

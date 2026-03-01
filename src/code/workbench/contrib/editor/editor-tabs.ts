@@ -17,6 +17,7 @@ import { TabSwitcher } from "../../browser/parts/components/tab-switcher";
 import { Tooltip } from "../../browser/parts/components/tooltip";
 import { shortcuts } from "../../common/shortcut/shortcut.service";
 import { store } from "../../common/state/store";
+import { update_tabs } from "../../common/state/slices/editor.slice";
 import { h } from "../core/dom/h";
 import { cn } from "../core/utils/cn";
 
@@ -38,22 +39,116 @@ export function EditorTabs() {
   const tabElements = new Map<string, HTMLElement>();
   let prevTabs: ITab[] = [];
 
+  // ─── Drag state ──────────────────────────────────────────────────────────────
+  let drag_source_path: string | null = null;
+  let drag_ghost: HTMLElement | null = null;
+  let drag_over_path: string | null = null;
+
+  const get_tab_order = (): string[] =>
+    store.getState().editor.tabs.map((t) => t.file_path);
+
+  const reorder_tabs = (from_path: string, to_path: string) => {
+    const tabs = store.getState().editor.tabs;
+    const from_idx = tabs.findIndex((t) => t.file_path === from_path);
+    const to_idx = tabs.findIndex((t) => t.file_path === to_path);
+    if (from_idx === -1 || to_idx === -1 || from_idx === to_idx) return;
+
+    const next = [...tabs];
+    const [moved] = next.splice(from_idx, 1);
+    next.splice(to_idx, 0, moved);
+    store.dispatch(update_tabs(next));
+  };
+
+  const clear_drag_indicators = () => {
+    tabElements.forEach((el) => {
+      el.style.borderLeft = "";
+      el.style.borderRight = "";
+    });
+  };
+
+  const bind_drag_events = (element: HTMLElement, file_path: string) => {
+    element.draggable = true;
+
+    element.addEventListener("dragstart", (e) => {
+      drag_source_path = file_path;
+      e.dataTransfer!.effectAllowed = "move";
+      e.dataTransfer!.setData("text/plain", file_path);
+
+      // Ghost — clone without indicators
+      drag_ghost = element.cloneNode(true) as HTMLElement;
+      drag_ghost.style.cssText =
+        "position:fixed;top:-9999px;left:-9999px;opacity:0.8;pointer-events:none;";
+      document.body.appendChild(drag_ghost);
+      e.dataTransfer!.setDragImage(
+        drag_ghost,
+        element.offsetWidth / 2,
+        element.offsetHeight / 2,
+      );
+
+      // Fade source slightly after drag starts
+      requestAnimationFrame(() => {
+        element.style.opacity = "0.4";
+      });
+    });
+
+    element.addEventListener("dragend", () => {
+      element.style.opacity = "";
+      drag_source_path = null;
+      drag_over_path = null;
+      drag_ghost?.remove();
+      drag_ghost = null;
+      clear_drag_indicators();
+    });
+
+    element.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer!.dropEffect = "move";
+      if (!drag_source_path || drag_source_path === file_path) return;
+      if (drag_over_path === file_path) return;
+
+      drag_over_path = file_path;
+      clear_drag_indicators();
+
+      const order = get_tab_order();
+      const from_idx = order.indexOf(drag_source_path);
+      const to_idx = order.indexOf(file_path);
+
+      if (from_idx < to_idx) {
+        element.style.borderRight = "2px solid var(--focus-border)";
+      } else {
+        element.style.borderLeft = "2px solid var(--focus-border)";
+      }
+    });
+
+    element.addEventListener("dragleave", () => {
+      if (drag_over_path === file_path) {
+        drag_over_path = null;
+        clear_drag_indicators();
+      }
+    });
+
+    element.addEventListener("drop", (e) => {
+      e.preventDefault();
+      clear_drag_indicators();
+      if (!drag_source_path || drag_source_path === file_path) return;
+      reorder_tabs(drag_source_path, file_path);
+    });
+  };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+
   const scrollToTab = (element: HTMLElement) => {
     setTimeout(() => {
       const editorport = scrollArea.viewport;
-
       const elementLeft = element.offsetLeft;
-      const elementWidth = element.offsetWidth;
-      const elementRight = elementLeft + elementWidth;
-
+      const elementRight = elementLeft + element.offsetWidth;
       const editorportScrollLeft = editorport.scrollLeft;
-      const editorportWidth = editorport.clientWidth;
-      const editorportRight = editorportScrollLeft + editorportWidth;
+      const editorportRight = editorportScrollLeft + editorport.clientWidth;
 
       if (elementLeft < editorportScrollLeft) {
         editorport.scrollLeft = elementLeft - 20;
       } else if (elementRight > editorportRight) {
-        editorport.scrollLeft = elementRight - editorportWidth + 20;
+        editorport.scrollLeft = elementRight - editorport.clientWidth + 20;
       }
     }, 50);
   };
@@ -110,15 +205,9 @@ export function EditorTabs() {
 
       const title = h(
         "div",
-        {
-          class: `flex items-center gap-1.5`,
-        },
+        { class: "flex items-center gap-1.5" },
         icon,
-        h(
-          "span",
-          { attrs: { "data-role": "name" } },
-          `${tab.name} ${tab.tab_status === "DELETED" ? "Deleted" : ""}`,
-        ),
+        h("span", { attrs: { "data-role": "name" } }, tab.name),
       );
 
       element = h("div", {
@@ -168,6 +257,8 @@ export function EditorTabs() {
       element.appendChild(title);
       element.appendChild(endSlot);
 
+      bind_drag_events(element, tab.file_path);
+
       Tooltip({
         child: element,
         text: tab.file_path,
@@ -179,7 +270,6 @@ export function EditorTabs() {
       ctx.bind(element, () => {
         const file_path = element!.dataset.path ?? tab.file_path;
         const pills = store.getState().editor.tabs;
-
         return [
           {
             type: "item",
@@ -245,7 +335,6 @@ export function EditorTabs() {
     const close = element.querySelector(
       '[data-role="close-btn"]',
     ) as HTMLElement | null;
-
     if (close) {
       close.className = cn(
         "absolute inset-0 flex items-center justify-center rounded [&_svg]:w-5 [&_svg]:h-5",
@@ -277,8 +366,8 @@ export function EditorTabs() {
 
       const activeTab = tabs.find((t) => t.active);
       if (activeTab) {
-        const activeElement = tabElements.get(activeTab.file_path);
-        if (activeElement) scrollToTab(activeElement);
+        const el = tabElements.get(activeTab.file_path);
+        if (el) scrollToTab(el);
       }
       return;
     }
@@ -288,9 +377,9 @@ export function EditorTabs() {
 
     for (const prevPath of prevPaths) {
       if (!currentPaths.has(prevPath)) {
-        const element = tabElements.get(prevPath);
-        if (element) {
-          element.remove();
+        const el = tabElements.get(prevPath);
+        if (el) {
+          el.remove();
           tabElements.delete(prevPath);
         }
       }
@@ -323,16 +412,13 @@ export function EditorTabs() {
 
       const currentChild = container.children[i];
       if (currentChild !== element) {
-        if (currentChild) {
-          container.insertBefore(element, currentChild);
-        } else {
-          container.appendChild(element);
-        }
+        currentChild
+          ? container.insertBefore(element, currentChild)
+          : container.appendChild(element);
       }
     }
 
     prevTabs = [...tabs];
-
     if (newActiveElement) scrollToTab(newActiveElement);
   };
 
@@ -341,9 +427,7 @@ export function EditorTabs() {
       e.preventDefault();
       e.stopPropagation();
       const tabs = store.getState().editor.tabs;
-      if (tabs.length > 0) {
-        switcher.open(tabs, 1);
-      }
+      if (tabs.length > 0) switcher.open(tabs, 1);
     }
   };
 
@@ -351,15 +435,12 @@ export function EditorTabs() {
 
   const unsub = store.subscribe(() => {
     renderTabs();
-
     const active = store.getState().editor.tabs.find((t) => t.active);
     if (!active) return;
-
     explorer_events.emit("highlight", active.file_path);
   });
 
   renderTabs();
-
   header.appendChild(scrollArea.el);
 
   const el = h("div", {}, header);

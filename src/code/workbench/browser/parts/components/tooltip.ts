@@ -13,7 +13,7 @@ export function Tooltip(opts: {
   const tip = h("div", {
     class: cn(
       "fixed z-[9999] hidden px-2 py-1 text-[12.5px] " +
-        "bg-tooltip-background text-tooltip-foreground border border-tooltip-border rounded-[8px] " +
+        "bg-tooltip-background text-tooltip-foreground min-w-max border border-tooltip-border rounded-[8px] " +
         "animate-in fade-in zoom-in-95 duration-150",
       opts.class,
     ),

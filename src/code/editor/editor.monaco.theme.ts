@@ -27,6 +27,21 @@ const context_menu_item_hover_foreground = theme.get_color(
   "context.menu.item.hover.foreground",
 );
 
+const command_background = theme.get_color("command.background");
+const command_item_foreground = theme.get_color("command.item.foreground");
+const command_item_hover_background = theme.get_color(
+  "command.item.hover.background",
+);
+const command_item_hover_foreground = theme.get_color(
+  "command.item.hover.foreground",
+);
+const command_item_active_background = theme.get_color(
+  "command.item.active.background",
+);
+const command_item_active_foreground = theme.get_color(
+  "command.item.active.foreground",
+);
+
 monaco.editor.defineTheme("theme", {
   base: kind === "light" ? "vs" : "vs-dark",
   inherit: true,
@@ -41,16 +56,28 @@ monaco.editor.defineTheme("theme", {
     "editorWidget.border": border_foreground,
     "editorWidget.resizeBorder": border_foreground,
 
-    "editorSuggestWidget.foreground": foreground,
-    "editorSuggestWidget.border": border_foreground,
+    // Suggestion box — matches context menu
+    "editorSuggestWidget.background": context_menu_background,
+    "editorSuggestWidget.foreground": context_menu_foreground,
+    "editorSuggestWidget.border": context_menu_border,
+    "editorSuggestWidget.selectedBackground":
+      context_menu_item_hover_background,
+    "editorSuggestWidget.selectedForeground":
+      context_menu_item_hover_foreground,
+    "editorSuggestWidget.selectedIconForeground":
+      context_menu_item_hover_foreground,
+    "editorSuggestWidget.highlightForeground":
+      context_menu_item_hover_foreground,
+    "editorSuggestWidget.focusHighlightForeground":
+      context_menu_item_hover_foreground,
 
-    "editorSuggestWidget.selectedForeground": foreground,
-    "editorSuggestWidget.selectedIconForeground": foreground,
+    "editorHoverWidget.background": context_menu_background,
+    "editorHoverWidget.foreground": context_menu_foreground,
+    "editorHoverWidget.border": context_menu_border,
 
-    "editorHoverWidget.foreground": foreground,
-    "editorHoverWidget.border": border_foreground,
+    "editorParameterHint.background": context_menu_background,
+    "editorParameterHint.foreground": context_menu_foreground,
 
-    "editorParameterHint.foreground": foreground,
     "editorFindWidget.foreground": foreground,
     "editorFindWidget.border": border_foreground,
     "editorFindWidget.resizeBorder": border_foreground,
@@ -74,7 +101,19 @@ monaco.editor.defineTheme("theme", {
     "dropdown.foreground": foreground,
     "dropdown.border": border_foreground,
 
-    "quickInput.foreground": foreground,
+    "quickInput.background": command_background,
+    "quickInput.foreground": command_item_foreground,
+
+    "quickInputList.focusBackground": command_item_active_background,
+    "quickInputList.focusForeground": command_item_active_foreground,
+
+    "quickInputList.hoverBackground": command_item_hover_background,
+    "quickInputList.hoverForeground": command_item_hover_foreground,
+
+    "quickInputList.activeBackground": command_item_active_background,
+    "quickInputList.activeForeground": command_item_active_foreground,
+
+    "quickInputTitle.background": command_background,
 
     "notifications.foreground": foreground,
     "notifications.border": border_foreground,
