@@ -1,18 +1,3 @@
-/**
- * LSP Client Manager
- *
- * Implements the Language Server Protocol client using only:
- *   - vscode-ws-jsonrpc  (WebSocket transport)
- *   - vscode-jsonrpc     (JSON-RPC message connection)
- *
- * No dependency on `vscode`, `vscode-languageclient`, or
- * `monaco-languageclient` — those all require the VS Code extension host
- * which cannot run in an Electron renderer.
- *
- * This manually sends LSP lifecycle messages (initialize / initialized /
- * textDocument/didOpen etc.) and wires Monaco's model events to the server.
- */
-
 import {
   createMessageConnection,
   MessageConnection,
@@ -24,15 +9,8 @@ import {
   WebSocketMessageReader,
   WebSocketMessageWriter,
 } from "vscode-ws-jsonrpc";
-import { editor as monacoEditor, Uri } from "monaco-editor";
+import { editor as monacoEditor } from "monaco-editor";
 import { LSP_BRIDGE_PORT } from "../../../shared/lsp/lsp.constants";
-
-// ─── LSP protocol types (minimal) ────────────────────────────────────────────
-
-interface Position {
-  line: number;
-  character: number;
-}
 
 interface TextDocumentIdentifier {
   uri: string;
@@ -56,7 +34,6 @@ interface InitializeParams {
   workspaceFolders: Array<{ uri: string; name: string }> | null;
 }
 
-// LSP method names
 const M = {
   Initialize: "initialize" as const,
   Initialized: "initialized" as const,
@@ -68,16 +45,12 @@ const M = {
   PublishDiagnostics: "textDocument/publishDiagnostics" as const,
 };
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
 export interface LspClientDefinition {
   languageId: string;
   extensions?: string[];
 }
 
-// ─── Manager ─────────────────────────────────────────────────────────────────
-
-export class LspClientManager {
+export class client {
   private definitions: LspClientDefinition[] = [];
   private connections = new Map<string, MessageConnection>();
   private sockets = new Map<string, WebSocket>();
@@ -92,9 +65,7 @@ export class LspClientManager {
     try {
       const p = await window.workspace.get_current_workspace_path();
       if (p) this.workspaceUri = pathToUri(p);
-    } catch {
-      // not available in all contexts
-    }
+    } catch {}
 
     for (const def of this.definitions) {
       this.connectLanguage(def);
@@ -108,20 +79,16 @@ export class LspClientManager {
   }
 
   async dispose() {
-    // Detach all Monaco model listeners
     for (const disposers of this.modelDisposers.values()) {
       for (const d of disposers) d();
     }
     this.modelDisposers.clear();
 
-    // Gracefully shut down each connection
     for (const [lang, conn] of this.connections) {
       try {
         await conn.sendRequest(new RequestType(M.Shutdown), undefined);
         conn.sendNotification(new NotificationType(M.Exit));
-      } catch {
-        // ignore — server may already be gone
-      }
+      } catch {}
       conn.dispose();
       console.log(`[LSP:${lang}] Shut down`);
     }
@@ -132,8 +99,6 @@ export class LspClientManager {
     }
     this.sockets.clear();
   }
-
-  // ── Internals ───────────────────────────────────────────────────────────────
 
   private connectLanguage(def: LspClientDefinition) {
     const url = `ws://127.0.0.1:${LSP_BRIDGE_PORT}/${def.languageId}`;
@@ -149,7 +114,6 @@ export class LspClientManager {
       conn.listen();
       this.connections.set(def.languageId, conn);
 
-      // ── Initialize handshake ──────────────────────────────────────────────
       const initParams: InitializeParams = {
         processId: null,
         rootUri: this.workspaceUri,
@@ -209,10 +173,8 @@ export class LspClientManager {
         conn.sendNotification(new NotificationType(M.Initialized), {});
         console.log(`[LSP:${def.languageId}] Initialized`);
 
-        // Sync all already-open models for this language
         this.syncExistingModels(def, conn);
 
-        // Watch future model changes
         this.watchModels(def, conn);
       } catch (err) {
         console.error(`[LSP:${def.languageId}] Initialize failed`, err);
@@ -265,7 +227,6 @@ export class LspClientManager {
     const key = def.languageId;
     const disposers: Array<() => void> = [];
 
-    // New model opened
     const d1 = monacoEditor.onDidCreateModel((model) => {
       if (!this.modelMatchesDef(model, def.languageId, exts)) return;
       conn.sendNotification(
@@ -280,8 +241,7 @@ export class LspClientManager {
         },
       );
 
-      // Content changes
-      const d = model.onDidChangeContent((e) => {
+      const d = model.onDidChangeContent(() => {
         conn.sendNotification(
           new NotificationType<{
             textDocument: VersionedTextDocumentIdentifier;
@@ -292,7 +252,7 @@ export class LspClientManager {
               uri: model.uri.toString(),
               version: model.getVersionId(),
             },
-            // Full sync — simplest and most compatible
+
             contentChanges: [{ text: model.getValue() }],
           },
         );
@@ -300,7 +260,6 @@ export class LspClientManager {
       disposers.push(() => d.dispose());
     });
 
-    // Model disposed
     const d2 = monacoEditor.onWillDisposeModel((model) => {
       if (!this.modelMatchesDef(model, def.languageId, exts)) return;
       conn.sendNotification(
@@ -329,8 +288,6 @@ export class LspClientManager {
   }
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
 function pathToUri(fsPath: string): string {
   const normalized = fsPath.replace(/\\/g, "/");
   return normalized.startsWith("/")
@@ -338,6 +295,4 @@ function pathToUri(fsPath: string): string {
     : `file:///${normalized}`;
 }
 
-// ─── Singleton ───────────────────────────────────────────────────────────────
-
-export const lspClientManager = new LspClientManager();
+export const lsp_client = new client();

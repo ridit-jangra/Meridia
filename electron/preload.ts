@@ -37,6 +37,7 @@ import {
   NODE_PTY_EXIT,
   SHELL_OPEN_EXTERNAL,
   FS_RELATIVE,
+  FS_OPEN,
 } from "../shared/ipc/channels";
 
 type Listener = (event: IpcRendererEvent, ...args: any[]) => void;
@@ -138,6 +139,8 @@ contextBridge.exposeInMainWorld("files", {
     ipcRenderer.invoke(FS_RENAME, from, to) as Promise<boolean>,
   relative: (from: string, to: string) =>
     ipcRenderer.invoke(FS_RELATIVE, from, to) as Promise<string>,
+  open_file: () =>
+    ipcRenderer.invoke(FS_OPEN) as Promise<{ cancel: boolean; path: string }>,
 });
 
 contextBridge.exposeInMainWorld("watcher", {

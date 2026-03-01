@@ -18,6 +18,7 @@ import { layout_engine } from "../../browser/layouts/layout.engine";
 import { debounce } from "../../contrib/core/utils/utils";
 import {
   close_active_editor_tab,
+  open_editor_tab,
   open_new_editor_tab,
 } from "../../../editor/editor.helper";
 import { terminal_events } from "../../../platform/events/terminal.events";
@@ -259,6 +260,15 @@ shortcuts.register_command({
     terminal_events.emit("newTab");
   },
 });
+shortcuts.register_command({
+  id: "editor.openFile",
+  run: async () => {
+    const res = await window.files.open_file();
+    if (res.cancel) return;
+
+    open_editor_tab(res.path);
+  },
+});
 
 shortcuts.register_shortcuts([
   {
@@ -371,6 +381,14 @@ shortcuts.register_shortcuts([
     category: "Editor",
     keys: "ctrl+w",
     command: "editor.closeTab",
+    scope: "app",
+  },
+  {
+    id: "openFile",
+    label: "Open File",
+    category: "Editor",
+    keys: "ctrl+o",
+    command: "editor.openFile",
     scope: "app",
   },
   {

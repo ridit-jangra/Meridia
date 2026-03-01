@@ -10,7 +10,7 @@ import {
   WORKSPACE_STORE,
   WORKSPACE_UPDATE,
 } from "../../shared/ipc/channels";
-import { lspBridge } from "../main";
+import { lsp_server } from "../main";
 
 ipcMain.handle(WORKSPACE_GET, async (_, folder_path: string) => {
   return await workspace.get_workspace(folder_path);
@@ -26,7 +26,7 @@ ipcMain.handle(WORKSPACE_GET_CURRENT_PATH, async (_) => {
 
 ipcMain.handle(WORKSPACE_SET_CURRENT_PATH, async (_, folder_path: string) => {
   workspace.set_current_workspace_path(folder_path);
-  lspBridge.setWorkspacePath(folder_path);
+  lsp_server.setWorkspacePath(folder_path);
 });
 
 ipcMain.handle(WORKSPACE_ASK_UPDATE, async (_) => {

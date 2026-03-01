@@ -19,6 +19,7 @@ export const EXPLORER_GET_CHILD_STRUCTURE =
 export const FS_EXISTS = "workbench.fs.exists";
 export const FS_RELATIVE = "workbench.fs.relative";
 export const FS_SAVE_AS = "workbench.fs.saveAs";
+export const FS_OPEN = "workbench.fs.open";
 export const FS_READDIR = "workbench.fs.readdir";
 export const FS_STAT = "workbench.fs.stat";
 export const FS_READ_FILE_TEXT = "workbench.fs.read_file_text";

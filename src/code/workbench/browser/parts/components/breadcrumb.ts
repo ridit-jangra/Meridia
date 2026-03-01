@@ -21,12 +21,12 @@ export function Breadcrumb(opts: {
       "span",
       {
         class: cn(
-          "truncate shrink-0 max-w-[160px]",
+          "truncate shrink-0 max-w-[160px] px-1.5 h-full items-center cursor-pointer rounded-[7px] hover:bg-statusbar-item-hover-background select-none whitespace-nowrap",
           isLast
             ? "text-workbench-foreground font-medium"
             : "text-muted-foreground",
           !isLast && opts.onSegmentClick
-            ? "hover:text-workbench-foreground cursor-pointer transition-colors"
+            ? "hover:text-workbench-foreground transition-colors"
             : "",
         ),
         on:

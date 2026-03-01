@@ -192,6 +192,9 @@ body {
   );
 
   --color-statusbar-background: var(--statusbar-background);
+  --color-statusbar-item-hover-background: var(
+    --statusbar-item-hover-background
+  );
   --color-statusbar-foreground: var(--statusbar-foreground);
 
   --color-titlebar-background: var(--titlebar-background);
@@ -420,6 +423,10 @@ body {
   margin-right: 2px;
 }
 
+.monaco-editor-overlaymessage {
+  font-weight: normal;
+}
+
 .suggest-widget {
   font-weight: normal;
   letter-spacing: 0.7px !important;
@@ -433,6 +440,10 @@ body {
 .monaco-editor input {
   background: var(--input-background) !important;
   color: var(--input-foreground) !important;
+}
+
+.monaco-editor input:focus {
+  outline: none !important;
 }
 
 .monaco-editor textarea {
@@ -463,6 +474,10 @@ body {
   border-radius: 8px !important;
 }
 
+.monaco-editor *:focus {
+  outline: 1px solid var(--focus-border) !important;
+}
+
 @keyframes fade_zoom_in {
   from {
     opacity: 0;
@@ -486,4 +501,13 @@ body {
 .animate-loading {
   animation: loading 0.9s ease-in-out infinite;
   will-change: transform;
+}
+
+.preview.inline {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.quick-input-list-entry {
+  height: 60px !important;
 }

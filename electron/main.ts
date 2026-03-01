@@ -1,15 +1,14 @@
-// electron/main.ts
 import { app, BrowserWindow, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { LspBridge } from "./server/lsp.server";
+import { server } from "./server/lsp.server";
+import "./ipc/workspace-ipc";
+import "./ipc/files-ipc";
 import "./ipc/storage-ipc";
 import "./ipc/shell-ipc";
 import "./ipc/explorer-ipc";
-import "./ipc/workspace-ipc";
 import "./ipc/watcher-ipc";
 import "./ipc/terminal-ipc";
-import "./ipc/files-ipc";
 import { event_emitter } from "./shared/emitter";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -25,9 +24,9 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(appRoot, "public")
   : RENDERER_DIST;
 
-export const lspBridge = new LspBridge();
+export const lsp_server = new server();
 
-const tslsCli = path.join(
+const ts_cli = path.join(
   appRoot,
   "node_modules",
   "typescript-language-server",
@@ -35,31 +34,31 @@ const tslsCli = path.join(
   "cli.mjs",
 );
 
-lspBridge.register({
+lsp_server.register({
   languageId: "typescript",
   command: process.execPath,
-  args: [tslsCli, "--stdio"],
+  args: [ts_cli, "--stdio"],
 });
 
-lspBridge.register({
+lsp_server.register({
   languageId: "javascript",
   command: process.execPath,
-  args: [tslsCli, "--stdio"],
+  args: [ts_cli, "--stdio"],
 });
 
-lspBridge.register({
+lsp_server.register({
   languageId: "python",
   command: "pylsp",
   args: [],
 });
 
-lspBridge.register({
+lsp_server.register({
   languageId: "rust",
   command: "rust-analyzer",
   args: [],
 });
 
-lspBridge.start();
+lsp_server.start();
 
 let win: BrowserWindow | null = null;
 
@@ -146,7 +145,7 @@ function createWindow() {
 }
 
 app.on("window-all-closed", () => {
-  lspBridge.stop();
+  lsp_server.stop();
   if (process.platform !== "darwin") {
     app.quit();
     win = null;
