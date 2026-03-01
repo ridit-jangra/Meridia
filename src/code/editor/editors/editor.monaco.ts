@@ -43,6 +43,7 @@ import { update_tabs } from "../../workbench/common/state/slices/editor.slice";
 import { get_base_name } from "../../platform/explorer/explorer.helper";
 import { explorer } from "../../platform/explorer/explorer.service";
 import { shortcuts } from "../../workbench/common/shortcut/shortcut.service";
+import { editor_events } from "../../platform/events/editor.events";
 
 const el = h("div", {
   class:
@@ -151,6 +152,10 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       fixedOverflowWidgets: true,
     });
 
+    editor_events.on("focus", () => {
+      this.monaco_editor.instance.focus();
+    });
+
     lspClientManager.register({
       languageId: "typescript",
       extensions: ["ts", "tsx", "mts", "cts"],
@@ -173,7 +178,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       const idx = tabs.findIndex((t) => t.file_path === m.uri);
       if (idx === -1) return;
       try {
-        const res = await window.files.saveAs(m.model.getValue());
+        const res = await window.files.saveAs(m.model.getValue(), m.uri);
         if (res.cancel) return;
         store.dispatch(
           update_tabs(
@@ -202,7 +207,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       const t = tabs[idx];
       try {
         if (t.tab_status === "NEW") {
-          const res = await window.files.saveAs(m.model.getValue());
+          const res = await window.files.saveAs(m.model.getValue(), m.uri);
           store.dispatch(
             update_tabs(
               res.cancel

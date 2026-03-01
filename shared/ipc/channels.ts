@@ -9,6 +9,7 @@ export const WORKSPACE_SET_CURRENT_PATH =
   "workbench.workspace.set.current.path";
 export const WORKSPACE_ASK_UPDATE = "workbench.workspace.ask.update";
 export const WORKSPACE_UPDATE = "workbench.workspace.update";
+export const WORKSPACE_CLEAR_CURRENT = "workbench.workspace.clear.current";
 
 export const EXPLORER_GET_ROOT_STRUCTURE =
   "workbench.explorer.get.root.structure";

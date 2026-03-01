@@ -400,6 +400,12 @@ class terminal_service {
 
     attempt();
   }
+
+  unfocus() {
+    this.tabs.forEach((t) => {
+      t.terminal.blur();
+    });
+  }
 }
 
 export const terminal = new terminal_service();

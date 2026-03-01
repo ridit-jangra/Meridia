@@ -458,6 +458,9 @@ body {
 .monaco-hover {
   background: var(--tooltip-background) !important;
   border: 1.5px solid var(--tooltip-border) !important;
+  font-weight: normal;
+  letter-spacing: 0.7px !important;
+  border-radius: 8px !important;
 }
 
 @keyframes fade_zoom_in {

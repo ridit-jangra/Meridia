@@ -24,6 +24,7 @@ export class explorer_watcher {
     });
 
     explorer_events.on("rename", (from: string, to: string) => {
+      console.log("rename", from, to);
       tree.rename(from, to);
     });
 

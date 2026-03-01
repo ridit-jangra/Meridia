@@ -124,7 +124,7 @@ export function EditorTabs() {
       element = h("div", {
         class: cn(
           "group",
-          "px-3.5 py-2.5 text-[14px] flex items-center gap-2 cursor-pointer select-none border-r border-r-editor-tab-border whitespace-nowrap",
+          "px-3.5 py-3 text-[14.5px] flex items-center gap-2 cursor-pointer select-none border-r border-r-editor-tab-border whitespace-nowrap",
         ),
         on: {
           click: (e: MouseEvent) => {

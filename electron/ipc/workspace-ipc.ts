@@ -3,6 +3,7 @@ import { workspace } from "../main-services/workspace-service";
 import { IWorkspace } from "../../shared/types/workspace.types";
 import {
   WORKSPACE_ASK_UPDATE,
+  WORKSPACE_CLEAR_CURRENT,
   WORKSPACE_GET,
   WORKSPACE_GET_CURRENT_PATH,
   WORKSPACE_SET_CURRENT_PATH,
@@ -30,6 +31,10 @@ ipcMain.handle(WORKSPACE_SET_CURRENT_PATH, async (_, folder_path: string) => {
 
 ipcMain.handle(WORKSPACE_ASK_UPDATE, async (_) => {
   return await workspace.ask_update_workspace();
+});
+
+ipcMain.handle(WORKSPACE_CLEAR_CURRENT, async (_) => {
+  return await workspace.clear_current_workspace();
 });
 
 ipcMain.handle(

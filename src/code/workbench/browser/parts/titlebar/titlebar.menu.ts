@@ -45,7 +45,7 @@ export const titlebar_menu: ITitlebarMenuItem[] = [
       {
         id: "close-folder",
         name: "Close Folder",
-        command: "editor.closeFolder",
+        command: "app.closeFolder",
       },
       { id: "separator-3", name: "separator" },
       {

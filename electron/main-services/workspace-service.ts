@@ -16,7 +16,6 @@ class workspace_service {
   }
 
   private async write_all(list: IWorkspace[]): Promise<void> {
-    // Deduplicate by path before writing — last entry wins
     const seen = new Map<string, IWorkspace>();
     for (const w of list) seen.set(w.path, w);
     await storage.set(WORKSPACES_DATA, Array.from(seen.values()));
@@ -95,6 +94,11 @@ class workspace_service {
     await this.store_workspace(folder_path, { ...existing, ...updates });
 
     return await this.get_workspace(folder_path);
+  }
+
+  public async clear_current_workspace(): Promise<void> {
+    await storage.remove(CURRENT_WORKSPACE_PATH);
+    event_emitter.emit("window.reload");
   }
 }
 
