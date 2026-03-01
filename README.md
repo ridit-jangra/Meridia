@@ -5,7 +5,7 @@
 - v2 branch → Complete core rewrite (Active development)
 - main branch → Stable V1 release
 
-<img src="./public/preview/ss-2.png" style="border-radius: 12px" />
+<img src="./public/preview/ss-3.png" style="border-radius: 12px" />
 
 Meridia is a modern code editor where you code, and AI collaborates — never takes control.
 
