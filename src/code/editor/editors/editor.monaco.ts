@@ -157,6 +157,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       cursorSmoothCaretAnimation: "on",
       cursorBlinking: "expand",
       fixedOverflowWidgets: true,
+      largeFileOptimizations: true,
     });
 
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
