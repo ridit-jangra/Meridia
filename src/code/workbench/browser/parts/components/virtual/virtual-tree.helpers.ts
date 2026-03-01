@@ -207,8 +207,6 @@ function ensure_parents(
   const parts = path_parts(normalized_path);
   parts.pop();
 
-  // const root_parts = workspace_root ? path_parts(workspace_root) : [];
-
   for (let i = 1; i <= parts.length; i++) {
     const ancestor_path = join_path(drive, parts.slice(0, i));
 
@@ -300,11 +298,11 @@ export function remove_node_by_path(nodes: INode[], path: string): boolean {
   for (let i = 0; i < nodes.length; i++) {
     if (uris_equal(nodes[i].path, path)) {
       nodes.splice(i, 1);
+      update_editor_tab_status(path, "DELETED"); // fix: was only called in nested branch
       return true;
     }
     if (nodes[i].child_nodes && nodes[i].child_nodes!.length > 0) {
       if (remove_node_by_path(nodes[i].child_nodes!, path)) {
-        update_editor_tab_status(path, "DELETED");
         return true;
       }
     }
@@ -321,7 +319,11 @@ export function rename_by_path(
   const normalized_next = norm(next_path);
 
   for (const node of nodes) {
-    if (uris_equal(node.path, normalized_prev)) {
+    // match by path OR id to handle mixed slash normalization
+    if (
+      uris_equal(node.path, normalized_prev) ||
+      uris_equal(node.id, normalized_prev)
+    ) {
       node.name = get_basename(normalized_next);
       node.path = normalized_next;
       node.id = normalized_next;

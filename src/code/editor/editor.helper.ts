@@ -98,6 +98,14 @@ export function close_editor_tab(file_path: string, force: boolean = false) {
       }));
 
       store.dispatch(update_tabs(updated));
+    } else {
+      if (!confirm(`Are you sure you want to close this tab without saving?`))
+        return;
+      const updated = nextTabs.map((t, i) => ({
+        ...t,
+        active: i === nextActiveIndex,
+      }));
+      store.dispatch(update_tabs(updated));
     }
   } else {
     const updated = nextTabs.map((t, i) => ({

@@ -1,4 +1,4 @@
-import { monaco } from "../../editor/editor.helper";
+import { editor_events } from "../../platform/events/editor.events";
 import { terminal } from "../contrib/terminal/common/terminal.service";
 
 export function focus_terminal() {
@@ -11,19 +11,12 @@ export function focus_terminal() {
   });
 }
 
-export function focus_editor(editor?: monaco.editor.IStandaloneCodeEditor) {
-  const target =
-    editor ??
-    monaco.editor.getEditors().find((e) => {
-      const node = e.getDomNode();
-      return node && node.offsetWidth > 0 && node.offsetHeight > 0;
-    });
-
-  if (!target) return;
+export function focus_editor() {
+  terminal.unfocus();
 
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
-      target.focus();
+      editor_events.emit("focus");
     });
   });
 }

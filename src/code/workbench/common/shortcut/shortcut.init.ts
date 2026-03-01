@@ -6,7 +6,7 @@ import {
   set_command_palette_open,
 } from "../state/slices/layout.slice";
 
-import { focus_terminal } from "../focus";
+import { focus_editor, focus_terminal } from "../focus";
 import {
   disable_node_at_path,
   enable_node_at_path,
@@ -30,6 +30,7 @@ shortcuts.register_command({
     if (!is_node_enabled_at_path_active_preset([0]))
       update_layout([0], enable_node_at_path);
     store.dispatch(set_active_panel_key({ key: "left", value: "search" }));
+    focus_editor();
   },
 });
 
@@ -39,6 +40,7 @@ shortcuts.register_command({
     if (!is_node_enabled_at_path_active_preset([0]))
       update_layout([0], enable_node_at_path);
     store.dispatch(set_active_panel_key({ key: "left", value: "explorer" }));
+    focus_editor();
   },
 });
 
@@ -48,6 +50,7 @@ shortcuts.register_command({
     if (!is_node_enabled_at_path_active_preset([0]))
       update_layout([0], enable_node_at_path);
     store.dispatch(set_active_panel_key({ key: "left", value: "git" }));
+    focus_editor();
   },
 });
 
@@ -80,11 +83,13 @@ shortcuts.register_command({
           new_root = enable_node_at_path(preset.root, [1, 1]);
       }
 
-      if (new_root)
+      if (new_root) {
         layout_engine.update_preset(active_layout_id, {
           ...preset,
           root: new_root,
         });
+        focus_editor();
+      }
 
       store.dispatch(set_active_tab_key("terminal"));
 
@@ -124,6 +129,7 @@ shortcuts.register_command({
         });
 
       store.dispatch(set_active_tab_key("problems"));
+      focus_editor();
     });
   },
 });
@@ -131,16 +137,8 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.toggleBottomPanel",
   run: () => {
-    const state = store.getState();
-    const active_layout_id = state.layout.active_layout_id;
-    const preset = layout_engine.get_layout(active_layout_id);
-    if (!preset) return;
-
-    const new_root = toggle_node_at_path(preset.root, [1, 1]);
-    layout_engine.update_preset(active_layout_id, {
-      ...preset,
-      root: new_root,
-    });
+    focus_editor();
+    update_layout([1, 1], toggle_node_at_path);
   },
 });
 
@@ -148,6 +146,7 @@ shortcuts.register_command({
   id: "layout.togglePrimarySideBar",
   run: () => {
     update_layout([0], toggle_node_at_path);
+    focus_editor();
   },
 });
 
@@ -155,6 +154,7 @@ shortcuts.register_command({
   id: "layout.toggleSecondarySideBar",
   run: () => {
     update_layout([2], toggle_node_at_path);
+    focus_editor();
   },
 });
 
@@ -255,7 +255,9 @@ shortcuts.register_command({
 });
 shortcuts.register_command({
   id: "app.closeFolder",
-  run: () => {},
+  run: () => {
+    window.workspace.clear_current_workspace();
+  },
 });
 shortcuts.register_command({
   id: "app.openSettings",
@@ -425,7 +427,7 @@ shortcuts.register_shortcuts([
     id: "closeFolder",
     label: "Close Folder",
     category: "Editor",
-    keys: "ctrl+m",
+    keys: "ctrl+alt+m",
     command: "app.closeFolder",
     scope: "app",
   },

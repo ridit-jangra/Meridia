@@ -51,6 +51,11 @@ class storage_service {
     this.data[key] = fn(prev);
     this.save();
   }
+
+  remove(key: string) {
+    delete this.data[key];
+    this.save();
+  }
 }
 
 export const storage = new storage_service();

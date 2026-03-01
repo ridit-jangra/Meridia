@@ -38,6 +38,7 @@ type workspace_api = {
   get_current_workspace_path(): Promise<string | null>;
   set_current_workspace_path(folder_path: string): Promise<void>;
   ask_update_workspace(): Promise<void>;
+  clear_current_workspace(): Promise<void>;
 };
 
 type shell_api = {
@@ -46,7 +47,7 @@ type shell_api = {
 
 type files_api = {
   exists(p: string): Promise<boolean>;
-  saveAs(c: string, p?: string): Promise<{ cancel: boolean; path: string }>;
+  saveAs(c: string, p: string): Promise<{ cancel: boolean; path: string }>;
   readdir(p: string): Promise<
     {
       name: string;

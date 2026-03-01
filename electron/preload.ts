@@ -14,6 +14,7 @@ import {
   WORKSPACE_GET_CURRENT_PATH,
   WORKSPACE_SET_CURRENT_PATH,
   WORKSPACE_ASK_UPDATE,
+  WORKSPACE_CLEAR_CURRENT,
   EXPLORER_GET_ROOT_STRUCTURE,
   EXPLORER_GET_CHILD_STRUCTURE,
   FS_EXISTS,
@@ -97,6 +98,8 @@ contextBridge.exposeInMainWorld("workspace", {
     ) as Promise<void>,
   ask_update_workspace: () =>
     ipcRenderer.invoke(WORKSPACE_ASK_UPDATE) as Promise<void>,
+  clear_current_workspace: () =>
+    ipcRenderer.invoke(WORKSPACE_CLEAR_CURRENT) as Promise<void>,
 });
 
 contextBridge.exposeInMainWorld("files", {

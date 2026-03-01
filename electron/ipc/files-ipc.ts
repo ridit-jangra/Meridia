@@ -22,21 +22,18 @@ ipcMain.handle(FS_EXISTS, async (_, p: string) => {
   }
 });
 
-ipcMain.handle(FS_SAVE_AS, async (_, content: string, path?: string) => {
+ipcMain.handle(FS_SAVE_AS, async (_, content: string, path: string) => {
   try {
-    if (path) {
-      await fs.writeFile(path, content, "utf8");
-      return { cancel: false, path };
-    }
-
     const result = await dialog.showSaveDialog({
       buttonLabel: "Save",
+      defaultPath: path,
     });
 
     if (result.canceled || !result.filePath) {
       return { cancel: true, path: result.filePath };
     }
 
+    await fs.rename(path, result.filePath);
     await fs.writeFile(result.filePath, content, "utf8");
 
     return { cancel: false, path: result.filePath };

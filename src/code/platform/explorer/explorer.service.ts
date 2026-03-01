@@ -1,7 +1,6 @@
 import { VirtualTreeInstance } from "../../../types/explorer.types";
 import { set_folder_structure } from "../../workbench/common/state/slices/explorer.slice";
 import { store } from "../../workbench/common/state/store";
-import { explorer_events } from "../events/explorer.events";
 import { explorer_actions } from "./explorer.actions";
 import { explorer_state } from "./explorer.state";
 import { explorer_tree } from "./explorer.tree";
@@ -23,10 +22,6 @@ class explorer_service {
 
     const tree = this.tree.register_tree(structure);
     this.init_watcher(structure.path, tree);
-
-    setTimeout(() => {
-      explorer_events.emit("start-ui");
-    }, 500);
   }
 
   private async init_watcher(path: string, tree: VirtualTreeInstance) {
