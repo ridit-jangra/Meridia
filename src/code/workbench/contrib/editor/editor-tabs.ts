@@ -302,14 +302,29 @@ export function EditorTabs() {
     element.dataset.path = tab.file_path;
 
     element.className = cn(
-      "group",
+      "group relative",
       "px-3.5 py-2.5 text-[14px] flex items-center gap-2 cursor-pointer select-none border-r border-r-editor-tab-border whitespace-nowrap",
       tab.active
         ? "bg-editor-tab-active-background text-editor-tab-active-foreground"
         : "bg-editor-tab-background text-editor-tab-foreground hover:bg-editor-tab-hover-background hover:text-editor-tab-hover-foreground",
-      tab.tab_status === "DELETED" &&
-        "underline decoration-red-500 decoration-2",
+      tab.tab_status === "DELETED" && "italic !italic",
     );
+
+    let underline = element.querySelector(
+      '[data-role="deleted-underline"]',
+    ) as HTMLElement | null;
+
+    if (tab.tab_status === "DELETED") {
+      if (!underline) {
+        underline = document.createElement("span");
+        underline.dataset.role = "deleted-underline";
+        underline.className =
+          "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[2px] bg-terminal-red rounded";
+        element.appendChild(underline);
+      }
+    } else {
+      underline?.remove();
+    }
 
     const icon = element.querySelector(
       '[data-role="icon"]',

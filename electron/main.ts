@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { server } from "./server/lsp.server";
+import { server, resolve_node_bin } from "./server/lsp.server";
 import "./ipc/workspace-ipc";
 import "./ipc/files-ipc";
 import "./ipc/storage-ipc";
@@ -24,7 +24,11 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(appRoot, "public")
   : RENDERER_DIST;
 
+// ── LSP setup ────────────────────────────────────────────────────────────────
+
 export const lsp_server = new server();
+
+const node_bin = resolve_node_bin(appRoot);
 
 const ts_cli = path.join(
   appRoot,
@@ -36,29 +40,19 @@ const ts_cli = path.join(
 
 lsp_server.register({
   languageId: "typescript",
-  command: process.execPath,
+  command: node_bin,
   args: [ts_cli, "--stdio"],
 });
 
 lsp_server.register({
   languageId: "javascript",
-  command: process.execPath,
+  command: node_bin,
   args: [ts_cli, "--stdio"],
 });
 
-lsp_server.register({
-  languageId: "python",
-  command: "pylsp",
-  args: [],
-});
-
-lsp_server.register({
-  languageId: "rust",
-  command: "rust-analyzer",
-  args: [],
-});
-
 lsp_server.start();
+
+// ── Window ────────────────────────────────────────────────────────────────────
 
 let win: BrowserWindow | null = null;
 
@@ -84,7 +78,6 @@ function createWindow() {
 
     const zoom_factor = win.webContents.getZoomFactor();
     const base = 27;
-
     const clamped = Math.min(Math.max(zoom_factor, 0.75), 2.0);
     const new_height = Math.round(base * 1.4 * clamped);
 
@@ -96,7 +89,6 @@ function createWindow() {
 
     const base_inset = is_win ? 170 : 115;
     const new_inset = Math.round(base_inset / (clamped * 1.3));
-
     win.webContents.send("titlebar-insets", new_inset);
   }
 

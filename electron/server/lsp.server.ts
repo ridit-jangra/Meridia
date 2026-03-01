@@ -1,31 +1,20 @@
 import * as http from "node:http";
 import * as cp from "node:child_process";
+import { existsSync } from "node:fs";
+import * as path from "node:path";
 import { WebSocketServer, WebSocket } from "ws";
-import {
-  createMessageConnection,
-  StreamMessageReader,
-  StreamMessageWriter,
-} from "vscode-jsonrpc/node";
-import {
-  IWebSocket,
-  WebSocketMessageReader,
-  WebSocketMessageWriter,
-} from "vscode-ws-jsonrpc";
 import { LSP_BRIDGE_PORT } from "../../shared/lsp/lsp.constants";
 
 export interface LspServerDefinition {
   languageId: string;
-
   command: string;
-
   args?: string[];
-
   env?: Record<string, string>;
 }
 
 export class server {
   private definitions = new Map<string, LspServerDefinition>();
-  private server: http.Server | null = null;
+  private httpServer: http.Server | null = null;
   private wss: WebSocketServer | null = null;
   private workspacePath: string | null = null;
 
@@ -38,21 +27,18 @@ export class server {
   }
 
   start() {
-    this.server = http.createServer((_req, res) => {
+    this.httpServer = http.createServer((_req, res) => {
       res.writeHead(200);
       res.end("LSP Bridge");
     });
 
-    this.wss = new WebSocketServer({ server: this.server });
+    this.wss = new WebSocketServer({ server: this.httpServer });
 
     this.wss.on("connection", (ws: WebSocket, req: http.IncomingMessage) => {
       const languageId = (req.url ?? "/").slice(1);
       const def = this.definitions.get(languageId);
 
       if (!def) {
-        console.warn(
-          `[LSP Bridge] No definition for language: "${languageId}"`,
-        );
         ws.close(1003, `No LSP registered for "${languageId}"`);
         return;
       }
@@ -60,16 +46,12 @@ export class server {
       this.spawnAndBridge(def, ws);
     });
 
-    this.server.listen(LSP_BRIDGE_PORT, "127.0.0.1", () => {
-      console.log(
-        `[LSP Bridge] Listening on ws://127.0.0.1:${LSP_BRIDGE_PORT}`,
-      );
-    });
+    this.httpServer.listen(LSP_BRIDGE_PORT, "127.0.0.1", () => {});
   }
 
   stop() {
     this.wss?.close();
-    this.server?.close();
+    this.httpServer?.close();
   }
 
   private spawnAndBridge(def: LspServerDefinition, ws: WebSocket) {
@@ -83,67 +65,79 @@ export class server {
     });
 
     lspProcess.on("error", (err) => {
-      console.error(`[LSP Bridge:${def.languageId}] Spawn error:`, err.message);
       ws.close(1011, err.message);
     });
 
-    lspProcess.on("exit", (code) => {
-      console.log(`[LSP Bridge:${def.languageId}] Process exited (${code})`);
+    lspProcess.on("exit", () => {
       if (ws.readyState === WebSocket.OPEN) ws.close();
     });
 
-    lspProcess.stderr?.on("data", (chunk: Buffer) => {
-      console.debug(`[LSP:${def.languageId}] ${chunk.toString().trim()}`);
-    });
-
-    const iws: IWebSocket = {
-      send: (content) => ws.send(content),
-      onMessage: (cb) => ws.on("message", (data) => cb(data.toString())),
-      onClose: (cb) =>
-        ws.on("close", (code, reason) => cb(code, reason.toString())),
-      onError: (cb) => ws.on("error", cb),
-      dispose: () => ws.close(),
-    };
-
-    const socketReader = new WebSocketMessageReader(iws);
-    const socketWriter = new WebSocketMessageWriter(iws);
-
-    const processReader = new StreamMessageReader(lspProcess.stdout!);
-    const processWriter = new StreamMessageWriter(lspProcess.stdin!);
-
-    const socketConn = createMessageConnection(socketReader, socketWriter);
-    const processConn = createMessageConnection(processReader, processWriter);
-
     ws.on("message", (data: Buffer | string) => {
-      if (lspProcess.stdin?.writable) {
-        lspProcess.stdin.write(typeof data === "string" ? data : data);
-      }
+      if (!lspProcess.stdin?.writable) return;
+      const json = typeof data === "string" ? data : data.toString("utf8");
+
+      const body = Buffer.from(json, "utf8");
+      const header = `Content-Length: ${body.length}\r\n\r\n`;
+      lspProcess.stdin.write(header);
+      lspProcess.stdin.write(body);
     });
+
+    let buf = Buffer.alloc(0);
 
     lspProcess.stdout?.on("data", (chunk: Buffer) => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(chunk);
+      buf = Buffer.concat([buf, chunk]);
+
+      while (true) {
+        const sep = buf.indexOf("\r\n\r\n");
+        if (sep === -1) break;
+
+        const header = buf.slice(0, sep).toString("utf8");
+        const match = header.match(/Content-Length:\s*(\d+)/i);
+        if (!match) {
+          buf = buf.slice(sep + 4);
+          break;
+        }
+
+        const contentLength = parseInt(match[1], 10);
+        const bodyStart = sep + 4;
+        if (buf.length < bodyStart + contentLength) break;
+
+        const body = buf
+          .slice(bodyStart, bodyStart + contentLength)
+          .toString("utf8");
+        buf = buf.slice(bodyStart + contentLength);
+
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(body);
+        }
       }
     });
 
     ws.on("close", () => {
       if (!lspProcess.killed) lspProcess.kill();
     });
-
-    socketConn.onClose(() => {
-      processConn.dispose();
-      if (!lspProcess.killed) lspProcess.kill();
-    });
-
-    processConn.onClose(() => {
-      socketConn.dispose();
-    });
-
-    socketConn.listen();
-    processConn.listen();
-
-    console.log(
-      `[LSP Bridge:${def.languageId}] Bridged pid=${lspProcess.pid} ↔ WebSocket`,
-    );
   }
+}
+
+export function resolve_node_bin(appRoot: string): string {
+  const candidates = [
+    path.join(
+      path.dirname(process.execPath),
+      process.platform === "win32" ? "node.exe" : "node",
+    ),
+    path.join(
+      appRoot,
+      "node_modules",
+      ".bin",
+      process.platform === "win32" ? "node.exe" : "node",
+    ),
+  ];
+
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return process.platform === "win32" ? "node.exe" : "node";
 }

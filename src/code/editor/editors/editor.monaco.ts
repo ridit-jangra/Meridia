@@ -2,7 +2,7 @@ import editor_worker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import json_worker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 import css_worker from "monaco-editor/esm/vs/language/css/css.worker?worker";
 import html_worker from "monaco-editor/esm/vs/language/html/html.worker?worker";
-// import typescript_worker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
+import typescript_worker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
 
 (self as any).MonacoEnvironment = {
   getWorker(_: unknown, label: string) {
@@ -12,10 +12,7 @@ import html_worker from "monaco-editor/esm/vs/language/html/html.worker?worker";
     if (label === "html" || label === "handlebars" || label === "razor")
       return new html_worker();
     if (label === "typescript" || label === "javascript")
-      return new Worker(
-        URL.createObjectURL(new Blob([""], { type: "application/javascript" })),
-      );
-    // return new typescript_worker();
+      return new typescript_worker();
     return new editor_worker();
   },
 };
@@ -162,6 +159,27 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       fixedOverflowWidgets: true,
     });
 
+    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: true,
+      noSyntaxValidation: true,
+      noSuggestionDiagnostics: true,
+    });
+    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+      noSemanticValidation: true,
+      noSyntaxValidation: true,
+      noSuggestionDiagnostics: true,
+    });
+    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+      noLib: true,
+      allowNonTsExtensions: true,
+      noSuggestionDiagnostics: true,
+    });
+    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+      noLib: true,
+      allowNonTsExtensions: true,
+      noSuggestionDiagnostics: true,
+    });
+
     this.setup_editor_events();
     this.setup_statusbar_events();
     await this.setup_lsp();
@@ -200,7 +218,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
         statusbar_events.emit("updateIndentation", null);
         return;
       }
-
       const pos = this.instance.getPosition();
       statusbar_events.emit(
         "updateLineCol",
@@ -230,8 +247,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       languageId: "javascript",
       extensions: ["js", "jsx", "mjs", "cjs"],
     });
-    lsp_client.register({ languageId: "python", extensions: ["py"] });
-    lsp_client.register({ languageId: "rust", extensions: ["rs"] });
     await lsp_client.start();
   }
 
