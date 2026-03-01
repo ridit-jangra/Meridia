@@ -511,3 +511,7 @@ body {
 .quick-input-list-entry {
   height: 60px !important;
 }
+
+.monaco-editor {
+  outline: none !important;
+}

@@ -310,22 +310,6 @@ export function EditorTabs() {
       tab.tab_status === "DELETED" && "italic !italic",
     );
 
-    let underline = element.querySelector(
-      '[data-role="deleted-underline"]',
-    ) as HTMLElement | null;
-
-    if (tab.tab_status === "DELETED") {
-      if (!underline) {
-        underline = document.createElement("span");
-        underline.dataset.role = "deleted-underline";
-        underline.className =
-          "pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[2px] bg-terminal-red rounded";
-        element.appendChild(underline);
-      }
-    } else {
-      underline?.remove();
-    }
-
     const icon = element.querySelector(
       '[data-role="icon"]',
     ) as HTMLImageElement | null;

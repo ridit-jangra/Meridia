@@ -95,7 +95,13 @@ export class shortcut_service {
   }
 
   private on_keydown(e: KeyboardEvent) {
-    if (is_editable_target(e.target) && this.scope === "app") return;
+    const isMonaco = (e.target as HTMLElement | null)?.closest?.(
+      ".monaco-editor",
+    );
+
+    // Allow app-level shortcuts in Monaco (save, open, palette)
+    if (is_editable_target(e.target) && this.scope === "app" && !isMonaco)
+      return;
 
     const combo = event_combo(e);
     this.chord.push(combo);
