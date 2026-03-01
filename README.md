@@ -5,7 +5,10 @@
 - v2 branch → Complete core rewrite (Active development)
 - main branch → Stable V1 release
 
-<img src="./public/preview/ss-3.png" style="border-radius: 12px" />
+<video width="640" height="360" controls>
+  <source src="./public/preview/video/2026-03-01.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
 
 Meridia is a modern code editor where you code, and AI collaborates — never takes control.
 
