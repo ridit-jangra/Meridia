@@ -92,10 +92,6 @@ function send_notification(
   method: string,
   params: any,
 ): void {
-  console.log(
-    `[LSP:${conn.languageId}] >> ${method} (notify)`,
-    JSON.stringify(params).slice(0, 200),
-  );
   conn.writer.write({ jsonrpc: "2.0", method, params } as any);
 }
 
