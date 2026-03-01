@@ -158,6 +158,9 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       cursorBlinking: "expand",
       fixedOverflowWidgets: true,
       largeFileOptimizations: true,
+      quickSuggestions: true,
+      suggestOnTriggerCharacters: true,
+      parameterHints: { enabled: true },
     });
 
     monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
@@ -240,13 +243,17 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   }
 
   private async setup_lsp(): Promise<void> {
+    // lsp_client.register({
+    //   languageId: "typescript",
+    //   extensions: ["ts", "tsx", "mts", "cts"],
+    // });
+    // lsp_client.register({
+    //   languageId: "javascript",
+    //   extensions: ["js", "jsx", "mjs", "cjs"],
+    // });
     lsp_client.register({
-      languageId: "typescript",
-      extensions: ["ts", "tsx", "mts", "cts"],
-    });
-    lsp_client.register({
-      languageId: "javascript",
-      extensions: ["js", "jsx", "mjs", "cjs"],
+      languageId: "python",
+      extensions: ["py"],
     });
     await lsp_client.start();
   }
@@ -307,6 +314,8 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       existing ??
       monaco.editor.createModel(content, path_to_language(file_path), uri);
     if (existing && existing.getValue() !== content) existing.setValue(content);
+
+    console.log("LANG:", model.getLanguageId());
 
     return {
       uri: file_path,

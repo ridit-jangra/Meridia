@@ -24,30 +24,14 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(appRoot, "public")
   : RENDERER_DIST;
 
-// ── LSP setup ────────────────────────────────────────────────────────────────
+// ── LSP setup ─────────────────────────────────────────────────────────────────
 
 export const lsp_server = new server();
 
-const node_bin = resolve_node_bin(appRoot);
-
-const ts_cli = path.join(
-  appRoot,
-  "node_modules",
-  "typescript-language-server",
-  "lib",
-  "cli.mjs",
-);
-
 lsp_server.register({
-  languageId: "typescript",
-  command: node_bin,
-  args: [ts_cli, "--stdio"],
-});
-
-lsp_server.register({
-  languageId: "javascript",
-  command: node_bin,
-  args: [ts_cli, "--stdio"],
+  languageId: "python",
+  command: "", // unused — server auto-resolves jedi-language-server
+  args: [],
 });
 
 lsp_server.start();
@@ -75,57 +59,43 @@ function createWindow() {
 
   function update_titlebar_height() {
     if (!win) return;
-
     const zoom_factor = win.webContents.getZoomFactor();
-    const base = 27;
     const clamped = Math.min(Math.max(zoom_factor, 0.75), 2.0);
-    const new_height = Math.round(base * 1.4 * clamped);
-
+    const new_height = Math.round(27 * 1.4 * clamped);
     win.setTitleBarOverlay({
       color: "#0a0a0a",
       symbolColor: "#E4E4E4A8",
       height: new_height,
     });
-
-    const base_inset = is_win ? 170 : 115;
-    const new_inset = Math.round(base_inset / (clamped * 1.3));
+    const new_inset = Math.round((is_win ? 170 : 115) / (clamped * 1.3));
     win.webContents.send("titlebar-insets", new_inset);
   }
 
   ipcMain.handle("workbench.zoom", () => {
     if (!win) return;
-    const current = win.webContents.getZoomFactor();
-    win.webContents.setZoomFactor(current + 0.1);
+    win.webContents.setZoomFactor(win.webContents.getZoomFactor() + 0.1);
     update_titlebar_height();
   });
 
   ipcMain.handle("workbench.zoomout", () => {
     if (!win) return;
-    const current = win.webContents.getZoomFactor();
-    win.webContents.setZoomFactor(Math.max(0.5, current - 0.1));
+    win.webContents.setZoomFactor(
+      Math.max(0.5, win.webContents.getZoomFactor() - 0.1),
+    );
     update_titlebar_height();
   });
 
-  event_emitter.on("window.reload", () => {
-    if (!win) return;
-    win.webContents.reload();
-  });
-
+  event_emitter.on("window.reload", () => win?.webContents.reload());
   event_emitter.on(
     "window.webContents.send",
     (channel: string, ...args: any[]) => {
-      if (!win) return;
-      win.webContents.send(channel, ...args);
+      win?.webContents.send(channel, ...args);
     },
   );
 
-  function get_titlebar_control_height() {
-    return is_win ? 170 : 95;
-  }
-
   ipcMain.on("titlebar-ready", (e) => {
     if (!win) return;
-    e.sender.send("titlebar-insets", get_titlebar_control_height());
+    e.sender.send("titlebar-insets", is_win ? 170 : 95);
     update_titlebar_height();
   });
 

@@ -38,6 +38,37 @@ interface LspConnection {
   pending: Map<number, PendingRequest>;
   initialized: boolean;
   languageId: string;
+  ready: Promise<void>;
+  markReady: () => void;
+}
+
+function make_ready_promise(
+  languageId: string,
+  timeoutMs = 8000,
+): { ready: Promise<void>; markReady: () => void } {
+  let resolved = false;
+  let markReady!: () => void;
+
+  const ready = new Promise<void>((resolve) => {
+    markReady = () => {
+      if (resolved) return;
+      resolved = true;
+      console.log(
+        `[LSP:${languageId}] markReady() called — providers unblocked`,
+      );
+      resolve();
+    };
+  });
+
+  setTimeout(() => {
+    if (resolved) return;
+    console.warn(
+      `[LSP:${languageId}] ready-timeout (${timeoutMs}ms) fired — unblocking providers anyway`,
+    );
+    markReady();
+  }, timeoutMs);
+
+  return { ready, markReady };
 }
 
 function send_request(
@@ -78,6 +109,19 @@ function path_to_uri(fsPath: string): string {
     ? `file://${normalized}`
     : `file:///${normalized}`;
 }
+
+// Convert a file:// URI back to a plain filesystem path
+function uri_to_path(uri: string): string {
+  return uri
+    .replace(/^file:\/\/\/([a-zA-Z]:)/, "$1") // Windows: file:///E:/... → E:/...
+    .replace(/^file:\/\//, "") // Unix: file:///home/... → /home/...
+    .replace(/\//g, path.sep);
+}
+
+// path.sep isn't available in browser context — use a simple helper instead
+const path = {
+  sep: navigator.userAgent.includes("Windows") ? "\\" : "/",
+};
 
 function to_lsp_position(pos: monaco.Position) {
   return { line: pos.lineNumber - 1, character: pos.column - 1 };
@@ -179,9 +223,8 @@ class client {
   }
 
   async dispose() {
-    for (const disps of this.disposables.values()) {
+    for (const disps of this.disposables.values())
       disps.forEach((d) => d.dispose());
-    }
     this.disposables.clear();
     this.connections.clear();
     for (const ws of this.sockets.values()) {
@@ -191,7 +234,10 @@ class client {
   }
 
   private connect(def: LspClientDefinition) {
-    const url = `ws://127.0.0.1:${LSP_BRIDGE_PORT}/${def.languageId}`;
+    // Pass the workspace path as a query param so the bridge can spawn
+    // Pyright in the correct cwd (the user's project, not the app root).
+    const workspacePath = uri_to_path(this.workspaceUri);
+    const url = `ws://127.0.0.1:${LSP_BRIDGE_PORT}/${def.languageId}?workspace=${encodeURIComponent(workspacePath)}`;
     console.log(`[LSP:${def.languageId}] Connecting to ${url}`);
     const ws = new WebSocket(url);
     this.sockets.set(def.languageId, ws);
@@ -202,6 +248,8 @@ class client {
       const reader = new WebSocketMessageReader(socket);
       const writer = new WebSocketMessageWriter(socket);
 
+      const { ready, markReady } = make_ready_promise(def.languageId, 8000);
+
       const conn: LspConnection = {
         reader,
         writer,
@@ -209,10 +257,23 @@ class client {
         pending: new Map(),
         initialized: false,
         languageId: def.languageId,
+        ready,
+        markReady,
       };
       this.connections.set(def.languageId, conn);
 
       reader.listen((msg: any) => {
+        // Server-initiated request (has id AND method) e.g. window/workDoneProgress/create
+        if (msg.id != null && "method" in msg) {
+          console.log(
+            `[LSP:${def.languageId}] << server-request ${msg.method} (id=${msg.id})`,
+            JSON.stringify(msg.params).slice(0, 200),
+          );
+          this.handle_server_request(def, conn, msg);
+          return;
+        }
+
+        // Response to one of our requests
         if (msg.id != null && !("method" in msg)) {
           const p = conn.pending.get(msg.id);
           if (p) {
@@ -224,7 +285,11 @@ class client {
             if (msg.error) p.reject(msg.error);
             else p.resolve(msg.result);
           }
-        } else if ("method" in msg && msg.id == null) {
+          return;
+        }
+
+        // Notification (no id)
+        if ("method" in msg) {
           console.log(
             `[LSP:${def.languageId}] << ${msg.method}`,
             JSON.stringify(msg.params).slice(0, 200),
@@ -243,8 +308,10 @@ class client {
           textDocument: {
             synchronization: {
               dynamicRegistration: false,
-              didSave: false,
               willSave: false,
+              willSaveWaitUntil: false,
+              didSave: false,
+              change: 1,
             },
             completion: {
               completionItem: {
@@ -263,7 +330,13 @@ class client {
             references: { dynamicRegistration: false },
             publishDiagnostics: { relatedInformation: true },
           },
-          workspace: { workspaceFolders: true },
+          workspace: {
+            workspaceFolders: true,
+            workDoneProgress: true,
+          },
+          window: {
+            workDoneProgress: true,
+          },
         },
       } as InitializeParams);
 
@@ -295,16 +368,52 @@ class client {
     };
   }
 
-  private handle_notification(
+  private handle_server_request(
     def: LspClientDefinition,
-    _conn: LspConnection,
+    conn: LspConnection,
     msg: any,
   ) {
+    if (msg.method === "window/workDoneProgress/create") {
+      console.log(
+        `[LSP:${def.languageId}] ACK window/workDoneProgress/create token=${msg.params?.token}`,
+      );
+      conn.writer.write({ jsonrpc: "2.0", id: msg.id, result: null } as any);
+      return;
+    }
+
+    // Generic null ACK for any other server-initiated request
+    console.warn(
+      `[LSP:${def.languageId}] Unhandled server-request: ${msg.method} — sending null ACK`,
+    );
+    conn.writer.write({ jsonrpc: "2.0", id: msg.id, result: null } as any);
+  }
+
+  private handle_notification(
+    def: LspClientDefinition,
+    conn: LspConnection,
+    msg: any,
+  ) {
+    if (msg.method === "$/progress") {
+      const { token, value } = msg.params ?? {};
+      console.log(
+        `[LSP:${def.languageId}] $/progress token=${token} kind=${value?.kind} title=${value?.title ?? ""} message=${value?.message ?? ""}`,
+      );
+      if (value?.kind === "end") {
+        console.log(`[LSP:${def.languageId}] $/progress end — marking ready`);
+        conn.markReady();
+      }
+      return;
+    }
+
     if (msg.method === PublishDiagnosticsNotification.type.method) {
       const { uri, diagnostics } = msg.params;
       console.log(
         `[LSP:${def.languageId}] diagnostics for ${uri}: ${diagnostics.length} item(s)`,
       );
+
+      // publishDiagnostics means Pyright has analyzed the file — secondary ready signal
+      conn.markReady();
+
       const model = monaco.editor.getModels().find((m) => {
         const mUri = model_uri(m);
         return mUri === uri || mUri.toLowerCase() === uri.toLowerCase();
@@ -391,39 +500,52 @@ class client {
       }),
     );
 
+    function toLspCompletionContext(
+      context?: monaco.languages.CompletionContext,
+    ) {
+      if (context?.triggerCharacter) {
+        return { triggerKind: 2, triggerCharacter: context.triggerCharacter };
+      }
+      return { triggerKind: 1 };
+    }
+
     disps.push(
       monaco.languages.registerCompletionItemProvider(selector, {
         triggerCharacters: [".", '"', "'", "`", "/", "@", "<", "#"],
-        async provideCompletionItems(model, position) {
+        async provideCompletionItems(model, position, context) {
           if (!conn.initialized) return null;
-          try {
-            const result = await send_request(
-              conn,
-              CompletionRequest.type.method,
-              {
-                textDocument: { uri: model_uri(model) },
-                position: to_lsp_position(position),
-                context: { triggerKind: 1 },
-              },
-            );
-            if (!result) return null;
-            const items: any[] = Array.isArray(result)
-              ? result
-              : (result.items ?? []);
-            console.log(
-              `[LSP:${def.languageId}] completion: ${items.length} items`,
-            );
-            return {
-              suggestions: items.map((item) =>
-                lsp_completion_to_monaco(item, model, position),
-              ),
-              incomplete: result.isIncomplete ?? false,
-            };
-          } catch (e: any) {
-            if (e?.message !== "Canceled")
-              console.error(`[LSP:${def.languageId}] completion error`, e);
+          console.log(`[LSP:${def.languageId}] completion: awaiting ready...`);
+          await conn.ready;
+          console.log(
+            `[LSP:${def.languageId}] completion: ready, sending request`,
+          );
+
+          const result = await send_request(
+            conn,
+            CompletionRequest.type.method,
+            {
+              textDocument: { uri: model_uri(model) },
+              position: to_lsp_position(position),
+              context: toLspCompletionContext(context),
+            },
+          );
+
+          if (!result) {
+            console.log(`[LSP:${def.languageId}] completion: null result`);
             return null;
           }
+
+          const items = Array.isArray(result) ? result : (result.items ?? []);
+          console.log(
+            `[LSP:${def.languageId}] completion: ${items.length} items`,
+          );
+
+          return {
+            suggestions: items.map((item: any) =>
+              lsp_completion_to_monaco(item, model, position),
+            ),
+            incomplete: result.isIncomplete ?? false,
+          };
         },
       }),
     );
@@ -432,6 +554,7 @@ class client {
       monaco.languages.registerHoverProvider(selector, {
         async provideHover(model, position) {
           if (!conn.initialized) return null;
+          await conn.ready;
           try {
             const result = await send_request(conn, HoverRequest.type.method, {
               textDocument: { uri: model_uri(model) },
@@ -459,6 +582,7 @@ class client {
         signatureHelpTriggerCharacters: ["(", ","],
         async provideSignatureHelp(model, position) {
           if (!conn.initialized) return null;
+          await conn.ready;
           try {
             const result = await send_request(
               conn,
@@ -509,6 +633,7 @@ class client {
       monaco.languages.registerDefinitionProvider(selector, {
         async provideDefinition(model, position) {
           if (!conn.initialized) return null;
+          await conn.ready;
           try {
             const result = await send_request(
               conn,
@@ -535,6 +660,7 @@ class client {
       monaco.languages.registerReferenceProvider(selector, {
         async provideReferences(model, position) {
           if (!conn.initialized) return null;
+          await conn.ready;
           try {
             const result = await send_request(
               conn,
