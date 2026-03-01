@@ -217,6 +217,8 @@ export function EditorTabs() {
       tab.active
         ? "bg-editor-tab-active-background text-editor-tab-active-foreground"
         : "bg-editor-tab-background text-editor-tab-foreground hover:bg-editor-tab-hover-background hover:text-editor-tab-hover-foreground",
+      tab.tab_status === "DELETED" &&
+        "underline decoration-red-500 decoration-2",
     );
 
     const icon = element.querySelector(
@@ -308,7 +310,8 @@ export function EditorTabs() {
         if (
           prevTab.active !== tab.active ||
           (prevTab.is_touched ?? false) !== (tab.is_touched ?? false) ||
-          prevTab.name !== tab.name
+          prevTab.name !== tab.name ||
+          prevTab.tab_status !== tab.tab_status
         ) {
           renderTab(tab, element);
         }

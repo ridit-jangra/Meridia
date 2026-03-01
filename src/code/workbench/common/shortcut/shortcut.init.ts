@@ -5,8 +5,6 @@ import {
   set_active_tab_key,
   set_command_palette_open,
 } from "../state/slices/layout.slice";
-
-import { focus_editor, focus_terminal } from "../focus";
 import {
   disable_node_at_path,
   enable_node_at_path,
@@ -23,6 +21,7 @@ import {
   open_new_editor_tab,
 } from "../../../editor/editor.helper";
 import { terminal_events } from "../../../platform/events/terminal.events";
+import { focus_terminal } from "../focus";
 
 shortcuts.register_command({
   id: "layout.toggleSearch",
@@ -30,7 +29,6 @@ shortcuts.register_command({
     if (!is_node_enabled_at_path_active_preset([0]))
       update_layout([0], enable_node_at_path);
     store.dispatch(set_active_panel_key({ key: "left", value: "search" }));
-    focus_editor();
   },
 });
 
@@ -40,7 +38,6 @@ shortcuts.register_command({
     if (!is_node_enabled_at_path_active_preset([0]))
       update_layout([0], enable_node_at_path);
     store.dispatch(set_active_panel_key({ key: "left", value: "explorer" }));
-    focus_editor();
   },
 });
 
@@ -50,7 +47,6 @@ shortcuts.register_command({
     if (!is_node_enabled_at_path_active_preset([0]))
       update_layout([0], enable_node_at_path);
     store.dispatch(set_active_panel_key({ key: "left", value: "git" }));
-    focus_editor();
   },
 });
 
@@ -67,7 +63,6 @@ shortcuts.register_command({
 
       let new_root;
 
-      console.log("is terminal focus", terminal.is_focus());
       if (
         active_tab_key === "terminal" &&
         is_node_enabled_at_path(preset.root, [1, 1])
@@ -88,7 +83,6 @@ shortcuts.register_command({
           ...preset,
           root: new_root,
         });
-        focus_editor();
       }
 
       store.dispatch(set_active_tab_key("terminal"));
@@ -129,7 +123,6 @@ shortcuts.register_command({
         });
 
       store.dispatch(set_active_tab_key("problems"));
-      focus_editor();
     });
   },
 });
@@ -137,7 +130,6 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.toggleBottomPanel",
   run: () => {
-    focus_editor();
     update_layout([1, 1], toggle_node_at_path);
   },
 });
@@ -146,7 +138,6 @@ shortcuts.register_command({
   id: "layout.togglePrimarySideBar",
   run: () => {
     update_layout([0], toggle_node_at_path);
-    focus_editor();
   },
 });
 
@@ -154,7 +145,6 @@ shortcuts.register_command({
   id: "layout.toggleSecondarySideBar",
   run: () => {
     update_layout([2], toggle_node_at_path);
-    focus_editor();
   },
 });
 
