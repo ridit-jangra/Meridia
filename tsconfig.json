@@ -1,22 +1,48 @@
 {
   "compilerOptions": {
-    "module": "nodenext",
-    "target": "esnext",
-    "types": [],
-
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
-
-    "noUncheckedIndexedAccess": true,
-    "exactOptionalPropertyTypes": true,
-
-    "strict": true,
-    "isolatedModules": false,
-    "noUncheckedSideEffectImports": true,
-    "moduleDetection": "force",
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
 
-    "allowSyntheticDefaultImports": true
-  }
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": [
+    "src",
+    "electron",
+    "shared",
+    "src/types/theme.types.ts",
+    "src/types/terminal.types.ts",
+    "src/types/shortcut.types.ts",
+    "src/types/layout.types.ts",
+    "src/types/insight.types.ts",
+    "src/types/explorer.types.ts",
+    "src/types/editor.types.ts",
+    "src/types/core.types.ts",
+    "src/code/workbench/browser/parts/activitybar",
+    "src/code/workbench/browser/parts/panels",
+    "src/code/workbench/browser/parts/tabs",
+    "src/code/workbench/browser/parts/statusbar",
+    "src/code/contrib/terminal/browser/terminal.ts",
+    "src/code/contrib/terminal/common/addons",
+    "src/code/contrib/terminal/common/terminal.service.ts",
+    "src/main.ts",
+    "src/vite-env.d.ts",
+    "src/code/platform/insight",
+    "src/code/workbench/browser/parts/components",
+    "src/code/workbench/contrib/core",
+    "src/code/workbench/common/focus.ts"
+  ]
 }

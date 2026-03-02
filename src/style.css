@@ -1,0 +1,517 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@custom-variant dark (&:is(.dark *));
+
+@font-face {
+  font-family: "Inter";
+  src: url("./code/workbench/browser/media/fonts/Inter-Regular.ttf");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 600;
+  src: url("./code/workbench/browser/media/fonts/Inter-Medium.ttf");
+}
+
+@font-face {
+  font-family: "Inter";
+  font-weight: 800;
+  src: url("./code/workbench/browser/media/fonts/Inter-SemiBold.otf");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./code/workbench/browser/media/fonts/jetbrains-mono/JetBrainsMono-Regular.ttf");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./code/workbench/browser/media/fonts/jetbrains-mono/JetBrainsMono-Italic.ttf");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./code/workbench/browser/media/fonts/jetbrains-mono/JetBrainsMono-Bold.ttf");
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("./code/workbench/browser/media/fonts/jetbrains-mono/JetBrainsMono-BoldItalic.ttf");
+  font-weight: 700;
+  font-style: italic;
+}
+
+:root {
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.7px;
+  line-height: 1.4rem;
+  font-size: 14px;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --radius: 0.625rem;
+}
+
+.popover-shadow {
+  box-shadow: var(--popover-shadow);
+}
+
+body {
+  user-select: none;
+}
+
+#app {
+  height: 100vh;
+  width: 100vw;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.7px;
+  line-height: 1.4rem;
+  font-size: 14px;
+  background: var(--workbench-background);
+  color: var(--workbench-foreground);
+}
+
+@theme inline {
+  --color-workbench-background: var(--workbench-background);
+  --color-workbench-foreground: var(--workbench-foreground);
+  --color-workbench-border: var(--workbench-border);
+
+  --color-panel-background: var(--panel-background);
+  --color-panel-foreground: var(--panel-foreground);
+  --color-panel-border: var(--panel-border);
+
+  --color-editor-background: var(--editor-background);
+  --color-editor-foreground: var(--editor-foreground);
+  --color-editor-cursor-foreground: var(--editor-cursor-foreground);
+  --color-editor-selection-background: var(--editor-selection-background);
+  --color-editor-line-highlight-background: var(
+    --editor-line-highlight-background
+  );
+
+  --color-editor-tab-background: var(--editor-tab-background);
+  --color-editor-tab-active-border: var(--editor-tab-active-border);
+  --color-editor-tab-active-background: var(--editor-tab-active-background);
+  --color-editor-tab-hover-background: var(--editor-tab-hover-background);
+  --color-editor-tab-foreground: var(--editor-tab-foreground);
+  --color-editor-tab-active-foreground: var(--editor-tab-active-foreground);
+  --color-editor-tab-hover-foreground: var(--editor-tab-hover-foreground);
+  --color-editor-tab-border: var(--editor-tab-border);
+  --color-editor-tab-icon-foreground: var(--editor-tab-icon-foreground);
+  --color-editor-tab-close-foreground: var(--editor-tab-close-foreground);
+  --color-editor-tab-close-active-foreground: var(
+    --editor-tab-close-active-foreground
+  );
+  --color-editor-tab-close-hover-foreground: var(
+    --editor-tab-close-hover-foreground
+  );
+
+  --color-view-tab-background: var(--view-tab-background);
+  --color-view-tab-active-background: var(--view-tab-active-background);
+  --color-view-tab-hover-background: var(--view-tab-hover-background);
+  --color-view-tab-foreground: var(--view-tab-foreground);
+  --color-view-tab-active-foreground: var(--view-tab-active-foreground);
+  --color-view-tab-hover-foreground: var(--view-tab-hover-foreground);
+
+  --color-explorer-background: var(--explorer-background);
+  --color-explorer-foreground: var(--explorer-foreground);
+  --color-explorer-item-hover-background: var(--explorer-item-hover-background);
+  --color-explorer-icon-foreground: var(--explorer-icon-foreground);
+  --color-explorer-item-hover-foreground: var(--explorer-item-hover-foreground);
+  --color-explorer-item-active-background: var(
+    --explorer-item-active-background
+  );
+
+  --color-git-background: var(--git-background);
+  --color-git-foreground: var(--git-foreground);
+  --color-git-modified-foreground: var(--git-modified-foreground);
+  --color-git-untracked-foreground: var(--git-untracked-foreground);
+
+  --color-problems-background: var(--problems-background);
+  --color-problems-error-foreground: var(--problems-error-foreground);
+  --color-problems-warning-foreground: var(--problems-warning-foreground);
+
+  --color-chat-background: var(--chat-background);
+  --color-chat-foreground: var(--chat-foreground);
+  --color-chat-user-background: var(--chat-user-background);
+  --color-chat-assistant-background: var(--chat-assistant-background);
+
+  --color-terminal-background: var(--terminal-background);
+  --color-terminal-foreground: var(--terminal-foreground);
+  --color-terminal-cursor-foreground: var(--terminal-cursor-foreground);
+  --color-terminal-selection-background: var(--terminal-selection-background);
+
+  --color-terminal-black: var(--terminal-black);
+  --color-terminal-red: var(--terminal-red);
+  --color-terminal-green: var(--terminal-green);
+  --color-terminal-yellow: var(--terminal-yellow);
+  --color-terminal-blue: var(--terminal-blue);
+  --color-terminal-magenta: var(--terminal-magenta);
+  --color-terminal-cyan: var(--terminal-cyan);
+  --color-terminal-white: var(--terminal-white);
+
+  --color-terminal-bright-black: var(--terminal-bright-black);
+  --color-terminal-bright-red: var(--terminal-bright-red);
+  --color-terminal-bright-green: var(--terminal-bright-green);
+  --color-terminal-bright-yellow: var(--terminal-bright-yellow);
+  --color-terminal-bright-blue: var(--terminal-bright-blue);
+  --color-terminal-bright-magenta: var(--terminal-bright-magenta);
+  --color-terminal-bright-cyan: var(--terminal-bright-cyan);
+  --color-terminal-bright-white: var(--terminal-bright-white);
+
+  --color-input-background: var(--input-background);
+  --color-input-foreground: var(--input-foreground);
+  --color-input-border: var(--input-border);
+
+  --color-button-primary-background: var(--button-primary-background);
+  --color-button-primary-hover-background: var(
+    --button-primary-hover-background
+  );
+  --color-button-primary-active-background: var(
+    --button-primary-active-background
+  );
+  --color-button-primary-foreground: var(--button-primary-foreground);
+
+  --color-button-secondary-background: var(--button-secondary-background);
+  --color-button-secondary-foreground: var(--button-secondary-foreground);
+  --color-button-secondary-hover-background: var(
+    --button-secondary-hover-background
+  );
+  --color-button-secondary-active-background: var(
+    --button-secondary-active-background
+  );
+
+  --color-statusbar-background: var(--statusbar-background);
+  --color-statusbar-item-hover-background: var(
+    --statusbar-item-hover-background
+  );
+  --color-statusbar-foreground: var(--statusbar-foreground);
+
+  --color-titlebar-background: var(--titlebar-background);
+  --color-titlebar-popover-background: var(--titlebar-popover-background);
+  --color-titlebar-foreground: var(--titlebar-foreground);
+  --color-titlebar-icon-foreground: var(--titlebar-icon-foreground);
+  --color-titlebar-item-hover-foreground: var(
+    --titlebar-menu-item-hover-foreground
+  );
+  --color-titlebar-item-hover-background: var(
+    --titlebar-menu-item-hover-background
+  );
+  --color-titlebar-item-active-foreground: var(
+    --titlebar-menu-item-active-foreground
+  );
+  --color-titlebar-item-active-background: var(
+    --titlebar-menu-item-active-background
+  );
+
+  --color-titlebar-menu-item-hover-background: var(
+    --titlebar-menu-item-hover-background
+  );
+  --color-titlebar-menu-item-hover-foreground: var(
+    --titlebar-menu-item-hover-foreground
+  );
+  --color-titlebar-menu-item-active-background: var(
+    --titlebar-menu-item-active-background
+  );
+  --color-titlebar-menu-item-active-foreground: var(
+    --titlebar-menu-item-active-foreground
+  );
+
+  --color-split-handle-foreground: var(--split-handle-foreground);
+  --color-split-handle-hover-foreground: var(--split-handle-hover-foreground);
+  --color-split-handle-active-foreground: var(--split-handle-active-foreground);
+
+  --color-command-background: var(--command-background);
+  --color-command-item-foreground: var(--command-item-foreground);
+  --color-command-item-hover-foreground: var(--command-item-hover-foreground);
+  --color-command-item-hover-background: var(--command-item-hover-background);
+  --color-command-item-active-foreground: var(--command-item-active-foreground);
+  --color-command-item-active-background: var(--command-item-active-background);
+
+  --color-context-menu-background: var(--context-menu-background);
+  --color-context-menu-foreground: var(--context-menu-foreground);
+  --color-context-menu-item-foreground: var(--context-menu-item-foreground);
+  --color-context-menu-item-hover-foreground: var(
+    --context-menu-item-hover-foreground
+  );
+  --color-context-menu-item-hover-background: var(
+    --context-menu-item-hover-background
+  );
+
+  --color-selection-background: var(--selection-background);
+  --color-selection-foreground: var(--selection-foreground);
+  --color-focus-border: var(--focus-border);
+
+  --color-select-background: var(--select-background);
+  --color-select-foreground: var(--select-foreground);
+  --color-select-border: var(--select-border);
+  --color-select-hover-background: var(--select-hover-background);
+  --color-select-menu-background: var(--select-menu-background);
+  --color-select-option-foreground: var(--select-option-foreground);
+  --color-select-option-hover-background: var(--select-option-hover-background);
+  --color-select-option-active-background: var(
+    --select-option-active-background
+  );
+
+  --color-tooltip-background: var(--tooltip-background);
+  --color-tooltip-foreground: var(--tooltip-foreground);
+  --color-tooltip-border: var(--tooltip-border);
+
+  --color-scrollbar-thumb-foreground: var(--scrollbar-thumb-foreground);
+  --color-scrollbar-thumb-hover-foreground: var(
+    --scrollbar-thumb-hover-foreground
+  );
+  --color-scrollbar-thumb-active-foreground: var(
+    --scrollbar-thumb-active-foreground
+  );
+
+  --color-popover-background: var(--popover-background);
+  --color-popover-border: var(--popover-border);
+
+  --color-popover-content-background: var(--popover-content-background);
+  --color-popover-content-foreground: var(--popover-content-foreground);
+
+  --color-insights-background: var(--insights-background);
+  --color-insights-foreground: var(--insights-foerground);
+
+  --color-link-foreground: var(--link-foreground);
+  --color-link-hover-foreground: var(--link-hover-foreground);
+
+  --color-loader-foreground: var(--loader-foreground);
+
+  --font-inter: "Inter", sans-serif;
+  --font-jetbrains: "Jetbrains", monospace;
+}
+
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.overlay-scrollbar-root {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.overlay-scrollbar-track {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  border-radius: 3px;
+  background: transparent;
+  pointer-events: auto;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.overlay-scrollbar-root:hover .overlay-scrollbar-track {
+  opacity: 1;
+}
+
+.overlay-scrollbar-thumb {
+  width: 8px;
+  margin-left: 1px;
+  border-radius: 3px;
+  background: var(--color-scrollbar-thumb-foreground);
+  transition: background 120ms ease;
+}
+
+.overlay-scrollbar-track:hover .overlay-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb-hover-foreground);
+}
+
+.overlay-scrollbar-thumb:active {
+  background: var(--color-scrollbar-thumb-active-foreground);
+}
+
+.overlay-scrollbar-track-horizontal {
+  position: absolute;
+  bottom: 2px;
+  left: 2px;
+  right: 2px;
+  height: 5px;
+  border-radius: 3px;
+  background: transparent;
+  pointer-events: auto;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.overlay-scrollbar-root:hover .overlay-scrollbar-track-horizontal {
+  opacity: 1;
+}
+
+.overlay-scrollbar-thumb-horizontal {
+  height: 8px;
+  margin-top: 1px;
+  border-radius: 3px;
+  background: var(--color-scrollbar-thumb-foreground);
+  transition: background 120ms ease;
+}
+
+.overlay-scrollbar-track-horizontal:hover .overlay-scrollbar-thumb-horizontal {
+  background: var(--color-scrollbar-thumb-hover-foreground);
+}
+
+.overlay-scrollbar-thumb-horizontal:active {
+  background: var(--color-scrollbar-thumb-active-foreground);
+}
+
+@keyframes vt-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes vt-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.scroll-decoration {
+  display: none;
+}
+
+.find-widget * {
+  font-weight: normal;
+  letter-spacing: 0.7px !important;
+}
+
+.find-widget textarea {
+  font-family: "JetBrains Mono" !important;
+  line-height: 1.4rem !important;
+}
+
+.find-widget.visible {
+  top: 32px !important;
+}
+
+.find-widget .codicon-widget-close {
+  margin-top: 2.5px;
+  margin-right: 2px;
+}
+
+.monaco-editor-overlaymessage {
+  font-weight: normal;
+}
+
+.suggest-widget {
+  font-weight: normal;
+  letter-spacing: 0.7px !important;
+}
+
+.quick-input-widget {
+  font-weight: normal;
+  letter-spacing: 0.7px !important;
+}
+
+.monaco-editor input {
+  background: var(--input-background) !important;
+  color: var(--input-foreground) !important;
+}
+
+.monaco-editor input:focus {
+  outline: none !important;
+}
+
+.monaco-editor textarea {
+  background: var(--input-background) !important;
+  color: var(--input-foreground) !important;
+}
+
+.monaco-sash:hover,
+.monaco-sash:hover::before,
+.monaco-sash.active,
+.monaco-sash.active::before {
+  background-color: var(--split-handle-active-foreground) !important;
+}
+
+.hover-contents {
+  min-width: max-content !important;
+}
+
+.workbench-hover-container {
+  animation: fade_zoom_in 150ms ease-out;
+}
+
+.monaco-hover {
+  background: var(--tooltip-background) !important;
+  border: 1.5px solid var(--tooltip-border) !important;
+  font-weight: normal;
+  letter-spacing: 0.7px !important;
+  border-radius: 8px !important;
+}
+
+.monaco-editor *:focus {
+  outline: 1px solid var(--focus-border) !important;
+}
+
+@keyframes fade_zoom_in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes loading {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(300%);
+  }
+}
+
+.animate-loading {
+  animation: loading 0.9s ease-in-out infinite;
+  will-change: transform;
+}
+
+.preview.inline {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.quick-input-list-entry {
+  height: 60px !important;
+}
+
+.monaco-editor {
+  outline: none !important;
+}

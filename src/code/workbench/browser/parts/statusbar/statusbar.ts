@@ -1,240 +1,213 @@
-import { store } from "../../../common/store/store.js";
-import { select, watch } from "../../../common/store/selector.js";
+import { CommandList } from "../components/command-list";
 import {
-  capitalize,
-  getLanguage,
-  getRelativePath,
-} from "../../../common/utils.js";
-import { CoreEl } from "../core.js";
-import { Tooltip } from "../tooltip/tooltip.js";
-import { _editor } from "../../../../editor/editors/editor.js";
-import { getThemeIcon } from "../../media/icons.js";
+  get_monaco_encodings,
+  get_monaco_indentations,
+  get_monaco_languages,
+} from "../../../../editor/editor.helper";
+import { statusbar_events } from "../../../../platform/events/statusbar.events";
+import { explorer } from "../../../../platform/explorer/explorer.service";
+import { store } from "../../../common/state/store";
+import { h } from "../../../contrib/core/dom/h";
+import { cn } from "../../../contrib/core/utils/cn";
+import { Breadcrumb } from "../components/breadcrumb";
+import { Tooltip } from "../components/tooltip";
+import { editor_events } from "../../../../platform/events/editor.events";
 
-interface SymbolInfo {
-  name: string;
-  kind: number;
-  range: any;
-  selectionRange: any;
-  children: any[];
+function StatusbarItem(text?: string) {
+  const el = h(
+    "div",
+    {
+      class:
+        "px-2.5 h-full items-center cursor-pointer rounded-[7px] hover:bg-statusbar-item-hover-background select-none whitespace-nowrap transition-colors",
+      style: "display: none;",
+    },
+    text ?? "",
+  );
+
+  return {
+    el,
+    setText(t: string | null) {
+      if (t === null || t === undefined) {
+        el.style.display = "none";
+      } else {
+        el.style.display = "flex";
+        el.textContent = t;
+      }
+    },
+  };
 }
 
-export class Statusbar extends CoreEl {
-  private _currentSymbol: string | null = null;
+export function Statusbar() {
+  const left = h("div", { class: "flex items-center min-w-0" });
 
-  constructor() {
-    super();
-    this._createEl();
-  }
+  const lineColItem = StatusbarItem();
+  const indentItem = StatusbarItem();
+  const encodingItem = StatusbarItem();
+  const languageItem = StatusbarItem();
 
-  private _createEl() {
-    this._el = document.createElement("div");
-    this._el.className = "statusbar";
+  let lastBreadcrumbPath: string | null = null;
+  let breadcrumb: ReturnType<typeof Breadcrumb> | null = null;
 
-    const _breadcrumbContainer = document.createElement("div");
-    _breadcrumbContainer.className = "breadcrumb-container";
+  store.subscribe(async () => {
+    const { tabs } = store.getState().editor;
 
-    document.addEventListener("statusbar.update.referenace.path", (_event) => {
-      const _customEvent = _event as CustomEvent;
-      const _symbols = _customEvent.detail.message as SymbolInfo | null;
+    const active = tabs.find((t) => t.active);
+    if (!active) {
+      const tree = explorer.tree.structure;
+      if (!tree) return;
 
-      if (!_symbols === null) {
-        if ((this._currentSymbol = _symbols?.name!)) return;
-      }
+      left.textContent = tree.root.name;
 
-      if (_symbols === null || !_symbols || !_symbols.name) {
-        this._currentSymbol = null;
-        this._updateBreadcrumbWithSymbol(_breadcrumbContainer);
-      } else {
-        this._currentSymbol = _symbols.name;
-        this._updateBreadcrumbWithSymbol(_breadcrumbContainer);
-      }
-    });
+      lastBreadcrumbPath = null;
+      breadcrumb = null;
 
-    watch(
-      (s) => s.main.editor_tabs,
-      (next) => {
-        let _root = select((s) => s.main.folder_structure);
-        const _active = next.find((t) => t.active);
+      lineColItem.setText(null);
+      indentItem.setText(null);
+      encodingItem.setText(null);
+      languageItem.setText(null);
 
-        const unsubscribe = store.subscribe(() => {
-          _root = select((s) => s.main.folder_structure);
-          unsubscribe();
-        });
-
-        if (!_root || !_root.name) {
-          this._renderBreadcrumb(_breadcrumbContainer, ["Root"]);
-          return;
-        }
-
-        if (!_active || !_active.uri) {
-          this._renderBreadcrumb(_breadcrumbContainer, [_root.name]);
-          return;
-        }
-
-        const relativePath = getRelativePath(_root.uri ?? "", _active.uri);
-        const breadcrumbItems = this._createBreadcrumbItems(
-          _root.name,
-          relativePath,
-        );
-        this._renderBreadcrumb(_breadcrumbContainer, breadcrumbItems);
-      },
-    );
-
-    const itemSection = document.createElement("div");
-    itemSection.className = "item-section";
-
-    const editorSection = document.createElement("div");
-    editorSection.className = "sub-item-section";
-
-    const lineSection = new Tooltip()._getEl(
-      document.createElement("span"),
-      "Go to Line/Column",
-      "top",
-    );
-    lineSection.className = "item";
-    const languageSection = new Tooltip()._getEl(
-      document.createElement("span"),
-      "Select Language Mode",
-      "top",
-    );
-    languageSection.className = "item";
-    const indentationSection = new Tooltip()._getEl(
-      document.createElement("span"),
-      "Select Indentation",
-      "top",
-    );
-    indentationSection.className = "item";
-    const encodingSection = new Tooltip()._getEl(
-      document.createElement("span"),
-      "Select Encoding",
-      "top",
-    );
-    encodingSection.className = "item";
-    const notificationSection = new Tooltip()._getEl(
-      document.createElement("span"),
-      "Notification",
-      "top",
-    );
-    notificationSection.className = "item";
-
-    notificationSection.appendChild(getThemeIcon("bell"));
-
-    encodingSection.textContent = "UTF-8"; // only for now, will be adding encoding tracking and changing in future.
-
-    watch(
-      (s) => s.main.editor_tabs,
-      (v) => {
-        const active = v.find((v) => v.active);
-        if (!active) {
-          editorSection.style.display = "none";
-          return;
-        } else editorSection.style.display = "flex";
-
-        const language = getLanguage(active.uri);
-
-        languageSection.textContent = capitalize(language);
-      },
-    );
-
-    document.addEventListener(
-      "workbench.workspace.editor.cursor.position.change",
-      (_event) => {
-        const _customEvent = _event as CustomEvent;
-        const { line, column } = _customEvent.detail.action;
-
-        lineSection.textContent = `Ln ${line}, Col ${column}`;
-      },
-    );
-
-    document.addEventListener(
-      "workbench.workspace.editor.indentation.change",
-      (_event) => {
-        const _customEvent = _event as CustomEvent;
-        const { indentation } = _customEvent.detail.action;
-
-        indentationSection.textContent = `Spaces: ${indentation}`;
-      },
-    );
-
-    editorSection.appendChild(lineSection);
-    editorSection.appendChild(indentationSection);
-    editorSection.appendChild(encodingSection);
-    editorSection.appendChild(languageSection);
-
-    itemSection.appendChild(editorSection);
-    itemSection.appendChild(notificationSection);
-
-    this._el.appendChild(_breadcrumbContainer);
-    this._el.appendChild(itemSection);
-  }
-
-  private _createBreadcrumbItems(
-    rootName: string,
-    relativePath: string,
-  ): string[] {
-    if (!relativePath || relativePath === "./") {
-      return [rootName];
+      return;
     }
 
-    const pathSegments = relativePath
-      .split(/[/\\]/)
-      .filter((segment) => segment.length > 0);
-    return pathSegments;
-  }
-
-  private _updateBreadcrumbWithSymbol(container: HTMLElement) {
-    let _root = select((s) => s.main.folder_structure);
-    const _activeTabs = select((s) => s.main.editor_tabs);
-    const _active = _activeTabs.find((t) => t.active);
-
-    let baseBreadcrumbItems: string[];
-
-    if (!_root || !_root.name) {
-      baseBreadcrumbItems = ["Root"];
-    } else if (!_active || !_active.uri) {
-      baseBreadcrumbItems = [_root.name];
+    const tree = explorer.tree.structure;
+    if (!tree) {
+      left.textContent = active.name;
+      lastBreadcrumbPath = null;
+      breadcrumb = null;
     } else {
-      const relativePath = getRelativePath(_root.uri ?? "", _active.uri);
-      baseBreadcrumbItems = this._createBreadcrumbItems(
-        _root.name,
-        relativePath,
-      );
+      const relative = await window.files.relative(tree.path, active.file_path);
+
+      // ✅ Only update breadcrumb if path changed
+      if (relative !== lastBreadcrumbPath) {
+        lastBreadcrumbPath = relative;
+
+        left.innerHTML = "";
+        breadcrumb = Breadcrumb({ path: relative });
+        left.appendChild(breadcrumb.el);
+      }
     }
+  });
 
-    const finalItems = this._currentSymbol
-      ? [...baseBreadcrumbItems, this._currentSymbol]
-      : baseBreadcrumbItems;
+  let has_active = false;
 
-    this._renderBreadcrumb(container, finalItems);
-  }
+  store.subscribe(() => {
+    has_active = !!store.getState().editor.tabs.find((t) => t.active);
+  });
 
-  private _renderBreadcrumb(container: HTMLElement, items: string[]) {
-    container.innerHTML = "";
+  statusbar_events.on(
+    "updateLineCol",
+    (line: number | null, col: number | null) => {
+      if (!has_active) return;
+      lineColItem.setText(
+        line !== null && col !== null ? `Ln ${line}, Col ${col}` : null,
+      );
+    },
+  );
 
-    items.forEach((item, index) => {
-      const breadcrumbItem = document.createElement("span");
-      breadcrumbItem.className = "breadcrumb-item";
+  statusbar_events.on("updateIndentation", (space: number | null) => {
+    if (!has_active) return;
+    indentItem.setText(space !== null ? `Spaces: ${space}` : null);
+  });
 
-      if (index === items.length - 1 && this._currentSymbol === item) {
-        breadcrumbItem.classList.add("breadcrumb-symbol");
-      }
+  statusbar_events.on("updateEncoding", (encoding: string | null) => {
+    if (!has_active) return;
+    encodingItem.setText(encoding);
+  });
 
-      breadcrumbItem.textContent = item;
+  statusbar_events.on("updateLanguage", (language: string | null) => {
+    if (!has_active) return;
+    languageItem.setText(language);
+  });
 
-      breadcrumbItem.addEventListener("click", () => {
-        this._handleBreadcrumbClick(index, items);
-      });
+  const languagePicker = CommandList({
+    items: get_monaco_languages().map((l) => ({
+      id: l.id,
+      label: l.label,
+      // description: l.id,
+    })),
+    onSelect(item) {
+      editor_events.emit("setLanguage", item.id);
+      // setEditorLanguage(item.id);
+    },
+    placeholder: "Select Language…",
+  });
 
-      container.appendChild(breadcrumbItem);
+  const encodingPicker = CommandList({
+    items: get_monaco_encodings(),
+    onSelect(_) {
+      // setEditorEncoding(item.id);
+    },
+    placeholder: "Select Encoding…",
+  });
 
-      if (index < items.length - 1) {
-        const separator = document.createElement("span");
-        separator.className = "breadcrumb-separator";
-        separator.textContent = " / ";
-        container.appendChild(separator);
-      }
-    });
-  }
+  const indentPicker = CommandList({
+    items: get_monaco_indentations(),
+    onSelect(item) {
+      // setEditorIndentation(Number(item.id));
+      editor_events.emit("setIndentation", item.id);
+    },
+    placeholder: "Select Indentation…",
+  });
 
-  private _handleBreadcrumbClick(index: number, items: string[]) {}
+  Tooltip({
+    child: lineColItem.el,
+    text: "Go to Line/Column",
+    position: "top",
+    delay: 300,
+  });
+  Tooltip({
+    child: indentItem.el,
+    text: "Select Indentation",
+    position: "top",
+    delay: 300,
+  });
+  Tooltip({
+    child: encodingItem.el,
+    text: "Select Encoding",
+    position: "top",
+    delay: 300,
+  });
+  Tooltip({
+    child: languageItem.el,
+    text: "Select Language Mode",
+    position: "top",
+    delay: 300,
+  });
+
+  indentItem.el.onclick = () => {
+    indentPicker.open();
+  };
+
+  encodingItem.el.onclick = () => {
+    encodingPicker.open();
+  };
+
+  languageItem.el.onclick = () => {
+    languagePicker.open();
+  };
+
+  const right = h(
+    "div",
+    {
+      class: "flex items-center justify-center gap-0.5 min-w-0",
+    },
+    lineColItem.el,
+    indentItem.el,
+    encodingItem.el,
+    languageItem.el,
+  );
+
+  const el = h(
+    "div",
+    {
+      class: cn(
+        "h-[28px] text-[13px] text-statusbar-foreground w-full flex items-center justify-between px-2",
+        "bg-statusbar-background",
+      ),
+    },
+    left,
+    right,
+  );
+
+  return el;
 }
