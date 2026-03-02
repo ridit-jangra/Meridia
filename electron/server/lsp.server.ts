@@ -4,6 +4,17 @@ import { existsSync } from "node:fs";
 import * as path from "node:path";
 import { URL } from "node:url";
 import { WebSocketServer, WebSocket } from "ws";
+import {
+  IWebSocket,
+  WebSocketMessageReader,
+  WebSocketMessageWriter,
+} from "vscode-ws-jsonrpc";
+import {
+  createConnection,
+  createServerProcess,
+  forward,
+} from "vscode-ws-jsonrpc/server";
+import { Message } from "vscode-languageserver-protocol";
 import { LSP_BRIDGE_PORT } from "../../shared/lsp/lsp.constants";
 
 export interface LspServerDefinition {
@@ -88,7 +99,6 @@ export function resolve_python(): string | null {
 /**
  * Find pylsp next to the given python binary.
  * Falls back to `python -m pylsp` if the script isn't on disk.
- * Returns { command, args } ready for cp.spawn.
  */
 function resolve_pylsp(
   pythonPath: string,
@@ -110,7 +120,6 @@ function resolve_pylsp(
     }
   }
 
-  // Try as a Python module
   const mod = cp.spawnSync(pythonPath, ["-m", "pylsp", "--version"], {
     encoding: "utf8",
     timeout: 5000,
@@ -127,22 +136,6 @@ function resolve_pylsp(
       `[LSP-BRIDGE] Install with: "${pythonPath}" -m pip install python-lsp-server`,
   );
   return null;
-}
-
-// ── JSONRPC logging ───────────────────────────────────────────────────────────
-
-function try_log_jsonrpc(tag: string, json: string) {
-  try {
-    const msg = JSON.parse(json);
-    const method = msg.method ?? "(response)";
-    const id = msg.id != null ? ` id=${msg.id}` : "";
-    const preview = JSON.stringify(
-      msg.params ?? msg.result ?? msg.error ?? {},
-    ).slice(0, 160);
-    console.log(`[LSP-BRIDGE${tag}] ${method}${id} ${preview}`);
-  } catch {
-    console.log(`[LSP-BRIDGE${tag}] (unparseable) ${json.slice(0, 160)}`);
-  }
 }
 
 // ── Server ────────────────────────────────────────────────────────────────────
@@ -247,70 +240,62 @@ export class server {
     );
     console.log(`[LSP-BRIDGE${tag}] cwd="${workspacePath}"`);
 
-    const lspProcess = cp.spawn(command, args, {
-      cwd: workspacePath,
-      env,
-      stdio: ["pipe", "pipe", "pipe"],
-      shell: false,
-    });
+    // Wrap the raw ws.WebSocket in IWebSocket for vscode-ws-jsonrpc
+    const iws: IWebSocket = {
+      send: (content) => ws.send(content),
+      onMessage: (cb) => ws.on("message", cb),
+      onError: (cb) => ws.on("error", cb),
+      onClose: (cb) => ws.on("close", cb),
+      dispose: () => ws.close(),
+    };
 
-    lspProcess.stderr?.on("data", (chunk: Buffer) => {
-      process.stderr.write(
-        `[LSP-BRIDGE${tag}][pylsp] ${chunk.toString("utf8")}`,
+    // WebSocket → JSON-RPC connection (towards the Monaco editor client)
+    const reader = new WebSocketMessageReader(iws);
+    const writer = new WebSocketMessageWriter(iws);
+    const socketConnection = createConnection(reader, writer, () =>
+      iws.dispose(),
+    );
+
+    // Spawn the LSP process and wrap its stdio in a JSON-RPC connection.
+    // createServerProcess handles Content-Length framing and stderr piping.
+    // IConnection starts listening automatically — no .listen() call needed.
+    const serverConnection = createServerProcess(
+      def.languageId,
+      command,
+      args,
+      {
+        cwd: workspacePath,
+        env,
+        shell: false,
+      },
+    )!;
+
+    // Bidirectional forward with logging
+    forward(socketConnection, serverConnection, (message: Message) => {
+      const m = message as any;
+      const method = m.method ?? "(response)";
+      const id = m.id != null ? ` id=${m.id}` : "";
+      console.log(
+        `[LSP-BRIDGE${tag}:client->lsp] ${method}${id}`,
+        JSON.stringify(m.params ?? m.result ?? {}).slice(0, 160),
       );
+      return message;
     });
 
-    lspProcess.on("error", (err) => {
-      console.error(`[LSP-BRIDGE${tag}] Spawn error:`, err);
-      ws.close(1011, err.message);
-    });
-
-    lspProcess.on("exit", (code, signal) => {
-      console.warn(
-        `[LSP-BRIDGE${tag}] Process exited code=${code} signal=${signal}`,
+    forward(serverConnection, socketConnection, (message: Message) => {
+      const m = message as any;
+      const method = m.method ?? "(response)";
+      const id = m.id != null ? ` id=${m.id}` : "";
+      console.log(
+        `[LSP-BRIDGE${tag}:lsp->client] ${method}${id}`,
+        JSON.stringify(m.params ?? m.result ?? {}).slice(0, 160),
       );
-      if (ws.readyState === WebSocket.OPEN) ws.close();
-    });
-
-    // Client → LSP
-    ws.on("message", (data: Buffer | string) => {
-      if (!lspProcess.stdin?.writable) return;
-      const json = typeof data === "string" ? data : data.toString("utf8");
-      try_log_jsonrpc(`${tag}:client->lsp`, json);
-      const body = Buffer.from(json, "utf8");
-      lspProcess.stdin.write(`Content-Length: ${body.length}\r\n\r\n`);
-      lspProcess.stdin.write(body);
-    });
-
-    // LSP → client
-    let buf = Buffer.alloc(0);
-
-    lspProcess.stdout?.on("data", (chunk: Buffer) => {
-      buf = Buffer.concat([buf, chunk]);
-      while (true) {
-        const sep = buf.indexOf("\r\n\r\n");
-        if (sep === -1) break;
-        const header = buf.slice(0, sep).toString("utf8");
-        const match = header.match(/Content-Length:\s*(\d+)/i);
-        if (!match) {
-          buf = buf.slice(sep + 4);
-          break;
-        }
-        const contentLength = parseInt(match[1], 10);
-        const bodyStart = sep + 4;
-        if (buf.length < bodyStart + contentLength) break;
-        const body = buf
-          .slice(bodyStart, bodyStart + contentLength)
-          .toString("utf8");
-        buf = buf.slice(bodyStart + contentLength);
-        try_log_jsonrpc(`${tag}:lsp->client`, body);
-        if (ws.readyState === WebSocket.OPEN) ws.send(body);
-      }
+      return message;
     });
 
     ws.on("close", (code, reason) => {
       console.log(`[LSP-BRIDGE${tag}] WS closed code=${code} reason=${reason}`);
-      if (!lspProcess.killed) lspProcess.kill();
+      serverConnection.dispose();
     });
   }
 }

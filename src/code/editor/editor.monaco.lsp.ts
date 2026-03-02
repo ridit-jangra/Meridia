@@ -119,8 +119,25 @@ const path = {
   sep: navigator.userAgent.includes("Windows") ? "\\" : "/",
 };
 
-function to_lsp_position(pos: monaco.Position) {
-  return { line: pos.lineNumber - 1, character: pos.column - 1 };
+/**
+ * Convert a Monaco position to an LSP position, clamping line and character
+ * to the actual bounds of the document so pylsp / jedi never receive an
+ * out-of-range value and throw:
+ *   ValueError: `line` parameter is not in a valid range.
+ */
+function to_lsp_position(
+  pos: monaco.Position,
+  model: monaco.editor.ITextModel,
+): { line: number; character: number } {
+  const lineCount = model.getLineCount();
+  // LSP lines are 0-based; clamp to [0, lineCount - 1]
+  const line = Math.max(0, Math.min(pos.lineNumber - 1, lineCount - 1));
+  // Monaco getLineMaxColumn returns the column AFTER the last character (1-based),
+  // so the last valid 0-based character index is (maxColumn - 1) - 1 = maxColumn - 2.
+  // Using maxColumn - 1 is safe (points just past EOL, which LSP allows).
+  const maxColumn = model.getLineMaxColumn(line + 1);
+  const character = Math.max(0, Math.min(pos.column - 1, maxColumn - 1));
+  return { line, character };
 }
 
 function to_monaco_range(range: any): monaco.IRange {
@@ -231,7 +248,7 @@ class client {
 
   private connect(def: LspClientDefinition) {
     // Pass the workspace path as a query param so the bridge can spawn
-    // Pyright in the correct cwd (the user's project, not the app root).
+    // the LSP server in the correct cwd (the user's project, not the app root).
     const workspacePath = uri_to_path(this.workspaceUri);
     const url = `ws://127.0.0.1:${LSP_BRIDGE_PORT}/${def.languageId}?workspace=${encodeURIComponent(workspacePath)}`;
     console.log(`[LSP:${def.languageId}] Connecting to ${url}`);
@@ -407,7 +424,7 @@ class client {
         `[LSP:${def.languageId}] diagnostics for ${uri}: ${diagnostics.length} item(s)`,
       );
 
-      // publishDiagnostics means Pyright has analyzed the file — secondary ready signal
+      // publishDiagnostics means the server has analysed the file — secondary ready signal
       conn.markReady();
 
       const model = monaco.editor.getModels().find((m) => {
@@ -521,7 +538,7 @@ class client {
             CompletionRequest.type.method,
             {
               textDocument: { uri: model_uri(model) },
-              position: to_lsp_position(position),
+              position: to_lsp_position(position, model),
               context: toLspCompletionContext(context),
             },
           );
@@ -554,7 +571,7 @@ class client {
           try {
             const result = await send_request(conn, HoverRequest.type.method, {
               textDocument: { uri: model_uri(model) },
-              position: to_lsp_position(position),
+              position: to_lsp_position(position, model),
             });
             if (!result?.contents) return null;
             const contents = Array.isArray(result.contents)
@@ -585,7 +602,7 @@ class client {
               SignatureHelpRequest.type.method,
               {
                 textDocument: { uri: model_uri(model) },
-                position: to_lsp_position(position),
+                position: to_lsp_position(position, model),
               },
             );
             if (!result?.signatures?.length) return null;
@@ -636,7 +653,7 @@ class client {
               DefinitionRequest.type.method,
               {
                 textDocument: { uri: model_uri(model) },
-                position: to_lsp_position(position),
+                position: to_lsp_position(position, model),
               },
             );
             if (!result) return null;
@@ -663,7 +680,7 @@ class client {
               ReferencesRequest.type.method,
               {
                 textDocument: { uri: model_uri(model) },
-                position: to_lsp_position(position),
+                position: to_lsp_position(position, model),
                 context: { includeDeclaration: true },
               },
             );
