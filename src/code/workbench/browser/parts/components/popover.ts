@@ -175,7 +175,7 @@ export function Popover(
 
   const contentWrap = h("div");
   contentWrap.className = cn(
-    "popover-shadow bg-popover-content-background border border-popover-border p-2 rounded-[7px] text-popover-content-foreground text-sm",
+    "popover-shadow bg-popover-content-background border border-popover-border p-1.5 rounded-[7px] text-popover-content-foreground text-sm",
     o.contentClassName,
   );
 

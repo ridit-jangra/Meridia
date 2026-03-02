@@ -11,7 +11,7 @@ function StatusbarItem(text?: string) {
     "div",
     {
       class:
-        "px-2.5 h-full items-center cursor-pointer rounded-[7px] hover:bg-statusbar-item-hover-background select-none whitespace-nowrap",
+        "px-2.5 h-full items-center cursor-pointer rounded-[7px] hover:bg-statusbar-item-hover-background select-none whitespace-nowrap transition-colors",
       style: "display: none;",
     },
     text ?? "",
@@ -38,6 +38,9 @@ export function Statusbar() {
   const encodingItem = StatusbarItem();
   const languageItem = StatusbarItem();
 
+  let lastBreadcrumbPath: string | null = null;
+  let breadcrumb: ReturnType<typeof Breadcrumb> | null = null;
+
   store.subscribe(async () => {
     const { tabs } = store.getState().editor;
 
@@ -47,6 +50,9 @@ export function Statusbar() {
       if (!tree) return;
 
       left.textContent = tree.root.name;
+
+      lastBreadcrumbPath = null;
+      breadcrumb = null;
 
       lineColItem.setText(null);
       indentItem.setText(null);
@@ -59,11 +65,19 @@ export function Statusbar() {
     const tree = explorer.tree.structure;
     if (!tree) {
       left.textContent = active.name;
+      lastBreadcrumbPath = null;
+      breadcrumb = null;
     } else {
-      left.innerHTML = "";
       const relative = await window.files.relative(tree.path, active.file_path);
-      const crumb = Breadcrumb({ path: relative });
-      left.appendChild(crumb.el);
+
+      // ✅ Only update breadcrumb if path changed
+      if (relative !== lastBreadcrumbPath) {
+        lastBreadcrumbPath = relative;
+
+        left.innerHTML = "";
+        breadcrumb = Breadcrumb({ path: relative });
+        left.appendChild(breadcrumb.el);
+      }
     }
   });
 

@@ -1,42 +1,57 @@
-export const STORAGE_GET = "workbench.storage.get";
-export const STORAGE_SET = "workbench.storage.set";
+// ── Storage ──────────────────────────────────────────────────────────
+export const STORAGE_GET = "storage:get";
+export const STORAGE_SET = "storage:set";
 
-export const WORKSPACE_GET = "workbench.workspace.get";
-export const WORKSPACE_STORE = "workbench.workspace.store";
-export const WORKSPACE_GET_CURRENT_PATH =
-  "workbench.workspace.get.current.path";
-export const WORKSPACE_SET_CURRENT_PATH =
-  "workbench.workspace.set.current.path";
-export const WORKSPACE_ASK_UPDATE = "workbench.workspace.ask.update";
-export const WORKSPACE_UPDATE = "workbench.workspace.update";
-export const WORKSPACE_CLEAR_CURRENT = "workbench.workspace.clear.current";
+// ── Workspace ─────────────────────────────────────────────────────────
+export const WORKSPACE_GET = "workspace:get";
+export const WORKSPACE_STORE = "workspace:store";
+export const WORKSPACE_UPDATE = "workspace:update";
+export const WORKSPACE_GET_CURRENT_PATH = "workspace:get-current-path";
+export const WORKSPACE_SET_CURRENT_PATH = "workspace:set-current-path";
+export const WORKSPACE_ASK_UPDATE = "workspace:ask-update";
+export const WORKSPACE_CLEAR_CURRENT = "workspace:clear-current";
 
-export const EXPLORER_GET_ROOT_STRUCTURE =
-  "workbench.explorer.get.root.structure";
-export const EXPLORER_GET_CHILD_STRUCTURE =
-  "workbench.explorer.get.child.structure";
+// ── Explorer ──────────────────────────────────────────────────────────
+export const EXPLORER_GET_ROOT_STRUCTURE = "explorer:get-root-structure";
+export const EXPLORER_GET_CHILD_STRUCTURE = "explorer:get-child-structure";
 
-export const FS_EXISTS = "workbench.fs.exists";
-export const FS_RELATIVE = "workbench.fs.relative";
-export const FS_SAVE_AS = "workbench.fs.saveAs";
-export const FS_OPEN = "workbench.fs.open";
-export const FS_READDIR = "workbench.fs.readdir";
-export const FS_STAT = "workbench.fs.stat";
-export const FS_READ_FILE_TEXT = "workbench.fs.read_file_text";
-export const FS_CREATE_DIR = "workbench.fs.create_dir";
-export const FS_REMOVE = "workbench.fs.remove";
-export const FS_WRITE_FILE_TEXT = "workbench.fs.write_file_text";
-export const FS_RENAME = "workbench.fs.rename";
+// ── File System ───────────────────────────────────────────────────────
+export const FS_EXISTS = "fs:exists";
+export const FS_SAVE_AS = "fs:save-as";
+export const FS_READDIR = "fs:readdir";
+export const FS_STAT = "fs:stat";
+export const FS_READ_FILE_TEXT = "fs:read-file-text";
+export const FS_CREATE_DIR = "fs:create-dir";
+export const FS_REMOVE = "fs:remove";
+export const FS_WRITE_FILE_TEXT = "fs:write-file-text";
+export const FS_RENAME = "fs:rename";
+export const FS_RELATIVE = "fs:relative";
+export const FS_OPEN = "fs:open";
 
-export const NODE_PTY_CREATE = "workbench.pty.create";
-export const NODE_PTY_WRITE = "workbench.pty.write";
-export const NODE_PTY_RESIZE = "workbench.pty.resize";
-export const NODE_PTY_KILL = "workbench.pty.kill";
-export const NODE_PTY_DATA = "workbench.pty.data";
-export const NODE_PTY_EXIT = "workbench.pty.exit";
+// ── Watcher ───────────────────────────────────────────────────────────
+export const WATCHER_START = "watcher:start";
+export const WATCHER_STOP = "watcher:stop";
+export const WATCHER_EVENT = "watcher:event";
 
-export const WATCHER_START = "workbench.watcher.start";
-export const WATCHER_STOP = "workbench.watcher.stop";
-export const WATCHER_EVENT = "workbench.watcher.event";
+// ── Terminal (node-pty) ───────────────────────────────────────────────
+export const NODE_PTY_CREATE = "pty:create";
+export const NODE_PTY_WRITE = "pty:write";
+export const NODE_PTY_RESIZE = "pty:resize";
+export const NODE_PTY_KILL = "pty:kill";
+export const NODE_PTY_DATA = "pty:data";
+export const NODE_PTY_EXIT = "pty:exit";
 
-export const SHELL_OPEN_EXTERNAL = "workbench.shell.openExternal";
+// ── Shell ─────────────────────────────────────────────────────────────
+export const SHELL_OPEN_EXTERNAL = "shell:open-external";
+
+// ── Git ───────────────────────────────────────────────────────────────
+export const GIT_IS_REPO = "git:is-repo";
+export const GIT_GET_STATUS = "git:get-status";
+export const GIT_STAGE_FILE = "git:stage-file";
+export const GIT_STAGE_ALL = "git:stage-all";
+export const GIT_UNSTAGE_FILE = "git:unstage-file";
+export const GIT_COMMIT = "git:commit";
+export const GIT_PUSH = "git:push";
+export const GIT_PULL = "git:pull";
+export const GIT_GET_LOG = "git:get-log";
+export const GIT_DISCARD = "git:discard";

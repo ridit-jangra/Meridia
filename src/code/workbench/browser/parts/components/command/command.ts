@@ -4,6 +4,7 @@ import { cn } from "../../../../contrib/core/utils/cn";
 import { shortcut_def } from "../../../../../../types/shortcut.types";
 import { ScrollArea } from "../scroll-area";
 import { shortcuts } from "../../../../common/shortcut/shortcut.service";
+import { Input } from "../input";
 
 export interface CommandGroup {
   id: string;
@@ -46,40 +47,30 @@ export function Command(opts: {
     ),
   });
 
-  const input = h("input", {
-    class: cn(
-      "w-full h-11 px-3 text-[13px]",
-      "bg-transparent outline-none",
-      "border-b border-workbench-border",
-      "placeholder:text-foreground/50",
-    ),
-    attrs: {
-      type: "text",
-      placeholder: opts.placeholder ?? "Type a command…",
-      autocomplete: "off",
-      spellcheck: "false",
-    },
-    on: {
-      input: () => {
-        const val = input.value.trim();
+  const input = Input({
+    placeholder: opts.placeholder ?? "Type a command...",
+    class: "border-none",
+    onInput: () => {
+      const val = input.value.trim();
 
-        let matchedGroup: CommandGroup | null = null;
-        for (const group of opts.groups) {
-          if (val.startsWith(group.prefix)) {
-            matchedGroup = group;
-            query = val.slice(group.prefix.length).toLowerCase();
-            break;
-          }
+      let matchedGroup: CommandGroup | null = null;
+      for (const group of opts.groups) {
+        if (val.startsWith(group.prefix)) {
+          matchedGroup = group;
+          query = val.slice(group.prefix.length).toLowerCase();
+          break;
         }
+      }
 
-        activeGroup = matchedGroup;
-        query = matchedGroup ? query : val.toLowerCase();
-        active = 0;
-        renderList();
-      },
-      keydown: (e: any) => onInputKey(e),
+      activeGroup = matchedGroup;
+      query = matchedGroup ? query : val.toLowerCase();
+      active = 0;
+      renderList();
     },
-  }) as HTMLInputElement;
+    onKeyDown(e) {
+      onInputKey(e);
+    },
+  }).el;
 
   const list = ScrollArea({ class: "max-h-[360px] overflow-auto" }).viewport;
 

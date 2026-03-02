@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { server, resolve_node_bin } from "./server/lsp.server";
+import { server } from "./server/lsp.server";
 import "./ipc/workspace-ipc";
 import "./ipc/files-ipc";
 import "./ipc/storage-ipc";
