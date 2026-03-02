@@ -43,31 +43,21 @@ interface LspConnection {
 }
 
 function make_ready_promise(
-  languageId: string,
+  _: string,
   timeoutMs = 8000,
 ): { ready: Promise<void>; markReady: () => void } {
   let resolved = false;
   let markReady!: () => void;
-
   const ready = new Promise<void>((resolve) => {
     markReady = () => {
       if (resolved) return;
       resolved = true;
-      console.log(
-        `[LSP:${languageId}] markReady() called — providers unblocked`,
-      );
       resolve();
     };
   });
-
   setTimeout(() => {
-    if (resolved) return;
-    console.warn(
-      `[LSP:${languageId}] ready-timeout (${timeoutMs}ms) fired — unblocking providers anyway`,
-    );
-    markReady();
+    if (!resolved) markReady();
   }, timeoutMs);
-
   return { ready, markReady };
 }
 
@@ -77,10 +67,6 @@ function send_request(
   params: any,
 ): Promise<any> {
   const id = conn.nextId++;
-  console.log(
-    `[LSP:${conn.languageId}] >> ${method} (id=${id})`,
-    JSON.stringify(params).slice(0, 200),
-  );
   return new Promise((resolve, reject) => {
     conn.pending.set(id, { resolve, reject });
     conn.writer.write({ jsonrpc: "2.0", id, method, params } as any);
@@ -106,35 +92,21 @@ function path_to_uri(fsPath: string): string {
     : `file:///${normalized}`;
 }
 
-// Convert a file:// URI back to a plain filesystem path
 function uri_to_path(uri: string): string {
   return uri
-    .replace(/^file:\/\/\/([a-zA-Z]:)/, "$1") // Windows: file:///E:/... → E:/...
-    .replace(/^file:\/\//, "") // Unix: file:///home/... → /home/...
+    .replace(/^file:\/\/\/([a-zA-Z]:)/, "$1")
+    .replace(/^file:\/\//, "")
     .replace(/\//g, path.sep);
 }
 
-// path.sep isn't available in browser context — use a simple helper instead
-const path = {
-  sep: navigator.userAgent.includes("Windows") ? "\\" : "/",
-};
+const path = { sep: navigator.userAgent.includes("Windows") ? "\\" : "/" };
 
-/**
- * Convert a Monaco position to an LSP position, clamping line and character
- * to the actual bounds of the document so pylsp / jedi never receive an
- * out-of-range value and throw:
- *   ValueError: `line` parameter is not in a valid range.
- */
 function to_lsp_position(
   pos: monaco.Position,
   model: monaco.editor.ITextModel,
 ): { line: number; character: number } {
   const lineCount = model.getLineCount();
-  // LSP lines are 0-based; clamp to [0, lineCount - 1]
   const line = Math.max(0, Math.min(pos.lineNumber - 1, lineCount - 1));
-  // Monaco getLineMaxColumn returns the column AFTER the last character (1-based),
-  // so the last valid 0-based character index is (maxColumn - 1) - 1 = maxColumn - 2.
-  // Using maxColumn - 1 is safe (points just past EOL, which LSP allows).
   const maxColumn = model.getLineMaxColumn(line + 1);
   const character = Math.max(0, Math.min(pos.column - 1, maxColumn - 1));
   return { line, character };
@@ -176,7 +148,6 @@ function lsp_completion_to_monaco(
     endLineNumber: position.lineNumber,
     endColumn: position.column,
   };
-
   return {
     label: item.label,
     kind: ((item.kind ?? 1) - 1) as monaco.languages.CompletionItemKind,
@@ -222,15 +193,11 @@ class client {
       const p = await window.workspace.get_current_workspace_path();
       if (p) this.workspaceUri = path_to_uri(p);
     } catch {}
-    console.log(`[LSP] Starting with workspace: ${this.workspaceUri}`);
-    for (const def of this.definitions) {
-      this.connect(def);
-    }
+    for (const def of this.definitions) this.connect(def);
   }
 
   async updateWorkspaceRoot(folderPath: string) {
     this.workspaceUri = path_to_uri(folderPath);
-    console.log(`[LSP] Workspace updated: ${this.workspaceUri}`);
     await this.dispose();
     await this.start();
   }
@@ -247,21 +214,16 @@ class client {
   }
 
   private connect(def: LspClientDefinition) {
-    // Pass the workspace path as a query param so the bridge can spawn
-    // the LSP server in the correct cwd (the user's project, not the app root).
     const workspacePath = uri_to_path(this.workspaceUri);
     const url = `ws://127.0.0.1:${LSP_BRIDGE_PORT}/${def.languageId}?workspace=${encodeURIComponent(workspacePath)}`;
-    console.log(`[LSP:${def.languageId}] Connecting to ${url}`);
     const ws = new WebSocket(url);
     this.sockets.set(def.languageId, ws);
 
     ws.onopen = async () => {
-      console.log(`[LSP:${def.languageId}] WebSocket connected`);
       const socket = toSocket(ws);
       const reader = new WebSocketMessageReader(socket);
       const writer = new WebSocketMessageWriter(socket);
-
-      const { ready, markReady } = make_ready_promise(def.languageId, 8000);
+      const { ready, markReady } = make_ready_promise(def.languageId);
 
       const conn: LspConnection = {
         reader,
@@ -276,42 +238,22 @@ class client {
       this.connections.set(def.languageId, conn);
 
       reader.listen((msg: any) => {
-        // Server-initiated request (has id AND method) e.g. window/workDoneProgress/create
         if (msg.id != null && "method" in msg) {
-          console.log(
-            `[LSP:${def.languageId}] << server-request ${msg.method} (id=${msg.id})`,
-            JSON.stringify(msg.params).slice(0, 200),
-          );
           this.handle_server_request(def, conn, msg);
           return;
         }
-
-        // Response to one of our requests
         if (msg.id != null && !("method" in msg)) {
           const p = conn.pending.get(msg.id);
           if (p) {
             conn.pending.delete(msg.id);
-            console.log(
-              `[LSP:${def.languageId}] << response (id=${msg.id})`,
-              JSON.stringify(msg.result ?? msg.error).slice(0, 200),
-            );
             if (msg.error) p.reject(msg.error);
             else p.resolve(msg.result);
           }
           return;
         }
-
-        // Notification (no id)
-        if ("method" in msg) {
-          console.log(
-            `[LSP:${def.languageId}] << ${msg.method}`,
-            JSON.stringify(msg.params).slice(0, 200),
-          );
-          this.handle_notification(def, conn, msg);
-        }
+        if ("method" in msg) this.handle_notification(def, conn, msg);
       });
 
-      console.log(`[LSP:${def.languageId}] Sending initialize...`);
       await send_request(conn, InitializeRequest.type.method, {
         processId: null,
         clientInfo: { name: "Meridia" },
@@ -343,61 +285,34 @@ class client {
             references: { dynamicRegistration: false },
             publishDiagnostics: { relatedInformation: true },
           },
-          workspace: {
-            workspaceFolders: true,
-            workDoneProgress: true,
-          },
-          window: {
-            workDoneProgress: true,
-          },
+          workspace: { workspaceFolders: true, workDoneProgress: true },
+          window: { workDoneProgress: true },
         },
       } as InitializeParams);
 
       send_notification(conn, InitializedNotification.type.method, {});
       conn.initialized = true;
-      console.log(`[LSP:${def.languageId}] Initialized`);
 
-      const disps = this.register_providers(def, conn);
-      this.disposables.set(def.languageId, disps);
+      this.disposables.set(def.languageId, this.register_providers(def, conn));
 
-      const models = monaco.editor.getModels();
-      console.log(
-        `[LSP:${def.languageId}] Syncing ${models.length} open model(s)`,
-      );
-      for (const model of models) {
-        if (this.model_matches(model, def)) {
-          console.log(`[LSP:${def.languageId}] didOpen: ${model_uri(model)}`);
-          this.did_open(conn, model);
-        }
+      for (const model of monaco.editor.getModels()) {
+        if (this.model_matches(model, def)) this.did_open(conn, model);
       }
     };
 
     ws.onerror = (e) =>
       console.error(`[LSP:${def.languageId}] WebSocket error`, e);
     ws.onclose = () => {
-      console.warn(`[LSP:${def.languageId}] WebSocket closed`);
       this.sockets.delete(def.languageId);
       this.connections.delete(def.languageId);
     };
   }
 
   private handle_server_request(
-    def: LspClientDefinition,
+    _: LspClientDefinition,
     conn: LspConnection,
     msg: any,
   ) {
-    if (msg.method === "window/workDoneProgress/create") {
-      console.log(
-        `[LSP:${def.languageId}] ACK window/workDoneProgress/create token=${msg.params?.token}`,
-      );
-      conn.writer.write({ jsonrpc: "2.0", id: msg.id, result: null } as any);
-      return;
-    }
-
-    // Generic null ACK for any other server-initiated request
-    console.warn(
-      `[LSP:${def.languageId}] Unhandled server-request: ${msg.method} — sending null ACK`,
-    );
     conn.writer.write({ jsonrpc: "2.0", id: msg.id, result: null } as any);
   }
 
@@ -407,36 +322,18 @@ class client {
     msg: any,
   ) {
     if (msg.method === "$/progress") {
-      const { token, value } = msg.params ?? {};
-      console.log(
-        `[LSP:${def.languageId}] $/progress token=${token} kind=${value?.kind} title=${value?.title ?? ""} message=${value?.message ?? ""}`,
-      );
-      if (value?.kind === "end") {
-        console.log(`[LSP:${def.languageId}] $/progress end — marking ready`);
-        conn.markReady();
-      }
+      if (msg.params?.value?.kind === "end") conn.markReady();
       return;
     }
 
     if (msg.method === PublishDiagnosticsNotification.type.method) {
       const { uri, diagnostics } = msg.params;
-      console.log(
-        `[LSP:${def.languageId}] diagnostics for ${uri}: ${diagnostics.length} item(s)`,
-      );
-
-      // publishDiagnostics means the server has analysed the file — secondary ready signal
       conn.markReady();
-
       const model = monaco.editor.getModels().find((m) => {
         const mUri = model_uri(m);
         return mUri === uri || mUri.toLowerCase() === uri.toLowerCase();
       });
-      if (!model) {
-        console.warn(
-          `[LSP:${def.languageId}] No model found for diagnostics URI: ${uri}`,
-        );
-        return;
-      }
+      if (!model) return;
       monaco.editor.setModelMarkers(
         model,
         def.languageId,
@@ -480,9 +377,6 @@ class client {
     disps.push(
       monaco.editor.onDidCreateModel((model) => {
         if (!this.model_matches(model, def)) return;
-        console.log(
-          `[LSP:${def.languageId}] New model created: ${model_uri(model)}`,
-        );
         this.did_open(conn, model);
 
         const d1 = model.onDidChangeContent(() => {
@@ -501,9 +395,6 @@ class client {
         });
 
         const d2 = model.onWillDispose(() => {
-          console.log(
-            `[LSP:${def.languageId}] Model disposed: ${model_uri(model)}`,
-          );
           this.did_close(conn, model);
           d1.dispose();
           d2.dispose();
@@ -516,10 +407,9 @@ class client {
     function toLspCompletionContext(
       context?: monaco.languages.CompletionContext,
     ) {
-      if (context?.triggerCharacter) {
-        return { triggerKind: 2, triggerCharacter: context.triggerCharacter };
-      }
-      return { triggerKind: 1 };
+      return context?.triggerCharacter
+        ? { triggerKind: 2, triggerCharacter: context.triggerCharacter }
+        : { triggerKind: 1 };
     }
 
     disps.push(
@@ -527,12 +417,7 @@ class client {
         triggerCharacters: [".", '"', "'", "`", "/", "@", "<", "#"],
         async provideCompletionItems(model, position, context) {
           if (!conn.initialized) return null;
-          console.log(`[LSP:${def.languageId}] completion: awaiting ready...`);
           await conn.ready;
-          console.log(
-            `[LSP:${def.languageId}] completion: ready, sending request`,
-          );
-
           const result = await send_request(
             conn,
             CompletionRequest.type.method,
@@ -542,17 +427,8 @@ class client {
               context: toLspCompletionContext(context),
             },
           );
-
-          if (!result) {
-            console.log(`[LSP:${def.languageId}] completion: null result`);
-            return null;
-          }
-
+          if (!result) return null;
           const items = Array.isArray(result) ? result : (result.items ?? []);
-          console.log(
-            `[LSP:${def.languageId}] completion: ${items.length} items`,
-          );
-
           return {
             suggestions: items.map((item: any) =>
               lsp_completion_to_monaco(item, model, position),
@@ -706,8 +582,7 @@ class client {
     const lang = model.getLanguageId();
     if (lang === def.languageId) return true;
     const exts = def.extensions ?? [def.languageId];
-    const p = model.uri.path;
-    return exts.some((ext) => p.endsWith(`.${ext}`));
+    return exts.some((ext) => model.uri.path.endsWith(`.${ext}`));
   }
 }
 
