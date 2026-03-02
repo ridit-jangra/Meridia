@@ -1,3 +1,8 @@
+import {
+  Tooltip,
+  TooltipProps,
+} from "../../../browser/parts/components/tooltip";
+
 type Child =
   | HTMLElement
   | SVGElement
@@ -15,6 +20,14 @@ type HProps<T extends Element> = {
     | Record<string, string | number>;
   attrs?: Record<string, any>;
   on?: Record<string, (e: any) => void>;
+  tooltip?: {
+    text?: string;
+    content?: HTMLElement;
+    class?: string;
+    position?: "top" | "bottom" | "left" | "right" | "auto";
+    delay?: number;
+    hide_delay?: number;
+  };
 } & Record<string, any>;
 
 export function h<K extends keyof HTMLElementTagNameMap>(
@@ -40,7 +53,7 @@ export function h(tag: any, props?: any, ...children: Child[]) {
       : document.createElement(tag);
 
   if (props) {
-    const { class: className, style, attrs, on, ...rest } = props;
+    const { class: className, style, attrs, on, tooltip, ...rest } = props;
 
     if (className) el.setAttribute("class", className);
 
@@ -55,6 +68,10 @@ export function h(tag: any, props?: any, ...children: Child[]) {
           s[k] = typeof v === "number" ? String(v) : v;
         }
       }
+    }
+
+    if (tooltip) {
+      Tooltip({ ...tooltip, child: el });
     }
 
     if (attrs) {

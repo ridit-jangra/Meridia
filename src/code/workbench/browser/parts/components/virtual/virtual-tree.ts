@@ -32,6 +32,7 @@ import {
   get_file_extension,
   open_editor_tab,
 } from "../../../../../editor/editor.helper";
+import { ScrollArea } from "../scroll-area";
 
 function deep_clone_nodes(nodes: INode[]): INode[] {
   return nodes.map((n) => ({
@@ -179,10 +180,62 @@ export function VirtualTree(opts: {
     const root_node = el.querySelector(".root-node");
     if (root_node) root_node.remove();
 
-    const node = h(
+    const root_id = norm(opts.folderStructure.path);
+
+    const root_label = h(
       "span",
-      { class: "root-node px-2 text-explorer-foreground" },
+      { class: "truncate font-normal" },
       opts.folderStructure.root.name,
+    );
+
+    const root_actions = h(
+      "div",
+      {
+        class: "flex items-center gap-1",
+      },
+      h(
+        "button",
+        {
+          class:
+            "p-1 rounded hover:bg-explorer-item-hover-background cursor-pointer",
+          title: "New File",
+          on: {
+            click: (e: MouseEvent) => {
+              e.stopPropagation();
+              selected.id = root_id;
+              start_add_node(root_id, "file");
+            },
+          },
+        },
+        lucide("file-plus"),
+      ),
+
+      h(
+        "button",
+        {
+          class:
+            "p-1 rounded hover:bg-explorer-item-hover-background cursor-pointer",
+          title: "New Folder",
+          on: {
+            click: (e: MouseEvent) => {
+              e.stopPropagation();
+              selected.id = root_id;
+              start_add_node(root_id, "folder");
+            },
+          },
+        },
+        lucide("folder-plus"),
+      ),
+    );
+
+    const node = h(
+      "div",
+      {
+        class:
+          "root-node group px-2 flex items-center justify-between text-explorer-foreground select-none",
+      },
+      root_label,
+      root_actions,
     );
 
     el.prepend(node);
@@ -429,9 +482,10 @@ export function VirtualTree(opts: {
 
   const is_active = (id: string) => uris_equal(id, selected.id);
 
-  const el = h("div", {
-    class: "flex flex-col gap-2 overflow-hidden focus:outline-0",
+  const scroll = ScrollArea({
+    class: "flex flex-col overflow-hidden h-full",
   });
+  const el = scroll.el;
 
   const is_typing_target = (t: EventTarget | null) => {
     const el = t as HTMLElement | null;
@@ -514,7 +568,7 @@ export function VirtualTree(opts: {
   el.addEventListener(
     "mousedown",
     () => {
-      if (document.activeElement !== el) el.focus();
+      // if (document.activeElement !== el) el.focus();
     },
     true,
   );
@@ -526,6 +580,7 @@ export function VirtualTree(opts: {
     class: cn("min-h-0 min-w-0 overflow-hidden", opts.class),
     overscan: 8,
     cache: false,
+    scrollViewport: scroll.viewport,
     key: (r) =>
       `${r.id}:${open.has(r.id)}:${loading.has(r.id)}:${is_active(r.id)}:${editing_node_id === `__renaming_${r.id}`}`,
     render: (row) => {
@@ -624,9 +679,7 @@ export function VirtualTree(opts: {
             span.style.transition = "none";
           }
 
-          span.appendChild(
-            is_loading ? lucide("loader-circle") : lucide("chevron-right"),
-          );
+          span.appendChild(lucide("chevron-right"));
           return span;
         })();
 
@@ -668,13 +721,16 @@ export function VirtualTree(opts: {
               }
             },
           },
+          tooltip: {
+            text: norm(row.node.path),
+            delay: 200,
+          },
         },
         left,
         right ?? "",
       );
 
       contextMenu.bind(row_el, () => get_context_menu_items(row));
-      Tooltip({ child: row_el, text: norm(row.node.path), delay: 200 });
 
       return row_el;
     },
@@ -699,6 +755,21 @@ export function VirtualTree(opts: {
       }
     }
   };
+
+  const root_id = norm(opts.folderStructure.path);
+
+  contextMenu.bind(el, () => [
+    {
+      type: "item",
+      label: "New File",
+      onClick: () => start_add_node(root_id, "file"),
+    },
+    {
+      type: "item",
+      label: "New Folder",
+      onClick: () => start_add_node(root_id, "folder"),
+    },
+  ]);
 
   el.appendChild(list.el);
   rebuild();

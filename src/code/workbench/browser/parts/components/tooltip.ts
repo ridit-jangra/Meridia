@@ -1,7 +1,7 @@
 import { cn } from "../../../contrib/core/utils/cn";
 import { h } from "../../../contrib/core/dom/h";
 
-export function Tooltip(opts: {
+export interface TooltipProps {
   text?: string;
   content?: HTMLElement;
   child: HTMLElement;
@@ -9,7 +9,9 @@ export function Tooltip(opts: {
   position?: "top" | "bottom" | "left" | "right" | "auto";
   delay?: number;
   hide_delay?: number;
-}) {
+}
+
+export function Tooltip(opts: TooltipProps) {
   const tip = h("div", {
     class: cn(
       "fixed z-[9999] hidden px-2 py-1 text-[12.5px] " +

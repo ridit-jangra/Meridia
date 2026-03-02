@@ -60,16 +60,13 @@ export function Dropdown(opts: {
             pop.close();
           },
         },
+        tooltip: {
+          text: it.tooltip,
+          position: "right",
+        },
       },
       it.label,
     );
-
-    if (it.tooltip) {
-      Tooltip({
-        child: row,
-        text: it.tooltip,
-      });
-    }
 
     menu.appendChild(row);
   });

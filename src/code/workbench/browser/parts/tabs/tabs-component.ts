@@ -54,16 +54,14 @@ export function TabsComponent(opts: { node: TTabNode }) {
         on: {
           click: () => shortcuts.run_shortcut("layout.toggleBottomPanel"),
         },
+        tooltip: {
+          text: `Close (${shortcuts.get_shortcut({ id: "toggleBottomPanel" })?.keys})`,
+          class: "w-max",
+          position: "top",
+        },
       },
       lucide("x"),
     );
-
-    Tooltip({
-      child: btn,
-      text: `Close (${shortcuts.get_shortcut({ id: "toggleBottomPanel" })?.keys})`,
-      class: "w-max",
-      position: "top",
-    });
 
     return btn;
   })();
@@ -143,16 +141,14 @@ export function TabsComponent(opts: { node: TTabNode }) {
               : "bg-view-tab-background text-view-tab-foreground hover:bg-view-tab-hover-background hover:text-view-tab-hover-foreground",
           ),
           on: { click: () => handle_click(tab.id) },
+          tooltip: {
+            text: tab.label + (shortcut_text ? ` (${shortcut_text})` : ""),
+            position: "top",
+          },
         },
         tab.icon && (lucide(tab.icon) ?? codicon(tab.icon)),
         tab.label,
       );
-
-      Tooltip({
-        child: pill,
-        text: tab.label + (shortcut_text ? ` (${shortcut_text})` : ""),
-        position: "top",
-      });
 
       pills.set(tab.id, pill);
       tabsHeader.appendChild(pill);

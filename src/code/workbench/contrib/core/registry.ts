@@ -34,17 +34,14 @@ export const tabs_options_registery: Record<string, () => HTMLElement> = {
             shortcuts.run_shortcut("terminal.new");
           },
         },
+        tooltip: {
+          text: `Add Terminal (${shortcuts.get_shortcut({ id: "newTerminal" })?.keys})`,
+          position: "top",
+        },
       },
       lucide("plus"),
     );
     const el = h("div", { class: "flex items-center gap-1" }, add_opt);
-
-    Tooltip({
-      child: add_opt,
-      text: `Add Terminal (${shortcuts.get_shortcut({ id: "newTerminal" })?.keys})`,
-      class: "w-max",
-      position: "top",
-    });
 
     return el;
   },
