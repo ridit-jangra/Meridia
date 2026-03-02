@@ -5,7 +5,6 @@ import {
 import { h } from "../../../../contrib/core/dom/h";
 import { cn } from "../../../../contrib/core/utils/cn";
 import { lucide } from "../icon";
-import { Tooltip } from "../tooltip";
 import { VirtualList } from "./virtual-list";
 import { ContextMenu, ContextMenuItem } from "../context-menu";
 import {
@@ -197,7 +196,7 @@ export function VirtualTree(opts: {
         "button",
         {
           class:
-            "p-1 rounded hover:bg-explorer-item-hover-background cursor-pointer",
+            "p-1 rounded hover:bg-explorer-item-hover-background cursor-pointer transition-colors",
           title: "New File",
           on: {
             click: (e: MouseEvent) => {
@@ -205,6 +204,9 @@ export function VirtualTree(opts: {
               selected.id = root_id;
               start_add_node(root_id, "file");
             },
+          },
+          tooltip: {
+            text: "New File",
           },
         },
         lucide("file-plus"),
@@ -214,7 +216,7 @@ export function VirtualTree(opts: {
         "button",
         {
           class:
-            "p-1 rounded hover:bg-explorer-item-hover-background cursor-pointer",
+            "p-1 rounded hover:bg-explorer-item-hover-background cursor-pointer transition-colors",
           title: "New Folder",
           on: {
             click: (e: MouseEvent) => {
@@ -222,6 +224,9 @@ export function VirtualTree(opts: {
               selected.id = root_id;
               start_add_node(root_id, "folder");
             },
+          },
+          tooltip: {
+            text: "New Folder",
           },
         },
         lucide("folder-plus"),
@@ -755,21 +760,6 @@ export function VirtualTree(opts: {
       }
     }
   };
-
-  const root_id = norm(opts.folderStructure.path);
-
-  contextMenu.bind(el, () => [
-    {
-      type: "item",
-      label: "New File",
-      onClick: () => start_add_node(root_id, "file"),
-    },
-    {
-      type: "item",
-      label: "New Folder",
-      onClick: () => start_add_node(root_id, "folder"),
-    },
-  ]);
 
   el.appendChild(list.el);
   rebuild();

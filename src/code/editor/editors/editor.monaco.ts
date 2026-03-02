@@ -202,6 +202,32 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
   private setup_editor_events(): void {
     editor_events.on("focus", () => this.instance.focus());
+    editor_events.on("setLanguage", (lang: string) => {
+      const editor = monaco.editor.getEditors?.()[0];
+      const model = editor?.getModel();
+      if (!model) return;
+
+      monaco.editor.setModelLanguage(model, lang);
+
+      const updated_lang = monaco.languages
+        .getLanguages()
+        .find((l) => l.id === model.getLanguageId());
+
+      statusbar_events.emit(
+        "updateLanguage",
+        updated_lang?.aliases?.[0] ?? capitalize(model.getLanguageId()),
+      );
+    });
+    editor_events.on("setIndentation", (spaces: number) => {
+      const editor = monaco.editor.getEditors?.()[0];
+      const model = editor?.getModel();
+      if (!model) return;
+
+      model.updateOptions({ tabSize: spaces });
+
+      statusbar_events.emit("updateIndentation", spaces);
+    });
+    editor_events.on("setEncoding", (encoding: string) => {});
   }
 
   private setup_statusbar_events(): void {
@@ -228,9 +254,13 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
         pos?.lineNumber ?? 1,
         pos?.column ?? 1,
       );
+      const lang = monaco.languages
+        .getLanguages()
+        .find((l) => l.id === model.getLanguageId());
+
       statusbar_events.emit(
         "updateLanguage",
-        capitalize(model.getLanguageId()),
+        lang?.aliases?.[0] ?? capitalize(model.getLanguageId()),
       );
       statusbar_events.emit("updateEncoding", "UTF-8");
       statusbar_events.emit("updateIndentation", get_tab_size(this.instance));
