@@ -14,7 +14,6 @@ import { ContextMenu } from "../../browser/parts/components/context-menu";
 import { lucide } from "../../browser/parts/components/icon";
 import { ScrollArea } from "../../browser/parts/components/scroll-area";
 import { TabSwitcher } from "../../browser/parts/components/tab-switcher";
-import { Tooltip } from "../../browser/parts/components/tooltip";
 import { shortcuts } from "../../common/shortcut/shortcut.service";
 import { store } from "../../common/state/store";
 import { update_tabs } from "../../common/state/slices/editor.slice";

@@ -9,7 +9,6 @@ import { lucide } from "../../browser/parts/components/icon";
 import { h } from "./dom/h";
 import { TerminalPanel } from "../terminal/browser/terminal";
 import { shortcuts } from "../../common/shortcut/shortcut.service";
-import { Tooltip } from "../../browser/parts/components/tooltip";
 import { Explorer } from "../explorer/explorer";
 import { editor } from "../../../editor/editor";
 import { EditorArea } from "../editor/editor-area";

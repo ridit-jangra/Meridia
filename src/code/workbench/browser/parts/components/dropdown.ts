@@ -2,7 +2,6 @@ import { h } from "../../../contrib/core/dom/h";
 import { cn } from "../../../contrib/core/utils/cn";
 import { Popover } from "./popover";
 import { lucide } from "./icon";
-import { Tooltip } from "./tooltip";
 
 export type DropdownItem = {
   label: string;
