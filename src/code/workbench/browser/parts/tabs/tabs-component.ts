@@ -69,12 +69,10 @@ export function TabsComponent(opts: { node: TTabNode }) {
   const mountPanel = () => {
     const key = get_active();
 
-    // Show/hide cached panels
     for (const [id, panel_el] of panel_cache) {
       panel_el.style.display = id === key ? "" : "none";
     }
 
-    // Create panel if not cached
     if (!panel_cache.has(key)) {
       const factory = (
         tabs_registry as Record<string, ViewFactory | undefined>
@@ -87,7 +85,6 @@ export function TabsComponent(opts: { node: TTabNode }) {
       content.appendChild(new_el);
     }
 
-    // Always rebuild options for the active tab
     const factory_options = (
       tabs_options_registery as Record<string, ViewFactory | undefined>
     )[key];
@@ -95,7 +92,6 @@ export function TabsComponent(opts: { node: TTabNode }) {
     optionsHeader.innerHTML = "";
 
     if (factory_options) {
-      // Cache options elements per tab so they aren't recreated on every render
       if (!options_cache.has(key)) {
         options_cache.set(key, factory_options());
       }
@@ -135,7 +131,7 @@ export function TabsComponent(opts: { node: TTabNode }) {
         "div",
         {
           class: cn(
-            "px-2.5 py-1 text-[13px] rounded-[7px] cursor-pointer select-none flex items-center gap-2",
+            "px-2.5 py-1 text-[13px] rounded-[7px] cursor-pointer select-none flex items-center gap-2 transition-colors",
             is_active
               ? "bg-view-tab-active-background text-view-tab-active-foreground"
               : "bg-view-tab-background text-view-tab-foreground hover:bg-view-tab-hover-background hover:text-view-tab-hover-foreground",

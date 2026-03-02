@@ -1,3 +1,9 @@
+import { CommandList } from "../components/command-list";
+import {
+  get_monaco_encodings,
+  get_monaco_indentations,
+  get_monaco_languages,
+} from "../../../../editor/editor.helper";
 import { statusbar_events } from "../../../../platform/events/statusbar.events";
 import { explorer } from "../../../../platform/explorer/explorer.service";
 import { store } from "../../../common/state/store";
@@ -5,6 +11,7 @@ import { h } from "../../../contrib/core/dom/h";
 import { cn } from "../../../contrib/core/utils/cn";
 import { Breadcrumb } from "../components/breadcrumb";
 import { Tooltip } from "../components/tooltip";
+import { editor_events } from "../../../../platform/events/editor.events";
 
 function StatusbarItem(text?: string) {
   const el = h(
@@ -112,6 +119,35 @@ export function Statusbar() {
     languageItem.setText(language);
   });
 
+  const languagePicker = CommandList({
+    items: get_monaco_languages().map((l) => ({
+      id: l.id,
+      label: l.label,
+      // description: l.id,
+    })),
+    onSelect(item) {
+      editor_events.emit("setLanguage", item.id);
+      // setEditorLanguage(item.id);
+    },
+    placeholder: "Select Language…",
+  });
+
+  const encodingPicker = CommandList({
+    items: get_monaco_encodings(),
+    onSelect(item) {
+      // setEditorEncoding(item.id);
+    },
+    placeholder: "Select Encoding…",
+  });
+
+  const indentPicker = CommandList({
+    items: get_monaco_indentations(),
+    onSelect(item) {
+      // setEditorIndentation(Number(item.id));
+    },
+    placeholder: "Select Indentation…",
+  });
+
   Tooltip({
     child: lineColItem.el,
     text: "Go to Line/Column",
@@ -136,6 +172,18 @@ export function Statusbar() {
     position: "top",
     delay: 300,
   });
+
+  indentItem.el.onclick = () => {
+    indentPicker.open();
+  };
+
+  encodingItem.el.onclick = () => {
+    encodingPicker.open();
+  };
+
+  languageItem.el.onclick = () => {
+    languagePicker.open();
+  };
 
   const right = h(
     "div",

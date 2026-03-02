@@ -439,3 +439,28 @@ export function update_editor_tab_status(path: string, status: tab_status) {
 }
 
 export { monaco };
+
+export function get_monaco_languages() {
+  return monaco.languages
+    .getLanguages()
+    .map((l) => ({
+      id: l.id,
+      label: l.aliases?.[0] ?? l.id,
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+export function get_monaco_encodings() {
+  return [
+    { id: "utf8", label: "UTF-8" },
+    { id: "utf16le", label: "UTF-16 LE" },
+    { id: "utf16be", label: "UTF-16 BE" },
+  ];
+}
+
+export function get_monaco_indentations() {
+  return [2, 4, 8].map((n) => ({
+    id: String(n),
+    label: `Spaces: ${n}`,
+  }));
+}

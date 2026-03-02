@@ -141,7 +141,7 @@ function renderNode(opts: {
 
     const splitter = Splitter({
       direction: dir,
-      gutterSize: 9,
+      gutterSize: dir === "horizontal" ? 7 : 9,
       panels: renderedChildren.map(({ result }, idx) => ({
         id: String(renderedChildren[idx].i),
         size: normSizes[idx],
