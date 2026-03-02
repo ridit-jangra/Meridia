@@ -52,6 +52,9 @@ export function Titlebar() {
     {
       class:
         "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
+      tooltip: {
+        text: `Settings (${shortcuts.get_shortcut({ id: "openSettings" })?.keys})`,
+      },
     },
     lucide(
       "settings",
@@ -69,6 +72,9 @@ export function Titlebar() {
         shortcuts.run_shortcut("layout.togglePrimarySideBar");
       },
     },
+    tooltip: {
+      text: `Toggle Primary Side Bar (${shortcuts.get_shortcut({ id: "togglePrimarySideBar" })?.keys})`,
+    },
   });
 
   const bottom_panel = h("span", {
@@ -79,6 +85,9 @@ export function Titlebar() {
         e.preventDefault();
         shortcuts.run_shortcut("layout.toggleBottomPanel");
       },
+    },
+    tooltip: {
+      text: `Toggle Panel (${shortcuts.get_shortcut({ id: "toggleBottomPanel" })?.keys})`,
     },
   });
 
@@ -91,6 +100,9 @@ export function Titlebar() {
         shortcuts.run_shortcut("layout.toggleSecondarySideBar");
       },
     },
+    tooltip: {
+      text: `Toggle Secondary Side Bar (${shortcuts.get_shortcut({ id: "toggleSecondarySideBar" })?.keys})`,
+    },
   });
 
   const new_custom_agent = h(
@@ -98,6 +110,9 @@ export function Titlebar() {
     {
       class:
         "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer mb-px p-1 rounded-md",
+      tooltip: {
+        text: `New Custom Agent`,
+      },
     },
     lucide(
       "plus",
@@ -121,31 +136,6 @@ export function Titlebar() {
 
   const content = h("div");
   content.textContent = "Hello popover";
-
-  Tooltip({
-    text: `New Custom Agent`,
-    child: new_custom_agent,
-  });
-
-  Tooltip({
-    text: `Toggle Primary Side Bar (${shortcuts.get_shortcut({ id: "togglePrimarySideBar" })?.keys})`,
-    child: left_panel,
-  });
-
-  Tooltip({
-    text: `Toggle Panel (${shortcuts.get_shortcut({ id: "toggleBottomPanel" })?.keys})`,
-    child: bottom_panel,
-  });
-
-  Tooltip({
-    text: `Toggle Secondary Side Bar (${shortcuts.get_shortcut({ id: "toggleSecondarySideBar" })?.keys})`,
-    child: right_panel,
-  });
-
-  Tooltip({
-    text: `Settings (${shortcuts.get_shortcut({ id: "openSettings" })?.keys})`,
-    child: settings_btn,
-  });
 
   layout_engine.subscribe(() => {
     update_layout_btns();

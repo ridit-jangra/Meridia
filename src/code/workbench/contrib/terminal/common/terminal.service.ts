@@ -132,26 +132,26 @@ class terminal_service {
     const fitAddon = new FitAddon();
     terminal.loadAddon(fitAddon);
 
-    const linkAnchor = document.createElement("div");
+    const followLink = Link({ text: "Follow Link", class: "text-lg" }).el;
+
+    const linkAnchor = h("div", {
+      tooltip: {
+        content: h(
+          "div",
+          { class: "flex items-center gap-2 text-lg" },
+          followLink,
+          "(ctrl+click)",
+        ),
+        position: "top",
+        delay: 100,
+        class: "-translate-y-2",
+        hide_delay: 200,
+      },
+    });
+
     linkAnchor.style.cssText =
       "position:fixed;width:1px;height:1px;pointer-events:none;";
     document.body.appendChild(linkAnchor);
-
-    const followLink = Link({ text: "Follow Link", class: "text-lg" }).el;
-
-    Tooltip({
-      content: h(
-        "div",
-        { class: "flex items-center gap-2 text-lg" },
-        followLink,
-        "(ctrl+click)",
-      ),
-      child: linkAnchor,
-      position: "top",
-      delay: 100,
-      class: "-translate-y-2",
-      hide_delay: 200,
-    });
 
     terminal.loadAddon(
       new WebLinksAddon(

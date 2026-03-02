@@ -237,6 +237,11 @@ export function EditorTabs() {
             closeTabByPath(file_path);
           },
         },
+        tooltip: {
+          text: tab.file_path,
+          position: "bottom",
+          delay: 200,
+        }
       });
 
       closeBtn.addEventListener("click", (e) => {
@@ -258,13 +263,6 @@ export function EditorTabs() {
       element.appendChild(endSlot);
 
       bind_drag_events(element, tab.file_path);
-
-      Tooltip({
-        child: element,
-        text: tab.file_path,
-        position: "bottom",
-        delay: 200,
-      });
 
       const ctx = ContextMenu();
       ctx.bind(element, () => {

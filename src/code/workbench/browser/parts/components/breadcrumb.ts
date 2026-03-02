@@ -76,6 +76,7 @@ export function Breadcrumb(opts: {
             tooltip: parts.slice(0, it.index + 1).join("/"),
           })),
           anchorClass: "mx-0.5",
+          placement: "top",
         });
 
         el.appendChild(dropdown.el);
@@ -97,14 +98,12 @@ export function Breadcrumb(opts: {
                     click: () => opts.onSegmentClick!(item.part, fullPath),
                   }
                 : undefined,
+            tooltip: {
+              text: parts.slice(0, item.index + 1).join("/"),
+            },
           },
           item.part,
         );
-
-        Tooltip({
-          child: segment,
-          text: parts.slice(0, item.index + 1).join("/"),
-        });
 
         el.appendChild(segment);
       }

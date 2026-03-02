@@ -123,7 +123,6 @@ export function ScrollArea(opts?: {
   const render = () => {
     const { scrollSize, viewSize, thumbSize, thumbPos } = metrics();
 
-    // Hide track if content doesn't need scrolling
     if (scrollSize <= viewSize + 1) {
       track.style.display = "none";
       return;
@@ -144,20 +143,15 @@ export function ScrollArea(opts?: {
 
   const onScroll = () => render();
 
-  // Handle horizontal scrolling with mouse wheel
   const onWheel = (e: WheelEvent) => {
     if (!isHorizontal) return;
 
     const { scrollSize, viewSize } = metrics();
 
-    // Only handle if content needs scrolling
     if (scrollSize <= viewSize + 1) return;
 
-    // Prevent default vertical scroll
     e.preventDefault();
 
-    // Convert vertical wheel delta to horizontal scroll
-    // deltaY is the vertical scroll amount
     const delta = e.deltaY || e.deltaX;
     viewport.scrollLeft += delta;
   };
@@ -232,7 +226,6 @@ export function ScrollArea(opts?: {
   window.addEventListener("pointerup", onUp, { passive: true });
   track.addEventListener("mousedown", onTrackDown);
 
-  // Add wheel event listener for horizontal scrolling
   if (isHorizontal) {
     viewport.addEventListener("wheel", onWheel, { passive: false });
   }

@@ -1,7 +1,5 @@
 import { h } from "../../../contrib/core/dom/h";
 import { cn } from "../../../contrib/core/utils/cn";
-import { Tooltip } from "../components/tooltip";
-import { ScrollArea } from "../components/scroll-area";
 import { ACTIVE_PANEL_KEY } from "../../../../../../shared/storage-keys";
 import { PanelComponent } from "../panels/panel-component";
 import { lucide } from "../components/icon";
@@ -36,9 +34,9 @@ export function ActivityBarPanelComponent(opts: {
     ),
   });
 
-  const scroll = ScrollArea({ class: "flex-1 min-h-0 h-full" });
-  scroll.inner.classList.add("h-full", "activity-scroll-viewport");
-  const content = scroll.inner;
+  const scroll = h("div", { class: "flex-1 min-h-0 h-full" });
+  // scroll.inner.classList.add("h-full", "activity-scroll-viewport");
+  const content = scroll;
 
   const get_active = () => store.getState().layout.active_panel_key[opts.id];
 
@@ -87,6 +85,12 @@ export function ActivityBarPanelComponent(opts: {
             : "hover:bg-explorer-item-hover-background hover:text-explorer-item-hover-foreground text-explorer-icon-foreground",
         ),
         on: { click: () => handle_click(panel.id) },
+        tooltip: {
+          text:
+            (panel.tooltip ?? panel.id) +
+            (shortcut_text ? ` (${shortcut_text})` : ""),
+          position: "top",
+        },
       });
 
       btn.appendChild(
@@ -101,14 +105,6 @@ export function ActivityBarPanelComponent(opts: {
           h("span", { class: "activity-label" }, panel.label),
         ),
       );
-
-      Tooltip({
-        child: btn,
-        text:
-          (panel.tooltip ?? panel.id) +
-          (shortcut_text ? ` (${shortcut_text})` : ""),
-        position: "top",
-      });
 
       btns.set(panel.id, btn);
       top.appendChild(btn);
@@ -205,7 +201,7 @@ export function ActivityBarPanelComponent(opts: {
   init();
 
   el.appendChild(top);
-  el.appendChild(scroll.el);
+  el.appendChild(scroll);
 
   return {
     el,

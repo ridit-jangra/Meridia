@@ -9,6 +9,7 @@ export type VirtualListOpts<T> = {
   innerClass?: string;
   overscan?: number;
   cache?: boolean;
+  scrollViewport?: HTMLElement;
   key?: (item: T, index: number) => string;
   render: (item: T, index: number) => HTMLElement;
   onRangeChange?: (start: number, end: number) => void;
@@ -18,15 +19,17 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
   const overscan = opts.overscan ?? 6;
   const shouldCache = opts.cache ?? false;
 
-  const viewport = h("div", {
-    class: cn("min-h-0 min-w-0 overflow-auto relative", opts.class),
-    style:
-      typeof opts.height === "number"
-        ? `height:${opts.height}px;`
-        : opts.height
-          ? `height:${opts.height};`
-          : "",
-  });
+  const viewport =
+    opts.scrollViewport ??
+    h("div", {
+      class: cn("min-h-0 min-w-0 overflow-auto relative", opts.class),
+      style:
+        typeof opts.height === "number"
+          ? `height:${opts.height}px;`
+          : opts.height
+            ? `height:${opts.height};`
+            : "",
+    });
 
   const inner = h("div", { class: cn("relative w-full", opts.innerClass) });
   const spacer = h("div", { class: "w-full", style: "height:0px;" });
