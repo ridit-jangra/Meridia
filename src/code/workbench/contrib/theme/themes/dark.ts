@@ -100,8 +100,8 @@ export const dark: ITheme = {
     "command.item.active.background": "#2A2A2A",
     "command.item.active.foreground": "#FFFFFF",
 
-    "input.background": "#101010",
-    "input.foreground": "#E6E6E6EB",
+    "input.background": "#262624",
+    "input.foreground": "#B3B3B3",
     "input.border": "#FFFFFF1A",
     "input.placeholder.foreground": "#E6E6E660",
     "input.focus.border": "#FFFFFF33",
