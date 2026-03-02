@@ -2,8 +2,6 @@ import { cn } from "../../../contrib/core/utils/cn";
 import { h } from "../../../contrib/core/dom/h";
 import { lucide } from "./icon";
 import { Dropdown } from "./dropdown";
-import { Tooltip } from "./tooltip";
-
 type CrumbItem =
   | { type: "crumb"; part: string; index: number }
   | { type: "dropdown"; items: { part: string; index: number }[] };

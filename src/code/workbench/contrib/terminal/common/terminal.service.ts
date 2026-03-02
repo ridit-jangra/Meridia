@@ -18,7 +18,6 @@ import {
 } from "../../../../../types/terminal.types";
 import { Link } from "../../../browser/parts/components/link";
 import { h } from "../../core/dom/h";
-import { Tooltip } from "../../../browser/parts/components/tooltip";
 import { explorer } from "../../../../platform/explorer/explorer.service";
 import { open_editor_tab } from "../../../../editor/editor.helper";
 

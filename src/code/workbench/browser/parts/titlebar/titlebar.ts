@@ -6,7 +6,6 @@ import { Menubar } from "../components/menubar";
 import { is_node_enabled_at_path_active_preset } from "../../layouts/layout.helper";
 import { codicon, lucide } from "../components/icon";
 import { shortcuts } from "../../../common/shortcut/shortcut.service";
-import { Tooltip } from "../components/tooltip";
 import { layout_engine } from "../../layouts/layout.engine";
 
 export function Titlebar() {

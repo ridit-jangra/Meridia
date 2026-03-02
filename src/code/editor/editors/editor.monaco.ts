@@ -227,7 +227,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
       statusbar_events.emit("updateIndentation", spaces);
     });
-    editor_events.on("setEncoding", (encoding: string) => {});
+    editor_events.on("setEncoding", (_: string) => {});
   }
 
   private setup_statusbar_events(): void {

@@ -1,7 +1,4 @@
-import {
-  Tooltip,
-  TooltipProps,
-} from "../../../browser/parts/components/tooltip";
+import { Tooltip } from "../../../browser/parts/components/tooltip";
 
 type Child =
   | HTMLElement

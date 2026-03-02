@@ -134,7 +134,7 @@ export function Statusbar() {
 
   const encodingPicker = CommandList({
     items: get_monaco_encodings(),
-    onSelect(item) {
+    onSelect(_) {
       // setEditorEncoding(item.id);
     },
     placeholder: "Select Encoding…",
@@ -144,6 +144,7 @@ export function Statusbar() {
     items: get_monaco_indentations(),
     onSelect(item) {
       // setEditorIndentation(Number(item.id));
+      editor_events.emit("setIndentation", item.id);
     },
     placeholder: "Select Indentation…",
   });

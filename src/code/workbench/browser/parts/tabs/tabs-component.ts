@@ -1,6 +1,5 @@
 import { h } from "../../../contrib/core/dom/h";
 import { cn } from "../../../contrib/core/utils/cn";
-import { Tooltip } from "../components/tooltip";
 import { ScrollArea } from "../components/scroll-area";
 import { ACTIVE_TAB_KEY } from "../../../../../../shared/storage-keys";
 import {
