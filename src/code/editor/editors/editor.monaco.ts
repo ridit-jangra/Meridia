@@ -33,6 +33,7 @@ import {
   update_editor_tab,
   update_editor_tab_status,
 } from "../editor.helper";
+import { patch_peek_model_service } from "../editor.monaco.customize";
 import { lsp_client } from "../editor.monaco.lsp";
 import { store } from "../../workbench/common/state/store";
 import { update_tabs } from "../../workbench/common/state/slices/editor.slice";
@@ -162,8 +163,11 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       suggestOnTriggerCharacters: true,
       parameterHints: { enabled: true },
       codeLens: true,
-      // codeLensFontFamily: "JetBrains Mono, monospace",
+      codeLensFontFamily: "Fira Code, monospace",
+      fontLigatures: true,
     });
+
+    patch_peek_model_service();
 
     this.setup_editor_events();
     this.setup_statusbar_events();

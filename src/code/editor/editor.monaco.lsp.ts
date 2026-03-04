@@ -334,16 +334,40 @@ class client {
                 documentationFormat: ["plaintext", "markdown"],
               },
             },
+            formatting: {
+              dynamicRegistration: true,
+            },
             definition: { dynamicRegistration: false },
             references: { dynamicRegistration: false },
             publishDiagnostics: { relatedInformation: true },
           },
-          workspace: { workspaceFolders: true, workDoneProgress: true },
+          workspace: {
+            workspaceFolders: true,
+            workDoneProgress: true,
+            configuration: true,
+          },
           window: { workDoneProgress: true },
         },
       } as InitializeParams);
 
       send_notification(conn, InitializedNotification.type.method, {});
+      send_notification(conn, "workspace/didChangeConfiguration", {
+        settings: {
+          pylsp: {
+            plugins: {
+              pycodestyle: { enabled: false },
+              mccabe: { enabled: false },
+              pyflakes: { enabled: false },
+              pylint: { enabled: false },
+              flake8: { enabled: false },
+              autopep8: { enabled: false },
+              yapf: { enabled: false },
+              black: { enabled: true },
+              ruff: { enabled: true },
+            },
+          },
+        },
+      });
       conn.initialized = true;
 
       this.disposables.set(def.languageId, this.register_providers(def, conn));
@@ -428,7 +452,7 @@ class client {
 
   private register_providers(
     def: LspClientDefinition,
-    conn: LspConnection,
+    _: LspConnection,
   ): monaco.IDisposable[] {
     const selector = def.languageId;
     const disps: monaco.IDisposable[] = [];

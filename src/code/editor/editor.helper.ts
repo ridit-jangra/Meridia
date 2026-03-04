@@ -148,6 +148,7 @@ export function path_to_language(file_path: string) {
     jsx: "javascript",
     html: "html",
     py: "python",
+    pyi: "python",
     json: "json",
     md: "markdown",
     css: "css",

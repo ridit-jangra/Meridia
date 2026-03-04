@@ -268,6 +268,9 @@ export class server {
       "textDocument/signatureHelp",
       "textDocument/documentHighlight",
       "textDocument/rename",
+      "textDocument/formatting",
+      "textDocument/rangeFormatting",
+      "textDocument/onTypeFormatting",
     ]);
 
     const openDocs = new Map<string, number>();
