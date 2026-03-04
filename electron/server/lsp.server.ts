@@ -12,7 +12,6 @@ import {
 import {
   createConnection,
   createServerProcess,
-  forward,
 } from "vscode-ws-jsonrpc/server";
 import { Message } from "vscode-languageserver-protocol";
 import { LSP_BRIDGE_PORT } from "../../shared/lsp/lsp.constants";
@@ -128,6 +127,8 @@ export class server {
   private wss: WebSocketServer | null = null;
   private workspacePath: string | null = null;
 
+  private activeChildren = new Map<string, cp.ChildProcess>();
+
   register(def: LspServerDefinition) {
     this.definitions.set(def.languageId, def);
   }
@@ -162,6 +163,15 @@ export class server {
         return;
       }
 
+      const prevChild = this.activeChildren.get(languageId);
+      if (prevChild && !prevChild.killed) {
+        console.log(
+          `[LSP-BRIDGE] Killing previous ${languageId} child pid=${prevChild.pid}`,
+        );
+        prevChild.kill("SIGTERM");
+        this.activeChildren.delete(languageId);
+      }
+
       this.spawnAndBridge(def, workspacePath, ws);
     });
 
@@ -173,6 +183,10 @@ export class server {
   }
 
   stop() {
+    for (const child of this.activeChildren.values()) {
+      if (!child.killed) child.kill("SIGTERM");
+    }
+    this.activeChildren.clear();
     this.wss?.close();
     this.httpServer?.close();
   }
@@ -238,23 +252,103 @@ export class server {
       },
     )!;
 
-    forward(socketConnection, serverConnection, (message: Message) => {
+    const child = (serverConnection as any).process as
+      | cp.ChildProcess
+      | undefined;
+    if (child) {
+      this.activeChildren.set(def.languageId, child);
+      console.log(`[LSP-BRIDGE${tag}] Tracking child pid=${child.pid}`);
+    }
+
+    const POSITION_METHODS = new Set([
+      "textDocument/completion",
+      "textDocument/hover",
+      "textDocument/definition",
+      "textDocument/references",
+      "textDocument/signatureHelp",
+      "textDocument/documentHighlight",
+      "textDocument/rename",
+    ]);
+
+    const openDocs = new Map<string, number>();
+
+    socketConnection.reader.listen((message: Message) => {
       const m = message as any;
       console.log(
         `[LSP-BRIDGE${tag}:client->lsp] ${m.method ?? "(response)"}${m.id != null ? ` id=${m.id}` : ""}`,
       );
-      return message;
+
+      if (m.method === "textDocument/didOpen") {
+        const text: string = m.params?.textDocument?.text ?? "";
+        const uri: string = (m.params?.textDocument?.uri ?? "").toLowerCase();
+        openDocs.set(uri, text.split("\n").length);
+        console.log(
+          `[LSP-BRIDGE${tag}] tracking didOpen uri="${uri}" lines=${openDocs.get(uri)}`,
+        );
+      }
+      if (m.method === "textDocument/didChange") {
+        const uri: string = (m.params?.textDocument?.uri ?? "").toLowerCase();
+        const text: string = m.params?.contentChanges?.[0]?.text ?? "";
+        if (text) openDocs.set(uri, text.split("\n").length);
+      }
+      if (m.method === "textDocument/didClose") {
+        const uri: string = (m.params?.textDocument?.uri ?? "").toLowerCase();
+        openDocs.delete(uri);
+      }
+
+      if (m.method && POSITION_METHODS.has(m.method) && m.params?.position) {
+        const uri: string = (m.params?.textDocument?.uri ?? "").toLowerCase();
+        const lineCount = openDocs.get(uri) ?? 0;
+
+        if (lineCount === 0) {
+          console.warn(
+            `[LSP-BRIDGE${tag}] Blocking ${m.method} — doc not open: ${uri}`,
+            "tracked uris:",
+            [...openDocs.keys()],
+          );
+          if (m.id != null) {
+            socketConnection.writer.write({
+              jsonrpc: "2.0",
+              id: m.id,
+              result: null,
+            } as any);
+          }
+          return;
+        }
+
+        const pos = m.params.position;
+        const clampedLine = Math.max(0, Math.min(pos.line, lineCount - 1));
+        if (pos.line !== clampedLine) {
+          console.warn(
+            `[LSP-BRIDGE${tag}] Clamping ${m.method} line ${pos.line} → ${clampedLine} (doc has ${lineCount} lines)`,
+          );
+          m.params.position = { ...pos, line: clampedLine };
+        }
+      }
+
+      serverConnection.writer.write(message);
     });
 
-    forward(serverConnection, socketConnection, (message: Message) => {
+    serverConnection.reader.listen((message: Message) => {
       const m = message as any;
       console.log(
         `[LSP-BRIDGE${tag}:lsp->client] ${m.method ?? "(response)"}${m.id != null ? ` id=${m.id}` : ""}`,
       );
-      return message;
+      socketConnection.writer.write(message);
     });
 
-    ws.on("close", () => serverConnection.dispose());
+    ws.on("close", () => {
+      serverConnection.dispose();
+
+      const tracked = this.activeChildren.get(def.languageId);
+      if (tracked === child && child && !child.killed) {
+        child.kill("SIGTERM");
+        console.log(
+          `[LSP-BRIDGE${tag}] Killed child pid=${child.pid} on ws close`,
+        );
+        this.activeChildren.delete(def.languageId);
+      }
+    });
   }
 }
 

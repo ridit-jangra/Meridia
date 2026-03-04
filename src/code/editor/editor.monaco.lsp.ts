@@ -81,15 +81,23 @@ function send_notification(
   conn.writer.write({ jsonrpc: "2.0", method, params } as any);
 }
 
-function model_uri(model: monaco.editor.ITextModel): string {
-  return path_to_uri(model.uri.fsPath || model.uri.path);
+function normalize_uri(uri: string): string {
+  return uri.toLowerCase();
 }
 
 function path_to_uri(fsPath: string): string {
   const normalized = fsPath.replace(/\\/g, "/");
+  if (/^[a-zA-Z]:\//.test(normalized)) {
+    return `file:///${normalized.charAt(0).toLowerCase()}${normalized.slice(1)}`;
+  }
   return normalized.startsWith("/")
     ? `file://${normalized}`
     : `file:///${normalized}`;
+}
+
+function model_uri(model: monaco.editor.ITextModel): string {
+  const raw = model.uri.fsPath || decodeURIComponent(model.uri.path);
+  return path_to_uri(raw);
 }
 
 function uri_to_path(uri: string): string {
@@ -107,8 +115,8 @@ function to_lsp_position(
 ): { line: number; character: number } {
   const lineCount = model.getLineCount();
   const line = Math.max(0, Math.min(pos.lineNumber - 1, lineCount - 1));
-  const maxColumn = model.getLineMaxColumn(line + 1);
-  const character = Math.max(0, Math.min(pos.column - 1, maxColumn - 1));
+  const lineContent = model.getLineContent(line + 1);
+  const character = Math.max(0, Math.min(pos.column - 1, lineContent.length));
   return { line, character };
 }
 
@@ -177,18 +185,47 @@ function lsp_completion_to_monaco(
   };
 }
 
+function get_name_position(
+  model: monaco.editor.ITextModel,
+  sym: any,
+): { line: number; character: number } {
+  const selStart = (sym.selectionRange ?? sym.range ?? sym.location?.range)
+    ?.start;
+  if (!selStart) return { line: 0, character: 0 };
+
+  if (selStart.character > 0) return selStart;
+
+  const lineText = model.getLineContent(selStart.line + 1) ?? "";
+  const nameIdx = lineText.indexOf(sym.name);
+  if (nameIdx >= 0) return { line: selStart.line, character: nameIdx };
+
+  return selStart;
+}
+
 class client {
   private definitions: LspClientDefinition[] = [];
   private connections = new Map<string, LspConnection>();
   private sockets = new Map<string, WebSocket>();
   private disposables = new Map<string, monaco.IDisposable[]>();
   private workspaceUri = "file:///workspace";
+  private started = false;
+
+  private lensEmitters = new Map<
+    string,
+    monaco.Emitter<monaco.languages.CodeLensProvider>
+  >();
+
+  private fire_lens_emitter(languageId: string) {
+    this.lensEmitters.get(languageId)?.fire(undefined as any);
+  }
 
   register(def: LspClientDefinition) {
     this.definitions.push(def);
   }
 
   async start() {
+    if (this.started) await this.dispose();
+    this.started = true;
     try {
       const p = await window.workspace.get_current_workspace_path();
       if (p) this.workspaceUri = path_to_uri(p);
@@ -203,6 +240,7 @@ class client {
   }
 
   async dispose() {
+    this.started = false;
     for (const disps of this.disposables.values())
       disps.forEach((d) => d.dispose());
     this.disposables.clear();
@@ -211,9 +249,18 @@ class client {
       if (ws.readyState === WebSocket.OPEN) ws.close();
     }
     this.sockets.clear();
+    for (const emitter of this.lensEmitters.values()) emitter.dispose();
+    this.lensEmitters.clear();
   }
 
   private connect(def: LspClientDefinition) {
+    const existing = this.sockets.get(def.languageId);
+    if (existing) {
+      existing.close();
+      this.sockets.delete(def.languageId);
+      this.connections.delete(def.languageId);
+    }
+
     const workspacePath = uri_to_path(this.workspaceUri);
     const url = `ws://127.0.0.1:${LSP_BRIDGE_PORT}/${def.languageId}?workspace=${encodeURIComponent(workspacePath)}`;
     const ws = new WebSocket(url);
@@ -243,11 +290,17 @@ class client {
           return;
         }
         if (msg.id != null && !("method" in msg)) {
-          const p = conn.pending.get(msg.id);
+          const id = typeof msg.id === "string" ? parseInt(msg.id, 10) : msg.id;
+          const p = conn.pending.get(id);
           if (p) {
-            conn.pending.delete(msg.id);
+            conn.pending.delete(id);
             if (msg.error) p.reject(msg.error);
             else p.resolve(msg.result);
+          } else {
+            console.warn(
+              `[LSP] No pending handler for id=${msg.id} (normalized=${id}), pending keys:`,
+              [...conn.pending.keys()],
+            );
           }
           return;
         }
@@ -329,11 +382,13 @@ class client {
     if (msg.method === PublishDiagnosticsNotification.type.method) {
       const { uri, diagnostics } = msg.params;
       conn.markReady();
+
       const model = monaco.editor.getModels().find((m) => {
-        const mUri = model_uri(m);
-        return mUri === uri || mUri.toLowerCase() === uri.toLowerCase();
+        const mUri = normalize_uri(model_uri(m));
+        return mUri === normalize_uri(uri);
       });
       if (!model) return;
+
       monaco.editor.setModelMarkers(
         model,
         def.languageId,
@@ -347,13 +402,17 @@ class client {
           source: d.source,
         })),
       );
+
+      this.fire_lens_emitter(def.languageId);
     }
   }
 
   private did_open(conn: LspConnection, model: monaco.editor.ITextModel) {
+    const uri = normalize_uri(model_uri(model));
+    console.log("[LSP] didOpen URI:", uri);
     send_notification(conn, DidOpenTextDocumentNotification.type.method, {
       textDocument: {
-        uri: model_uri(model),
+        uri,
         languageId: model.getLanguageId(),
         version: model.getVersionId(),
         text: model.getValue(),
@@ -363,7 +422,7 @@ class client {
 
   private did_close(conn: LspConnection, model: monaco.editor.ITextModel) {
     send_notification(conn, DidCloseTextDocumentNotification.type.method, {
-      textDocument: { uri: model_uri(model) },
+      textDocument: { uri: normalize_uri(model_uri(model)) },
     });
   }
 
@@ -374,28 +433,177 @@ class client {
     const selector = def.languageId;
     const disps: monaco.IDisposable[] = [];
 
+    const getConn = (): LspConnection | null =>
+      this.connections.get(def.languageId) ?? null;
+
+    const emitter = new monaco.Emitter<monaco.languages.CodeLensProvider>();
+    this.lensEmitters.set(def.languageId, emitter);
+    disps.push(emitter);
+
+    const lensDataMap = new Map<
+      string,
+      Map<
+        string,
+        {
+          model: monaco.editor.ITextModel;
+          pos: { line: number; character: number };
+        }
+      >
+    >();
+
+    disps.push(
+      monaco.languages.registerCodeLensProvider(selector, {
+        onDidChange: emitter.event,
+
+        async provideCodeLenses(model) {
+          const conn = getConn();
+          if (!conn?.initialized) return { lenses: [], dispose: () => {} };
+          await conn.ready;
+
+          const uri = normalize_uri(model_uri(model));
+
+          try {
+            const symbols = await send_request(
+              conn,
+              "textDocument/documentSymbol",
+              { textDocument: { uri } },
+            );
+
+            if (!symbols) return { lenses: [], dispose: () => {} };
+
+            const fileMap = new Map<
+              string,
+              {
+                model: monaco.editor.ITextModel;
+                pos: { line: number; character: number };
+              }
+            >();
+            lensDataMap.set(uri, fileMap);
+
+            const lenses: monaco.languages.CodeLens[] = [];
+            const SYMBOL_KINDS_WITH_REFS = new Set([5, 6, 9, 12]);
+
+            function collect(syms: any[]) {
+              for (const sym of syms) {
+                if (SYMBOL_KINDS_WITH_REFS.has(sym.kind)) {
+                  const range = sym.range ?? sym.location?.range;
+                  if (!range) continue;
+
+                  const pos = get_name_position(model, sym);
+                  const id = `${sym.name}:${pos.line}:${pos.character}`;
+                  fileMap.set(id, { model, pos });
+
+                  const lens = {
+                    range: to_monaco_range(range),
+                  } as monaco.languages.CodeLens;
+                  (lens as any)._id = id;
+                  lenses.push(lens);
+                }
+                if (sym.children?.length) collect(sym.children);
+              }
+            }
+
+            collect(Array.isArray(symbols) ? symbols : [symbols]);
+
+            console.log(
+              `[CodeLens] provideCodeLenses: ${lenses.length} fresh lenses for ${uri}`,
+            );
+            return { lenses, dispose: () => {} };
+          } catch (err) {
+            console.error("[CodeLens] provideCodeLenses error", err);
+            return { lenses: [], dispose: () => {} };
+          }
+        },
+
+        async resolveCodeLens(model, lens) {
+          const conn = getConn();
+          const noop: monaco.languages.Command = {
+            id: "",
+            title: "0 usages",
+          };
+
+          if (!conn) {
+            lens.command = noop;
+            return lens;
+          }
+
+          const uri = normalize_uri(model_uri(model));
+          const id = (lens as any)._id as string | undefined;
+          const data = id ? lensDataMap.get(uri)?.get(id) : undefined;
+
+          if (!data) {
+            lens.command = noop;
+            return lens;
+          }
+
+          try {
+            const refs = await send_request(
+              conn,
+              ReferencesRequest.type.method,
+              {
+                textDocument: { uri },
+                position: data.pos,
+                context: { includeDeclaration: false },
+              },
+            );
+            const count = refs?.length ?? 0;
+            lens.command = {
+              id: "editor.action.referenceSearch.trigger",
+              title: `${count} usage${count === 1 ? "" : "s"}`,
+              arguments: [
+                data.model.uri,
+                {
+                  lineNumber: data.pos.line + 1,
+                  column: data.pos.character + 1,
+                },
+              ],
+            };
+            return lens;
+          } catch (err) {
+            console.error("[CodeLens] resolveCodeLens error", err);
+            lens.command = noop;
+            return lens;
+          }
+        },
+      }),
+    );
+
     disps.push(
       monaco.editor.onDidCreateModel((model) => {
         if (!this.model_matches(model, def)) return;
-        this.did_open(conn, model);
+        const liveConn = getConn();
+        if (liveConn) this.did_open(liveConn, model);
+
+        let changeTimer: ReturnType<typeof setTimeout> | null = null;
 
         const d1 = model.onDidChangeContent(() => {
-          if (!conn.initialized) return;
-          send_notification(
-            conn,
-            DidChangeTextDocumentNotification.type.method,
-            {
-              textDocument: {
-                uri: model_uri(model),
-                version: model.getVersionId(),
+          const c = getConn();
+          if (!c?.initialized) return;
+          const uri = normalize_uri(model_uri(model));
+
+          if (changeTimer) clearTimeout(changeTimer);
+          changeTimer = setTimeout(() => {
+            changeTimer = null;
+            send_notification(
+              c,
+              DidChangeTextDocumentNotification.type.method,
+              {
+                textDocument: {
+                  uri,
+                  version: model.getVersionId(),
+                },
+                contentChanges: [{ text: model.getValue() }],
               },
-              contentChanges: [{ text: model.getValue() }],
-            },
-          );
+            );
+          }, 300);
         });
 
         const d2 = model.onWillDispose(() => {
-          this.did_close(conn, model);
+          const c = getConn();
+          if (c) this.did_close(c, model);
+          if (changeTimer) clearTimeout(changeTimer);
+          const uri = normalize_uri(model_uri(model));
+          lensDataMap.delete(uri);
           d1.dispose();
           d2.dispose();
         });
@@ -416,25 +624,31 @@ class client {
       monaco.languages.registerCompletionItemProvider(selector, {
         triggerCharacters: [".", '"', "'", "`", "/", "@", "<", "#"],
         async provideCompletionItems(model, position, context) {
-          if (!conn.initialized) return null;
+          const conn = getConn();
+          if (!conn?.initialized) return null;
+          if (model.getValue().trim().length === 0) return null;
           await conn.ready;
-          const result = await send_request(
-            conn,
-            CompletionRequest.type.method,
-            {
-              textDocument: { uri: model_uri(model) },
-              position: to_lsp_position(position, model),
-              context: toLspCompletionContext(context),
-            },
-          );
-          if (!result) return null;
-          const items = Array.isArray(result) ? result : (result.items ?? []);
-          return {
-            suggestions: items.map((item: any) =>
-              lsp_completion_to_monaco(item, model, position),
-            ),
-            incomplete: result.isIncomplete ?? false,
-          };
+          try {
+            const result = await send_request(
+              conn,
+              CompletionRequest.type.method,
+              {
+                textDocument: { uri: normalize_uri(model_uri(model)) },
+                position: to_lsp_position(position, model),
+                context: toLspCompletionContext(context),
+              },
+            );
+            if (!result) return null;
+            const items = Array.isArray(result) ? result : (result.items ?? []);
+            return {
+              suggestions: items.map((item: any) =>
+                lsp_completion_to_monaco(item, model, position),
+              ),
+              incomplete: result.isIncomplete ?? false,
+            };
+          } catch {
+            return null;
+          }
         },
       }),
     );
@@ -442,11 +656,12 @@ class client {
     disps.push(
       monaco.languages.registerHoverProvider(selector, {
         async provideHover(model, position) {
-          if (!conn.initialized) return null;
+          const conn = getConn();
+          if (!conn?.initialized) return null;
           await conn.ready;
           try {
             const result = await send_request(conn, HoverRequest.type.method, {
-              textDocument: { uri: model_uri(model) },
+              textDocument: { uri: normalize_uri(model_uri(model)) },
               position: to_lsp_position(position, model),
             });
             if (!result?.contents) return null;
@@ -470,14 +685,15 @@ class client {
       monaco.languages.registerSignatureHelpProvider(selector, {
         signatureHelpTriggerCharacters: ["(", ","],
         async provideSignatureHelp(model, position) {
-          if (!conn.initialized) return null;
+          const conn = getConn();
+          if (!conn?.initialized) return null;
           await conn.ready;
           try {
             const result = await send_request(
               conn,
               SignatureHelpRequest.type.method,
               {
-                textDocument: { uri: model_uri(model) },
+                textDocument: { uri: normalize_uri(model_uri(model)) },
                 position: to_lsp_position(position, model),
               },
             );
@@ -521,14 +737,15 @@ class client {
     disps.push(
       monaco.languages.registerDefinitionProvider(selector, {
         async provideDefinition(model, position) {
-          if (!conn.initialized) return null;
+          const conn = getConn();
+          if (!conn?.initialized) return null;
           await conn.ready;
           try {
             const result = await send_request(
               conn,
               DefinitionRequest.type.method,
               {
-                textDocument: { uri: model_uri(model) },
+                textDocument: { uri: normalize_uri(model_uri(model)) },
                 position: to_lsp_position(position, model),
               },
             );
@@ -548,14 +765,15 @@ class client {
     disps.push(
       monaco.languages.registerReferenceProvider(selector, {
         async provideReferences(model, position) {
-          if (!conn.initialized) return null;
+          const conn = getConn();
+          if (!conn?.initialized) return null;
           await conn.ready;
           try {
             const result = await send_request(
               conn,
               ReferencesRequest.type.method,
               {
-                textDocument: { uri: model_uri(model) },
+                textDocument: { uri: normalize_uri(model_uri(model)) },
                 position: to_lsp_position(position, model),
                 context: { includeDeclaration: true },
               },
@@ -587,3 +805,9 @@ class client {
 }
 
 export const lsp_client = new client();
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    lsp_client.dispose();
+  });
+}

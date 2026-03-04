@@ -79,3 +79,31 @@ monaco.editor.registerEditorOpener({
     return true;
   },
 });
+
+monaco.languages.typescript.typescriptDefaults.setEagerModelSync(false);
+monaco.languages.typescript.typescriptDefaults.setMaximumWorkerIdleTime(-1);
+monaco.languages.typescript.javascriptDefaults.setMaximumWorkerIdleTime(-1);
+monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+  noSemanticValidation: true,
+  noSyntaxValidation: true,
+  noSuggestionDiagnostics: true,
+});
+monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+  noSemanticValidation: true,
+  noSyntaxValidation: true,
+  noSuggestionDiagnostics: true,
+});
+monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+  noLib: true,
+  allowNonTsExtensions: true,
+  noSuggestionDiagnostics: true,
+});
+monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
+  noLib: true,
+  allowNonTsExtensions: true,
+  noSuggestionDiagnostics: true,
+});
+(monaco.languages.typescript as any).typescriptDefaults._onDidChange.fire();
+monaco.languages.registerCompletionItemProvider("typescript", {
+  provideCompletionItems: () => ({ suggestions: [] }),
+});

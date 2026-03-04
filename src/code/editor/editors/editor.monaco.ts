@@ -161,27 +161,8 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       quickSuggestions: true,
       suggestOnTriggerCharacters: true,
       parameterHints: { enabled: true },
-    });
-
-    monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: true,
-      noSyntaxValidation: true,
-      noSuggestionDiagnostics: true,
-    });
-    monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
-      noSemanticValidation: true,
-      noSyntaxValidation: true,
-      noSuggestionDiagnostics: true,
-    });
-    monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
-      noLib: true,
-      allowNonTsExtensions: true,
-      noSuggestionDiagnostics: true,
-    });
-    monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
-      noLib: true,
-      allowNonTsExtensions: true,
-      noSuggestionDiagnostics: true,
+      codeLens: true,
+      // codeLensFontFamily: "JetBrains Mono, monospace",
     });
 
     this.setup_editor_events();
