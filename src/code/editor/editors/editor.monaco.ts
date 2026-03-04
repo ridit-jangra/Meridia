@@ -165,6 +165,8 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       codeLens: true,
       codeLensFontFamily: "Fira Code, monospace",
       fontLigatures: true,
+      bracketPairColorization: { enabled: true },
+      wordBasedSuggestions: "off",
     });
 
     patch_peek_model_service();

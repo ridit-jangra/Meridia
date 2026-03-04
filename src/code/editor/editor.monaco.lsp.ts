@@ -17,9 +17,23 @@ import {
   DefinitionRequest,
   ReferencesRequest,
   SignatureHelpRequest,
-  DiagnosticSeverity,
+  DocumentFormattingRequest,
 } from "vscode-languageserver-protocol";
 import { LSP_BRIDGE_PORT } from "../../../shared/lsp/lsp.constants";
+import {
+  path,
+  path_to_uri,
+  uri_to_path,
+  normalize_uri,
+  model_uri,
+  to_lsp_position,
+  to_monaco_range,
+  lsp_severity_to_monaco,
+  lsp_completion_to_monaco,
+  to_lsp_completion_context,
+  get_name_position,
+  apply_lsp_edits,
+} from "./editor.monaco.lsp.helpers";
 
 export interface LspClientDefinition {
   languageId: string;
@@ -81,127 +95,6 @@ function send_notification(
   conn.writer.write({ jsonrpc: "2.0", method, params } as any);
 }
 
-function normalize_uri(uri: string): string {
-  return uri.toLowerCase();
-}
-
-function path_to_uri(fsPath: string): string {
-  const normalized = fsPath.replace(/\\/g, "/");
-  if (/^[a-zA-Z]:\//.test(normalized)) {
-    return `file:///${normalized.charAt(0).toLowerCase()}${normalized.slice(1)}`;
-  }
-  return normalized.startsWith("/")
-    ? `file://${normalized}`
-    : `file:///${normalized}`;
-}
-
-function model_uri(model: monaco.editor.ITextModel): string {
-  const raw = model.uri.fsPath || decodeURIComponent(model.uri.path);
-  return path_to_uri(raw);
-}
-
-function uri_to_path(uri: string): string {
-  return uri
-    .replace(/^file:\/\/\/([a-zA-Z]:)/, "$1")
-    .replace(/^file:\/\//, "")
-    .replace(/\//g, path.sep);
-}
-
-const path = { sep: navigator.userAgent.includes("Windows") ? "\\" : "/" };
-
-function to_lsp_position(
-  pos: monaco.Position,
-  model: monaco.editor.ITextModel,
-): { line: number; character: number } {
-  const lineCount = model.getLineCount();
-  const line = Math.max(0, Math.min(pos.lineNumber - 1, lineCount - 1));
-  const lineContent = model.getLineContent(line + 1);
-  const character = Math.max(0, Math.min(pos.column - 1, lineContent.length));
-  return { line, character };
-}
-
-function to_monaco_range(range: any): monaco.IRange {
-  return {
-    startLineNumber: range.start.line + 1,
-    startColumn: range.start.character + 1,
-    endLineNumber: range.end.line + 1,
-    endColumn: range.end.character + 1,
-  };
-}
-
-function lsp_severity_to_monaco(severity: DiagnosticSeverity | undefined) {
-  switch (severity) {
-    case DiagnosticSeverity.Error:
-      return monaco.MarkerSeverity.Error;
-    case DiagnosticSeverity.Warning:
-      return monaco.MarkerSeverity.Warning;
-    case DiagnosticSeverity.Information:
-      return monaco.MarkerSeverity.Info;
-    case DiagnosticSeverity.Hint:
-      return monaco.MarkerSeverity.Hint;
-    default:
-      return monaco.MarkerSeverity.Error;
-  }
-}
-
-function lsp_completion_to_monaco(
-  item: any,
-  model: monaco.editor.ITextModel,
-  position: monaco.Position,
-): monaco.languages.CompletionItem {
-  const word = model.getWordUntilPosition(position);
-  const defaultRange = {
-    startLineNumber: position.lineNumber,
-    startColumn: word.startColumn,
-    endLineNumber: position.lineNumber,
-    endColumn: position.column,
-  };
-  return {
-    label: item.label,
-    kind: ((item.kind ?? 1) - 1) as monaco.languages.CompletionItemKind,
-    detail: item.detail,
-    documentation: item.documentation
-      ? {
-          value:
-            typeof item.documentation === "string"
-              ? item.documentation
-              : (item.documentation.value ?? ""),
-        }
-      : undefined,
-    insertText:
-      item.insertText ??
-      (typeof item.label === "string" ? item.label : item.label.label),
-    insertTextRules:
-      item.insertTextFormat === 2
-        ? monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet
-        : undefined,
-    range: item.textEdit?.range
-      ? to_monaco_range(item.textEdit.range)
-      : defaultRange,
-    sortText: item.sortText,
-    filterText: item.filterText,
-    preselect: item.preselect,
-    tags: item.deprecated ? [1] : undefined,
-  };
-}
-
-function get_name_position(
-  model: monaco.editor.ITextModel,
-  sym: any,
-): { line: number; character: number } {
-  const selStart = (sym.selectionRange ?? sym.range ?? sym.location?.range)
-    ?.start;
-  if (!selStart) return { line: 0, character: 0 };
-
-  if (selStart.character > 0) return selStart;
-
-  const lineText = model.getLineContent(selStart.line + 1) ?? "";
-  const nameIdx = lineText.indexOf(sym.name);
-  if (nameIdx >= 0) return { line: selStart.line, character: nameIdx };
-
-  return selStart;
-}
-
 class client {
   private definitions: LspClientDefinition[] = [];
   private connections = new Map<string, LspConnection>();
@@ -251,6 +144,33 @@ class client {
     this.sockets.clear();
     for (const emitter of this.lensEmitters.values()) emitter.dispose();
     this.lensEmitters.clear();
+  }
+
+  async format_model(model: monaco.editor.ITextModel): Promise<boolean> {
+    const languageId = model.getLanguageId();
+    const conn = this.connections.get(languageId);
+    if (!conn?.initialized) return false;
+
+    try {
+      await conn.ready;
+      const edits = await send_request(
+        conn,
+        DocumentFormattingRequest.type.method,
+        {
+          textDocument: { uri: normalize_uri(model_uri(model)) },
+          options: {
+            tabSize: model.getOptions().tabSize,
+            insertSpaces: model.getOptions().insertSpaces ?? true,
+          },
+        },
+      );
+      if (!edits?.length) return false;
+      apply_lsp_edits(model, edits);
+      return true;
+    } catch (e) {
+      console.error("[LSP] format_model error", e);
+      return false;
+    }
   }
 
   private connect(def: LspClientDefinition) {
@@ -335,7 +255,7 @@ class client {
               },
             },
             formatting: {
-              dynamicRegistration: true,
+              dynamicRegistration: false,
             },
             definition: { dynamicRegistration: false },
             references: { dynamicRegistration: false },
@@ -433,7 +353,6 @@ class client {
 
   private did_open(conn: LspConnection, model: monaco.editor.ITextModel) {
     const uri = normalize_uri(model_uri(model));
-    console.log("[LSP] didOpen URI:", uri);
     send_notification(conn, DidOpenTextDocumentNotification.type.method, {
       textDocument: {
         uri,
@@ -452,7 +371,7 @@ class client {
 
   private register_providers(
     def: LspClientDefinition,
-    _: LspConnection,
+    conn: LspConnection,
   ): monaco.IDisposable[] {
     const selector = def.languageId;
     const disps: monaco.IDisposable[] = [];
@@ -529,9 +448,6 @@ class client {
 
             collect(Array.isArray(symbols) ? symbols : [symbols]);
 
-            console.log(
-              `[CodeLens] provideCodeLenses: ${lenses.length} fresh lenses for ${uri}`,
-            );
             return { lenses, dispose: () => {} };
           } catch (err) {
             console.error("[CodeLens] provideCodeLenses error", err);
@@ -541,10 +457,7 @@ class client {
 
         async resolveCodeLens(model, lens) {
           const conn = getConn();
-          const noop: monaco.languages.Command = {
-            id: "",
-            title: "0 usages",
-          };
+          const noop: monaco.languages.Command = { id: "", title: "0 usages" };
 
           if (!conn) {
             lens.command = noop;
@@ -612,10 +525,7 @@ class client {
               c,
               DidChangeTextDocumentNotification.type.method,
               {
-                textDocument: {
-                  uri,
-                  version: model.getVersionId(),
-                },
+                textDocument: { uri, version: model.getVersionId() },
                 contentChanges: [{ text: model.getValue() }],
               },
             );
@@ -636,14 +546,6 @@ class client {
       }),
     );
 
-    function toLspCompletionContext(
-      context?: monaco.languages.CompletionContext,
-    ) {
-      return context?.triggerCharacter
-        ? { triggerKind: 2, triggerCharacter: context.triggerCharacter }
-        : { triggerKind: 1 };
-    }
-
     disps.push(
       monaco.languages.registerCompletionItemProvider(selector, {
         triggerCharacters: [".", '"', "'", "`", "/", "@", "<", "#"],
@@ -659,7 +561,7 @@ class client {
               {
                 textDocument: { uri: normalize_uri(model_uri(model)) },
                 position: to_lsp_position(position, model),
-                context: toLspCompletionContext(context),
+                context: to_lsp_completion_context(context),
               },
             );
             if (!result) return null;
@@ -809,6 +711,37 @@ class client {
             }));
           } catch {
             return null;
+          }
+        },
+      }),
+    );
+
+    disps.push(
+      monaco.languages.registerDocumentFormattingEditProvider(selector, {
+        async provideDocumentFormattingEdits(model) {
+          const conn = getConn();
+          if (!conn?.initialized) return [];
+          await conn.ready;
+          try {
+            const edits = await send_request(
+              conn,
+              DocumentFormattingRequest.type.method,
+              {
+                textDocument: { uri: normalize_uri(model_uri(model)) },
+                options: {
+                  tabSize: model.getOptions().tabSize,
+                  insertSpaces: model.getOptions().insertSpaces ?? true,
+                },
+              },
+            );
+            if (!edits?.length) return [];
+            return edits.map((e: any) => ({
+              range: to_monaco_range(e.range),
+              text: e.newText,
+            }));
+          } catch (err) {
+            console.error("[LSP] provideDocumentFormattingEdits error", err);
+            return [];
           }
         },
       }),
