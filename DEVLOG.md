@@ -1,6 +1,6 @@
 # DEVLOG
 
-## 2026-03-01
+## 1st March 2026
 
 ### LSP
 
@@ -39,7 +39,7 @@
 
 - After core is done, start adding AI features.
 
-## 2026-03-06
+## 6th March 2026
 
 Nothing much just fixing some bugs, adding minor features and improving the ui to match v1 vibe.
 
