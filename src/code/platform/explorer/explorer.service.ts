@@ -21,7 +21,7 @@ class explorer_service {
     const structure = await this.init_structure();
     if (!structure) return;
 
-    const tree = this.tree.register_tree(structure);
+    const tree = await this.tree.register_tree(structure);
     this.init_watcher(structure.path, tree);
 
     explorer_events.emit("initTree");
