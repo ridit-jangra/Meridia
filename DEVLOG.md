@@ -50,3 +50,9 @@ Nothing much just fixing some bugs, adding minor features and improving the ui t
 - Add custom createModelReference because monaco doesn't handle fs paths natively.
 - Add codelens for usage using lsp.
 - Merge v2 branch in main.
+
+### Next Milestone
+
+- Add Git panel and tracking information using different colors for modified, untracked and ignored.
+- Add search panel to search queries across the codebase (only basic for now, will implement AI in future).
+- Add settings system with very customizability options.
