@@ -38,3 +38,15 @@
 ### Future
 
 - After core is done, start adding AI features.
+
+## 2026-03-06
+
+Nothing much just fixing some bugs, adding minor features and improving the ui to match v1 vibe.
+
+- Improved padding and text size in virtual tree.
+- Added loading state in virtual tree node.
+- Update file icons like image, font, rust, etc.
+- Added formatting options in lsp.
+- Add custom createModelReference because monaco doesn't handle fs paths natively.
+- Add codelens for usage using lsp.
+- Merge v2 branch in main.
