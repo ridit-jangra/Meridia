@@ -38,10 +38,10 @@ Meridia will automatically update when a new release is available.
 - [NPM or Yarn](https://npmjs.com/)
 - [Ollama](https://ollama.com/download) (optional, for AI features)
 
-### Clone the repository (v2 branch)
+### Clone the repository
 
 ```bash
-git clone https://github.com/ridit-jangra/Meridia -b v2
+git clone https://github.com/ridit-jangra/Meridia
 cd Meridia
 ```
 
