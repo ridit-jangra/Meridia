@@ -1,7 +1,7 @@
 import { theme } from "../workbench/contrib/theme/theme.service";
 import { monaco } from "./editor.helper";
 
-const kind = theme.get_active().base;
+const kind = theme.get_active()?.base ?? "dark";
 const background = theme.get_color("editor.background");
 const foreground = theme.get_color("editor.foreground");
 const cursor = theme.get_color("editor.cursor.foreground");
@@ -52,11 +52,6 @@ monaco.editor.defineTheme("theme", {
     "editor.lineHighlightBorder": background,
     "editor.lineHighlightBackground": line_highlight,
 
-    "editorWidget.foreground": foreground,
-    "editorWidget.border": border_foreground,
-    "editorWidget.resizeBorder": border_foreground,
-
-    // Suggestion box — matches context menu
     "editorSuggestWidget.background": context_menu_background,
     "editorSuggestWidget.foreground": context_menu_foreground,
     "editorSuggestWidget.border": context_menu_border,
@@ -78,11 +73,15 @@ monaco.editor.defineTheme("theme", {
     "editorParameterHint.background": context_menu_background,
     "editorParameterHint.foreground": context_menu_foreground,
 
-    "editorFindWidget.foreground": foreground,
-    "editorFindWidget.border": border_foreground,
-    "editorFindWidget.resizeBorder": border_foreground,
+    "editorWidget.background": context_menu_background,
+    "editorWidget.foreground": context_menu_foreground,
+    "editorWidget.border": context_menu_border,
+    "editorWidget.resizeBorder": context_menu_border,
+
+    "peekViewEditor.background": context_menu_background,
 
     "peekViewResult.foreground": foreground,
+    "peekViewResult.background": context_menu_background,
     "peekViewResult.lineForeground": foreground,
     "peekViewResult.selectionForeground": foreground,
     "peekViewTitleLabel.foreground": foreground,

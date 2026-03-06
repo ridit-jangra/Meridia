@@ -550,3 +550,15 @@ body {
 .monaco-editor {
   outline: none !important;
 }
+
+.peekview-widget {
+  border: 2px solid var(--workbench-border) !important;
+}
+
+.peekview-widget .head {
+  border-bottom: 2px solid var(--workbench-border) !important;
+}
+
+.peekview-widget .body {
+  border-color: var(--workbench-border) !important;
+}

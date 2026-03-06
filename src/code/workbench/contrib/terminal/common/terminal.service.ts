@@ -209,7 +209,7 @@ class terminal_service {
             const tree = explorer.tree.tree;
             if (!tree) return;
 
-            await tree.highlight(path);
+            await tree?.highlight?.(path);
           }
         },
       }),

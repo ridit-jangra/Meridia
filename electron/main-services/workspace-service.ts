@@ -35,14 +35,15 @@ class workspace_service {
       path: workspace_path,
       editor_tabs: data.editor_tabs ?? existing?.editor_tabs ?? [],
       terminal_tabs: data.terminal_tabs ?? existing?.terminal_tabs ?? [],
+      open_folders: data.open_folders ?? existing?.open_folders ?? [],
     };
 
-    // Deduplicate terminal_tabs by id
+    normalized.open_folders = Array.from(new Set(normalized.open_folders));
+
     normalized.terminal_tabs = Array.from(
       new Map(normalized.terminal_tabs.map((t) => [t.id, t])).values(),
     );
 
-    // Deduplicate editor_tabs by file_path
     normalized.editor_tabs = Array.from(
       new Map(normalized.editor_tabs.map((t) => [t.file_path, t])).values(),
     );

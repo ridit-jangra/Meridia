@@ -67,5 +67,14 @@ export function Explorer() {
   const el = h("div", { class: cn("h-full w-full relative overflow-hidden") });
   el.append(LoadingBar(), content);
 
+  explorer_events.on("initTree", () => {
+    content.innerHTML = "";
+
+    const { structure, tree } = explorer.tree;
+    const hasTree = structure?.path && tree;
+
+    content.appendChild(hasTree ? tree.el : EmptyState());
+  });
+
   return el;
 }

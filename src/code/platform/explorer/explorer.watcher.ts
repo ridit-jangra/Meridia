@@ -29,7 +29,7 @@ export class explorer_watcher {
     });
 
     explorer_events.on("highlight", (id: string) => {
-      tree.highlight(id);
+      tree?.highlight?.(id);
     });
   }
 

@@ -1,16 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
-
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-<svg fill="#000000" height="800px" width="800px" version="1.1" id="XMLID_224_" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" 
-	 viewBox="0 0 24 24" xml:space="preserve" class="license">
-<g id="license">
-	<g>
-		<path d="M6,9C4.3,9,3,7.7,3,6s1.3-3,3-3s3,1.3,3,3S7.7,9,6,9z M6,5C5.4,5,5,5.4,5,6s0.4,1,1,1s1-0.4,1-1S6.6,5,6,5z"/>
-	</g>
-	<g>
-		<path d="M24,24h-6.4L15,21.4V20h-3v-3H9v-3.3C8.4,13.9,7.7,14,7,14c-3.9,0-7-3.1-7-7s3.1-7,7-7s7,3.1,7,7c0,0.5,0,1-0.1,1.4
-			L24,18.6V24z M18.4,22H22v-2.6L11.6,9l0.2-0.6C11.9,8,12,7.5,12,7c0-2.8-2.2-5-5-5S2,4.2,2,7s2.2,5,5,5c0.7,0,1.4-0.1,2.1-0.4
-			l0.6-0.3l1.3,1.3V15h3v3h3v2.6L18.4,22z"/>
-	</g>
-</g>
+<!-- Copyright 2000-2024 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license. -->
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M11 5C11 6.933 9.433 8.5 7.5 8.5C5.567 8.5 4 6.933 4 5C4 3.067 5.567 1.5 7.5 1.5C9.433 1.5 11 3.067 11 5Z" stroke="#B589EC"/>
+<path d="M7.5 8.5L7.5 14.5" stroke="#B589EC" stroke-linecap="round"/>
+<path d="M8 13.5H10.5" stroke="#B589EC" stroke-linecap="round"/>
+<path d="M8 11.5H10.5" stroke="#B589EC" stroke-linecap="round"/>
 </svg>

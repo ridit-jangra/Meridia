@@ -80,7 +80,9 @@ export function VirtualTree(opts: {
   height?: number | string;
   indent?: number;
   initiallyOpenAll?: boolean;
+  initialOpenFolders?: string[];
   onSelect?: (id: string, node: INode) => void;
+  onOpenFoldersChange?: (open_folders: string[]) => void;
   renderRight?: (row: FlatRow) => HTMLElement | null;
   get_icon?: (name: string) => string;
   icon_folder_name?: string;
@@ -112,8 +114,19 @@ export function VirtualTree(opts: {
   };
   opts.folderStructure.structure.forEach(init_open);
 
+  // Seed open set from persisted folders
+  if (opts.initialOpenFolders) {
+    for (const id of opts.initialOpenFolders) {
+      open.add(norm(id));
+    }
+  }
+
   let rows: FlatRow[] = [];
   const contextMenu = ContextMenu();
+
+  const emit_open_folders = () => {
+    opts.onOpenFoldersChange?.([...open]);
+  };
 
   const expand_to = async (id: string) => {
     const workspace = norm(opts.folderStructure.path);
@@ -312,18 +325,17 @@ export function VirtualTree(opts: {
     if (loading.has(id)) return;
 
     const direction: "open" | "close" = open.has(id) ? "close" : "open";
-
     pending_caret_anim = { id, direction };
 
     if (direction === "close") {
       open.delete(id);
-      rebuild();
-      return;
+    } else {
+      open.add(id);
     }
 
-    open.add(id);
+    emit_open_folders();
 
-    if (!loaded.has(id)) {
+    if (direction === "open" && !loaded.has(id)) {
       loading.add(id);
       rebuild();
       load_children(row.node);
@@ -429,7 +441,7 @@ export function VirtualTree(opts: {
             const tree = explorer.tree.tree;
             if (!tree) return;
 
-            tree.highlight(row.node.id);
+            tree?.highlight?.(row.node.id);
           },
         },
         {
@@ -684,7 +696,9 @@ export function VirtualTree(opts: {
             span.style.transition = "none";
           }
 
-          span.appendChild(lucide("chevron-right"));
+          span.appendChild(
+            lucide(is_loading ? "loader-circle" : "chevron-right"),
+          );
           return span;
         })();
 
@@ -708,12 +722,12 @@ export function VirtualTree(opts: {
         {
           "data-row-id": row.id,
           class: cn(
-            "px-2 flex items-center justify-between select-none cursor-pointer text-[13px]",
+            "px-2 relative flex items-center justify-between select-none cursor-pointer text-[14px]",
             active
               ? "bg-explorer-item-active-background text-explorer-item-active-foreground"
               : "text-explorer-foreground hover:bg-explorer-item-hover-background hover:text-explorer-item-hover-foreground",
           ),
-          style: `padding-left:${6 + row.depth * indent}px;`,
+          style: `padding-left:${row.depth * 1.4}rem`,
           on: {
             click: (e: MouseEvent) => {
               if (e.button !== 0) return;
@@ -761,8 +775,26 @@ export function VirtualTree(opts: {
     }
   };
 
+  // Restore persisted open folders — lazy-load children for any that need it
+  const restore_open_folders = async () => {
+    if (!opts.initialOpenFolders?.length) return;
+
+    for (const id of opts.initialOpenFolders) {
+      const normed = norm(id);
+      if (loaded.has(normed)) continue;
+
+      const result = find_node_by_id(opts.folderStructure.structure, normed);
+      if (result) {
+        loading.add(normed);
+        await load_children(result.node);
+      }
+    }
+  };
+
   el.appendChild(list.el);
   rebuild();
+
+  void restore_open_folders();
 
   return {
     el,

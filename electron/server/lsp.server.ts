@@ -268,9 +268,10 @@ export class server {
       "textDocument/signatureHelp",
       "textDocument/documentHighlight",
       "textDocument/rename",
-      "textDocument/formatting",
       "textDocument/rangeFormatting",
       "textDocument/onTypeFormatting",
+      // Removed "textDocument/formatting" — it has no position field,
+      // blocking it by position check was wrong
     ]);
 
     const openDocs = new Map<string, number>();

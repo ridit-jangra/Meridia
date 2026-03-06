@@ -4,11 +4,17 @@ import electron from "vite-plugin-electron/simple";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      vscode: path.resolve(
+        __dirname,
+        "node_modules/monaco-languageclient/lib/vscode-compatibility.js",
+      ),
+    },
+  },
   optimizeDeps: {
-    // Pre-bundle CJS packages into ESM for the renderer dev server.
-    // vscode-jsonrpc and vscode-ws-jsonrpc are CJS — without this they
-    // throw "does not provide an export named X".
     include: ["vscode-jsonrpc", "vscode-ws-jsonrpc"],
+    exclude: ["vscode-languageclient"],
   },
   plugins: [
     tailwindcss(),

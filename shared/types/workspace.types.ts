@@ -6,4 +6,5 @@ export interface IWorkspace {
   terminal_tabs: IPersistedTerminalTab[];
   name: string;
   path: string;
+  open_folders: string[];
 }

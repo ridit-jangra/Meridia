@@ -175,13 +175,24 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
     el: viewport,
     viewport,
     inner,
-    layer, // <-- exposed so callers can query live DOM nodes directly
+    layer,
     setItems(next: T[]) {
       items = next;
       setSpacer();
       start = -1;
       end = -1;
-      cache.clear();
+      cache.clear(); // Full reset — use only when structure changes entirely
+      schedule();
+    },
+    // Like setItems but preserves the DOM cache so unchanged rows are reused.
+    // Use this for toggling open/close where most rows stay the same.
+    update_rows(next: T[]) {
+      items = next;
+      setSpacer();
+      // Reset range bounds to force re-render pass, but keep cache intact
+      // so rows whose keys haven't changed get their DOM nodes reused.
+      start = -1;
+      end = -1;
       schedule();
     },
     updateItems(next: T[]) {
@@ -195,7 +206,7 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
     refresh() {
       start = -1;
       end = -1;
-      cache.clear();
+      // Do NOT clear cache here — refresh just re-evaluates visible range
       schedule();
     },
     invalidate(key: string) {

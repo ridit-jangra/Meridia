@@ -21,7 +21,6 @@ import {
 } from "vscode-languageserver-protocol";
 import { LSP_BRIDGE_PORT } from "../../../shared/lsp/lsp.constants";
 import {
-  path,
   path_to_uri,
   uri_to_path,
   normalize_uri,
@@ -371,7 +370,7 @@ class client {
 
   private register_providers(
     def: LspClientDefinition,
-    conn: LspConnection,
+    _: LspConnection,
   ): monaco.IDisposable[] {
     const selector = def.languageId;
     const disps: monaco.IDisposable[] = [];

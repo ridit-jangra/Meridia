@@ -163,7 +163,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       suggestOnTriggerCharacters: true,
       parameterHints: { enabled: true },
       codeLens: true,
-      codeLensFontFamily: "Fira Code, monospace",
+      codeLensFontFamily: "JetBrains Mono",
       fontLigatures: true,
       bracketPairColorization: { enabled: true },
       wordBasedSuggestions: "off",
