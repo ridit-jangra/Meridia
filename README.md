@@ -1,6 +1,6 @@
 # Meridia V2 (Alpha)
 
-![Meridia Preview](./public/preview/video/2026-03-01.gif)
+![Meridia Preview](./public/preview/ss-4.png)
 
 Meridia is a modern code editor where you code, and AI collaborates — never takes control.
 
