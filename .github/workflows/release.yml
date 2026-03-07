@@ -65,6 +65,7 @@ jobs:
           $version = "${{ github.ref_name }}".TrimStart("v")
           $iss = Get-Content installer.iss -Raw
           $iss = $iss -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"$version`""
+          $iss = $iss -replace 'release\\{#MyAppVersion}\\win-unpacked', "release\$version\win-unpacked"
           $iss | Set-Content installer.iss
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
 
