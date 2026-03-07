@@ -4,6 +4,11 @@
   appId: "Meridia",
   asar: true,
   productName: "Meridia",
+  publish: {
+    provider: "github",
+    owner: "ridit-jangra",
+    repo: "Meridia",
+  },
   directories: {
     output: "release/${version}",
   },

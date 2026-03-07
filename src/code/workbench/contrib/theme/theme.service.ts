@@ -13,7 +13,7 @@ const inject_css = (style_el: HTMLStyleElement, css: string) => {
 
 export class theme_service {
   private themes: Record<theme_id, ITheme> = {};
-  private active_id: theme_id = "light";
+  private active_id: theme_id = "dark";
   private style_el: HTMLStyleElement;
 
   constructor() {

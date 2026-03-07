@@ -1,4 +1,5 @@
 import { app, BrowserWindow, ipcMain } from "electron";
+import { autoUpdater } from "electron-updater";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { server } from "./server/lsp.server";
@@ -36,6 +37,34 @@ lsp_server.register({
 lsp_server.start();
 
 let win: BrowserWindow | null = null;
+
+// ─── Auto Updater ────────────────────────────────────────────────────────────
+function setup_auto_updater() {
+  // Don't check for updates in dev mode
+  if (VITE_DEV_SERVER_URL) return;
+
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on("update-available", (info) => {
+    win?.webContents.send("updater:update-available", info.version);
+  });
+
+  autoUpdater.on("update-downloaded", () => {
+    win?.webContents.send("updater:update-downloaded");
+  });
+
+  autoUpdater.on("error", (err) => {
+    console.error("Auto updater error:", err);
+  });
+
+  setTimeout(() => autoUpdater.checkForUpdates(), 3000);
+  setInterval(() => autoUpdater.checkForUpdates(), 2 * 60 * 60 * 1000);
+}
+
+ipcMain.on("updater:install-now", () => {
+  autoUpdater.quitAndInstall();
+});
 
 function createWindow() {
   const is_win = process.platform === "win32";
@@ -115,4 +144,7 @@ app.on("activate", () => {
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+  createWindow();
+  setup_auto_updater();
+});

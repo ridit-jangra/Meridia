@@ -23,22 +23,51 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Set version from tag
-        run: npm version ${{ github.ref_name }} --no-git-tag-version
-
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Electron app (Windows)
-        run: npm run build
+      - name: Build Electron app (unpacked)
+        run: npx electron-builder --win dir
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create placeholder icon if missing
+        shell: powershell
+        run: |
+          if (!(Test-Path "build\icon.ico")) {
+            New-Item -ItemType Directory -Force -Path build | Out-Null
+            Invoke-WebRequest -Uri "https://raw.githubusercontent.com/electron/electron/main/shell/browser/resources/win/electron.ico" -OutFile "build\icon.ico"
+          }
+
+      - name: Create placeholder sidebar image if missing
+        shell: powershell
+        run: |
+          if (!(Test-Path "build\installer-sidebar.bmp")) {
+            New-Item -ItemType Directory -Force -Path build | Out-Null
+            Add-Type -AssemblyName System.Drawing
+            $bmp = [System.Drawing.Bitmap]::new(164, 314)
+            $g = [System.Drawing.Graphics]::FromImage($bmp)
+            $g.Clear([System.Drawing.Color]::FromArgb(30, 30, 30))
+            $g.Dispose()
+            $bmp.Save("build\installer-sidebar.bmp")
+            $bmp.Dispose()
+          }
+        continue-on-error: true
+
+      - name: Compile Inno Setup installer
+        shell: powershell
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart("v")
+          $iss = Get-Content installer.iss -Raw
+          $iss = $iss -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"$version`""
+          $iss | Set-Content installer.iss
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: release/**/*-Setup.exe
+          path: release/inno/*-Setup.exe
           if-no-files-found: error
 
   build-linux:
@@ -66,9 +95,6 @@ jobs:
             patchelf \
             fuse \
             libfuse2
-
-      - name: Set version from tag
-        run: npm version ${{ github.ref_name }} --no-git-tag-version
 
       - name: Install dependencies
         run: npm ci
