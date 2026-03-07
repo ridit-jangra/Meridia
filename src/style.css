@@ -562,3 +562,8 @@ body {
 .peekview-widget .body {
   border-color: var(--workbench-border) !important;
 }
+
+.context-view * {
+  font-family: "Inter", sans-serif !important;
+  font-weight: 600 !important;
+}

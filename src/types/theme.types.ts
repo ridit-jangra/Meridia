@@ -3,8 +3,41 @@ export interface ITheme {
   name: string;
   base: "dark" | "light" | "high-contrast";
   colors?: Partial<Record<TColors, string>>;
-  tokens?: Record<string, string>;
+  tokens?: Partial<Record<TToken, string>>;
 }
+
+export const TokenColors = [
+  "default",
+  "keyword",
+  "keyword.json",
+  "source",
+  "keyword.typeModifier",
+  "metadata",
+  "number",
+  "boolean",
+  "string",
+  "string.binary",
+  "string.escape",
+  "string.escape.alternative",
+  "string.format.item",
+  "string.regexp",
+  "identifier",
+  "identifier.this",
+  "identifier.constant",
+  "identifier.variable.local",
+  "identifier.parameter",
+  "identifier.function.declaration",
+  "identifier.method.static",
+  "identifier.builtin",
+  "identifier.type",
+  "identifier.field",
+  "identifier.field.static",
+  "identifier.interface",
+  "identifier.type.class",
+  "comment",
+  "comment.parameter",
+  "punctuation",
+];
 
 export const colors = [
   "workbench.background",
@@ -184,3 +217,4 @@ export const colors = [
 ] as const;
 
 export type TColors = (typeof colors)[number];
+export type TToken = (typeof TokenColors)[number];

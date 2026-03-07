@@ -184,4 +184,46 @@ export const dark: ITheme = {
     "link.foreground": "#81A1C1",
     "link.hover.foreground": "#9AB6E3",
   },
+  tokens: {
+    default: "#CFCFD6",
+
+    keyword: "#7FBEB3",
+    "keyword.json": "#C26A72",
+    "keyword.typeModifier": "#78B8B5",
+
+    source: "#C19A5B",
+    metadata: "#D6B66A",
+
+    number: "#C8B07A",
+    boolean: "#78B8B5",
+
+    string: "#C48DBE",
+    "string.binary": "#9EBB7C",
+    "string.escape": "#CFCFD6",
+    "string.escape.alternative": "#9D92D9",
+    "string.format.item": "#D6B66A",
+    "string.regexp": "#BFBFC6",
+
+    identifier: "#CFCFD6",
+    "identifier.this": "#D3A06F",
+    "identifier.constant": "#7FBEB3",
+    "identifier.variable.local": "#C6C6CC",
+    "identifier.parameter": "#D6B66A",
+
+    "identifier.function.declaration": "#D3A06F",
+    "identifier.method.static": "#D3A06F",
+    "identifier.builtin": "#78B8B5",
+
+    "identifier.type": "#D3A06F",
+    "identifier.field": "#9A8FD6",
+    "identifier.field.static": "#9A8FD6",
+
+    "identifier.interface": "#7FB0D9",
+    "identifier.type.class": "#7FB0D9",
+
+    comment: "#6A6A6A",
+    "comment.parameter": "#9A9A9A66",
+
+    punctuation: "#CFCFD6",
+  },
 };

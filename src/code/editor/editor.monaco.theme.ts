@@ -42,6 +42,9 @@ const command_item_active_foreground = theme.get_color(
   "command.item.active.foreground",
 );
 
+const t = (key: Parameters<typeof theme.get_token>[0]) =>
+  theme.get_token(key) ?? "";
+
 monaco.editor.defineTheme("theme", {
   base: kind === "light" ? "vs" : "vs-dark",
   inherit: true,
@@ -137,5 +140,82 @@ monaco.editor.defineTheme("theme", {
     ),
     "editorGroupHeader.tabsBorder": border_foreground,
   },
-  rules: [],
+  rules: [
+    { token: "", foreground: t("default") },
+
+    { token: "keyword", foreground: t("keyword") },
+    { token: "keyword.json", foreground: t("keyword.json") },
+    { token: "keyword.typeModifier", foreground: t("keyword.typeModifier") },
+
+    { token: "source", foreground: t("source") },
+    { token: "metadata", foreground: t("metadata") },
+
+    { token: "number", foreground: t("number") },
+    { token: "boolean", foreground: t("boolean") },
+
+    { token: "string", foreground: t("string") },
+    { token: "string.binary", foreground: t("string.binary") },
+    { token: "string.escape", foreground: t("string.escape") },
+    {
+      token: "string.escape.alternative",
+      foreground: t("string.escape.alternative"),
+    },
+    { token: "string.format.item", foreground: t("string.format.item") },
+    { token: "string.regexp", foreground: t("string.regexp") },
+
+    { token: "identifier", foreground: t("identifier") },
+    { token: "identifier.this", foreground: t("identifier.this") },
+    { token: "identifier.constant", foreground: t("identifier.constant") },
+    {
+      token: "identifier.variable.local",
+      foreground: t("identifier.variable.local"),
+    },
+    { token: "identifier.parameter", foreground: t("identifier.parameter") },
+
+    {
+      token: "identifier.function.declaration",
+      foreground: t("identifier.function.declaration"),
+    },
+    {
+      token: "identifier.method.static",
+      foreground: t("identifier.method.static"),
+    },
+    { token: "identifier.builtin", foreground: t("identifier.builtin") },
+
+    { token: "identifier.type", foreground: t("identifier.type") },
+    { token: "identifier.field", foreground: t("identifier.field") },
+    {
+      token: "identifier.field.static",
+      foreground: t("identifier.field.static"),
+    },
+    { token: "identifier.interface", foreground: t("identifier.interface") },
+    { token: "identifier.type.class", foreground: t("identifier.type.class") },
+
+    { token: "comment", foreground: t("comment"), fontStyle: "italic" },
+    {
+      token: "comment.parameter",
+      foreground: t("comment.parameter"),
+      fontStyle: "italic",
+    },
+
+    { token: "punctuation", foreground: t("punctuation") },
+    { token: "string.value.json", foreground: t("string") },
+    { token: "string.key.json", foreground: t("identifier.field") },
+    { token: "number.json", foreground: t("number") },
+    { token: "keyword.json", foreground: t("keyword.json") },
+    {
+      token: "comment.line.json",
+      foreground: t("comment"),
+      fontStyle: "italic",
+    },
+    {
+      token: "comment.block.json",
+      foreground: t("comment"),
+      fontStyle: "italic",
+    },
+    { token: "delimiter.bracket.json", foreground: t("punctuation") },
+    { token: "delimiter.array.json", foreground: t("punctuation") },
+    { token: "delimiter.colon.json", foreground: t("punctuation") },
+    { token: "delimiter.comma.json", foreground: t("punctuation") },
+  ],
 } as monaco.editor.IStandaloneThemeData);

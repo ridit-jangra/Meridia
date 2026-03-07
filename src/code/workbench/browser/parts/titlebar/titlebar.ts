@@ -16,17 +16,6 @@ export function Titlebar() {
   });
   logo.innerHTML = LogoSvg;
 
-  const left = h(
-    "div",
-    { class: "flex items-center min-w-0" },
-    logo,
-    h(
-      "div",
-      { class: "flex items-center min-w-0" },
-      ...(menus ? [Menubar({ menus }).el] : []),
-    ),
-  );
-
   const update_layout_btns = () => {
     const left_active = is_node_enabled_at_path_active_preset([0]);
     const right_active = is_node_enabled_at_path_active_preset([2]);
@@ -126,11 +115,8 @@ export function Titlebar() {
       class:
         "titlebar-inset titlebar-foreground opacity-80 no-drag flex items-center justify-center gap-1 min-w-0",
     },
-    new_custom_agent,
-    left_panel,
-    bottom_panel,
-    right_panel,
     settings_btn,
+    new_custom_agent,
   );
 
   const content = h("div");
@@ -141,6 +127,27 @@ export function Titlebar() {
   });
 
   update_layout_btns();
+
+  const left = h(
+    "div",
+    { class: "flex items-center min-w-0" },
+    logo,
+    h(
+      "div",
+      {
+        class:
+          "opacity-60 flex gap-1 no-drag items-center mt-0.5 pr-2.5 border-r border-white/30",
+      },
+      left_panel,
+      bottom_panel,
+      right_panel,
+    ),
+    h(
+      "div",
+      { class: "flex items-center min-w-0 pl-1.5" },
+      ...(menus ? [Menubar({ menus }).el] : []),
+    ),
+  );
 
   const el = h(
     "div",

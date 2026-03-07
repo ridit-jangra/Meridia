@@ -10,6 +10,7 @@ import "./ipc/explorer-ipc";
 import "./ipc/watcher-ipc";
 import "./ipc/terminal-ipc";
 import { event_emitter } from "./shared/emitter";
+import { theme } from "../src/code/workbench/contrib/theme/theme.service";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const appRoot = path.join(__dirname, "..");
@@ -41,10 +42,10 @@ function createWindow() {
 
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC!, "electron-vite.svg"),
-    backgroundColor: "#0D0D0D",
+    backgroundColor: theme.get_color("workbench.background"),
     titleBarOverlay: {
-      color: "#0D0D0D",
-      symbolColor: "#E4E4E4A8",
+      color: theme.get_color("workbench.background"),
+      symbolColor: theme.get_color("workbench.foreground"),
       height: is_win ? 27 : 37,
     },
     titleBarStyle: "hidden",
@@ -59,8 +60,8 @@ function createWindow() {
     const clamped = Math.min(Math.max(zoom_factor, 0.75), 2.0);
     const new_height = Math.round(27 * 1.4 * clamped);
     win.setTitleBarOverlay({
-      color: "#0a0a0a",
-      symbolColor: "#E4E4E4A8",
+      color: theme.get_color("workbench.background"),
+      symbolColor: theme.get_color("workbench.foreground"),
       height: new_height,
     });
     const new_inset = Math.round((is_win ? 170 : 115) / (clamped * 1.3));

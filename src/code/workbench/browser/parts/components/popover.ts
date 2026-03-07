@@ -15,9 +15,9 @@ export type TPopoverOptions = {
   closeOnOutsideClick?: boolean;
   closeOnEsc?: boolean;
   trapFocus?: boolean;
+  forcePlacement?: boolean;
   className?: string;
   contentClassName?: string;
-  arrowClassName?: string;
   onOpenChange?: (open: boolean) => void;
 };
 
@@ -160,9 +160,9 @@ export function Popover(
     closeOnOutsideClick: opts.closeOnOutsideClick ?? true,
     closeOnEsc: opts.closeOnEsc ?? true,
     trapFocus: opts.trapFocus ?? false,
+    forcePlacement: opts.forcePlacement ?? false,
     className: opts.className ?? "",
     contentClassName: opts.contentClassName ?? "",
-    arrowClassName: opts.arrowClassName ?? "",
     onOpenChange: opts.onOpenChange ?? (() => {}),
   };
 
@@ -318,7 +318,9 @@ export function Popover(
       root.style.top = "0px";
 
       const pr0 = contentWrap.getBoundingClientRect();
-      const pl = pickPlacement(ar, pr0, o.placement, o.offset, o.padding);
+      const pl = o.forcePlacement
+        ? o.placement
+        : pickPlacement(ar, pr0, o.placement, o.offset, o.padding);
       const pr = contentWrap.getBoundingClientRect();
 
       const pos = computePosition(ar, pr, pl, o.align, o.offset);
@@ -335,7 +337,6 @@ export function Popover(
       );
 
       root.style.transform = `translate3d(${Math.round(left)}px, ${Math.round(top)}px, 0)`;
-
       root.setAttribute("data-placement", pl);
     },
     dispose: () => {
