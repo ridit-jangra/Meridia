@@ -1,4 +1,4 @@
-# Meridia V2 (Alpha)
+# Meridia (Alpha)
 
 ![Meridia Preview](./public/preview/ss-4.png)
 
