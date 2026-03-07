@@ -1,12 +1,12 @@
 import "@xterm/xterm/css/xterm.css";
-import { terminal } from "../common/terminal.service";
-import { IWorkspace } from "../../../../../../shared/types/workspace.types";
-import { ScrollArea } from "../../../browser/parts/components/scroll-area";
-import { h } from "../../core/dom/h";
-import { terminal_events } from "../../../../platform/events/terminal.events";
-import { cn } from "../../core/utils/cn";
-import { ITerminalTab } from "../../../../../types/terminal.types";
-import { lucide } from "../../../browser/parts/components/icon";
+import { terminal } from "../../../platform/terminal/terminal.service";
+import { IWorkspace } from "../../../../../shared/types/workspace.types";
+import { ScrollArea } from "../../browser/parts/components/scroll-area";
+import { h } from "../core/dom/h";
+import { terminal_events } from "../../../platform/events/terminal.events";
+import { cn } from "../core/utils/cn";
+import { ITerminalTab } from "../../../../types/terminal.types";
+import { lucide } from "../../browser/parts/components/icon";
 
 export function TerminalPanel(opts?: { class?: string }) {
   let unsub: (() => void) | null = null;

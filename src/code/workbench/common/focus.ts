@@ -1,5 +1,5 @@
 import { editor_events } from "../../platform/events/editor.events";
-import { terminal } from "../contrib/terminal/common/terminal.service";
+import { terminal } from "../../platform/terminal/terminal.service";
 
 export function focus_terminal() {
   (document.activeElement as HTMLElement | null)?.blur();

@@ -7,7 +7,7 @@ import {
 import { lucide } from "../../browser/parts/components/icon";
 
 import { h } from "./dom/h";
-import { TerminalPanel } from "../terminal/browser/terminal";
+import { TerminalPanel } from "../terminal/terminal";
 import { shortcuts } from "../../common/shortcut/shortcut.service";
 import { Explorer } from "../explorer/explorer";
 import { editor } from "../../../editor/editor";

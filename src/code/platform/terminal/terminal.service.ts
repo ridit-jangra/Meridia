@@ -11,15 +11,15 @@ import {
   Base64Provider,
   ClipboardProvider,
 } from "./addons/provider-clipboard.addon";
-import { theme } from "../../theme/theme.service";
+import { theme } from "../../workbench/contrib/theme/theme.service";
 import {
   IPersistedTerminalTab,
   ITerminalTab,
-} from "../../../../../types/terminal.types";
-import { Link } from "../../../browser/parts/components/link";
-import { h } from "../../core/dom/h";
-import { explorer } from "../../../../platform/explorer/explorer.service";
-import { open_editor_tab } from "../../../../editor/editor.helper";
+} from "../../../types/terminal.types";
+import { Link } from "../../workbench/browser/parts/components/link";
+import { h } from "../../workbench/contrib/core/dom/h";
+import { explorer } from "../../platform/explorer/explorer.service";
+import { open_editor_tab } from "../../editor/editor.helper";
 
 type terminal_service_listener = () => void;
 

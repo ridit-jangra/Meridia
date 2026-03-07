@@ -1,7 +1,7 @@
 import { Terminal, ITerminalAddon, IDisposable } from "@xterm/xterm";
-import { Tooltip } from "../../../../browser/parts/components/tooltip";
-import { Link } from "../../../../browser/parts/components/link";
-import { h } from "../../../core/dom/h";
+import { Tooltip } from "../../../workbench/browser/parts/components/tooltip";
+import { Link } from "../../../workbench/browser/parts/components/link";
+import { h } from "../../../workbench/contrib/core/dom/h";
 
 export interface IFileLinksAddonOptions {
   onOpen: (path: string, location?: { line: number; col: number }) => void;

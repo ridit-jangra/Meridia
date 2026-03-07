@@ -12,7 +12,7 @@ import { ActivityBarPanelComponent } from "../parts/activitybar/activitybar-pane
 import { h } from "../../contrib/core/dom/h";
 import { Titlebar } from "../parts/titlebar/titlebar";
 import { Statusbar } from "../parts/statusbar/statusbar";
-import { terminal } from "../../contrib/terminal/common/terminal.service";
+import { terminal } from "../../../platform/terminal/terminal.service";
 
 type RenderResult = { el: HTMLElement; destroy: () => void };
 

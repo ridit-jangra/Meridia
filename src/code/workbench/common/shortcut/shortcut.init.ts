@@ -13,7 +13,7 @@ import {
   toggle_node_at_path,
   update_layout,
 } from "../../browser/layouts/layout.helper";
-import { terminal } from "../../contrib/terminal/common/terminal.service";
+import { terminal } from "../../../platform/terminal/terminal.service";
 import { layout_engine } from "../../browser/layouts/layout.engine";
 import { debounce } from "../../contrib/core/utils/utils";
 import {
