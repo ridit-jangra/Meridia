@@ -93,7 +93,7 @@ export const dark: ITheme = {
 
     "loader.foreground": "#81A1C1",
 
-    "command.background": "#0D0D0D",
+    "command.background": "#141414",
     "command.item.foreground": "#E6E6E6EB",
     "command.item.hover.background": "#1A1A1A",
     "command.item.hover.foreground": "#FFFFFF",
@@ -106,16 +106,16 @@ export const dark: ITheme = {
     "input.placeholder.foreground": "#E6E6E660",
     "input.focus.border": "#FFFFFF33",
 
-    "select.background": "#0D0D0D",
+    "select.background": "#141414",
     "select.foreground": "#E6E6E6EB",
     "select.border": "#FFFFFF1A",
     "select.hover.background": "#1A1A1A",
-    "select.menu.background": "#0D0D0D",
-    "select.option.foreground": "#E6E6E6EB",
+    "select.menu.background": "#141414",
+    "select.option.foreground": "#141414",
     "select.option.hover.background": "#1A1A1A",
     "select.option.active.background": "#2A2A2A",
 
-    "tooltip.background": "#0D0D0D",
+    "tooltip.background": "#141414",
     "tooltip.foreground": "#E6E6E6EB",
     "tooltip.border": "#FFFFFF26",
 
@@ -143,7 +143,7 @@ export const dark: ITheme = {
     "titlebar.icon.foreground": "#E6E6E6B0",
     "titlebar.icon.hover.background": "#FFFFFF10",
 
-    "titlebar.popover.background": "#0D0D0D",
+    "titlebar.popover.background": "#141414",
 
     "titlebar.menu.item.hover.background": "#FFFFFF1A",
     "titlebar.menu.item.hover.foreground": "#FFFFFF",
@@ -163,17 +163,17 @@ export const dark: ITheme = {
     "selection.foreground": "#FFFFFF",
     "focus.border": "#81A1C199",
 
-    "context.menu.background": "#0D0D0D",
+    "context.menu.background": "#141414",
     "context.menu.foreground": "#E6E6E6EB",
     "context.menu.border": "#FFFFFF1A",
     "context.menu.item.foreground": "#E6E6E6EB",
     "context.menu.item.hover.background": "#1A1A1A",
     "context.menu.item.hover.foreground": "#FFFFFF",
 
-    "popover.background": "#0D0D0D",
+    "popover.background": "#141414",
     "popover.border": "#FFFFFF1A",
 
-    "popover.content.background": "#0D0D0D",
+    "popover.content.background": "#141414",
     "popover.content.foreground": "#E6E6E6EB",
 
     "popover.shadow": "0 16px 40px rgba(0, 0, 0, 0.6)",

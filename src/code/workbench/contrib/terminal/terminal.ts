@@ -6,7 +6,7 @@ import { h } from "../core/dom/h";
 import { terminal_events } from "../../../platform/events/terminal.events";
 import { cn } from "../core/utils/cn";
 import { ITerminalTab } from "../../../../types/terminal.types";
-import { lucide } from "../../browser/parts/components/icon";
+import { codicon, lucide } from "../../browser/parts/components/icon";
 
 export function TerminalPanel(opts?: { class?: string }) {
   let unsub: (() => void) | null = null;
@@ -161,7 +161,7 @@ export function TerminalPanel(opts?: { class?: string }) {
             "origin-center whitespace-nowrap truncate flex items-center gap-1 text-[12px] min-w-0",
           ),
         },
-        lucide("terminal"),
+        codicon("terminal"),
       );
 
       const pill = h(
