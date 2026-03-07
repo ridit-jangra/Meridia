@@ -48,13 +48,17 @@ export function ScrollArea(opts?: {
         ? "overlay-scrollbar-track-horizontal"
         : "overlay-scrollbar-track",
       opts?.scrollbarClass,
+      "z-100",
     ),
   });
 
   const thumb = h("div", {
-    class: isHorizontal
-      ? "overlay-scrollbar-thumb-horizontal"
-      : "overlay-scrollbar-thumb",
+    class: cn(
+      isHorizontal
+        ? "overlay-scrollbar-thumb-horizontal"
+        : "overlay-scrollbar-thumb",
+      "z-100",
+    ),
   });
 
   track.appendChild(thumb);

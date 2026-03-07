@@ -24,19 +24,15 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(appRoot, "public")
   : RENDERER_DIST;
 
-// ── LSP setup ─────────────────────────────────────────────────────────────────
-
 export const lsp_server = new server();
 
 lsp_server.register({
   languageId: "python",
-  command: "", // unused — server auto-resolves jedi-language-server
+  command: "",
   args: [],
 });
 
 lsp_server.start();
-
-// ── Window ────────────────────────────────────────────────────────────────────
 
 let win: BrowserWindow | null = null;
 
@@ -45,9 +41,9 @@ function createWindow() {
 
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC!, "electron-vite.svg"),
-    backgroundColor: "#0a0a0a",
+    backgroundColor: "#0D0D0D",
     titleBarOverlay: {
-      color: "#0a0a0a",
+      color: "#0D0D0D",
       symbolColor: "#E4E4E4A8",
       height: is_win ? 27 : 37,
     },
