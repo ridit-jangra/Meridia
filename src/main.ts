@@ -51,6 +51,8 @@ async function init() {
       palette.close();
     }
   });
+
+  window.ipc.send("build-menu", shortcuts.get_all_shortcuts())
 }
 
 setTimeout(() => {

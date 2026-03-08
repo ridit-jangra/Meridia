@@ -10,6 +10,7 @@ import { layout_engine } from "../../layouts/layout.engine";
 
 export function Titlebar() {
   const menus = titlebar_menu;
+  const is_mac = (window as any).platform.get_platform() === "darwin"
 
   const logo = h("div", {
     class: "w-6 mr-3.5 [&_path]:fill-titlebar-foreground",
@@ -130,19 +131,19 @@ export function Titlebar() {
 
   const left = h(
     "div",
-    { class: "flex items-center min-w-0" },
-    logo,
+    { class: "flex mac-inset items-center min-w-0" },
+    !is_mac && logo,
     h(
       "div",
       {
         class:
-          "opacity-60 flex gap-1 no-drag items-center mt-0.5 pr-2.5 border-r border-white/30",
+          cn("opacity-60 flex gap-1 no-drag items-center mt-0.5 pr-2.5"),
       },
       left_panel,
       bottom_panel,
       right_panel,
     ),
-    h(
+    !is_mac && h(
       "div",
       { class: "flex items-center min-w-0 pl-1.5" },
       ...(menus ? [Menubar({ menus }).el] : []),
@@ -156,6 +157,7 @@ export function Titlebar() {
         "h-[30px] w-full flex items-center justify-between px-2",
         "bg-titlebar-background",
         "drag-region",
+        !is_mac && "border-r border-white/30"
       ),
     },
     left,
@@ -164,11 +166,13 @@ export function Titlebar() {
 
   window.ipc.send("titlebar-ready");
 
-  window.ipc.on("titlebar-insets", (_, inset: number) => {
-    const el = document.querySelector(".titlebar-inset") as HTMLDivElement;
+  window.ipc.on("titlebar-insets", (_, inset: number, is_mac: boolean) => {
+    const el = document.querySelector(is_mac ? ".mac-inset" : ".titlebar-inset") as HTMLDivElement;
     if (!el) return;
 
-    el.style.marginRight = `${inset}px`;
+
+    if (is_mac) el.style.marginLeft = `${inset}px`
+    else el.style.marginRight = `${inset}px`;
   });
 
   return el;

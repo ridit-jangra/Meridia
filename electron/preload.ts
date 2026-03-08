@@ -175,3 +175,7 @@ contextBridge.exposeInMainWorld("pty", {
     return () => ipcRenderer.removeListener(NODE_PTY_EXIT, listener);
   },
 });
+
+contextBridge.exposeInMainWorld('platform', {
+  get_platform: () => process.platform
+});

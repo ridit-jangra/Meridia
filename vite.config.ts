@@ -4,14 +4,6 @@ import electron from "vite-plugin-electron/simple";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      vscode: path.resolve(
-        __dirname,
-        "node_modules/monaco-languageclient/lib/vscode-compatibility.js",
-      ),
-    },
-  },
   optimizeDeps: {
     include: ["vscode-jsonrpc", "vscode-ws-jsonrpc"],
     exclude: ["vscode-languageclient"],

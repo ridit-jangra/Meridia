@@ -18,6 +18,34 @@ export type ContextMenuItem =
       disabled?: boolean;
     };
 
+const IS_MAC = (window as any).platform.get_platform() === "darwin";
+
+function flattenItems(items: ContextMenuItem[]): ContextMenuItem[] {
+  return items.flatMap((i) =>
+    i.type === "submenu" ? [i, ...flattenItems(i.items)] : [i],
+  );
+}
+
+export function serializeItems(items: ContextMenuItem[]): any[] {
+  return items.map((item) => {
+    if (item.type === "separator") return { type: "separator" };
+    if (item.type === "submenu") {
+      return {
+        type: "submenu",
+        label: item.label,
+        disabled: item.disabled ?? false,
+        items: serializeItems(item.items),
+      };
+    }
+    return {
+      type: "item",
+      label: item.label,
+      command_id: item.command_id,
+      disabled: item.disabled ?? false,
+    };
+  });
+}
+
 export function ContextMenu(opts?: {
   class?: string;
   menuClass?: string;
@@ -89,7 +117,6 @@ export function ContextMenu(opts?: {
 
     if (floatingPanel) {
       panel.addEventListener("mouseenter", cancelClose);
-      //   panel.addEventListener("mouseleave", () => scheduleClose());
     }
 
     const openSub = (row: HTMLElement, subItems: ContextMenuItem[]) => {
@@ -122,7 +149,9 @@ export function ContextMenu(opts?: {
           {
             class: cn(
               "flex items-center justify-between px-7 py-1.5 text-[13px] rounded-[7px]",
-              it.disabled ? "opacity-50 pointer-events-none" : "cursor-pointer",
+              it.disabled
+                ? "opacity-50 pointer-events-none"
+                : "cursor-pointer",
               "hover:bg-context-menu-item-hover-background hover:text-context-menu-item-hover-foreground",
               "active:bg-context-item-hover-background",
             ),
@@ -131,7 +160,6 @@ export function ContextMenu(opts?: {
                 cancelClose();
                 if (!it.disabled) openSub(row, it.items);
               },
-              //   mouseleave: () => scheduleClose(),
               mousedown: (e: Event) => {
                 e.preventDefault();
               },
@@ -149,7 +177,9 @@ export function ContextMenu(opts?: {
         {
           class: cn(
             "flex items-center justify-between px-7 py-1.5 text-[13px] rounded-[7px]",
-            it.disabled ? "opacity-50 pointer-events-none" : "cursor-pointer",
+            it.disabled
+              ? "opacity-50 pointer-events-none"
+              : "cursor-pointer",
             "hover:bg-context-menu-item-hover-background hover:text-context-menu-item-hover-foreground",
             "active:bg-context-menu-item-hover-background",
           ),
@@ -166,7 +196,7 @@ export function ContextMenu(opts?: {
         h("span", { class: "truncate" }, it.label),
         h(
           "div",
-          { class: `text-[12px] ml-8 opacity-70` },
+          { class: "text-[12px] ml-8 opacity-70" },
           it.command_id ? it.command_id : "",
         ),
       );
@@ -206,6 +236,22 @@ export function ContextMenu(opts?: {
   window.addEventListener("keydown", onKey);
 
   const openAt = (x: number, y: number, items: ContextMenuItem[]) => {
+    if (IS_MAC) {
+      const api = (window).ipc;
+
+      api.invoke("context-menu:show", serializeItems(items));
+
+      api.once("context-menu:click", (_,command_id: string) => {
+        const flat = flattenItems(items);
+        const found = flat.find(
+          (i) => i.type === "item" && i.command_id === command_id,
+        );
+        if (found && found.type === "item") found.onClick?.();
+      });
+
+      return;
+    }
+
     currentItems = items;
     closeFloating();
     render();
@@ -221,7 +267,6 @@ export function ContextMenu(opts?: {
     };
 
     target.addEventListener("contextmenu", onCtx);
-
     return () => target.removeEventListener("contextmenu", onCtx);
   };
 
