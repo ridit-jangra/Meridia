@@ -52,6 +52,8 @@ export function Input(opts?: {
     },
   }) as HTMLInputElement;
 
+  input.spellcheck = false;
+
   if (opts?.onChange) {
     input.addEventListener("change", () => opts.onChange!(input.value));
   }

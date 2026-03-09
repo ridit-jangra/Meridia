@@ -4,10 +4,14 @@ import { h } from "../../../contrib/core/dom/h";
 import { lucide } from "./icon";
 import { shortcuts } from "../../../common/shortcut/shortcut.service";
 import { Dropdown, DropdownItem } from "./dropdown";
+import { Button } from "./button";
 
 export function Menubar(opts: { menus: ITitlebarMenuItem[]; class?: string }) {
   const root = h("div", {
-    class: cn("flex items-center gap-px select-none no-drag", opts.class),
+    class: cn(
+      "flex items-center gap-px select-none no-drag h-full",
+      opts.class,
+    ),
   });
 
   const buildItems = (menuItems: ITitlebarMenuItem[]): DropdownItem[] => {
@@ -46,18 +50,7 @@ export function Menubar(opts: { menus: ITitlebarMenuItem[]; class?: string }) {
     children: buildItems(menu.submenu ?? []),
   }));
 
-  const anchor = h(
-    "div",
-    {
-      class: cn(
-        "inline-flex items-center justify-center w-7 h-7 rounded-[6px] cursor-pointer",
-        "text-titlebar-foreground/90",
-        "hover:bg-titlebar-item-hover-background/80 hover:text-titlebar-item-hover-foreground/90 transition-colors",
-      ),
-      title: "Menu",
-    },
-    lucide("menu"),
-  ) as HTMLElement;
+  const anchor = Button(lucide("menu"), { variant: "ghost" });
 
   const dropdown = Dropdown({
     items: topLevelItems,

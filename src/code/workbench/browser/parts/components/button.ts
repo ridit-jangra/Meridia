@@ -10,7 +10,7 @@ export type ButtonVariant =
 export type ButtonSize = "sm" | "md" | "lg" | "icon";
 
 export function Button(
-  label: string,
+  label: string | HTMLElement,
   opts?: {
     variant?: ButtonVariant;
     size?: ButtonSize;
@@ -18,15 +18,23 @@ export function Button(
     disabled?: boolean;
     onClick?: (e: MouseEvent) => void;
     type?: "button" | "submit";
+    tooltip?: {
+      text?: string;
+      content?: HTMLElement;
+      class?: string;
+      position?: "top" | "bottom" | "left" | "right" | "auto";
+      delay?: number;
+      hide_delay?: number;
+    };
   },
 ) {
   const variant = opts?.variant ?? "default";
   const size = opts?.size ?? "md";
 
   const base =
-    "inline-flex items-center justify-center whitespace-nowrap select-none rounded-[7px] cursor-pointer " +
+    "flex items-center justify-center whitespace-nowrap select-none rounded-[7px] cursor-pointer " +
     "bg-background text-foreground " +
-    "focus:outline-none focus:ring-1 focus:ring-focus-border disabled:opacity-50 disabled:pointer-events-none transition-colors";
+    "disabled:opacity-50 disabled:pointer-events-none transition-colors";
 
   const variants: Record<ButtonVariant, string> = {
     default:
@@ -42,8 +50,8 @@ export function Button(
   };
 
   const sizes: Record<ButtonSize, string> = {
-    sm: "h-7 px-2 text-[12px]",
-    md: "h-8 px-2.5 text-[13px]",
+    sm: "h-7 px-1 text-[12px]",
+    md: "h-8 px-2 text-[13px]",
     lg: "h-9 px-3 text-[14px]",
     icon: "h-8 w-8 px-0",
   };
@@ -59,7 +67,12 @@ export function Button(
       on: opts?.onClick
         ? { click: (e) => opts.onClick!(e as MouseEvent) }
         : undefined,
+      tooltip: opts?.tooltip,
     },
-    h("span", { class: "min-w-0 w-full truncate" }, label),
+    h(
+      "span",
+      { class: "min-w-0 w-full truncate flex items-center justify-center" },
+      label,
+    ),
   );
 }

@@ -1,5 +1,6 @@
 import { h } from "../../../contrib/core/dom/h";
 import { cn } from "../../../contrib/core/utils/cn";
+import { GLASS } from "../../../contrib/styles/glass";
 
 export type TPopoverPlacement = "top" | "bottom" | "left" | "right";
 export type TPopoverAlign = "start" | "center" | "end";
@@ -169,6 +170,7 @@ export function Popover(
   const root = h("div");
   root.className = cn(
     "bg-popover-background fixed left-0 top-0 z-50",
+    GLASS,
     o.className,
   );
   root.style.display = "none";
@@ -176,6 +178,7 @@ export function Popover(
   const contentWrap = h("div");
   contentWrap.className = cn(
     "popover-shadow bg-popover-content-background border border-popover-border p-1.5 rounded-[7px] text-popover-content-foreground text-sm",
+    GLASS,
     o.contentClassName,
   );
 

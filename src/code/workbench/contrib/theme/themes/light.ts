@@ -13,14 +13,14 @@ export const light: ITheme = {
     "panel.foreground": "#1A1A1A",
     "panel.border": "#DDDDD8",
 
-    "editor.background": "#F7F7F7",
+    "editor.background": "#F4F4F1",
     "editor.foreground": "#1A1A1A",
     "editor.cursor.foreground": "#6A6A62",
     "editor.selection.background": "#D8D8D4",
     "editor.line.highlight.background": "#F5F5F3",
 
-    "editor.tab.background": "#F0F0ED",
-    "editor.tab.active.background": "#F7F7F7",
+    "editor.tab.background": "#F7F7F5",
+    "editor.tab.active.background": "#F4F4F1",
     "editor.tab.active.border": "#F7F7F7",
     "editor.tab.hover.background": "#E8E8E5",
     "editor.tab.foreground": "#7A7A72",

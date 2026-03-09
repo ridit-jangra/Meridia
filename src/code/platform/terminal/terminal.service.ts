@@ -77,6 +77,7 @@ class terminal_service {
       cursorInactiveStyle: "none",
       fontFamily: "JetBrains Mono",
       fontSize: 15,
+      fontWeight: 600,
 
       disableStdin: false,
       scrollback: 10000,

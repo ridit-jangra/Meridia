@@ -1,4 +1,10 @@
-import { app, BrowserWindow, ipcMain, Menu, MenuItemConstructorOptions } from "electron";
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  MenuItemConstructorOptions,
+} from "electron";
 import { autoUpdater } from "electron-updater";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -20,7 +26,7 @@ import type { ContextMenuItem } from "../src/code/workbench/browser/parts/compon
 
 export function get_accelerator(
   shortcuts: shortcut_def[],
-  command: string
+  command: string,
 ): string | undefined {
   const match = shortcuts.find((s) => s.command === command);
   if (!match) return undefined;
@@ -31,7 +37,7 @@ export function get_accelerator(
 function convert_menu_items(
   items: ITitlebarMenuItem[],
   shortcuts: shortcut_def[],
-  onCommand: (command: string) => void
+  onCommand: (command: string) => void,
 ): MenuItemConstructorOptions[] {
   return items.map((item): MenuItemConstructorOptions => {
     if (item.name === "separator") return { type: "separator" };
@@ -47,7 +53,9 @@ function convert_menu_items(
     return {
       id: item.id,
       label: item.name,
-      accelerator: item.command ? get_accelerator(shortcuts, item.command) : undefined,
+      accelerator: item.command
+        ? get_accelerator(shortcuts, item.command)
+        : undefined,
       click: item.command ? () => onCommand(item.command!) : undefined,
     };
   });
@@ -56,7 +64,7 @@ function convert_menu_items(
 export function build_electron_menu(
   items: ITitlebarMenuItem[],
   shortcuts: shortcut_def[],
-  onCommand: (command: string) => void
+  onCommand: (command: string) => void,
 ): Menu {
   const template = convert_menu_items(items, shortcuts, onCommand);
   return Menu.buildFromTemplate(template);
@@ -115,9 +123,9 @@ ipcMain.on("updater:install-now", () => {
 
 function createWindow() {
   const is_win = process.platform === "win32";
-  const is_mac = process.platform === "darwin"
+  const is_mac = process.platform === "darwin";
 
-  const inset = is_mac ? 75 : is_win ? 170 : 115
+  const inset = is_mac ? 75 : is_win ? 170 : 115;
 
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC!, "electron-vite.svg"),
@@ -139,14 +147,14 @@ function createWindow() {
     const clamped = Math.min(Math.max(zoom_factor, 0.75), 2.0);
     const new_height = Math.round(27 * 1.4 * clamped);
     if (!is_mac) {
-      win.setTitleBarOverlay({      
+      win.setTitleBarOverlay({
         color: theme.get_color("workbench.background"),
         symbolColor: theme.get_color("workbench.foreground"),
         height: new_height,
       });
-    }                                  
+    }
     const new_inset = Math.round(inset / (clamped * 1.3));
-    win.webContents.send("titlebar-insets", new_inset, is_mac);  
+    win.webContents.send("titlebar-insets", new_inset, is_mac);
   }
 
   ipcMain.handle("workbench.zoom", () => {
@@ -161,6 +169,11 @@ function createWindow() {
       Math.max(0.5, win.webContents.getZoomFactor() - 0.1),
     );
     update_titlebar_height();
+  });
+
+  ipcMain.handle("toggle-developer-tools", () => {
+    if (!win) return;
+    win.webContents.toggleDevTools();
   });
 
   event_emitter.on("window.reload", () => win?.webContents.reload());
@@ -179,11 +192,13 @@ function createWindow() {
 
   ipcMain.handle("context-menu:show", (_e, items: ContextMenuItem[]) => {
     if (!win) return;
-  
-    const buildNativeItems = (items: ContextMenuItem[]): MenuItemConstructorOptions[] =>
+
+    const buildNativeItems = (
+      items: ContextMenuItem[],
+    ): MenuItemConstructorOptions[] =>
       items.map((item) => {
         if (item.type === "separator") return { type: "separator" };
-  
+
         if (item.type === "submenu") {
           return {
             label: item.label,
@@ -191,38 +206,40 @@ function createWindow() {
             submenu: buildNativeItems(item.items),
           };
         }
-  
+
         return {
           label: item.label,
           enabled: !item.disabled,
           click: () => {
-            // Fire back to renderer so onClick handlers still work
             win?.webContents.send("context-menu:click", item.command_id);
           },
         };
       });
-  
+
     const menu = Menu.buildFromTemplate(buildNativeItems(items));
     menu.popup({ window: win! });
   });
 
   ipcMain.on("build-menu", (_, shortcuts: shortcut_def[]) => {
-    const menu = build_electron_menu(titlebar_menu, shortcuts, (command: string) => {
-      if (!win) return
-      win.webContents.send("run-command", command)
-    })
-  
+    const menu = build_electron_menu(
+      titlebar_menu,
+      shortcuts,
+      (command: string) => {
+        if (!win) return;
+        win.webContents.send("run-command", command);
+      },
+    );
+
     if (is_mac) {
       Menu.setApplicationMenu(menu);
     } else {
-      if (!win) return
+      if (!win) return;
       win.setMenuBarVisibility(false);
       win.setMenu(menu);
     }
-  })
-  
+  });
+
   win.maximize();
- 
 
   if (VITE_DEV_SERVER_URL) win.loadURL(VITE_DEV_SERVER_URL);
   else win.loadFile(path.join(RENDERER_DIST, "index.html"));

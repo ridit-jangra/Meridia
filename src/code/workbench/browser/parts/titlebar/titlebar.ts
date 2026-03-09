@@ -7,107 +7,104 @@ import { is_node_enabled_at_path_active_preset } from "../../layouts/layout.help
 import { codicon, lucide } from "../components/icon";
 import { shortcuts } from "../../../common/shortcut/shortcut.service";
 import { layout_engine } from "../../layouts/layout.engine";
+import { Button } from "../components/button";
 
 export function Titlebar() {
   const menus = titlebar_menu;
-  const is_mac = (window as any).platform.get_platform() === "darwin"
+  const is_mac = (window as any).platform.get_platform() === "darwin";
 
   const logo = h("div", {
     class: "w-6 mr-3.5 [&_path]:fill-titlebar-foreground",
   });
   logo.innerHTML = LogoSvg;
 
+  const left_panel = Button(codicon("layout-sidebar-left"), {
+    variant: "ghost",
+    size: "icon",
+    tooltip: {
+      text: `Toggle Primary Side Bar (${shortcuts.get_shortcut({ id: "togglePrimarySideBar" })?.keys})`,
+    },
+    onClick: (e) => {
+      e.preventDefault();
+      shortcuts.run_shortcut("layout.togglePrimarySideBar");
+    },
+  });
+
+  const bottom_panel = Button(codicon("layout-panel"), {
+    variant: "ghost",
+    size: "icon",
+    tooltip: {
+      text: `Toggle Panel (${shortcuts.get_shortcut({ id: "toggleBottomPanel" })?.keys})`,
+    },
+    onClick: (e) => {
+      e.preventDefault();
+      shortcuts.run_shortcut("layout.toggleBottomPanel");
+    },
+  });
+
+  const right_panel = Button(codicon("layout-sidebar-right"), {
+    variant: "ghost",
+    size: "icon",
+    tooltip: {
+      text: `Toggle Secondary Side Bar (${shortcuts.get_shortcut({ id: "toggleSecondarySideBar" })?.keys})`,
+    },
+    onClick: (e) => {
+      e.preventDefault();
+      shortcuts.run_shortcut("layout.toggleSecondarySideBar");
+    },
+  });
+
   const update_layout_btns = () => {
     const left_active = is_node_enabled_at_path_active_preset([0]);
     const right_active = is_node_enabled_at_path_active_preset([2]);
     const bottom_active = is_node_enabled_at_path_active_preset([1, 1]);
 
-    left_panel.innerHTML = "";
-    right_panel.innerHTML = "";
-    bottom_panel.innerHTML = "";
+    const lSpan = left_panel.querySelector("span")!;
+    const rSpan = right_panel.querySelector("span")!;
+    const bSpan = bottom_panel.querySelector("span")!;
 
-    if (left_active) left_panel.appendChild(codicon("layout-sidebar-left"));
-    else left_panel.appendChild(codicon("layout-sidebar-left-off"));
+    lSpan.innerHTML = "";
+    rSpan.innerHTML = "";
+    bSpan.innerHTML = "";
 
-    if (right_active) right_panel.appendChild(codicon("layout-sidebar-right"));
-    else right_panel.appendChild(codicon("layout-sidebar-right-off"));
-
-    if (bottom_active) bottom_panel.appendChild(codicon("layout-panel"));
-    else bottom_panel.appendChild(codicon("layout-panel-off"));
+    lSpan.appendChild(
+      codicon(left_active ? "layout-sidebar-left" : "layout-sidebar-left-off"),
+    );
+    rSpan.appendChild(
+      codicon(
+        right_active ? "layout-sidebar-right" : "layout-sidebar-right-off",
+      ),
+    );
+    bSpan.appendChild(
+      codicon(bottom_active ? "layout-panel" : "layout-panel-off"),
+    );
   };
 
-  const settings_btn = h(
-    "span",
-    {
-      class:
-        "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
-      tooltip: {
-        text: `Settings (${shortcuts.get_shortcut({ id: "openSettings" })?.keys})`,
-      },
-    },
+  const settings_btn = Button(
     lucide(
       "settings",
       18,
       "[&_path]:stroke-titlebar-foreground [&_circle]:stroke-titlebar-foreground",
     ),
+    {
+      variant: "ghost",
+      size: "icon",
+      tooltip: {
+        text: `Settings (${shortcuts.get_shortcut({ id: "openSettings" })?.keys})`,
+      },
+      onClick: () => shortcuts.run_shortcut("openSettings"),
+    },
   );
 
-  const left_panel = h("span", {
-    class:
-      "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
-    on: {
-      click: (e: Event) => {
-        e.preventDefault();
-        shortcuts.run_shortcut("layout.togglePrimarySideBar");
-      },
-    },
-    tooltip: {
-      text: `Toggle Primary Side Bar (${shortcuts.get_shortcut({ id: "togglePrimarySideBar" })?.keys})`,
-    },
-  });
-
-  const bottom_panel = h("span", {
-    class:
-      "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
-    on: {
-      click: (e: Event) => {
-        e.preventDefault();
-        shortcuts.run_shortcut("layout.toggleBottomPanel");
-      },
-    },
-    tooltip: {
-      text: `Toggle Panel (${shortcuts.get_shortcut({ id: "toggleBottomPanel" })?.keys})`,
-    },
-  });
-
-  const right_panel = h("span", {
-    class:
-      "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer p-1 rounded-md",
-    on: {
-      click: (e: Event) => {
-        e.preventDefault();
-        shortcuts.run_shortcut("layout.toggleSecondarySideBar");
-      },
-    },
-    tooltip: {
-      text: `Toggle Secondary Side Bar (${shortcuts.get_shortcut({ id: "toggleSecondarySideBar" })?.keys})`,
-    },
-  });
-
-  const new_custom_agent = h(
-    "span",
+  const new_custom_agent = Button(
+    lucide("plus", 18, "[&_path]:stroke-titlebar-foreground"),
     {
-      class:
-        "flex items-center justify-center hover:bg-titlebar-item-hover-background/80 cursor-pointer mb-px p-1 rounded-md",
+      variant: "ghost",
+      size: "icon",
       tooltip: {
-        text: `New Custom Agent`,
+        text: "New Custom Agent",
       },
     },
-    lucide(
-      "plus",
-      18,
-      "[&_path]:stroke-titlebar-foreground [&_circle]:stroke-titlebar-foreground",
-    ),
   );
 
   const right = h(
@@ -120,9 +117,6 @@ export function Titlebar() {
     new_custom_agent,
   );
 
-  const content = h("div");
-  content.textContent = "Hello popover";
-
   layout_engine.subscribe(() => {
     update_layout_btns();
   });
@@ -131,23 +125,25 @@ export function Titlebar() {
 
   const left = h(
     "div",
-    { class: "flex mac-inset items-center min-w-0" },
+    { class: "flex mac-inset items-center" },
     !is_mac && logo,
     h(
       "div",
       {
-        class:
-          cn("opacity-60 flex gap-1 no-drag items-center mt-0.5 pr-2.5"),
+        class: cn(
+          "opacity-60 flex gap-1 no-drag items-center pr-2.5 border-r border-r-workbench-border",
+        ),
       },
       left_panel,
       bottom_panel,
       right_panel,
     ),
-    !is_mac && h(
-      "div",
-      { class: "flex items-center min-w-0 pl-1.5" },
-      ...(menus ? [Menubar({ menus }).el] : []),
-    ),
+    !is_mac &&
+      h(
+        "div",
+        { class: "flex items-center pl-1.5" },
+        ...(menus ? [Menubar({ menus }).el] : []),
+      ),
   );
 
   const el = h(
@@ -157,7 +153,7 @@ export function Titlebar() {
         "h-[30px] w-full flex items-center justify-between px-2",
         "bg-titlebar-background",
         "drag-region",
-        !is_mac && "border-r border-white/30"
+        !is_mac && "border-r border-white/30",
       ),
     },
     left,
@@ -167,11 +163,12 @@ export function Titlebar() {
   window.ipc.send("titlebar-ready");
 
   window.ipc.on("titlebar-insets", (_, inset: number, is_mac: boolean) => {
-    const el = document.querySelector(is_mac ? ".mac-inset" : ".titlebar-inset") as HTMLDivElement;
+    const el = document.querySelector(
+      is_mac ? ".mac-inset" : ".titlebar-inset",
+    ) as HTMLDivElement;
     if (!el) return;
 
-
-    if (is_mac) el.style.marginLeft = `${inset}px`
+    if (is_mac) el.style.marginLeft = `${inset}px`;
     else el.style.marginRight = `${inset}px`;
   });
 

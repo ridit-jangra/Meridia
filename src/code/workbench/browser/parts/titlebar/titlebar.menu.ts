@@ -300,6 +300,12 @@ export const titlebar_menu: ITitlebarMenuItem[] = [
         name: "Documentation",
         command: "app.documentation",
       },
+      { id: "separator-0", name: "separator" },
+      {
+        id: "toggle-developer-tools",
+        name: "Toggle Developer Tools",
+        command: "app.toggleDeveloperTools",
+      },
       { id: "separator-1", name: "separator" },
       {
         id: "keyboard-shortcuts",

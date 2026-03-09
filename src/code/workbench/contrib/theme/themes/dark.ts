@@ -93,7 +93,7 @@ export const dark: ITheme = {
 
     "loader.foreground": "#81A1C1",
 
-    "command.background": "#141414",
+    "command.background": "#0D0D0D",
     "command.item.foreground": "#E6E6E6EB",
     "command.item.hover.background": "#1A1A1A",
     "command.item.hover.foreground": "#FFFFFF",

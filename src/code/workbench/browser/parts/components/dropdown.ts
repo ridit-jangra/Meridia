@@ -2,6 +2,7 @@ import { h } from "../../../contrib/core/dom/h";
 import { cn } from "../../../contrib/core/utils/cn";
 import { Popover, TPopover } from "./popover";
 import { lucide } from "./icon";
+import { GLASS } from "../../../contrib/styles/glass";
 
 export type DropdownItem =
   | {
@@ -73,7 +74,8 @@ export function Dropdown(opts: {
   const buildMenu = (items: DropdownItem[]): HTMLElement => {
     const menu = h("div", {
       class: cn(
-        "min-w-[220px] bg-context-menu-background text-context-menu-foreground rounded-[7px] shadow-sm",
+        "min-w-[220px] bg-context-menu-background text-context-menu-foreground rounded-[7px] shadow-sm animate-in fade-in fade-[0.80]",
+        GLASS,
         opts.menuClass,
       ),
     });
@@ -92,7 +94,7 @@ export function Dropdown(opts: {
         "div",
         {
           class: cn(
-            "flex items-center justify-between gap-2 px-2 py-1.5 text-[13px] rounded-[7px]",
+            "flex items-center justify-between gap-2 px-2 py-1.5 text-[13px] rounded-[7px] transition-colors",
             it.disabled
               ? "opacity-50 pointer-events-none"
               : "cursor-pointer hover:bg-context-menu-item-hover-background hover:text-context-menu-item-hover-foreground",

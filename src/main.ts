@@ -33,7 +33,6 @@ async function init() {
   shortcuts.bind(document);
 
   const palette = Command({
-    placeholder: "Search commands…",
     groups: build_command_groups(),
     onOpenChange(open) {
       store.dispatch(set_command_palette_open(open));
@@ -52,7 +51,10 @@ async function init() {
     }
   });
 
-  window.ipc.send("build-menu", shortcuts.get_all_shortcuts())
+  window.ipc.send("build-menu", shortcuts.get_all_shortcuts());
+  window.ipc.on("run-command", (_, id: string) => {
+    shortcuts.run_shortcut(id);
+  });
 }
 
 setTimeout(() => {

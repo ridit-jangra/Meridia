@@ -1,6 +1,7 @@
 import { cn } from "../../../contrib/core/utils/cn";
 import { h } from "../../../contrib/core/dom/h";
 import { lucide } from "./icon";
+import { GLASS } from "../../../contrib/styles/glass";
 
 export type ContextMenuItem =
   | {
@@ -77,7 +78,8 @@ export function ContextMenu(opts?: {
       "fixed z-[10000] hidden",
       opts?.menuClass
         ? ""
-        : "bg-context-menu-background text-context-menu-foreground p-0.5 border border-workbench-border rounded-[7px] shadow-sm",
+        : "text-context-menu-foreground p-0.5 border border-workbench-border rounded-[14px] shadow-sm",
+      GLASS,
       opts?.menuClass,
     ),
   }) as HTMLDivElement;
@@ -108,9 +110,9 @@ export function ContextMenu(opts?: {
   const buildPanel = (items: ContextMenuItem[], floatingPanel = false) => {
     const panel = h("div", {
       class: cn(
-        "fixed z-[10001] hidden min-w-[260px]",
+        "fixed z-[10001] hidden",
         "bg-context-menu-background text-context-menu-foreground p-1",
-        "border border-workbench-border rounded-[7px] overflow-hidden shadow-sm",
+        "border border-workbench-border rounded-[14px] overflow-hidden shadow-sm",
         opts?.class,
       ),
     }) as HTMLDivElement;
@@ -148,10 +150,8 @@ export function ContextMenu(opts?: {
           "div",
           {
             class: cn(
-              "flex items-center justify-between px-7 py-1.5 text-[13px] rounded-[7px]",
-              it.disabled
-                ? "opacity-50 pointer-events-none"
-                : "cursor-pointer",
+              "flex items-center justify-between px-3 py-1.5 text-[13px] rounded-[14px]",
+              it.disabled ? "opacity-50 pointer-events-none" : "cursor-pointer",
               "hover:bg-context-menu-item-hover-background hover:text-context-menu-item-hover-foreground",
               "active:bg-context-item-hover-background",
             ),
@@ -176,10 +176,8 @@ export function ContextMenu(opts?: {
         "div",
         {
           class: cn(
-            "flex items-center justify-between px-7 py-1.5 text-[13px] rounded-[7px]",
-            it.disabled
-              ? "opacity-50 pointer-events-none"
-              : "cursor-pointer",
+            "flex items-center justify-between px-3 py-1.5 text-[13px] rounded-[14px]",
+            it.disabled ? "opacity-50 pointer-events-none" : "cursor-pointer",
             "hover:bg-context-menu-item-hover-background hover:text-context-menu-item-hover-foreground",
             "active:bg-context-menu-item-hover-background",
           ),
@@ -237,11 +235,11 @@ export function ContextMenu(opts?: {
 
   const openAt = (x: number, y: number, items: ContextMenuItem[]) => {
     if (IS_MAC) {
-      const api = (window).ipc;
+      const api = window.ipc;
 
       api.invoke("context-menu:show", serializeItems(items));
 
-      api.once("context-menu:click", (_,command_id: string) => {
+      api.once("context-menu:click", (_, command_id: string) => {
         const flat = flattenItems(items);
         const found = flat.find(
           (i) => i.type === "item" && i.command_id === command_id,

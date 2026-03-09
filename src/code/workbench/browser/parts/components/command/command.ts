@@ -4,7 +4,8 @@ import { cn } from "../../../../contrib/core/utils/cn";
 import { shortcut_def } from "../../../../../../types/shortcut.types";
 import { ScrollArea } from "../scroll-area";
 import { shortcuts } from "../../../../common/shortcut/shortcut.service";
-import { Input } from "../input";
+import { lucide } from "../icon";
+import { GLASS } from "../../../../contrib/styles/glass";
 
 export interface CommandGroup {
   id: string;
@@ -38,45 +39,73 @@ export function Command(opts: {
   const modal = h("div", {
     class: cn(
       "fixed z-[9999] hidden",
-      "left-1/2 top-[5%] -translate-x-1/2",
-      "w-[860px] max-w-[calc(100vw-24px)] p-1",
-      "bg-command-background text-command-item-foreground",
-      "border border-workbench-border rounded-xl overflow-hidden",
-      "shadow-lg",
+      "left-1/2 top-[15%] -translate-x-1/2",
+      "w-[860px] max-w-[calc(100vw-24px)] p-2",
+      "text-command-item-foreground",
+      "rounded-4xl overflow-hidden",
+      "animate-in zoom-in-95 fade-in duration-150",
+      GLASS,
       opts.class,
     ),
   });
 
-  const input = Input({
-    placeholder: opts.placeholder ?? "Type a command...",
-    class: "border-none",
-    onInput: () => {
-      const val = input.value.trim();
+  const input = h("input", {
+    class:
+      "border-none bg-transparent text-[1.6rem] opacity-70 font-bold w-full h-full focus:outline-none",
+    attrs: {
+      placeholder: "Search anything.",
+    },
+  });
 
-      let matchedGroup: CommandGroup | null = null;
-      for (const group of opts.groups) {
-        if (val.startsWith(group.prefix)) {
-          matchedGroup = group;
-          query = val.slice(group.prefix.length).toLowerCase();
-          break;
-        }
+  input.oninput = () => {
+    const val = input.value.trim();
+
+    let matchedGroup: CommandGroup | null = null;
+    for (const group of opts.groups) {
+      if (val.startsWith(group.prefix)) {
+        matchedGroup = group;
+        query = val.slice(group.prefix.length).toLowerCase();
+        break;
       }
+    }
 
-      activeGroup = matchedGroup;
-      query = matchedGroup ? query : val.toLowerCase();
-      active = 0;
-      renderList();
-    },
-    onKeyDown(e) {
-      onInputKey(e);
-    },
-  }).el;
+    activeGroup = matchedGroup;
+    query = matchedGroup ? query : val.toLowerCase();
+    active = 0;
+    renderList();
+    updateListVisibility();
+  };
+
+  input.onkeydown = (e) => {
+    onInputKey(e);
+  };
+
+  const input_wrapper = h(
+    "div",
+    { class: "flex items-center gap-2 p-2" },
+    h("span", { class: "opacity-70" }, lucide("search", 20)),
+    input,
+  );
 
   const list = ScrollArea({ class: "max-h-[360px] overflow-auto" }).viewport;
+  list.style.display = "none";
 
-  modal.appendChild(input);
+  const divider = h("div", {
+    class: "border-t border-white/10 mx-1 mt-3 mb-1",
+  });
+  divider.style.display = "none";
+
+  modal.appendChild(input_wrapper);
+  modal.appendChild(divider);
   modal.appendChild(list);
+
   document.body.appendChild(modal);
+
+  const updateListVisibility = () => {
+    const hasInput = input.value.trim().length > 0;
+    list.style.display = hasInput ? "block" : "none";
+    divider.style.display = hasInput ? "block" : "none";
+  };
 
   const isVisible = () => true;
 
@@ -157,6 +186,7 @@ export function Command(opts: {
     query = "";
     active = 0;
     renderList();
+    updateListVisibility();
   };
 
   const setActive = (idx: number, shouldScroll = false) => {
@@ -177,7 +207,7 @@ export function Command(opts: {
       list.appendChild(
         h(
           "div",
-          { class: "px-3 py-3 text-[13px] text-foreground/60" },
+          { class: "px-3 py-3 text-[15px] text-foreground/40" },
           "No results",
         ),
       );
@@ -192,7 +222,7 @@ export function Command(opts: {
             class: cn(
               "px-3 py-1 cursor-pointer select-none",
               "flex items-center justify-between gap-3",
-              "rounded-lg mx-1 my-1 hover:bg-command-item-hover-background hover:text-command-item-hover-foreground",
+              "rounded-full mx-1 my-1 hover:bg-command-item-hover-background hover:text-command-item-hover-foreground",
               i === active &&
                 "bg-command-item-active-background text-command-item-active-foreground",
             ),
@@ -218,7 +248,7 @@ export function Command(opts: {
               "span",
               {
                 class:
-                  "px-1.5 py-px bg-command-item-foreground/5 rounded-md border border-workbench-border",
+                  "px-1.5 py-px bg-command-item-foreground/5 rounded-full border border-workbench-border",
               },
               item.group.prefix,
             ),
@@ -240,9 +270,9 @@ export function Command(opts: {
         "div",
         {
           class: cn(
-            "px-3 py-1 cursor-pointer select-none",
+            "p-3 cursor-pointer select-none",
             "flex items-center justify-between gap-3",
-            "rounded-lg mx-1 my-1 hover:bg-command-item-hover-background hover:text-command-item-hover-foreground",
+            "rounded-full px-3 mx-1 my-1 hover:bg-command-item-hover-background hover:text-command-item-hover-foreground",
             i === active &&
               "bg-command-item-active-background text-command-item-active-foreground",
           ),
@@ -256,8 +286,8 @@ export function Command(opts: {
         },
         h(
           "div",
-          { class: "min-w-0" },
-          h("div", { class: "text-[13px] truncate" }, it.label ?? it.id),
+          { class: "min-w-0 flex gap-2 items-center" },
+          h("div", { class: "text-[16px] truncate" }, it.label ?? it.id),
           !activeGroup
             ? h("div", { class: "text-[11px] opacity-60 truncate" }, group.name)
             : null,
@@ -307,6 +337,8 @@ export function Command(opts: {
     query = "";
     activeGroup = null;
     active = 0;
+    list.style.display = "none";
+    divider.style.display = "none";
 
     if (opts.defaultGroup) {
       const defaultGroup = opts.groups.find((g) => g.id === opts.defaultGroup);
@@ -321,7 +353,14 @@ export function Command(opts: {
       input.focus();
       document.addEventListener("mousedown", onDocumentClick);
     });
+    requestAnimationFrame(() => {
+      input.focus();
+    });
     opts.onOpenChange?.(true);
+
+    setTimeout(() => {
+      input.focus();
+    }, 200);
   };
 
   const close = () => {
@@ -342,6 +381,7 @@ export function Command(opts: {
         query = "";
         active = 0;
         renderList();
+        updateListVisibility();
         return;
       }
 

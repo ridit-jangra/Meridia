@@ -269,6 +269,12 @@ shortcuts.register_command({
     open_editor_tab(res.path);
   },
 });
+shortcuts.register_command({
+  id: "app.toggleDeveloperTools",
+  run: async () => {
+    await window.ipc.invoke("toggle-developer-tools");
+  },
+});
 
 shortcuts.register_shortcuts([
   {
@@ -454,5 +460,13 @@ shortcuts.register_shortcuts([
     keys: "ctrl+alt+t",
     command: "terminal.new",
     scope: "app",
+  },
+  {
+    command: "app.toggleDeveloperTools",
+    id: "toggleDeveloperTools",
+    category: "App",
+    keys: "ctrl+alt+d",
+    scope: "app",
+    label: "Toggle Developer Tools",
   },
 ]);

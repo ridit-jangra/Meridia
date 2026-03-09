@@ -332,8 +332,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       monaco.editor.createModel(content, path_to_language(file_path), uri);
     if (existing && existing.getValue() !== content) existing.setValue(content);
 
-    console.log("LANG:", model.getLanguageId());
-
     return {
       uri: file_path,
       model,
