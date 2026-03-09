@@ -8,10 +8,11 @@ import { store } from "../../common/state/store";
 import { h } from "../core/dom/h";
 import { editors_registry } from "../core/registry";
 import { EditorTabs } from "./editor-tabs";
+import { editor_events } from "../../../platform/events/editor.events";
 
 export function EditorArea() {
   const el = h("div", {
-    class: "flex flex-col h-full min-h-0 bg-panel-background",
+    class: "flex flex-col h-full min-h-0 bg-panel-background relative",
   });
 
   const tabs_ui = EditorTabs();
@@ -53,18 +54,18 @@ export function EditorArea() {
 
     editors.forEach((e) => e.set_visible(false));
 
-    editor.set_visible(true);
-
     const existing_model = editor.get_model(key.file_path);
 
     if (existing_model) {
-      editor.set_model_active(key.file_path, key.tab_status);
+      await editor.set_model_active(key.file_path, key.tab_status);
       return;
     }
 
+    editor_events.emit("start-loading");
     const model = await editor.create_model(key.file_path);
+    editor_events.emit("stop-loading");
     editor.add_model(model);
-    editor.set_model_active(key.file_path, key.tab_status);
+    await editor.set_model_active(key.file_path, key.tab_status);
   };
 
   const save_tabs_to_workspace = async (tabs: any) => {

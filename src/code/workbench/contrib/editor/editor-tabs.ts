@@ -19,6 +19,29 @@ import { store } from "../../common/state/store";
 import { update_tabs } from "../../common/state/slices/editor.slice";
 import { h } from "../core/dom/h";
 import { cn } from "../core/utils/cn";
+import { editor_events } from "../../../platform/events/editor.events";
+
+const LoadingBar = () => {
+  const bar = h("div", {
+    class:
+      "absolute bottom-0 left-0 right-0 h-[2px] z-10 pointer-events-none overflow-hidden",
+    style: "display:none",
+  });
+
+  bar.appendChild(
+    h("div", { class: "h-full w-[35%] bg-loader-foreground animate-loading" }),
+  );
+
+  editor_events.on("start-loading", () => {
+    bar.style.display = "block";
+  });
+
+  editor_events.on("stop-loading", () => {
+    bar.style.display = "none";
+  });
+
+  return bar;
+};
 
 export function EditorTabs() {
   const header = h("div", {
@@ -434,7 +457,8 @@ export function EditorTabs() {
   renderTabs();
   header.appendChild(scrollArea.el);
 
-  const el = h("div", {}, header);
+  const el = h("div", { class: "relative" }, header);
+  el.appendChild(LoadingBar());
 
   return {
     el,

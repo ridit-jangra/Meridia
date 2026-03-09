@@ -185,14 +185,20 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
       schedule();
     },
 
+    // ─── FIX: keep start/end so we don't teardown the whole window, but force
+    // end !== current end so renderRange always runs reconcile() even when the
+    // visible range bounds haven't shifted (e.g. a folder row expands children
+    // that are all below the fold — same s/e, different items array).
     update_rows(next: T[]) {
       items = next;
       setSpacer();
-
-      start = -1;
+      // Invalidate end only — forces renderRange past the early-return guard
+      // without triggering a full re-render from scratch.
       end = -1;
       schedule();
     },
+    // ─────────────────────────────────────────────────────────────────────────
+
     updateItems(next: T[]) {
       items = next;
       setSpacer();
@@ -204,7 +210,6 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
     refresh() {
       start = -1;
       end = -1;
-
       schedule();
     },
     invalidate(key: string) {

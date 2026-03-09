@@ -21,6 +21,7 @@ export const FS_CREATE_DIR = "fs:create-dir";
 export const FS_REMOVE = "fs:remove";
 export const FS_WRITE_FILE_TEXT = "fs:write-file-text";
 export const FS_RENAME = "fs:rename";
+export const FS_READ_BASE_64 = "fs:read_base64";
 export const FS_RELATIVE = "fs:relative";
 export const FS_OPEN = "fs:open";
 

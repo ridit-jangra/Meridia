@@ -13,6 +13,7 @@ import {
   FS_RENAME,
   FS_RELATIVE,
   FS_OPEN,
+  FS_READ_BASE_64,
 } from "../../shared/ipc/channels";
 import path from "node:path";
 
@@ -103,4 +104,9 @@ ipcMain.handle(FS_WRITE_FILE_TEXT, async (_, p: string, content: string) => {
 ipcMain.handle(FS_RENAME, async (_, f: string, t: string) => {
   await fs.rename(f, t);
   return true;
+});
+
+ipcMain.handle(FS_READ_BASE_64, async (_, p: string) => {
+  const buf = await fs.readFile(p);
+  return buf.toString("base64");
 });

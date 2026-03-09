@@ -21,6 +21,7 @@ import "../editor.monaco.theme";
 import "../editor.monaco.customize";
 import { h } from "../../workbench/contrib/core/dom/h";
 import { Button } from "../../workbench/browser/parts/components/button";
+import { ContextMenu } from "../../workbench/browser/parts/components/context-menu";
 import { editor } from "../editor";
 import {
   IMonacoEditor,
@@ -127,6 +128,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
   private error_el: HTMLElement | null = null;
   private model_disposers = new Map<string, Disposer[]>();
+  private editor_context_menu = ContextMenu();
 
   constructor() {
     super(EDITOR_DEF);
@@ -167,10 +169,11 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       fontLigatures: true,
       bracketPairColorization: { enabled: true },
       wordBasedSuggestions: "off",
+      contextmenu: false,
     });
 
     patch_peek_model_service();
-
+    this.setup_context_menu();
     this.setup_editor_events();
     this.setup_statusbar_events();
     await this.setup_lsp();
@@ -184,6 +187,93 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     shortcuts.register_command({
       id: "editor.saveAs",
       run: () => this.save_file_as(),
+    });
+  }
+
+  private setup_context_menu(): void {
+    root_el.addEventListener("contextmenu", (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const selection = this.instance.getSelection();
+      const has_selection = selection && !selection.isEmpty();
+
+      this.editor_context_menu.openAt(e.clientX, e.clientY, [
+        {
+          type: "item",
+          label: "Go to Symbol...",
+          command_id: "Ctrl+Shift+O",
+          onClick: () =>
+            this.instance.trigger(
+              "keyboard",
+              "workbench.action.gotoSymbol",
+              null,
+            ),
+        },
+        { type: "separator" },
+        {
+          type: "item",
+          label: "Change All Occurrences",
+          command_id: "Ctrl+F2",
+          onClick: () =>
+            this.instance.trigger("keyboard", "editor.action.changeAll", null),
+        },
+        {
+          type: "item",
+          label: "Format Document",
+          command_id: "Shift+Alt+F",
+          onClick: () =>
+            this.instance.trigger(
+              "keyboard",
+              "editor.action.formatDocument",
+              null,
+            ),
+        },
+        { type: "separator" },
+        {
+          type: "item",
+          label: "Cut",
+          command_id: "Ctrl+X",
+          disabled: !has_selection,
+          onClick: () =>
+            this.instance.trigger(
+              "keyboard",
+              "editor.action.clipboardCutAction",
+              null,
+            ),
+        },
+        {
+          type: "item",
+          label: "Copy",
+          command_id: "Ctrl+C",
+          disabled: !has_selection,
+          onClick: () =>
+            this.instance.trigger(
+              "keyboard",
+              "editor.action.clipboardCopyAction",
+              null,
+            ),
+        },
+        {
+          type: "item",
+          label: "Paste",
+          command_id: "Ctrl+V",
+          onClick: () =>
+            this.instance.trigger(
+              "keyboard",
+              "editor.action.clipboardPasteAction",
+              null,
+            ),
+        },
+        { type: "separator" },
+        {
+          type: "item",
+          label: "Command Palette",
+          command_id: shortcuts.get_shortcut({ command: "app.commandPalette" })
+            ?.keys as string,
+          onClick: () => shortcuts.run_shortcut("app.commandPalette"),
+        },
+      ]);
     });
   }
 
@@ -276,7 +366,10 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
     if (tab.tab_status === "NEW") return this.save_file_as();
 
+    editor_events.emit("start-loading");
     const res = await explorer.actions.create_file(m.uri, m.model.getValue());
+    editor_events.emit("stop-loading");
+
     store.dispatch(
       update_tabs(
         tabs.map((t) =>
@@ -292,7 +385,10 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     const tabs = store.getState().editor.tabs;
     if (!tabs.find((t) => t.file_path === m.uri)) return;
 
+    editor_events.emit("start-loading");
     const res = await window.files.saveAs(m.model.getValue(), m.uri);
+    editor_events.emit("stop-loading");
+
     if (res.cancel) return;
 
     store.dispatch(
@@ -314,6 +410,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
   public async create_model(file_path: string): Promise<IMonacoModel> {
     const uri = monaco.Uri.file(file_path);
+
     const content = (await window.files.exists(file_path))
       ? await explorer.actions.read_file(file_path)
       : "";
@@ -437,6 +534,8 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     const model = this.models.find((m) => m.uri === uri) as IMonacoModel;
     if (!model) return;
 
+    this.set_visible(false);
+
     const exists = await window.files.exists(uri);
 
     if (status === "DELETED" || (!exists && status !== "NEW")) {
@@ -480,6 +579,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       });
     }
 
+    this.set_visible(true);
     this.instance.focus();
   }
 
@@ -532,6 +632,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   public dispose(): void {
     this.model_disposers.forEach((disposers) => disposers.forEach((d) => d()));
     this.model_disposers.clear();
+    this.editor_context_menu.destroy();
     this.instance?.dispose();
   }
 }
