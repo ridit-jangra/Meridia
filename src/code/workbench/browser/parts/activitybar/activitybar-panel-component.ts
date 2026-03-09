@@ -9,7 +9,6 @@ import { shortcuts } from "../../../common/shortcut/shortcut.service";
 import { toggle_node_at_path } from "../../layouts/layout.helper";
 import { layout_engine } from "../../layouts/layout.engine";
 import { set_active_panel_key } from "../../../common/state/slices/layout.slice";
-import { GLASS } from "../../../contrib/styles/glass";
 
 export function ActivityBarPanelComponent(opts: {
   node: TActivityBarPanelNode;

@@ -6,6 +6,7 @@ import { ScrollArea } from "../scroll-area";
 import { shortcuts } from "../../../../common/shortcut/shortcut.service";
 import { lucide } from "../icon";
 import { GLASS } from "../../../../contrib/styles/glass";
+import gsap from "gsap";
 
 export interface CommandGroup {
   id: string;
@@ -35,6 +36,7 @@ export function Command(opts: {
   let active = 0;
   let query = "";
   let activeGroup: CommandGroup | null = null;
+  let listVisible = false;
 
   const modal = h("div", {
     class: cn(
@@ -88,12 +90,15 @@ export function Command(opts: {
   );
 
   const list = ScrollArea({ class: "max-h-[360px] overflow-auto" }).viewport;
+  // Start hidden, we'll use GSAP to animate it
   list.style.display = "none";
+  list.style.overflow = "hidden";
 
   const divider = h("div", {
     class: "border-t border-white/10 mx-1 mt-3 mb-1",
   });
   divider.style.display = "none";
+  divider.style.opacity = "0";
 
   modal.appendChild(input_wrapper);
   modal.appendChild(divider);
@@ -101,10 +106,63 @@ export function Command(opts: {
 
   document.body.appendChild(modal);
 
+  const showList = () => {
+    if (listVisible) return;
+    listVisible = true;
+
+    // Make elements visible before animating
+    list.style.display = "block";
+    divider.style.display = "block";
+
+    // Kill any running tweens on these elements
+    gsap.killTweensOf([list, divider]);
+
+    // Animate divider fade in
+    gsap.fromTo(
+      divider,
+      { opacity: 0 },
+      { opacity: 1, duration: 0.1, ease: "expo.out" },
+    );
+
+    // Animate list slide down + fade in
+    gsap.fromTo(
+      list,
+      { height: 0, opacity: 0, y: -4 },
+      {
+        height: "auto",
+        opacity: 1,
+        y: 0,
+        duration: 0.14,
+        ease: "expo.out",
+      },
+    );
+  };
+
+  const hideList = () => {
+    if (!listVisible) return;
+    listVisible = false;
+
+    gsap.killTweensOf([list, divider]);
+
+    gsap.to(divider, { opacity: 0, duration: 0.09, ease: "expo.in" });
+
+    gsap.to(list, {
+      height: 0,
+      opacity: 0,
+      y: -4,
+      duration: 0.12,
+      ease: "expo.in",
+      onComplete: () => {
+        list.style.display = "none";
+        divider.style.display = "none";
+      },
+    });
+  };
+
   const updateListVisibility = () => {
     const hasInput = input.value.trim().length > 0;
-    list.style.display = hasInput ? "block" : "none";
-    divider.style.display = hasInput ? "block" : "none";
+    if (hasInput) showList();
+    else hideList();
   };
 
   const isVisible = () => true;
@@ -337,8 +395,10 @@ export function Command(opts: {
     query = "";
     activeGroup = null;
     active = 0;
+    listVisible = false;
     list.style.display = "none";
     divider.style.display = "none";
+    divider.style.opacity = "0";
 
     if (opts.defaultGroup) {
       const defaultGroup = opts.groups.find((g) => g.id === opts.defaultGroup);
