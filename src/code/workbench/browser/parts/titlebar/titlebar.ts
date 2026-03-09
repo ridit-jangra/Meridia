@@ -14,7 +14,7 @@ export function Titlebar() {
   const is_mac = (window as any).platform.get_platform() === "darwin";
 
   const logo = h("div", {
-    class: "w-6 mr-3.5 [&_path]:fill-titlebar-foreground",
+    class: "w-6 mr-3.5 [&_path]:fill-titlebar-foreground opacity-100",
   });
   logo.innerHTML = LogoSvg;
 
@@ -111,7 +111,7 @@ export function Titlebar() {
     "div",
     {
       class:
-        "titlebar-inset titlebar-foreground opacity-80 no-drag flex items-center justify-center gap-1 min-w-0",
+        "titlebar-inset titlebar-foreground h-full opacity-80 no-drag flex items-center",
     },
     settings_btn,
     new_custom_agent,
@@ -125,23 +125,22 @@ export function Titlebar() {
 
   const left = h(
     "div",
-    { class: "flex mac-inset items-center" },
+    {
+      class: "flex mac-inset opacity-60 h-full no-drag items-center",
+    },
     !is_mac && logo,
     h(
       "div",
-      {
-        class: cn(
-          "opacity-60 flex gap-1 no-drag items-center pr-2.5 border-r border-r-workbench-border",
-        ),
-      },
+      { class: "flex items-center pr-1.5 border-r border-workbench-border" },
       left_panel,
       bottom_panel,
       right_panel,
     ),
+
     !is_mac &&
       h(
         "div",
-        { class: "flex items-center pl-1.5" },
+        { class: "h-full pl-1.5" },
         ...(menus ? [Menubar({ menus }).el] : []),
       ),
   );
