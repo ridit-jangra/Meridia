@@ -1,5 +1,6 @@
 import { h } from "../../../contrib/core/dom/h";
 import { cn } from "../../../contrib/core/utils/cn";
+import { GLASS } from "../../../contrib/styles/glass";
 import { ScrollArea } from "./scroll-area";
 
 export type CommandItem = {
@@ -22,17 +23,18 @@ export function CommandList(props: CommandListProps) {
   const modal = h("div", {
     class: cn(
       "fixed z-[9999] hidden",
-      "left-1/2 top-[5%] -translate-x-1/2",
-      "w-[860px] max-w-[calc(100vw-24px)] p-1.5 px-1",
-      "bg-command-background text-command-item-foreground",
-      "border border-workbench-border rounded-xl overflow-hidden",
-      "shadow-lg",
+      "left-1/2 top-[15%] -translate-x-1/2",
+      "w-[860px] max-w-[calc(100vw-24px)] p-2",
+      "text-command-item-foreground",
+      "rounded-4xl overflow-hidden",
+      "animate-in zoom-in-95 fade-in duration-150",
+      GLASS,
     ),
   });
 
   const input = h("input", {
     class: cn(
-      "w-full px-3 py-2 text-sm outline-none bg-transparent",
+      "w-full px-3 py-2 text-[1.6rem] opacity-70 font-bold outline-none bg-transparent",
       "border-b border-workbench-border",
     ),
     placeholder: props.placeholder ?? "Search…",
@@ -84,11 +86,11 @@ export function CommandList(props: CommandListProps) {
         "div",
         {
           class: cn(
-            "px-3 py-1 cursor-pointer select-none",
-            "flex flex-col gap-0.5 rounded-lg mx-1 my-0.5",
-            isActive
-              ? "bg-command-item-active-background text-command-item-active-foreground"
-              : "hover:bg-command-item-hover-background hover:text-command-item-hover-foreground",
+            "p-3 cursor-pointer select-none",
+            "flex items-center justify-between gap-3",
+            "rounded-full mx-1 my-1 hover:bg-command-item-hover-background hover:text-command-item-hover-foreground",
+            isActive &&
+              "bg-command-item-active-background text-command-item-active-foreground",
           ),
           on: {
             mouseenter: () => {
@@ -101,14 +103,7 @@ export function CommandList(props: CommandListProps) {
             },
           },
         },
-        h("div", { class: "text-[13px] font-medium truncate" }, item.label),
-        item.description
-          ? h(
-              "div",
-              { class: "text-[11px] text-command-item-foreground/60 truncate" },
-              item.description,
-            )
-          : null,
+        h("div", { class: "text-[16px] font-medium truncate" }, item.label),
       );
 
       list.appendChild(row);

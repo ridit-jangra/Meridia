@@ -220,7 +220,7 @@ export function Command(opts: {
           "div",
           {
             class: cn(
-              "px-3 py-1 cursor-pointer select-none",
+              "p-3 cursor-pointer select-none",
               "flex items-center justify-between gap-3",
               "rounded-full mx-1 my-1 hover:bg-command-item-hover-background hover:text-command-item-hover-foreground",
               i === active &&
@@ -237,7 +237,7 @@ export function Command(opts: {
           h(
             "div",
             { class: "min-w-0 flex items-center gap-2" },
-            h("div", { class: "text-[13px] truncate" }, item.group.name),
+            h("div", { class: "text-[16px] truncate" }, item.group.name),
           ),
           h(
             "div",
