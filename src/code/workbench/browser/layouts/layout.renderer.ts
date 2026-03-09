@@ -16,293 +16,309 @@ import { terminal } from "../../../platform/terminal/terminal.service";
 
 type RenderResult = { el: HTMLElement; destroy: () => void };
 
-type CacheEntry = {
-  node: TLayoutNode;
-  result: RenderResult;
-};
+const panel_store = new Map<string, RenderResult>();
+const saved_sizes = new Map<string, number>();
 
-function isNodeEnabled(n: TLayoutNode): boolean {
-  if (n.type === "panel") return n.enabled !== false;
-  if (n.type === "tabs") return n.enabled !== false;
-  if (n.type === "activity-bar-panel") return n.enabled !== false;
-  if (n.type === "split") return n.children.some(isNodeEnabled);
-  return true;
+function path_key(path: node_path, idx: number) {
+  return [...path, idx].join(".");
 }
 
-function pathToKey(path: node_path): string {
-  return path.join(".");
+function get_or_create_leaf(node: TLayoutNode): RenderResult | null {
+  if (node.type === "split") return null;
+
+  const id = node.id;
+  if (panel_store.has(id)) return panel_store.get(id)!;
+
+  let result: RenderResult | null = null;
+
+  if (node.type === "panel") {
+    const el = PanelComponent({ id: node.id });
+    result = {
+      el,
+      destroy() {
+        panel_store.delete(id);
+      },
+    };
+  } else if (node.type === "tabs") {
+    const component = TabsComponent({ node });
+    result = {
+      el: component.el,
+      destroy() {
+        panel_store.delete(id);
+      },
+    };
+  } else if (node.type === "activity-bar-panel") {
+    const view = ActivityBarPanelComponent({ node, id: node.id });
+    result = {
+      el: view.el,
+      destroy() {
+        view.destroy();
+        panel_store.delete(id);
+      },
+    };
+  }
+
+  if (result) panel_store.set(id, result);
+  return result;
 }
 
-function nodesEqual(a: TLayoutNode, b: TLayoutNode): boolean {
-  if (a.type !== b.type) return false;
+function compute_sizes(
+  children: TLayoutNode[],
+  raw_sizes: number[],
+  path: node_path,
+): number[] {
+  const n = children.length;
+  const enabled = children.map((c) =>
+    c.type === "split"
+      ? c.children.some((cc: any) => cc.enabled !== false)
+      : c.enabled !== false,
+  );
 
-  if (a.type === "panel" && b.type === "panel") {
-    return a.id === b.id && a.enabled === b.enabled;
+  const sizes = [...raw_sizes];
+
+  for (let i = 0; i < n; i++) {
+    if (enabled[i]) continue;
+
+    const key = path_key(path, i);
+    if (sizes[i] > 0) saved_sizes.set(key, sizes[i]);
+
+    const lost = sizes[i];
+    sizes[i] = 0;
+    if (lost === 0) continue;
+
+    let neighbor = -1;
+    if (i === 0) {
+      for (let j = i + 1; j < n; j++) {
+        if (enabled[j]) {
+          neighbor = j;
+          break;
+        }
+      }
+    } else if (i === n - 1) {
+      for (let j = i - 1; j >= 0; j--) {
+        if (enabled[j]) {
+          neighbor = j;
+          break;
+        }
+      }
+    } else {
+      for (let j = i + 1; j < n; j++) {
+        if (enabled[j]) {
+          neighbor = j;
+          break;
+        }
+      }
+      if (neighbor === -1) {
+        for (let j = i - 1; j >= 0; j--) {
+          if (enabled[j]) {
+            neighbor = j;
+            break;
+          }
+        }
+      }
+    }
+
+    if (neighbor !== -1) sizes[neighbor] += lost;
   }
-  if (a.type === "tabs" && b.type === "tabs") {
-    return (
-      a.id === b.id &&
-      a.active === b.active &&
-      a.enabled === b.enabled &&
-      JSON.stringify(a.tabs) === JSON.stringify(b.tabs)
-    );
+
+  for (let i = 0; i < n; i++) {
+    if (!enabled[i]) continue;
+    if (raw_sizes[i] !== 0) continue;
+
+    const key = path_key(path, i);
+    const restore = saved_sizes.get(key) ?? 100 / n;
+    saved_sizes.delete(key);
+
+    let neighbor = -1;
+    if (i === 0) {
+      for (let j = i + 1; j < n; j++) {
+        if (enabled[j] && sizes[j] > 0) {
+          neighbor = j;
+          break;
+        }
+      }
+    } else if (i === n - 1) {
+      for (let j = i - 1; j >= 0; j--) {
+        if (enabled[j] && sizes[j] > 0) {
+          neighbor = j;
+          break;
+        }
+      }
+    } else {
+      for (let j = i + 1; j < n; j++) {
+        if (enabled[j] && sizes[j] > 0) {
+          neighbor = j;
+          break;
+        }
+      }
+      if (neighbor === -1) {
+        for (let j = i - 1; j >= 0; j--) {
+          if (enabled[j] && sizes[j] > 0) {
+            neighbor = j;
+            break;
+          }
+        }
+      }
+    }
+
+    const actual =
+      neighbor !== -1 ? Math.min(restore, sizes[neighbor]) : restore;
+
+    sizes[i] = actual;
+    if (neighbor !== -1) sizes[neighbor] -= actual;
   }
-  if (a.type === "activity-bar-panel" && b.type === "activity-bar-panel") {
-    return (
-      a.id === b.id &&
-      a.enabled === b.enabled &&
-      JSON.stringify(a.panels) === JSON.stringify(b.panels)
-    );
-  }
-  if (a.type === "split" && b.type === "split") {
-    return (
-      a.dir === b.dir &&
-      JSON.stringify(a.sizes) === JSON.stringify(b.sizes) &&
-      a.children.length === b.children.length &&
-      a.children.every((child, i) => nodesEqual(child, b.children[i]))
-    );
-  }
-  return false;
+
+  return sizes;
 }
 
-function renderNode(opts: {
-  node: TLayoutNode;
-  path: node_path;
+function render_node(
+  node: TLayoutNode,
+  path: node_path,
   on_update_node: (
     path: node_path,
     node: TLayoutNode,
     persist_only?: boolean,
-  ) => void;
-  cache: Map<string, CacheEntry>;
-}): RenderResult | null {
-  const { node, path, on_update_node, cache } = opts;
-
-  const cacheKey = pathToKey(path);
-  const cached = cache.get(cacheKey);
-
-  if (cached && nodesEqual(cached.node, node)) {
-    if (node.type === "split" && cached.node.type === "split") {
-      const allChildrenUnchanged = node.children.every((child, i) => {
-        const childCached = cache.get(pathToKey([...path, i]));
-        return childCached && nodesEqual(childCached.node, child);
-      });
-      if (allChildrenUnchanged) return cached.result;
-    } else {
-      return cached.result;
-    }
+  ) => void,
+): RenderResult | null {
+  if (node.type !== "split") {
+    if (node.enabled === false) return null;
+    return get_or_create_leaf(node);
   }
 
-  if (node.type === "split") {
-    const enabledIndices = node.children
-      .map((child, i) => ({ child, i }))
-      .filter(({ child }) => isNodeEnabled(child));
-
-    node.children.forEach((_, i) => {
-      if (!enabledIndices.find((e) => e.i === i)) {
-        cleanupCacheBranch(cache, [...path, i]);
-      }
-    });
-
-    if (enabledIndices.length === 0) return null;
-
-    if (enabledIndices.length === 1) {
-      const { child, i } = enabledIndices[0];
-      return renderNode({
-        node: child,
-        path: [...path, i],
-        on_update_node,
-        cache,
-      });
-    }
-
-    const renderedChildren = enabledIndices
-      .map(({ child, i }) => ({
-        i,
-        result: renderNode({
-          node: child,
-          path: [...path, i],
-          on_update_node,
-          cache,
-        })!,
-      }))
-      .filter((r) => r.result != null);
-
-    if (renderedChildren.length === 0) return null;
-    if (renderedChildren.length === 1) return renderedChildren[0].result;
-
-    const dir = node.dir === "col" ? "vertical" : "horizontal";
-    const totalEnabled = renderedChildren.length;
-
-    const rawSizes = renderedChildren.map(
-      ({ i }) => node.sizes?.[i] ?? 100 / totalEnabled,
+  const enabled_children = node.children
+    .map((child, i) => ({ child, i }))
+    .filter(({ child }) =>
+      child.type === "split"
+        ? child.children.some((c: any) => c.enabled !== false)
+        : child.enabled !== false,
     );
-    const rawTotal = rawSizes.reduce((a, b) => a + b, 0);
-    const normSizes = rawSizes.map((s) => (s / rawTotal) * 100);
 
-    const splitter = Splitter({
-      direction: dir,
-      gutterSize: dir === "horizontal" ? 7 : 9,
-      panels: renderedChildren.map(({ result }, idx) => ({
-        id: String(renderedChildren[idx].i),
-        size: normSizes[idx],
-        minSize: 80,
-        el: result.el,
-      })),
-      onResize: (sizes) => {
-        const updatedSizes = [
-          ...(node.sizes ??
-            node.children.map(() => 100 / node.children.length)),
-        ];
-        sizes.forEach(({ id, size }) => {
-          updatedSizes[Number(id)] = size;
-        });
-        on_update_node(path, { ...node, sizes: updatedSizes }, true);
-      },
-      onResizeEnd: (sizes) => {
-        const updatedSizes = [
-          ...(node.sizes ??
-            node.children.map(() => 100 / node.children.length)),
-        ];
-        sizes.forEach(({ id, size }) => {
-          updatedSizes[Number(id)] = size;
-        });
-        on_update_node(path, { ...node, sizes: updatedSizes }, true);
-      },
-    });
+  if (enabled_children.length === 0) return null;
 
-    const result: RenderResult = {
-      el: splitter.el,
-      destroy() {
-        splitter.destroy();
-        renderedChildren.forEach(({ result: r }) => r.destroy());
-      },
+  if (enabled_children.length === 1) {
+    const { child, i } = enabled_children[0];
+    return render_node(child, [...path, i], on_update_node);
+  }
+
+  const dir = node.dir === "col" ? "vertical" : "horizontal";
+  const total = node.children.length;
+  const raw_sizes = node.sizes ?? node.children.map(() => 100 / total);
+
+  const display_sizes = compute_sizes(node.children, raw_sizes, path);
+
+  const enabled_total = enabled_children.reduce(
+    (sum, { i }) => sum + display_sizes[i],
+    0,
+  );
+
+  const panels = enabled_children.map(({ child, i }) => {
+    const result = render_node(child, [...path, i], on_update_node);
+    const size =
+      enabled_total > 0
+        ? (display_sizes[i] / enabled_total) * 100
+        : 100 / enabled_children.length;
+
+    return {
+      id: String(i),
+      size,
+      minSize: 80,
+      collapsible: false,
+      el: result?.el ?? h("div", {}),
     };
+  });
 
-    cache.set(cacheKey, { node, result });
-    return result;
-  }
+  const splitter = Splitter({
+    direction: dir,
+    gutterSize: dir === "horizontal" ? 7 : 9,
+    panels,
+    onResize: (sizes) => {
+      const updated_sizes = [...raw_sizes];
+      sizes.forEach(({ id, size }) => {
+        updated_sizes[enabled_children[Number(id)]?.i ?? Number(id)] = size;
+      });
+      on_update_node(path, { ...node, sizes: updated_sizes }, true);
+    },
+    onResizeEnd: (sizes) => {
+      const updated_sizes = [...raw_sizes];
+      sizes.forEach(({ id, size }) => {
+        updated_sizes[enabled_children[Number(id)]?.i ?? Number(id)] = size;
+      });
+      on_update_node(path, { ...node, sizes: updated_sizes }, true);
+    },
+  });
 
-  if (node.type === "panel") {
-    if (node.enabled === false) return null;
-    const el = PanelComponent({ id: node.id });
-    const result: RenderResult = { el, destroy() {} };
-    cache.set(cacheKey, { node, result });
-    return result;
-  }
-
-  if (node.type === "tabs") {
-    if (node.enabled === false) return null;
-    const component = TabsComponent({ node });
-    const result: RenderResult = { el: component.el, destroy() {} };
-    cache.set(cacheKey, { node, result });
-    return result;
-  }
-
-  if (node.type === "activity-bar-panel") {
-    if (node.enabled === false) return null;
-    const view = ActivityBarPanelComponent({ node, id: node.id });
-    const result: RenderResult = { el: view.el, destroy: view.destroy };
-    cache.set(cacheKey, { node, result });
-    return result;
-  }
-
-  return null;
-}
-
-function cleanupCacheBranch(cache: Map<string, CacheEntry>, path: node_path) {
-  const prefix = pathToKey(path);
-  const keysToDelete: string[] = [];
-  for (const key of cache.keys()) {
-    if (key === prefix || key.startsWith(prefix + ".")) {
-      cache.get(key)?.result.destroy();
-      keysToDelete.push(key);
-    }
-  }
-  for (const key of keysToDelete) cache.delete(key);
+  return {
+    el: splitter.el,
+    destroy() {
+      splitter.destroy();
+    },
+  };
 }
 
 export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
   let preset = opts.layout_preset;
-  let rootNode: TLayoutNode = preset.root;
+  let root_node: TLayoutNode = preset.root;
 
-  let saveTimer: number | null = null;
-  let mounted: RenderResult | null = null;
+  let save_timer: number | null = null;
+  let current_splitters: RenderResult[] = [];
 
   let suspend_external = false;
   let suspend_timer: number | null = null;
 
-  const nodeCache = new Map<string, CacheEntry>();
+  const scroll_els = new Map<HTMLElement, number>();
 
-  const scrollEls = new Map<HTMLElement, number>();
-
-  const isScrollable = (el: HTMLElement) => {
+  const is_scrollable = (el: HTMLElement) => {
     const s = getComputedStyle(el);
     const oy = s.overflowY;
     if (oy !== "auto" && oy !== "scroll") return false;
     return el.scrollHeight > el.clientHeight + 1;
   };
 
-  const collectScrollables = (root: HTMLElement) => {
+  const collect_scrollables = (root: HTMLElement) => {
     const out: HTMLElement[] = [];
     const walk = (el: HTMLElement) => {
-      if (isScrollable(el)) out.push(el);
+      if (is_scrollable(el)) out.push(el);
       for (const c of Array.from(el.children)) walk(c as HTMLElement);
     };
     walk(root);
     return out;
   };
 
-  const captureScroll = () => {
-    scrollEls.clear();
-    for (const entry of nodeCache.values()) {
-      if (!entry.result.el.isConnected) continue;
-      for (const el of collectScrollables(entry.result.el)) {
-        scrollEls.set(el, el.scrollTop);
+  const capture_scroll = () => {
+    scroll_els.clear();
+    for (const { el } of panel_store.values()) {
+      if (!el.isConnected) continue;
+      for (const scroll_el of collect_scrollables(el)) {
+        scroll_els.set(scroll_el, scroll_el.scrollTop);
       }
     }
   };
 
-  const restoreScroll = () => {
-    for (const [el, top] of scrollEls) {
+  const restore_scroll = () => {
+    for (const [el, top] of scroll_els) {
       if (el.isConnected) el.scrollTop = top;
     }
   };
 
   const rerender = () => {
-    captureScroll();
+    capture_scroll();
 
-    contentHost.style.visibility = "hidden";
+    const r = render_node(root_node, [], on_update_node);
 
-    if (mounted && mounted.el.parentElement) mounted.el.remove();
-    contentHost.innerHTML = "";
+    for (const s of current_splitters) s.destroy();
+    current_splitters = [];
 
-    const r = renderNode({
-      node: rootNode,
-      path: [],
-      on_update_node,
-      cache: nodeCache,
-    });
-    if (!r) {
-      mounted = null;
-      contentHost.style.visibility = "";
-      return;
-    }
+    if (!r) return;
 
-    mounted = r;
-    contentHost.appendChild(r.el);
+    current_splitters.push(r);
+    content_host.innerHTML = "";
+    content_host.appendChild(r.el);
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        restoreScroll();
-        requestAnimationFrame(() => {
-          contentHost.style.visibility = "";
-          terminal.refresh_active();
-        });
-      });
-    });
+    restore_scroll();
+    requestAnimationFrame(() => terminal.refresh_active());
   };
 
-  const contentHost = h("div", {
+  const content_host = h("div", {
     class: "min-h-0 min-w-0 h-[calc(100vh-4.7rem)] overflow-hidden",
   });
 
@@ -316,17 +332,17 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
         "h-screen w-screen min-h-0 min-w-0 overflow-hidden bg-background p-2",
     },
     titlebar,
-    contentHost,
+    content_host,
     statusbar,
   );
 
-  const persist = (newRoot: TLayoutNode, delay = 50) => {
-    if (saveTimer) window.clearTimeout(saveTimer);
-    saveTimer = window.setTimeout(() => {
+  const persist = (new_root: TLayoutNode, delay = 50) => {
+    if (save_timer) window.clearTimeout(save_timer);
+    save_timer = window.setTimeout(() => {
       suspend_external = true;
       if (suspend_timer) window.clearTimeout(suspend_timer);
       suspend_timer = window.setTimeout(() => (suspend_external = false), 120);
-      layout_engine.update_preset(preset.id, { ...preset, root: newRoot });
+      layout_engine.update_preset(preset.id, { ...preset, root: new_root });
     }, delay);
   };
 
@@ -335,10 +351,10 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
     node: TLayoutNode,
     persist_only?: boolean,
   ) => {
-    const newRoot = set_node_at_path(rootNode, path, node);
-    rootNode = newRoot;
+    const new_root = set_node_at_path(root_node, path, node);
+    root_node = new_root;
     if (!persist_only) rerender();
-    persist(newRoot, 50);
+    persist(new_root, 50);
   };
 
   rerender();
@@ -348,27 +364,27 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
     const latest = layout_engine.get_layout(preset.id);
     if (!latest) return;
 
-    if (latest !== preset || latest.root !== rootNode) {
+    if (latest !== preset || latest.root !== root_node) {
       preset = latest;
-      rootNode = latest.root;
+      root_node = latest.root;
       rerender();
     }
   });
 
   return {
     el,
-    updatePreset(next: TLayoutPreset) {
+    update_preset(next: TLayoutPreset) {
       preset = next;
-      rootNode = next.root;
+      root_node = next.root;
       rerender();
     },
     destroy() {
       unsubscribe();
-      if (saveTimer) window.clearTimeout(saveTimer);
+      if (save_timer) window.clearTimeout(save_timer);
       if (suspend_timer) window.clearTimeout(suspend_timer);
-      for (const entry of nodeCache.values()) entry.result.destroy();
-      nodeCache.clear();
-      mounted?.destroy();
+      for (const r of current_splitters) r.destroy();
+      for (const r of panel_store.values()) r.destroy();
+      panel_store.clear();
       el.remove();
     },
   };

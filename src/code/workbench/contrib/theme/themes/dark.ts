@@ -69,8 +69,8 @@ export const dark: ITheme = {
     "chat.input.foreground": "#E6E6E6EB",
 
     "terminal.background": "#131313",
-    "terminal.foreground": "#E6E6E6EB",
-    "terminal.cursor.foreground": "#E6E6E6EB",
+    "terminal.foreground": "#E6E6E6A6",
+    "terminal.cursor.foreground": "#E6E6E6A6",
     "terminal.selection.background": "#FFFFFF22",
 
     "terminal.black": "#555555",
@@ -80,7 +80,7 @@ export const dark: ITheme = {
     "terminal.blue": "#81A1C1",
     "terminal.magenta": "#C792EA",
     "terminal.cyan": "#88C0D0",
-    "terminal.white": "#E6E6E6EB",
+    "terminal.white": "#F2F2F2",
 
     "terminal.bright.black": "#3A3A3A",
     "terminal.bright.red": "#FF7D92",

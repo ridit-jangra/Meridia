@@ -43,7 +43,7 @@ export const {
   set_active_layout_id,
   set_active_panel_key,
   set_active_tab_key,
-  // update_preset,
+
   set_command_palette_open,
 } = layoutSlice.actions;
 export default layoutSlice.reducer;

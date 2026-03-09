@@ -1,8 +1,6 @@
-// ── Storage ──────────────────────────────────────────────────────────
 export const STORAGE_GET = "storage:get";
 export const STORAGE_SET = "storage:set";
 
-// ── Workspace ─────────────────────────────────────────────────────────
 export const WORKSPACE_GET = "workspace:get";
 export const WORKSPACE_STORE = "workspace:store";
 export const WORKSPACE_UPDATE = "workspace:update";
@@ -11,11 +9,9 @@ export const WORKSPACE_SET_CURRENT_PATH = "workspace:set-current-path";
 export const WORKSPACE_ASK_UPDATE = "workspace:ask-update";
 export const WORKSPACE_CLEAR_CURRENT = "workspace:clear-current";
 
-// ── Explorer ──────────────────────────────────────────────────────────
 export const EXPLORER_GET_ROOT_STRUCTURE = "explorer:get-root-structure";
 export const EXPLORER_GET_CHILD_STRUCTURE = "explorer:get-child-structure";
 
-// ── File System ───────────────────────────────────────────────────────
 export const FS_EXISTS = "fs:exists";
 export const FS_SAVE_AS = "fs:save-as";
 export const FS_READDIR = "fs:readdir";
@@ -28,12 +24,10 @@ export const FS_RENAME = "fs:rename";
 export const FS_RELATIVE = "fs:relative";
 export const FS_OPEN = "fs:open";
 
-// ── Watcher ───────────────────────────────────────────────────────────
 export const WATCHER_START = "watcher:start";
 export const WATCHER_STOP = "watcher:stop";
 export const WATCHER_EVENT = "watcher:event";
 
-// ── Terminal (node-pty) ───────────────────────────────────────────────
 export const NODE_PTY_CREATE = "pty:create";
 export const NODE_PTY_WRITE = "pty:write";
 export const NODE_PTY_RESIZE = "pty:resize";
@@ -41,10 +35,8 @@ export const NODE_PTY_KILL = "pty:kill";
 export const NODE_PTY_DATA = "pty:data";
 export const NODE_PTY_EXIT = "pty:exit";
 
-// ── Shell ─────────────────────────────────────────────────────────────
 export const SHELL_OPEN_EXTERNAL = "shell:open-external";
 
-// ── Git ───────────────────────────────────────────────────────────────
 export const GIT_IS_REPO = "git:is-repo";
 export const GIT_GET_STATUS = "git:get-status";
 export const GIT_STAGE_FILE = "git:stage-file";

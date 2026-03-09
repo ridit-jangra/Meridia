@@ -74,7 +74,6 @@ export const ide_preset: TLayoutPreset = {
         ],
       },
       { type: "panel", id: "ai_chat", enabled: false },
-      // { type: "panel", id: "ai_agent", enabled: true },
     ],
   },
 };

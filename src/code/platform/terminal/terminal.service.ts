@@ -73,11 +73,11 @@ class terminal_service {
 
     const terminal = new Terminal({
       cursorBlink: true,
-      cursorStyle: "bar",
+      cursorStyle: "block",
       cursorInactiveStyle: "none",
       fontFamily: "JetBrains Mono",
       fontSize: 15,
-      fontWeight: 600,
+      fontWeight: theme.get_active().base === "light" ? 600 : 400,
 
       disableStdin: false,
       scrollback: 10000,

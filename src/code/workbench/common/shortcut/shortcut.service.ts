@@ -99,7 +99,6 @@ export class shortcut_service {
       ".monaco-editor",
     );
 
-    // Allow app-level shortcuts in Monaco (save, open, palette)
     if (is_editable_target(e.target) && this.scope === "app" && !isMonaco)
       return;
 

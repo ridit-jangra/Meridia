@@ -260,14 +260,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   }
 
   private async setup_lsp(): Promise<void> {
-    // lsp_client.register({
-    //   languageId: "typescript",
-    //   extensions: ["ts", "tsx", "mts", "cts"],
-    // });
-    // lsp_client.register({
-    //   languageId: "javascript",
-    //   extensions: ["js", "jsx", "mjs", "cjs"],
-    // });
     lsp_client.register({
       languageId: "python",
       extensions: ["py"],

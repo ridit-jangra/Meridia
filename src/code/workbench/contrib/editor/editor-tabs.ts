@@ -38,7 +38,6 @@ export function EditorTabs() {
   const tabElements = new Map<string, HTMLElement>();
   let prevTabs: ITab[] = [];
 
-  // ─── Drag state ──────────────────────────────────────────────────────────────
   let drag_source_path: string | null = null;
   let drag_ghost: HTMLElement | null = null;
   let drag_over_path: string | null = null;
@@ -73,7 +72,6 @@ export function EditorTabs() {
       e.dataTransfer!.effectAllowed = "move";
       e.dataTransfer!.setData("text/plain", file_path);
 
-      // Ghost — clone without indicators
       drag_ghost = element.cloneNode(true) as HTMLElement;
       drag_ghost.style.cssText =
         "position:fixed;top:-9999px;left:-9999px;opacity:0.8;pointer-events:none;";
@@ -84,7 +82,6 @@ export function EditorTabs() {
         element.offsetHeight / 2,
       );
 
-      // Fade source slightly after drag starts
       requestAnimationFrame(() => {
         element.style.opacity = "0.4";
       });
@@ -133,8 +130,6 @@ export function EditorTabs() {
       reorder_tabs(drag_source_path, file_path);
     });
   };
-
-  // ─────────────────────────────────────────────────────────────────────────────
 
   const scrollToTab = (element: HTMLElement) => {
     setTimeout(() => {
@@ -240,7 +235,7 @@ export function EditorTabs() {
           text: tab.file_path,
           position: "bottom",
           delay: 200,
-        }
+        },
       });
 
       closeBtn.addEventListener("click", (e) => {

@@ -77,7 +77,6 @@ export function Statusbar() {
     } else {
       const relative = await window.files.relative(tree.path, active.file_path);
 
-      // ✅ Only update breadcrumb if path changed
       if (relative !== lastBreadcrumbPath) {
         lastBreadcrumbPath = relative;
 
@@ -123,27 +122,22 @@ export function Statusbar() {
     items: get_monaco_languages().map((l) => ({
       id: l.id,
       label: l.label,
-      // description: l.id,
     })),
     onSelect(item) {
       editor_events.emit("setLanguage", item.id);
-      // setEditorLanguage(item.id);
     },
     placeholder: "Select Language…",
   });
 
   const encodingPicker = CommandList({
     items: get_monaco_encodings(),
-    onSelect(_) {
-      // setEditorEncoding(item.id);
-    },
+    onSelect(_) {},
     placeholder: "Select Encoding…",
   });
 
   const indentPicker = CommandList({
     items: get_monaco_indentations(),
     onSelect(item) {
-      // setEditorIndentation(Number(item.id));
       editor_events.emit("setIndentation", item.id);
     },
     placeholder: "Select Indentation…",

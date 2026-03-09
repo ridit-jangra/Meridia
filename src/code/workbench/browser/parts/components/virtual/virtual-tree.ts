@@ -114,7 +114,6 @@ export function VirtualTree(opts: {
   };
   opts.folderStructure.structure.forEach(init_open);
 
-  // Seed open set from persisted folders
   if (opts.initialOpenFolders) {
     for (const id of opts.initialOpenFolders) {
       open.add(norm(id));
@@ -582,13 +581,7 @@ export function VirtualTree(opts: {
 
   el.addEventListener("keydown", on_local_key, true);
 
-  el.addEventListener(
-    "mousedown",
-    () => {
-      // if (document.activeElement !== el) el.focus();
-    },
-    true,
-  );
+  el.addEventListener("mousedown", () => {}, true);
 
   const list = VirtualList<FlatRow>({
     items: rows,
@@ -775,7 +768,6 @@ export function VirtualTree(opts: {
     }
   };
 
-  // Restore persisted open folders — lazy-load children for any that need it
   const restore_open_folders = async () => {
     if (!opts.initialOpenFolders?.length) return;
 

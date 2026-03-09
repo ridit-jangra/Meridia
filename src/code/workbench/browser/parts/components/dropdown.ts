@@ -2,7 +2,6 @@ import { h } from "../../../contrib/core/dom/h";
 import { cn } from "../../../contrib/core/utils/cn";
 import { Popover, TPopover } from "./popover";
 import { lucide } from "./icon";
-import { GLASS } from "../../../contrib/styles/glass";
 
 export type DropdownItem =
   | {
@@ -74,8 +73,7 @@ export function Dropdown(opts: {
   const buildMenu = (items: DropdownItem[]): HTMLElement => {
     const menu = h("div", {
       class: cn(
-        "min-w-[220px] bg-context-menu-background text-context-menu-foreground rounded-[7px] shadow-sm animate-in fade-in fade-[0.80]",
-        GLASS,
+        "min-w-[220px] text-context-menu-foreground rounded-[9px] animate-in fade-in",
         opts.menuClass,
       ),
     });
@@ -83,7 +81,7 @@ export function Dropdown(opts: {
     items.forEach((it) => {
       if (it.type === "separator") {
         menu.appendChild(
-          h("div", { class: "my-1 mx-1 border-t border-workbench-border" }),
+          h("div", { class: "my-1 mx-1 border-t border-white/10" }),
         );
         return;
       }
@@ -108,7 +106,13 @@ export function Dropdown(opts: {
               { class: "shrink-0 opacity-60 text-[14px]" },
               lucide("chevron-right"),
             )
-          : h("span", { class: "shrink-0 opacity-60 text-[14px]" }, it.key),
+          : h(
+              "span",
+              {
+                class: "shrink-0 opacity-60 text-[11px] text-muted-foreground",
+              },
+              it.key,
+            ),
       );
 
       if (hasChildren) {

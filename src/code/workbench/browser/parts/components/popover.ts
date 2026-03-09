@@ -168,17 +168,12 @@ export function Popover(
   };
 
   const root = h("div");
-  root.className = cn(
-    "bg-popover-background fixed left-0 top-0 z-50",
-    GLASS,
-    o.className,
-  );
+  root.className = cn("fixed left-0 top-0 z-50 rounded-[10px]", GLASS);
   root.style.display = "none";
 
   const contentWrap = h("div");
   contentWrap.className = cn(
-    "popover-shadow bg-popover-content-background border border-popover-border p-1.5 rounded-[7px] text-popover-content-foreground text-sm",
-    GLASS,
+    "p-1.5 rounded-[9px] text-popover-content-foreground text-sm",
     o.contentClassName,
   );
 

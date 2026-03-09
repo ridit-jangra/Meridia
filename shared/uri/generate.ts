@@ -53,7 +53,6 @@ export function get_stem(uri: string): string {
 export function uris_equal(a: string, b: string): boolean {
   const na = norm(a).replace(/\/$/, "");
   const nb = norm(b).replace(/\/$/, "");
-  // Windows paths are case-insensitive
   if (get_drive(na) || get_drive(nb)) {
     return na.toLowerCase() === nb.toLowerCase();
   }

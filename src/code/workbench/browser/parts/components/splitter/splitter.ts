@@ -84,8 +84,6 @@ export function Splitter(opts: SplitterOpts) {
     const isCollapsiblePair =
       !!states[indexA].collapsible || !!states[indexB].collapsible;
 
-    // Initialise gutterInner with explicit lineSize so there is no
-    // "unstyled first frame" regardless of when the element is connected.
     const gutterInner = h("div", {
       class: cn(
         "absolute transition-all duration-150",
@@ -113,7 +111,6 @@ export function Splitter(opts: SplitterOpts) {
 
     const onGutterEnter = () => setGutterSize(hoverSize);
     const onGutterLeave = () => {
-      // Only reset if we're not actively dragging — prevents snap-back mid-drag
       if (!dragging) setGutterSize(lineSize);
     };
 
@@ -164,7 +161,7 @@ export function Splitter(opts: SplitterOpts) {
       dragging = false;
       document.body.style.userSelect = "";
       document.body.style.cursor = "";
-      // Reset gutter to lineSize now that drag is done
+
       setGutterSize(lineSize);
     };
 
@@ -224,7 +221,6 @@ export function Splitter(opts: SplitterOpts) {
       cancelDrag();
     };
 
-    // visibilitychange covers tab-switch mid-drag; blur covers window losing focus
     const onDragInterrupt = () => cancelDrag();
 
     gutter.addEventListener("mousedown", onMouseDown);
@@ -242,7 +238,7 @@ export function Splitter(opts: SplitterOpts) {
       window.removeEventListener("mouseup", onMouseUp);
       window.removeEventListener("blur", onDragInterrupt);
       document.removeEventListener("visibilitychange", onDragInterrupt);
-      // Ensure body styles are always cleaned up
+
       cancelDrag();
     });
 
@@ -261,8 +257,6 @@ export function Splitter(opts: SplitterOpts) {
     ...children,
   );
 
-  // Apply sizes before returning so the element is styled before it hits the DOM.
-  // This prevents an unstyled-frame flash when the container is appended.
   applySizes();
 
   return {
