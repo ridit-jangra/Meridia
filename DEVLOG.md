@@ -56,3 +56,14 @@ Nothing much just fixing some bugs, adding minor features and improving the ui t
 - Add Git panel and tracking information using different colors for modified, untracked and ignored.
 - Add search panel to search queries across the codebase (only basic for now, will implement AI in future).
 - Add settings system with very customizability options.
+
+## 9th March 2026
+
+- Add MacOS support, add in worflow.yml to generate .dmg installer.
+- Add window controls space and menu in MAC.
+- Add Glass UI in components like command, command-list, contextmenu, dropdown.
+
+### Next Milestone
+
+- All previous milestones.
+- Improve UI to match a modern UI that makes the user eyes glow.
