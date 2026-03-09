@@ -210,8 +210,10 @@ jobs:
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
           generate_release_notes: true
           files: |
-            artifacts/windows/**/*
-            artifacts/linux/**/*
-            artifacts/macos/**/*
+            artifacts/windows/**/*.exe
+            artifacts/linux/**/*.AppImage
+            artifacts/linux/**/*.deb
+            artifacts/linux/**/*.rpm
+            artifacts/macos/**/*.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
