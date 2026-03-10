@@ -54,7 +54,6 @@ export function get_file_icon(_name: string) {
     "docx",
     "doc",
     "pdf",
-    "pyc",
     "jsx",
     "tsx",
     "csv",
@@ -63,6 +62,8 @@ export function get_file_icon(_name: string) {
     "pyi",
     "map",
     "ipynb",
+    "yaml",
+    "xml",
   ];
 
   const icon_name = supported.includes(_ext) ? _ext : "default";

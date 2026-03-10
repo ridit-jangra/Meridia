@@ -24,12 +24,11 @@ export function ActivityBarPanelComponent(opts: {
 
   const top = h("div", {
     class: cn(
-      "flex items-center justify-center gap-1.5 p-2 shrink-0 mb-2",
+      "flex items-center justify-center gap-1 p-2 shrink-0 mb-2",
       "[&_.activity-label]:inline",
       "[&_.activity-label]:whitespace-nowrap",
       "[&_.activity-label]:truncate",
       "[&_.activity-label]:max-w-[120px]",
-      "[&_.activity-icon_svg]:w-5 [&_.activity-icon_svg]:h-5",
       "[&.compact_._activity-label]:hidden",
     ),
   });
@@ -78,7 +77,7 @@ export function ActivityBarPanelComponent(opts: {
 
       const btn = h("div", {
         class: cn(
-          "p-[6px] rounded-[7px] cursor-pointer flex items-center justify-center transition-colors min-w-0",
+          "px-2.5 py-1 text-[12.5px] rounded-full cursor-pointer flex items-center justify-center transition-colors min-w-0 w-full",
           is_active
             ? "bg-explorer-item-active-background/80"
             : "hover:bg-explorer-item-hover-background hover:text-explorer-item-hover-foreground text-explorer-icon-foreground",
@@ -96,11 +95,7 @@ export function ActivityBarPanelComponent(opts: {
         h(
           "span",
           { class: cn("flex items-center gap-2 min-w-0") },
-          h(
-            "span",
-            { class: "activity-icon flex items-center" },
-            lucide(panel.icon),
-          ),
+          h("span", { class: "flex items-center" }, lucide(panel.icon, 16)),
           h("span", { class: "activity-label" }, panel.label),
         ),
       );

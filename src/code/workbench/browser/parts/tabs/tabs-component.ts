@@ -130,7 +130,7 @@ export function TabsComponent(opts: { node: TTabNode }) {
         "div",
         {
           class: cn(
-            "px-2.5 py-1 text-[13px] rounded-[7px] cursor-pointer select-none flex items-center gap-2 transition-colors",
+            "px-10 py-1 text-[13px] rounded-full cursor-pointer select-none flex items-center gap-2 transition-colors",
             is_active
               ? "bg-view-tab-active-background text-view-tab-active-foreground"
               : "bg-view-tab-background text-view-tab-foreground hover:bg-view-tab-hover-background hover:text-view-tab-hover-foreground",

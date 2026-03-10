@@ -152,6 +152,8 @@ export function path_to_language(file_path: string) {
     json: "json",
     md: "markdown",
     css: "css",
+    xml: "xml",
+    yaml: "yaml",
   };
 
   return language_map[extension] ?? "plaintext";

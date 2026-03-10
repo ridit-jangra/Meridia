@@ -34,7 +34,7 @@ export function CommandList(props: CommandListProps) {
 
   const input = h("input", {
     class: cn(
-      "w-full px-3 py-2 text-[1.6rem] opacity-70 font-bold outline-none bg-transparent",
+      "w-full px-3 py-2 text-[1.4rem] opacity-70 font-bold outline-none bg-transparent",
       "border-b border-workbench-border",
     ),
     placeholder: props.placeholder ?? "Search…",

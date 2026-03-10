@@ -139,6 +139,7 @@ export const dark: ITheme = {
 
     "titlebar.background": "#0D0D0D",
     "titlebar.foreground": "#E6E6E6B0",
+    "titlebar.items.background": "#FFFFFF1A",
 
     "titlebar.icon.foreground": "#E6E6E6B0",
     "titlebar.icon.hover.background": "#FFFFFF10",

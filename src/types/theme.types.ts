@@ -164,6 +164,7 @@ export const colors = [
   "statusbar.item.hover.background",
 
   "titlebar.background",
+  "titlebar.items.background",
   "titlebar.foreground",
   "titlebar.icon.foreground",
   "titlebar.icon.hover.background",

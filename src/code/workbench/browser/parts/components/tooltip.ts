@@ -1,5 +1,6 @@
 import { cn } from "../../../contrib/core/utils/cn";
 import { h } from "../../../contrib/core/dom/h";
+import { GLASS } from "../../../contrib/styles/glass";
 
 export interface TooltipProps {
   text?: string;
@@ -14,9 +15,10 @@ export interface TooltipProps {
 export function Tooltip(opts: TooltipProps) {
   const tip = h("div", {
     class: cn(
-      "fixed z-[9999] hidden px-2 py-1 text-[12.5px] " +
-        "bg-tooltip-background text-tooltip-foreground min-w-max border border-tooltip-border rounded-[8px] " +
-        "animate-in fade-in zoom-in-95 duration-150",
+      "fixed z-[9999] hidden px-2 py-px text-[12.5px] ",
+      "text-tooltip-foreground min-w-max border border-tooltip-border rounded-full",
+      "animate-in fade-in zoom-in-95 duration-150",
+      GLASS,
       opts.class,
     ),
   });

@@ -20,7 +20,7 @@ export function Titlebar() {
 
   const left_panel = Button(codicon("layout-sidebar-left"), {
     variant: "ghost",
-    size: "icon",
+    size: "sm",
     tooltip: {
       text: `Toggle Primary Side Bar (${shortcuts.get_shortcut({ id: "togglePrimarySideBar" })?.keys})`,
     },
@@ -32,7 +32,7 @@ export function Titlebar() {
 
   const bottom_panel = Button(codicon("layout-panel"), {
     variant: "ghost",
-    size: "icon",
+    size: "sm",
     tooltip: {
       text: `Toggle Panel (${shortcuts.get_shortcut({ id: "toggleBottomPanel" })?.keys})`,
     },
@@ -44,7 +44,7 @@ export function Titlebar() {
 
   const right_panel = Button(codicon("layout-sidebar-right"), {
     variant: "ghost",
-    size: "icon",
+    size: "sm",
     tooltip: {
       text: `Toggle Secondary Side Bar (${shortcuts.get_shortcut({ id: "toggleSecondarySideBar" })?.keys})`,
     },
@@ -88,7 +88,7 @@ export function Titlebar() {
     ),
     {
       variant: "ghost",
-      size: "icon",
+      size: "sm",
       tooltip: {
         text: `Settings (${shortcuts.get_shortcut({ id: "openSettings" })?.keys})`,
       },
@@ -100,7 +100,8 @@ export function Titlebar() {
     lucide("plus", 18, "[&_path]:stroke-titlebar-foreground"),
     {
       variant: "ghost",
-      size: "icon",
+      size: "sm",
+
       tooltip: {
         text: "New Custom Agent",
       },
@@ -111,7 +112,7 @@ export function Titlebar() {
     "div",
     {
       class:
-        "titlebar-inset titlebar-foreground h-full opacity-80 no-drag flex items-center",
+        "titlebar-inset titlebar-foreground gap-1 opacity-80 no-drag flex items-center",
     },
     settings_btn,
     new_custom_agent,
@@ -126,12 +127,14 @@ export function Titlebar() {
   const left = h(
     "div",
     {
-      class: "flex mac-inset opacity-60 h-full no-drag items-center",
+      class: "flex mac-inset opacity-60 no-drag items-center",
     },
     !is_mac && logo,
     h(
       "div",
-      { class: "flex items-center pr-1.5 border-r border-workbench-border" },
+      {
+        class: "flex items-center gap-1 border-r border-workbench-border",
+      },
       left_panel,
       bottom_panel,
       right_panel,

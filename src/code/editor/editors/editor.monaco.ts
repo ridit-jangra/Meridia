@@ -170,12 +170,14 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       bracketPairColorization: { enabled: true },
       wordBasedSuggestions: "off",
       contextmenu: false,
+      smoothScrolling: true,
     });
 
     patch_peek_model_service();
     this.setup_context_menu();
     this.setup_editor_events();
     this.setup_statusbar_events();
+    this.setup_hover_invalidation();
     await this.setup_lsp();
 
     this.instance.addCommand(monaco.KeyCode.F1, () => {});
@@ -190,6 +192,12 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     });
   }
 
+  private setup_hover_invalidation(): void {
+    this.instance.onDidChangeModelContent(() => {
+      this.instance.trigger("keyboard", "closeParameterHints", null);
+    });
+  }
+
   private setup_context_menu(): void {
     root_el.addEventListener("contextmenu", (e: MouseEvent) => {
       e.preventDefault();
@@ -197,8 +205,93 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
       const selection = this.instance.getSelection();
       const has_selection = selection && !selection.isEmpty();
+      const model = this.instance.getModel();
+      const position = this.instance.getPosition();
+
+      const word = model && position ? model.getWordAtPosition(position) : null;
+      const has_symbol = !!word;
 
       this.editor_context_menu.openAt(e.clientX, e.clientY, [
+        {
+          type: "item",
+          label: "Go to Definition",
+          command_id: "F12",
+          disabled: !has_symbol,
+          onClick: () =>
+            this.instance.trigger(
+              "keyboard",
+              "editor.action.revealDefinition",
+              null,
+            ),
+        },
+        {
+          type: "item",
+          label: "Peek Definition",
+          command_id: "Alt+F12",
+          disabled: !has_symbol,
+          onClick: () =>
+            this.instance.trigger(
+              "keyboard",
+              "editor.action.peekDefinition",
+              null,
+            ),
+        },
+        {
+          type: "item",
+          label: "Go to Type Definition",
+          disabled: !has_symbol,
+          onClick: () =>
+            this.instance.trigger(
+              "keyboard",
+              "editor.action.goToTypeDefinition",
+              null,
+            ),
+        },
+        {
+          type: "item",
+          label: "Peek Type Definition",
+          disabled: !has_symbol,
+          onClick: () =>
+            this.instance.trigger(
+              "keyboard",
+              "editor.action.peekTypeDefinition",
+              null,
+            ),
+        },
+        {
+          type: "item",
+          label: "Go to References",
+          command_id: "Shift+F12",
+          disabled: !has_symbol,
+          onClick: () =>
+            this.instance.trigger(
+              "keyboard",
+              "editor.action.goToReferences",
+              null,
+            ),
+        },
+        {
+          type: "item",
+          label: "Go to Implementations",
+          command_id: "Ctrl+F12",
+          disabled: !has_symbol,
+          onClick: () =>
+            this.instance.trigger(
+              "keyboard",
+              "editor.action.goToImplementation",
+              null,
+            ),
+        },
+        { type: "separator" },
+
+        {
+          type: "item",
+          label: "Rename Symbol",
+          command_id: "F2",
+          disabled: !has_symbol,
+          onClick: () =>
+            this.instance.trigger("keyboard", "editor.action.rename", null),
+        },
         {
           type: "item",
           label: "Go to Symbol...",
@@ -210,11 +303,11 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
               null,
             ),
         },
-        { type: "separator" },
         {
           type: "item",
           label: "Change All Occurrences",
           command_id: "Ctrl+F2",
+          disabled: !has_selection,
           onClick: () =>
             this.instance.trigger("keyboard", "editor.action.changeAll", null),
         },
@@ -230,6 +323,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
             ),
         },
         { type: "separator" },
+
         {
           type: "item",
           label: "Cut",
@@ -266,6 +360,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
             ),
         },
         { type: "separator" },
+
         {
           type: "item",
           label: "Command Palette",

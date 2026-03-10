@@ -102,6 +102,9 @@ class client {
   private workspaceUri = "file:///workspace";
   private started = false;
 
+  private model_listeners = new Map<string, monaco.IDisposable[]>();
+  private model_timers = new Map<string, ReturnType<typeof setTimeout>>();
+
   private lensEmitters = new Map<
     string,
     monaco.Emitter<monaco.languages.CodeLensProvider>
@@ -136,6 +139,14 @@ class client {
     for (const disps of this.disposables.values())
       disps.forEach((d) => d.dispose());
     this.disposables.clear();
+
+    for (const disps of this.model_listeners.values())
+      disps.forEach((d) => d.dispose());
+    this.model_listeners.clear();
+
+    for (const t of this.model_timers.values()) clearTimeout(t);
+    this.model_timers.clear();
+
     this.connections.clear();
     for (const ws of this.sockets.values()) {
       if (ws.readyState === WebSocket.OPEN) ws.close();
@@ -253,9 +264,7 @@ class client {
                 documentationFormat: ["plaintext", "markdown"],
               },
             },
-            formatting: {
-              dynamicRegistration: false,
-            },
+            formatting: { dynamicRegistration: false },
             definition: { dynamicRegistration: false },
             references: { dynamicRegistration: false },
             publishDiagnostics: { relatedInformation: true },
@@ -289,11 +298,24 @@ class client {
       });
       conn.initialized = true;
 
-      this.disposables.set(def.languageId, this.register_providers(def, conn));
+      const provider_disps = this.register_providers(def, conn);
+      this.disposables.set(def.languageId, provider_disps);
 
       for (const model of monaco.editor.getModels()) {
-        if (this.model_matches(model, def)) this.did_open(conn, model);
+        if (this.model_matches(model, def)) {
+          this.did_open(conn, model);
+          this.bind_model(def, conn, model);
+        }
       }
+
+      const create_disp = monaco.editor.onDidCreateModel((model) => {
+        if (!this.model_matches(model, def)) return;
+        const c = this.connections.get(def.languageId);
+        if (!c?.initialized) return;
+        this.did_open(c, model);
+        this.bind_model(def, c, model);
+      });
+      provider_disps.push(create_disp);
     };
 
     ws.onerror = (e) =>
@@ -302,6 +324,54 @@ class client {
       this.sockets.delete(def.languageId);
       this.connections.delete(def.languageId);
     };
+  }
+
+  private bind_model(
+    def: LspClientDefinition,
+    conn: LspConnection,
+    model: monaco.editor.ITextModel,
+  ): void {
+    const key = model.uri.toString();
+
+    if (this.model_listeners.has(key)) return;
+
+    const d1 = model.onDidChangeContent(() => {
+      const c = this.connections.get(def.languageId);
+      if (!c?.initialized) return;
+      const uri = normalize_uri(model_uri(model));
+
+      monaco.editor.setModelMarkers(model, def.languageId, []);
+
+      const existing = this.model_timers.get(key);
+      if (existing) clearTimeout(existing);
+
+      this.model_timers.set(
+        key,
+        setTimeout(() => {
+          this.model_timers.delete(key);
+          send_notification(c, DidChangeTextDocumentNotification.type.method, {
+            textDocument: { uri, version: model.getVersionId() },
+            contentChanges: [{ text: model.getValue() }],
+          });
+        }, 150),
+      );
+    });
+
+    const d2 = model.onWillDispose(() => {
+      const c = this.connections.get(def.languageId);
+      if (c) this.did_close(c, model);
+
+      const t = this.model_timers.get(key);
+      if (t) {
+        clearTimeout(t);
+        this.model_timers.delete(key);
+      }
+
+      this.model_listeners.get(key)?.forEach((d) => d.dispose());
+      this.model_listeners.delete(key);
+    });
+
+    this.model_listeners.set(key, [d1, d2]);
   }
 
   private handle_server_request(
@@ -501,47 +571,6 @@ class client {
             return lens;
           }
         },
-      }),
-    );
-
-    disps.push(
-      monaco.editor.onDidCreateModel((model) => {
-        if (!this.model_matches(model, def)) return;
-        const liveConn = getConn();
-        if (liveConn) this.did_open(liveConn, model);
-
-        let changeTimer: ReturnType<typeof setTimeout> | null = null;
-
-        const d1 = model.onDidChangeContent(() => {
-          const c = getConn();
-          if (!c?.initialized) return;
-          const uri = normalize_uri(model_uri(model));
-
-          if (changeTimer) clearTimeout(changeTimer);
-          changeTimer = setTimeout(() => {
-            changeTimer = null;
-            send_notification(
-              c,
-              DidChangeTextDocumentNotification.type.method,
-              {
-                textDocument: { uri, version: model.getVersionId() },
-                contentChanges: [{ text: model.getValue() }],
-              },
-            );
-          }, 300);
-        });
-
-        const d2 = model.onWillDispose(() => {
-          const c = getConn();
-          if (c) this.did_close(c, model);
-          if (changeTimer) clearTimeout(changeTimer);
-          const uri = normalize_uri(model_uri(model));
-          lensDataMap.delete(uri);
-          d1.dispose();
-          d2.dispose();
-        });
-
-        disps.push(d1, d2);
       }),
     );
 
