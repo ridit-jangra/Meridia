@@ -43,6 +43,7 @@ import { explorer } from "../../platform/explorer/explorer.service";
 import { shortcuts } from "../../workbench/common/shortcut/shortcut.service";
 import { editor_events } from "../../platform/events/editor.events";
 import { statusbar_events } from "../../platform/events/statusbar.events";
+import { LSP_BRIDGE_PORT } from "../../../../shared/lsp/lsp.constants";
 
 type Disposer = () => void;
 
@@ -449,7 +450,10 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       languageId: "python",
       extensions: ["py"],
     });
-    await lsp_client.start();
+    await lsp_client.start(
+      (await window.workspace.get_current_workspace_path()) ?? "C:\\",
+      LSP_BRIDGE_PORT,
+    );
   }
 
   private async save_file(): Promise<void> {

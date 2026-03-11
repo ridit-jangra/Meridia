@@ -29,6 +29,7 @@
   "main": "dist-electron/main.js",
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
+    "@ridit/relay": "^0.1.2",
     "@tailwindcss/vite": "^4.1.18",
     "@vscode/codicons": "^0.0.44",
     "@xterm/addon-clipboard": "^0.2.0",
@@ -44,7 +45,6 @@
     "gsap": "^3.14.2",
     "lucide-static": "^0.564.0",
     "monaco-editor": "^0.52.2",
-    "monaco-languageclient": "^10.7.0",
     "node-pty": "^1.1.0",
     "react-redux": "^9.2.0",
     "split.js": "^1.6.5",

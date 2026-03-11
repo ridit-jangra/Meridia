@@ -8,7 +8,6 @@ import {
 import { autoUpdater } from "electron-updater";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
-import { server } from "./server/lsp.server";
 import "./ipc/workspace-ipc";
 import "./ipc/files-ipc";
 import "./ipc/storage-ipc";
@@ -16,6 +15,7 @@ import "./ipc/shell-ipc";
 import "./ipc/explorer-ipc";
 import "./ipc/watcher-ipc";
 import "./ipc/terminal-ipc";
+import { Server } from "@ridit/relay/server";
 import { event_emitter } from "./shared/emitter";
 import { theme } from "../src/code/workbench/contrib/theme/theme.service";
 import { titlebar_menu } from "../src/code/workbench/browser/parts/titlebar/titlebar.menu";
@@ -23,6 +23,8 @@ import { ITitlebarMenuItem } from "../src/types/core.types";
 import { shortcut_def } from "../src/types/shortcut.types";
 import { normalize_chord } from "../src/code/workbench/common/shortcut/shortcut.parse";
 import type { ContextMenuItem } from "../src/code/workbench/browser/parts/components/context-menu";
+import { resolve_pylsp, resolve_python } from "./lsp.resolver";
+import { LSP_BRIDGE_PORT } from "../shared/lsp/lsp.constants";
 
 export function get_accelerator(
   shortcuts: shortcut_def[],
@@ -83,15 +85,19 @@ process.env.VITE_PUBLIC = VITE_DEV_SERVER_URL
   ? path.join(appRoot, "public")
   : RENDERER_DIST;
 
-export const lsp_server = new server();
+export const lsp_server = new Server();
 
 lsp_server.register({
   languageId: "python",
-  command: "",
-  args: [],
+
+  resolve: () => {
+    const pythonPath = resolve_python();
+    if (!pythonPath) return null;
+    return resolve_pylsp(pythonPath);
+  },
 });
 
-lsp_server.start();
+lsp_server.start(LSP_BRIDGE_PORT);
 
 let win: BrowserWindow | null = null;
 

@@ -76,7 +76,7 @@ class terminal_service {
       cursorStyle: "block",
       cursorInactiveStyle: "none",
       fontFamily: "JetBrains Mono",
-      fontSize: 15,
+      fontSize: 14,
       fontWeight: theme.get_active().base === "light" ? 600 : 400,
 
       disableStdin: false,
