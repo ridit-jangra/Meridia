@@ -32,6 +32,7 @@ import {
   open_editor_tab,
 } from "../../../../../editor/editor.helper";
 import { ScrollArea } from "../scroll-area";
+import { Button } from "../button";
 
 function deep_clone_nodes(nodes: INode[]): INode[] {
   return nodes.map((n) => ({
@@ -158,7 +159,6 @@ export function VirtualTree(opts: {
     }
   };
 
-  // ─── In-place DOM patch ───────────────────────────────────────────────────
   const active_cls =
     "bg-explorer-item-active-background text-explorer-item-active-foreground";
   const passive_cls =
@@ -217,9 +217,7 @@ export function VirtualTree(opts: {
       }
     }
   };
-  // ─────────────────────────────────────────────────────────────────────────
 
-  // ─── root-node: created once, never torn down ─────────────────────────
   let root_node_el: HTMLElement | null = null;
 
   const ensure_root_node = () => {
@@ -238,47 +236,35 @@ export function VirtualTree(opts: {
     const root_actions = h(
       "div",
       { class: "flex items-center gap-1" },
-      h(
-        "button",
-        {
-          class:
-            "p-1 rounded hover:bg-explorer-item-hover-background cursor-pointer transition-colors",
-          title: "New File",
-          on: {
-            click: (e: MouseEvent) => {
-              e.stopPropagation();
-              selected.id = norm(opts.folderStructure.path);
-              start_add_node(norm(opts.folderStructure.path), "file");
-            },
-          },
-          tooltip: { text: "New File" },
+      Button(lucide("file-plus"), {
+        variant: "ghost",
+        onClick(e) {
+          e.stopPropagation();
+          selected.id = norm(opts.folderStructure.path);
+          start_add_node(norm(opts.folderStructure.path), "file");
         },
-        lucide("file-plus"),
-      ),
-      h(
-        "button",
-        {
-          class:
-            "p-1 rounded hover:bg-explorer-item-hover-background cursor-pointer transition-colors",
-          title: "New Folder",
-          on: {
-            click: (e: MouseEvent) => {
-              e.stopPropagation();
-              selected.id = norm(opts.folderStructure.path);
-              start_add_node(norm(opts.folderStructure.path), "folder");
-            },
-          },
-          tooltip: { text: "New Folder" },
+        tooltip: {
+          text: "New File",
         },
-        lucide("folder-plus"),
-      ),
+      }),
+      Button(lucide("folder-plus"), {
+        variant: "ghost",
+        onClick(e) {
+          e.stopPropagation();
+          selected.id = norm(opts.folderStructure.path);
+          start_add_node(norm(opts.folderStructure.path), "folder");
+        },
+        tooltip: {
+          text: "New Folder",
+        },
+      }),
     );
 
     root_node_el = h(
       "div",
       {
         class:
-          "root-node group px-2 flex items-center justify-between text-explorer-foreground select-none",
+          "root-node px-2 group flex items-center justify-between text-explorer-foreground select-none",
       },
       root_label,
       root_actions,
@@ -286,7 +272,6 @@ export function VirtualTree(opts: {
 
     el.prepend(root_node_el);
   };
-  // ─────────────────────────────────────────────────────────────────────────
 
   const rebuild = () => {
     ensure_root_node();
@@ -526,7 +511,7 @@ export function VirtualTree(opts: {
   const is_active = (id: string) => uris_equal(id, selected.id);
 
   const scroll = ScrollArea({
-    class: "flex flex-col overflow-hidden h-full",
+    class: "flex flex-col overflow-hidden h-full px-2",
   });
   const el = scroll.el;
 
@@ -609,7 +594,6 @@ export function VirtualTree(opts: {
     key: (r) =>
       editing_node_id === `__renaming_${r.id}` ? `renaming:${r.id}` : r.id,
     render: (row) => {
-      // ── add-node input ────────────────────────────────────────────────
       if (
         editing_node_id &&
         editing_node_id.startsWith("__adding_") &&
@@ -652,7 +636,6 @@ export function VirtualTree(opts: {
         }
       }
 
-      // ── rename input ──────────────────────────────────────────────────
       if (editing_node_id === `__renaming_${row.id}`) {
         return create_rename_input({
           nodeId: row.id,
@@ -682,7 +665,6 @@ export function VirtualTree(opts: {
         });
       }
 
-      // ── normal row ────────────────────────────────────────────────────
       const is_loading = loading.has(row.id);
       const is_open = open.has(row.id);
       const active = is_active(row.id);
@@ -734,7 +716,7 @@ export function VirtualTree(opts: {
         {
           "data-row-id": row.id,
           class: cn(
-            "px-2 relative flex items-center justify-between select-none cursor-pointer text-[14px]",
+            "relative flex items-center justify-between select-none cursor-pointer text-[14px] rounded-[7px]",
             active ? active_cls : passive_cls,
           ),
           style: `padding-left:${row.depth * 1.4}rem`,

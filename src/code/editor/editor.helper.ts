@@ -135,28 +135,19 @@ export function get_file_extension(file_path: string) {
 }
 
 export function path_to_language(file_path: string) {
-  const extension = get_file_extension(file_path);
+  const languages = monaco.languages.getLanguages();
 
-  const language_map: Record<string, string> = {
-    ts: "typescript",
-    js: "javascript",
-    mts: "typescript",
-    ets: "typescript",
-    ejs: "javascript",
-    mjs: "javascript",
-    tsx: "typescript",
-    jsx: "javascript",
-    html: "html",
-    py: "python",
-    pyi: "python",
-    json: "json",
-    md: "markdown",
-    css: "css",
-    xml: "xml",
-    yaml: "yaml",
-  };
+  for (const lang of languages) {
+    if (!lang.extensions) continue;
 
-  return language_map[extension] ?? "plaintext";
+    for (const ext of lang.extensions) {
+      if (file_path.endsWith(ext)) {
+        return lang.id;
+      }
+    }
+  }
+
+  return "plaintext";
 }
 
 const action_item = (

@@ -86,9 +86,7 @@ export function Breadcrumb(opts: {
           {
             class: cn(
               "truncate shrink-0 max-w-[160px] px-1.5 h-full items-center cursor-pointer rounded-[7px] select-none whitespace-nowrap hover:text-workbench-foreground transition-colors hover:bg-statusbar-item-hover-background",
-              isLast
-                ? "text-workbench-foreground font-medium"
-                : "text-muted-foreground",
+              "text-muted-foreground",
             ),
             on:
               !isLast && opts.onSegmentClick
