@@ -24,8 +24,6 @@ export function percentToPx(pct: number, containerPx: number): number {
 export type ResizePair = {
   sizeA: number;
   sizeB: number;
-  minA: number;
-  minB: number;
   collapsibleA: boolean;
   collapsibleB: boolean;
   snapThreshold?: number;
@@ -42,11 +40,11 @@ export function calcResizedPair(
   deltaPct: number,
   pair: ResizePair,
 ): ResizePairResult {
-  const { sizeA, sizeB, minA, minB, collapsibleA, collapsibleB } = pair;
+  const { sizeA, sizeB, collapsibleA, collapsibleB } = pair;
   const snap = pair.snapThreshold ?? 3;
   const totalAvail = sizeA + sizeB;
 
-  let newA = clamp(sizeA + deltaPct, minA, totalAvail - minB);
+  let newA = clamp(sizeA + deltaPct, 0, totalAvail);
   let newB = totalAvail - newA;
 
   let collapsedA = false;
@@ -96,7 +94,6 @@ export type ExpandOpts = {
   sizes: number[];
   index: number;
   restoreSize: number;
-  neighborMinSize?: number;
   neighborIndex?: number;
 };
 
@@ -104,15 +101,13 @@ export function expandPanel(opts: ExpandOpts): CollapseResult {
   const { sizes, index, restoreSize } = opts;
   const neighborIndex =
     opts.neighborIndex ?? (index > 0 ? index - 1 : index + 1);
-  const neighborMin = opts.neighborMinSize ?? 5;
 
   if (neighborIndex < 0 || neighborIndex >= sizes.length) {
     return { sizes: [...sizes], neighborIndex: index };
   }
 
   const next = [...sizes];
-  const maxRestore = Math.max(0, next[neighborIndex] - neighborMin);
-  const actual = Math.min(restoreSize, maxRestore);
+  const actual = Math.min(restoreSize, next[neighborIndex]);
 
   next[index] = actual;
   next[neighborIndex] -= actual;

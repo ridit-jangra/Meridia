@@ -18,7 +18,6 @@ export type SplitterDirection = "horizontal" | "vertical";
 export type SplitterPanel = {
   id: string;
   size?: number;
-  minSize?: number;
   collapsible?: boolean;
   el: HTMLElement;
 };
@@ -131,7 +130,6 @@ export function Splitter(opts: SplitterOpts) {
           sizes: states.map((s) => s.currentSize),
           index: targetIdx,
           restoreSize: target.size ?? 20,
-          neighborMinSize: states[neighborIdx].minSize ?? 5,
           neighborIndex: neighborIdx,
         });
         sizes.forEach((sz, idx) => (states[idx].currentSize = sz));
@@ -185,16 +183,11 @@ export function Splitter(opts: SplitterOpts) {
         : e.clientY - startPos;
       const deltaPct = pixelDeltaToPercent(rawDeltaPx, containerPx);
 
-      const minAPct = ((states[indexA].minSize ?? 0) / containerPx) * 100;
-      const minBPct = ((states[indexB].minSize ?? 0) / containerPx) * 100;
-
       const { newSizeA, newSizeB, collapsedA, collapsedB } = calcResizedPair(
         deltaPct,
         {
           sizeA: startSizeA,
           sizeB: startSizeB,
-          minA: minAPct,
-          minB: minBPct,
           collapsibleA: !!states[indexA].collapsible,
           collapsibleB: !!states[indexB].collapsible,
         },
@@ -299,7 +292,6 @@ export function Splitter(opts: SplitterOpts) {
         sizes: states.map((s) => s.currentSize),
         index: idx,
         restoreSize: states[idx].size ?? 20,
-        neighborMinSize: states[neighborIndex]?.minSize ?? 5,
         neighborIndex,
       });
       sizes.forEach((sz, i) => (states[i].currentSize = sz));
