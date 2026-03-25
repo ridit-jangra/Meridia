@@ -2,6 +2,8 @@
 
 ![Meridia Preview](./public/preview/ss-5.png)
 
+## Core is almost done, now i am working on @ridit/lens, @ridit/lens-sdk and most importantly @ridit/lens-dev, these will power meridia's ai brain :).
+
 Meridia is a modern code editor where you code, and AI collaborates — never takes control.
 
 Visit [meridia.dev](https://meridia.dev) for more info.
