@@ -9,7 +9,6 @@ import { shortcuts } from "../../../common/shortcut/shortcut.service";
 import { layout_engine } from "../../layouts/layout.engine";
 import { Button } from "../components/button";
 import { store } from "../../../common/state/store";
-import { runCurrentFile } from "../../../common/run";
 
 export function Titlebar() {
   const menus = titlebar_menu;
