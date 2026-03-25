@@ -4,7 +4,6 @@
     "useDefineForClassFields": true,
     "module": "ESNext",
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
-    "skipLibCheck": true,
 
     /* Bundler mode */
     "moduleResolution": "bundler",
@@ -15,9 +14,10 @@
 
     /* Linting */
     "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noUnusedParameters": true
   },
   "include": [
     "src",
@@ -44,5 +44,6 @@
     "src/code/workbench/browser/parts/components",
     "src/code/workbench/contrib/core",
     "src/code/workbench/common/focus.ts"
-  ]
+  ],
+  "exclude": ["node_modules"]
 }
