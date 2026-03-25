@@ -17,13 +17,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@main
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: "1.x"
+          node-version: 20
+          cache: npm
 
       - name: Install dependencies
-        run: bun install
+        run: npm ci
 
       - name: Sync version in package.json
         shell: powershell
@@ -34,10 +35,14 @@ jobs:
           $pkg | ConvertTo-Json -Depth 100 | Set-Content package.json
 
       - name: Compile TypeScript + Vite
-        run: bun run build
+        run: npx tsc && npx vite build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Package Electron app (unpacked)
-        run: bun x electron-builder --win dir
+        run: npx electron-builder --win dir
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create placeholder icon if missing
         shell: powershell
@@ -87,10 +92,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@main
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: "1.x"
+          node-version: 20
+          cache: npm
 
       - name: Install Linux build dependencies
         run: |
@@ -105,16 +111,23 @@ jobs:
             libfuse2
 
       - name: Install dependencies
-        run: bun install
+        run: npm ci
 
       - name: Sync version in package.json
         run: |
           VERSION="${{ github.ref_name }}"
           VERSION="${VERSION#v}"
-          bun run sync-version.ts "$VERSION"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$VERSION';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
 
       - name: Build Electron app (Linux)
-        run: bun run build
+        run: npm run build
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
@@ -131,23 +144,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@main
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          bun-version: "1.x"
+          node-version: 20
+          cache: npm
 
       - name: Install dependencies
-        run: bun install
+        run: npm ci
 
       - name: Sync version in package.json
         run: |
           VERSION="${{ github.ref_name }}"
           VERSION="${VERSION#v}"
-          bun run sync-version.ts "$VERSION"
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '$VERSION';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2));
+          "
 
       - name: Build Electron app (macOS)
-        run: bun run build
+        run: npm run build
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Upload macOS artifact
