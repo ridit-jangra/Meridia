@@ -8,6 +8,8 @@ import { codicon, lucide } from "../components/icon";
 import { shortcuts } from "../../../common/shortcut/shortcut.service";
 import { layout_engine } from "../../layouts/layout.engine";
 import { Button } from "../components/button";
+import { store } from "../../../common/state/store";
+import { runCurrentFile } from "../../../common/run";
 
 export function Titlebar() {
   const menus = titlebar_menu;
@@ -80,6 +82,33 @@ export function Titlebar() {
     );
   };
 
+  const run_btn = Button(
+    lucide(
+      "play",
+      18,
+      "[&_path]:stroke-titlebar-foreground [&_circle]:stroke-titlebar-foreground",
+    ),
+    {
+      variant: "ghost",
+      size: "sm",
+      tooltip: {
+        text: `Run Current (${shortcuts.get_shortcut({ id: "runCurrentFile" })?.keys})`,
+      },
+      onClick: () => {
+        shortcuts.run_shortcut("editor.runCurrentFile");
+      },
+    },
+  );
+
+  store.subscribe(() => {
+    const active = store.getState().editor.tabs.find((t) => t.active);
+    if (!active) {
+      run_btn.disabled = true;
+    } else {
+      run_btn.disabled = false;
+    }
+  });
+
   const settings_btn = Button(
     lucide(
       "settings",
@@ -114,6 +143,7 @@ export function Titlebar() {
       class:
         "titlebar-inset titlebar-foreground gap-1 opacity-80 no-drag flex items-center",
     },
+    run_btn,
     settings_btn,
     new_custom_agent,
   );

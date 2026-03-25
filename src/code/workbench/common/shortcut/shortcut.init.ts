@@ -23,6 +23,7 @@ import {
 } from "../../../editor/editor.helper";
 import { terminal_events } from "../../../platform/events/terminal.events";
 import { focus_terminal } from "../focus";
+import { runCurrentFile } from "../run";
 
 shortcuts.register_command({
   id: "layout.toggleSearch",
@@ -275,6 +276,12 @@ shortcuts.register_command({
     await window.ipc.invoke("toggle-developer-tools");
   },
 });
+shortcuts.register_command({
+  id: "editor.runCurrentFile",
+  run: () => {
+    runCurrentFile();
+  },
+});
 
 shortcuts.register_shortcuts([
   {
@@ -468,5 +475,13 @@ shortcuts.register_shortcuts([
     keys: "ctrl+alt+d",
     scope: "app",
     label: "Toggle Developer Tools",
+  },
+  {
+    command: "editor.runCurrentFile",
+    id: "runCurrentFile",
+    category: "Editor",
+    keys: "F5",
+    scope: "app",
+    label: "Run Current File",
   },
 ]);
