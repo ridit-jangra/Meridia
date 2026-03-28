@@ -12,6 +12,7 @@ import { shortcuts } from "../../common/shortcut/shortcut.service";
 import { Explorer } from "../explorer/explorer";
 import { editor } from "../../../editor/editor";
 import { EditorArea } from "../editor/editor-area";
+import { Chat } from "../chat/chat";
 
 export const tabs_registry: Record<string, () => HTMLElement> = {
   terminal: () => {
@@ -49,6 +50,7 @@ export const tabs_options_registery: Record<string, () => HTMLElement> = {
 export const panels_registry: Record<string, () => HTMLElement> = {
   explorer: () => Explorer(),
   editor: () => EditorArea(),
+  ai_chat: () => Chat(),
 };
 
 export const editors_registry: Record<
