@@ -4,3 +4,5 @@ export const WORKSPACES_DATA = "workspaces.data";
 export const ACTIVE_PANEL_KEY = "workbench.active.panel.key";
 export const ACTIVE_TAB_KEY = "workbench.active.tab.key";
 export const CURRENT_WORKSPACE_PATH = "workspaces.current.path";
+export const CHAT_SESSIONS_KEY = "chat.sessions";
+export const CHAT_ACTIVE_KEY = "chat.active_session";
