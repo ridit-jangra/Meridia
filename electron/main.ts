@@ -15,6 +15,7 @@ import "./ipc/shell-ipc";
 import "./ipc/explorer-ipc";
 import "./ipc/watcher-ipc";
 import "./ipc/terminal-ipc";
+import "./ipc/chat-ipc";
 import { Server } from "@ridit/relay/server";
 import { event_emitter } from "./shared/emitter";
 import { theme } from "../src/code/workbench/contrib/theme/theme.service";
