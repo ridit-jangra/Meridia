@@ -98,10 +98,20 @@ export const colors = [
 
   "chat.background",
   "chat.foreground",
+  "chat.border",
+
   "chat.user.background",
+  "chat.user.foreground",
+
   "chat.assistant.background",
+  "chat.assistant.foreground",
+
+  "chat.tool.background",
+  "chat.tool.foreground",
+
   "chat.input.background",
   "chat.input.foreground",
+  "chat.input.border",
 
   "terminal.background",
   "terminal.foreground",
