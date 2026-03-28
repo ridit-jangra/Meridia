@@ -65,8 +65,13 @@ export function TabsComponent(opts: { node: TTabNode }) {
     return btn;
   })();
 
+  let last_mounted_key = "";
+
   const mountPanel = () => {
     const key = get_active();
+
+    if (key === last_mounted_key) return;
+    last_mounted_key = key;
 
     for (const [id, panel_el] of panel_cache) {
       panel_el.style.display = id === key ? "" : "none";
@@ -185,11 +190,15 @@ export function TabsComponent(opts: { node: TTabNode }) {
     render();
   };
 
-  const unsub = store.subscribe(() => {
-    const { active_tab_key } = store.getState().layout;
+  let prev_active_tab_key = get_active();
 
-    if (is_initialized && active_tab_key) {
-      window.storage.set(ACTIVE_TAB_KEY, active_tab_key);
+  const unsub = store.subscribe(() => {
+    const current_tab_key = get_active();
+    if (current_tab_key === prev_active_tab_key) return;
+    prev_active_tab_key = current_tab_key;
+
+    if (is_initialized && current_tab_key) {
+      window.storage.set(ACTIVE_TAB_KEY, current_tab_key);
     }
 
     render();
