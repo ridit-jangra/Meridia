@@ -48,6 +48,7 @@ export function EditorArea() {
     )
       return;
     last_active_path = key.file_path;
+    last_active_status = key.tab_status;
 
     const extension = get_file_extension(key.file_path);
     let editor = editors_registry[extension] ?? editors_registry["ts"];
@@ -105,15 +106,12 @@ export function EditorArea() {
   const unsub = store.subscribe(() => {
     const { tabs } = store.getState().editor;
 
-    void mount_panel();
-
-    if (!is_initialized) {
-      prev_tabs_ref = tabs;
-      return;
-    }
-
     if (tabs === prev_tabs_ref) return;
     prev_tabs_ref = tabs;
+
+    void mount_panel();
+
+    if (!is_initialized) return;
 
     void save_tabs_to_workspace(tabs);
   });
