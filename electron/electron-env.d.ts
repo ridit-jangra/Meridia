@@ -10,6 +10,7 @@ import type {
   INode,
 } from "../shared/types/explorer.types";
 import type { IWorkspace } from "../shared/types/workspace.types";
+import type { IChatContext, IChatResult } from "../shared/types/chat.types";
 
 declare namespace NodeJS {
   interface ProcessEnv {
@@ -77,6 +78,14 @@ type watcher_api = {
   start(p: string): Promise<boolean>;
 };
 
+type chat_api = {
+  push(
+    session_id: string,
+    message: string,
+    context?: IChatContext,
+  ): Promise<IChatResult>;
+};
+
 type pty_api = {
   create(id: string): Promise<boolean>;
   write(id: string, data: string): void;
@@ -94,7 +103,11 @@ declare global {
     files: files_api;
     watcher: watcher_api;
     pty: pty_api;
+    chat: chat_api;
     shell: shell_api;
+    platform: {
+      get_platform(): NodeJS.Platform;
+    };
     ipc: {
       on(channel: string, listener: IpcListener): () => void;
       once(channel: string, listener: IpcListener): void;
