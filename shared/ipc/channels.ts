@@ -48,3 +48,5 @@ export const GIT_PUSH = "git:push";
 export const GIT_PULL = "git:pull";
 export const GIT_GET_LOG = "git:get-log";
 export const GIT_DISCARD = "git:discard";
+
+export const CHAT_PUSH = "chat:push";
