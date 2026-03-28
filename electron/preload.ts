@@ -38,7 +38,9 @@ import {
   SHELL_OPEN_EXTERNAL,
   FS_RELATIVE,
   FS_OPEN,
+  CHAT_PUSH,
 } from "../shared/ipc/channels";
+import type { IChatContext, IChatResult } from "../shared/types/chat.types";
 
 type Listener = (event: IpcRendererEvent, ...args: any[]) => void;
 
@@ -176,6 +178,11 @@ contextBridge.exposeInMainWorld("pty", {
   },
 });
 
-contextBridge.exposeInMainWorld('platform', {
-  get_platform: () => process.platform
+contextBridge.exposeInMainWorld("platform", {
+  get_platform: () => process.platform,
+});
+
+contextBridge.exposeInMainWorld("chat", {
+  push: (session_id: string, message: string, context: IChatContext) =>
+    ipcRenderer.invoke(CHAT_PUSH, session_id, message, context) as Promise<IChatResult>,
 });
