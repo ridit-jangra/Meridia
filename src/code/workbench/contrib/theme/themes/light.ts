@@ -63,10 +63,20 @@ export const light: ITheme = {
 
     "chat.background": "#F7F7F5",
     "chat.foreground": "#1A1A1A",
-    "chat.user.background": "#EEEEED",
-    "chat.assistant.background": "#F7F7F7",
-    "chat.input.background": "#F7F7F7",
+    "chat.border": "#DDDDD8",
+
+    "chat.user.background": "#81A1C11A",
+    "chat.user.foreground": "#1A1A1A",
+
+    "chat.assistant.background": "#00000008",
+    "chat.assistant.foreground": "#2A2A2A",
+
+    "chat.tool.background": "#00000008",
+    "chat.tool.foreground": "#7A7A72",
+
+    "chat.input.background": "#EEEEEC",
     "chat.input.foreground": "#1A1A1A",
+    "chat.input.border": "#DDDDD8",
 
     "terminal.background": "#F7F7F5",
     "terminal.foreground": "#1A1A1A",
