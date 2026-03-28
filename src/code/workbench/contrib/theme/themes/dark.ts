@@ -63,10 +63,20 @@ export const dark: ITheme = {
 
     "chat.background": "#131313",
     "chat.foreground": "#E6E6E6EB",
-    "chat.user.background": "#FFFFFF12",
-    "chat.assistant.background": "#131313",
-    "chat.input.background": "#FFFFFF0D",
+    "chat.border": "#FFFFFF0F",
+
+    "chat.user.background": "#81A1C11E",
+    "chat.user.foreground": "#E6E6E6EB",
+
+    "chat.assistant.background": "#FFFFFF0A",
+    "chat.assistant.foreground": "#E6E6E6CC",
+
+    "chat.tool.background": "#FFFFFF08",
+    "chat.tool.foreground": "#E6E6E650",
+
+    "chat.input.background": "#FFFFFF08",
     "chat.input.foreground": "#E6E6E6EB",
+    "chat.input.border": "#FFFFFF18",
 
     "terminal.background": "#131313",
     "terminal.foreground": "#E6E6E6A6",
