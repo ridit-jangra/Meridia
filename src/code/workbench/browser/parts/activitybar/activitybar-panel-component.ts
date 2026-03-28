@@ -180,11 +180,18 @@ export function ActivityBarPanelComponent(opts: {
     ro.observe(top);
   };
 
-  const unsub = store.subscribe(() => {
-    const { active_panel_key } = store.getState().layout;
+  let prev_active = get_active();
 
-    if (is_initialized && active_panel_key) {
-      window.storage.set(ACTIVE_PANEL_KEY, active_panel_key);
+  const unsub = store.subscribe(() => {
+    const current_active = get_active();
+    if (current_active === prev_active) return;
+    prev_active = current_active;
+
+    if (is_initialized) {
+      const { active_panel_key } = store.getState().layout;
+      if (active_panel_key) {
+        window.storage.set(ACTIVE_PANEL_KEY, active_panel_key);
+      }
     }
 
     render();
