@@ -447,9 +447,15 @@ export function EditorTabs() {
 
   document.addEventListener("keydown", onKeyDown, true);
 
+  let prev_tabs_ref = store.getState().editor.tabs;
+
   const unsub = store.subscribe(() => {
+    const { tabs } = store.getState().editor;
+    if (tabs === prev_tabs_ref) return;
+    prev_tabs_ref = tabs;
+
     renderTabs();
-    const active = store.getState().editor.tabs.find((t) => t.active);
+    const active = tabs.find((t) => t.active);
     if (!active) return;
     explorer_events.emit("highlight", active.file_path);
   });
