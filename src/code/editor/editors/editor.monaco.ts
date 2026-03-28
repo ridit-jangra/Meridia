@@ -130,6 +130,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   private error_el: HTMLElement | null = null;
   private model_disposers = new Map<string, Disposer[]>();
   private editor_context_menu = ContextMenu();
+  private file_watcher_off: (() => void) | null = null;
 
   constructor() {
     super(EDITOR_DEF);
@@ -179,6 +180,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     this.setup_editor_events();
     this.setup_statusbar_events();
     this.setup_hover_invalidation();
+    this.setup_file_watcher();
     await this.setup_lsp();
 
     this.instance.addCommand(monaco.KeyCode.F1, () => {});
@@ -191,6 +193,71 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       id: "editor.saveAs",
       run: () => this.save_file_as(),
     });
+  }
+
+  private setup_file_watcher(): void {
+    this.file_watcher_off = window.ipc.on(
+      "workbench.explorer.change",
+      async (_: unknown, uri: string) => {
+        const model = this.models.find((m) => m.uri === uri) as
+          | IMonacoModel
+          | undefined;
+        if (!model) return;
+
+        const tabs = store.getState().editor.tabs;
+        const tab = tabs.find((t) => t.file_path === uri);
+        if (tab?.is_touched) return;
+
+        let content: string;
+        try {
+          content = await explorer.actions.read_file(uri);
+        } catch {
+          return;
+        }
+        if (model.model.getValue() === content) return;
+
+        const is_active = this.active_model?.uri === uri;
+        const saved_position = is_active ? this.instance.getPosition() : null;
+        const saved_scroll = is_active
+          ? {
+              top: this.instance.getScrollTop(),
+              left: this.instance.getScrollLeft(),
+            }
+          : null;
+
+        model.model.setValue(content);
+
+        // Reset touched — this is a disk reload, not a user edit
+        const tabs_after = store.getState().editor.tabs;
+        store.dispatch(
+          update_tabs(
+            tabs_after.map((t) =>
+              t.file_path === uri ? { ...t, is_touched: false } : t,
+            ),
+          ),
+        );
+
+        if (is_active && saved_position) {
+          const line_count = model.model.getLineCount();
+          const clamped_line = Math.min(
+            saved_position.lineNumber,
+            line_count,
+          );
+          const clamped_col = Math.min(
+            saved_position.column,
+            model.model.getLineMaxColumn(clamped_line),
+          );
+          this.instance.setPosition({
+            lineNumber: clamped_line,
+            column: clamped_col,
+          });
+        }
+        if (is_active && saved_scroll) {
+          this.instance.setScrollTop(saved_scroll.top);
+          this.instance.setScrollLeft(saved_scroll.left);
+        }
+      },
+    );
   }
 
   private setup_hover_invalidation(): void {
@@ -731,6 +798,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   public dispose(): void {
     this.model_disposers.forEach((disposers) => disposers.forEach((d) => d()));
     this.model_disposers.clear();
+    this.file_watcher_off?.();
     this.editor_context_menu.destroy();
     this.instance?.dispose();
   }
