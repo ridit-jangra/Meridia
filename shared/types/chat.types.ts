@@ -20,4 +20,5 @@ export interface IChatTool {
 export interface IChatResult {
   message: string;
   tools: IChatTool[];
+  error?: string;
 }

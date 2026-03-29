@@ -33,7 +33,11 @@ ipcMain.handle(
   CHAT_PUSH,
   async (_, session_id: string, message: string, context?: IChatContext) => {
     const chat = get_session(session_id);
-    const result = await chat.push(message, context);
-    return { message: result.message, tools: result.tools };
+    try {
+      const result = await chat.push(message, context);
+      return { message: result.message, tools: result.tools };
+    } catch (e) {
+      return { error: e instanceof Error ? e.message : String(e) };
+    }
   },
 );

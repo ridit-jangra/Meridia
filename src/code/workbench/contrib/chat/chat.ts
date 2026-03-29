@@ -348,9 +348,17 @@ export function Chat() {
         cwd,
         files: [],
       });
-      append_message(s, "assistant", result.message, result.tools);
-    } catch {
-      append_message(s, "assistant", "Something went wrong.");
+      if (result.error) {
+        append_message(s, "assistant", result.error);
+      } else {
+        append_message(s, "assistant", result.message, result.tools);
+      }
+    } catch (e) {
+      append_message(
+        s,
+        "assistant",
+        e instanceof Error ? e.message : "Something went wrong.",
+      );
     } finally {
       set_loading(s, false);
       if (s.id === active_id) chat_input.focus();
