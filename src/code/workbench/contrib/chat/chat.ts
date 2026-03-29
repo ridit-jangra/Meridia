@@ -1,10 +1,13 @@
 import { ScrollArea } from "../../browser/parts/components/scroll-area";
 import { Button } from "../../browser/parts/components/button";
 import { codicon } from "../../browser/parts/components/icon";
-import { ChatBubble } from "../../browser/parts/components/chat-bubble";
-import { ChatLoadingBubble } from "../../browser/parts/components/chat-loading-bubble";
-import { ChatToolChip } from "../../browser/parts/components/chat-tool-chip";
-import { ChatInput } from "../../browser/parts/components/chat-input";
+import {
+  ChatBubble,
+  ChatLoadingBubble,
+  ChatToolChip,
+  ChatMessageBox,
+  ChatPermissionCard,
+} from "../../browser/parts/components/chat";
 import { h } from "../core/dom/h";
 import { cn } from "../core/utils/cn";
 import {
@@ -14,18 +17,16 @@ import {
 import { marked } from "marked";
 import hljs from "highlight.js";
 
-// configure marked once at module load
 marked.use({
   renderer: {
     code({ text, lang }: { text: string; lang?: string }) {
       const language = lang && hljs.getLanguage(lang) ? lang : "plaintext";
       const result = hljs.highlight(text, { language });
-      return `<pre class="chat-code-block"><code class="hljs language-${language}">${result.value}</code></pre>`;
+      return `<pre><code class="hljs language-${language}">${result.value}</code></pre>`;
     },
   },
 });
 
-// ── Storage types ──────────────────────────────────────────────────────────────
 interface StoredTool {
   tool: string;
   args: unknown;
@@ -45,7 +46,6 @@ interface StoredSession {
   messages: StoredMessage[];
 }
 
-// ── Runtime session ────────────────────────────────────────────────────────────
 interface Session extends StoredSession {
   message_count: number;
   is_loading: boolean;
@@ -59,14 +59,11 @@ interface Session extends StoredSession {
 
 let session_counter = 0;
 
-
-// ── Main component ─────────────────────────────────────────────────────────────
 export function Chat() {
   const sessions = new Map<string, Session>();
   let active_id = "";
   let save_timer: ReturnType<typeof setTimeout> | null = null;
 
-  // ── Persist ────────────────────────────────────────────────────
   function save() {
     if (save_timer) clearTimeout(save_timer);
     save_timer = setTimeout(() => {
@@ -81,15 +78,15 @@ export function Chat() {
     }, 300);
   }
 
-  // ── Shared DOM ─────────────────────────────────────────────────
   const content_area = h("div", {
     class: "flex-1 min-h-0 relative overflow-hidden",
   });
 
-  const chat_input = ChatInput({ onSubmit: () => submit() });
+  const chat_input = ChatMessageBox({
+    onSubmit: (_val, thinking) => submit(thinking),
+  });
   const input_bar = chat_input.el;
 
-  // ── Pill styles ────────────────────────────────────────────────
   const pill_base =
     "px-3 py-1 text-[13px] rounded-full cursor-pointer select-none flex items-center gap-1.5 transition-colors min-w-0 max-w-[160px]";
   const pill_active =
@@ -97,7 +94,6 @@ export function Chat() {
   const pill_inactive =
     "bg-view-tab-background text-view-tab-foreground hover:bg-view-tab-hover-background hover:text-view-tab-hover-foreground";
 
-  // ── Tab bar ────────────────────────────────────────────────────
   const add_btn = h(
     "div",
     { class: "flex items-center shrink-0" },
@@ -122,7 +118,6 @@ export function Chat() {
   });
   header.appendChild(tabs_row);
 
-  // ── Activate ───────────────────────────────────────────────────
   function activate(id: string) {
     const prev = sessions.get(active_id);
     if (prev) {
@@ -138,7 +133,6 @@ export function Chat() {
     save();
   }
 
-  // ── Build pane from stored messages ───────────────────────────
   function build_pane(stored: StoredSession) {
     const empty_el = h(
       "div",
@@ -162,7 +156,7 @@ export function Chat() {
     );
 
     const messages_el = h("div", {
-      class: "flex flex-col gap-2 px-3 pt-3 pb-2",
+      class: "flex flex-col gap-3 px-3 pt-3 pb-2",
       style: "display:none",
     });
 
@@ -181,7 +175,6 @@ export function Chat() {
     scroll.inner.appendChild(empty_el);
     scroll.inner.appendChild(messages_el);
 
-    // scroll to bottom after render
     requestAnimationFrame(
       () => (scroll.viewport.scrollTop = scroll.viewport.scrollHeight),
     );
@@ -196,22 +189,20 @@ export function Chat() {
     return { pane, scroll, messages_el, empty_el };
   }
 
-  // ── Render a single message bubble (used for restore + new) ───
   function render_message(container: HTMLElement, m: StoredMessage) {
+    const bubble = ChatBubble({ role: m.role, text: m.text });
+
     if (m.tools?.length) {
-      const row = h("div", {
-        class: "self-start flex flex-col gap-1 mb-1 max-w-[85%]",
-      });
+      const tools_row = h("div", { class: "flex flex-col gap-1 mb-2" });
       for (const t of m.tools) {
-        row.appendChild(ChatToolChip(t).el);
+        tools_row.appendChild(ChatToolChip(t).el);
       }
-      container.appendChild(row);
+      bubble.insertBefore(tools_row, bubble.firstChild);
     }
 
-    container.appendChild(ChatBubble({ role: m.role, text: m.text }));
+    container.appendChild(bubble);
   }
 
-  // ── Add session (new or restored) ─────────────────────────────
   function add_session(stored?: StoredSession) {
     session_counter++;
     const id = stored?.id ?? crypto.randomUUID();
@@ -289,7 +280,6 @@ export function Chat() {
     save();
   }
 
-  // ── Append message ─────────────────────────────────────────────
   function append_message(
     s: Session,
     role: "user" | "assistant",
@@ -332,7 +322,7 @@ export function Chat() {
     }
   }
 
-  async function submit() {
+  async function submit(thinking = false) {
     const s = sessions.get(active_id);
     if (!s || s.is_loading) return;
     const val = chat_input.value.trim();
@@ -347,11 +337,30 @@ export function Chat() {
       const result = await window.chat.push(s.session_id, val, {
         cwd,
         files: [],
+        thinking,
       });
       if (result.error) {
         append_message(s, "assistant", result.error);
       } else {
         append_message(s, "assistant", result.message, result.tools);
+        if (result.model) {
+          chat_input.setModel(result.model);
+        }
+        if (result.permissionRequired?.length) {
+          for (const p of result.permissionRequired) {
+            const card = ChatPermissionCard({
+              tool: p.tool,
+              description: p.description,
+              onAllow: () => console.log("allow", p.tool),
+              onDeny: () => console.log("deny", p.tool),
+            });
+            s.messages_el.appendChild(card.el);
+          }
+          requestAnimationFrame(
+            () =>
+              (s.scroll.viewport.scrollTop = s.scroll.viewport.scrollHeight),
+          );
+        }
       }
     } catch (e) {
       append_message(
@@ -365,19 +374,17 @@ export function Chat() {
     }
   }
 
-  // ── Root ───────────────────────────────────────────────────────
   const el = h(
     "div",
     {
       class:
-        "h-full w-full flex flex-col bg-chat-background text-chat-foreground overflow-hidden",
+        "chat h-full w-full flex flex-col bg-chat-background text-chat-foreground overflow-hidden",
     },
     header,
     content_area,
     input_bar,
   );
 
-  // ── Init: restore from storage ─────────────────────────────────
   (async () => {
     const [stored_sessions, stored_active] = await Promise.all([
       window.storage.get<StoredSession[]>(CHAT_SESSIONS_KEY, []),

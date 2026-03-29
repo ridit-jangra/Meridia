@@ -109,6 +109,9 @@ export const colors = [
   "chat.tool.background",
   "chat.tool.foreground",
 
+  "chat.diff.added.background",
+  "chat.diff.removed.background",
+
   "chat.input.background",
   "chat.input.foreground",
   "chat.input.border",

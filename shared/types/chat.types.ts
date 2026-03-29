@@ -9,6 +9,7 @@ export interface IChatContext {
   cwd: string;
   files: IChatContextFile[];
   prompt?: string;
+  thinking?: boolean;
 }
 
 export interface IChatTool {
@@ -17,8 +18,15 @@ export interface IChatTool {
   result: unknown;
 }
 
+export interface IChatPermission {
+  tool: string;
+  description: string;
+}
+
 export interface IChatResult {
   message: string;
+  model?: string;
   tools: IChatTool[];
   error?: string;
+  permissionRequired?: IChatPermission[];
 }

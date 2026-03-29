@@ -63,9 +63,9 @@ export const dark: ITheme = {
 
     "chat.background": "#131313",
     "chat.foreground": "#E6E6E6EB",
-    "chat.border": "#FFFFFF0F",
+    "chat.border": "#FFFFFF1A",
 
-    "chat.user.background": "#81A1C11E",
+    "chat.user.background": "#FFFFFF12",
     "chat.user.foreground": "#E6E6E6EB",
 
     "chat.assistant.background": "#FFFFFF0A",
@@ -73,6 +73,9 @@ export const dark: ITheme = {
 
     "chat.tool.background": "#FFFFFF08",
     "chat.tool.foreground": "#E6E6E650",
+
+    "chat.diff.added.background": "#C8F2A414",
+    "chat.diff.removed.background": "#FC6B8314",
 
     "chat.input.background": "#FFFFFF08",
     "chat.input.foreground": "#E6E6E6EB",
@@ -83,7 +86,7 @@ export const dark: ITheme = {
     "terminal.cursor.foreground": "#E6E6E6A6",
     "terminal.selection.background": "#FFFFFF22",
 
-    "terminal.black": "#555555",
+    "terminal.black": "#7A7A7A",
     "terminal.red": "#FC6B83",
     "terminal.green": "#A3D977",
     "terminal.yellow": "#F1B467",
@@ -92,7 +95,7 @@ export const dark: ITheme = {
     "terminal.cyan": "#88C0D0",
     "terminal.white": "#F2F2F2",
 
-    "terminal.bright.black": "#3A3A3A",
+    "terminal.bright.black": "#6B6B6B",
     "terminal.bright.red": "#FF7D92",
     "terminal.bright.green": "#B6F28A",
     "terminal.bright.yellow": "#FFD08A",

@@ -6,7 +6,7 @@ import { join } from "path";
 import { homedir } from "os";
 import { register_editor_tools } from "../lens/tools/editor.tools";
 import { register_terminal_tools } from "../lens/tools/terminal.tools";
-import { register_fs_tools } from "../lens/tools/fs.tools";
+// import { register_fs_tools } from "../lens/tools/fs.tools";
 import { register_workspace_tools } from "../lens/tools/workspace.tools";
 import { register_ui_tools } from "../lens/tools/ui.tools";
 
@@ -22,7 +22,7 @@ function get_session(session_id: string): Chat {
 
     register_editor_tools(chat);
     register_terminal_tools(chat);
-    register_fs_tools(chat);
+    // register_fs_tools(chat);
     register_workspace_tools(chat);
     register_ui_tools(chat);
 
