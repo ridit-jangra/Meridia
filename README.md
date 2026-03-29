@@ -15,6 +15,7 @@ If you want to read about using Meridia or developing extensions in Meridia, the
 ## Prerequisites
 
 - [Git](https://git-scm.com/)
+- [Lens](https://github.com/ridit-jangra/lens) (optional, for AI features)
 
 ### Windows
 
