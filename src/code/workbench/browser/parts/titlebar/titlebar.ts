@@ -140,7 +140,7 @@ export function Titlebar() {
     "div",
     {
       class:
-        "titlebar-inset titlebar-foreground gap-1 opacity-80 no-drag flex items-center",
+        "titlebar-inset titlebar-foreground gap-2 opacity-80 no-drag flex items-center",
     },
     run_btn,
     settings_btn,
