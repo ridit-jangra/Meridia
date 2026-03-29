@@ -1,6 +1,12 @@
+import { ipcMain } from "electron";
 import { Chat } from "@ridit/dev";
 import { event_emitter } from "../../shared/emitter";
-import { TERMINAL_RUN_FILE, TERMINAL_RUN_COMMAND } from "../../../shared/ipc/channels";
+import {
+  TERMINAL_GET_OUTPUT,
+  TERMINAL_OUTPUT_RESPONSE,
+  TERMINAL_RUN_COMMAND,
+  TERMINAL_RUN_FILE,
+} from "../../../shared/ipc/channels";
 
 export function register_terminal_tools(chat: Chat) {
   chat.registerTool({
@@ -24,6 +30,29 @@ export function register_terminal_tools(chat: Chat) {
     async onRun({ command }) {
       event_emitter.emit("window.webContents.send", TERMINAL_RUN_COMMAND, command);
       return { ok: true };
+    },
+  });
+
+  chat.registerTool({
+    name: "getTerminalOutput",
+    description: "Read the recent output from the terminal, useful for checking build results, test output, or error messages",
+    parameters: {
+      lines: { type: "number", description: "Maximum number of recent lines to return (default 50)" },
+    },
+    async onRun({ lines = 50 }) {
+      return new Promise((resolve) => {
+        const timer = setTimeout(() => {
+          ipcMain.removeAllListeners(TERMINAL_OUTPUT_RESPONSE);
+          resolve({ output: null });
+        }, 3000);
+
+        ipcMain.once(TERMINAL_OUTPUT_RESPONSE, (_, output: string) => {
+          clearTimeout(timer);
+          resolve({ output });
+        });
+
+        event_emitter.emit("window.webContents.send", TERMINAL_GET_OUTPUT, lines);
+      });
     },
   });
 }
