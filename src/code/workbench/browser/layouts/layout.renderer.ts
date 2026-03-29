@@ -13,6 +13,7 @@ import { h } from "../../contrib/core/dom/h";
 import { Titlebar } from "../parts/titlebar/titlebar";
 import { Statusbar } from "../parts/statusbar/statusbar";
 import { terminal } from "../../../platform/terminal/terminal.service";
+import { init_notifications } from "../../contrib/notification/notification";
 
 type RenderResult = { el: HTMLElement; destroy: () => void };
 
@@ -324,6 +325,7 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
 
   const titlebar = Titlebar();
   const statusbar = Statusbar();
+  init_notifications();
 
   const el = h(
     "div",

@@ -12,6 +12,7 @@ import { cn } from "../../../contrib/core/utils/cn";
 import { Breadcrumb } from "../components/breadcrumb";
 import { Tooltip } from "../components/tooltip";
 import { editor_events } from "../../../../platform/events/editor.events";
+import { UI_SET_STATUS_BAR } from "../../../../../../shared/ipc/channels";
 
 function StatusbarItem(text?: string) {
   const el = h(
@@ -38,6 +39,21 @@ function StatusbarItem(text?: string) {
 }
 
 export function Statusbar() {
+  const messageItem = StatusbarItem();
+  let message_timer: ReturnType<typeof setTimeout> | null = null;
+
+  statusbar_events.on("setMessage", (text: string | null) => {
+    if (message_timer) clearTimeout(message_timer);
+    messageItem.setText(text);
+    if (text) {
+      message_timer = setTimeout(() => messageItem.setText(null), 5000);
+    }
+  });
+
+  window.ipc.on(UI_SET_STATUS_BAR, (_, text: string | null) => {
+    statusbar_events.emit("setMessage", text);
+  });
+
   const left = h("div", { class: "flex items-center min-w-0" });
 
   const lineColItem = StatusbarItem();
@@ -200,6 +216,7 @@ export function Statusbar() {
       ),
     },
     left,
+    messageItem.el,
     right,
   );
 
