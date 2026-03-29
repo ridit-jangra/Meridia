@@ -6,7 +6,7 @@
       "name": "Meridia",
       "dependencies": {
         "@reduxjs/toolkit": "^2.11.2",
-        "@ridit/dev": "0.1.5",
+        "@ridit/dev": "0.2.0",
         "@ridit/relay": "^0.1.4",
         "@tailwindcss/vite": "^4.1.18",
         "@vscode/codicons": "^0.0.44",
@@ -136,7 +136,7 @@
 
     "@reduxjs/toolkit": ["@reduxjs/toolkit@2.11.2", "", { "dependencies": { "@standard-schema/spec": "^1.0.0", "@standard-schema/utils": "^0.3.0", "immer": "^11.0.0", "redux": "^5.0.1", "redux-thunk": "^3.1.0", "reselect": "^5.1.0" }, "peerDependencies": { "react": "^16.9.0 || ^17.0.0 || ^18 || ^19", "react-redux": "^7.2.1 || ^8.1.3 || ^9.0.0" }, "optionalPeers": ["react", "react-redux"] }, "sha512-Kd6kAHTA6/nUpp8mySPqj3en3dm0tdMIgbttnQ1xFMVpufoj+ADi8pXLBsd4xzTRHQa7t/Jv8W5UnCuW4kuWMQ=="],
 
-    "@ridit/dev": ["@ridit/dev@0.1.5", "", { "dependencies": { "execa": "^9.0.0" }, "peerDependencies": { "typescript": "^5" } }, "sha512-Vwo6P5qKtgjYPD+KcuF3dwQ5LugP1hAOCdtI2PCcuKhSXHHLiIcqlazRTNO8938kMshL5ssHneU7LXMmFPaOIQ=="],
+    "@ridit/dev": ["@ridit/dev@0.2.0", "", { "dependencies": { "execa": "^9.0.0", "zod": "^4.3.6" }, "peerDependencies": { "typescript": "^5" } }, "sha512-t6StUlp6HkzFfY2Fs3+0Ny66ohRYonTGutwl0ucUWPC9uYg4TA+5N6h5krGDy9lzUPWCrGMbsoDk84SUspiuQw=="],
 
     "@ridit/relay": ["@ridit/relay@0.1.4", "", { "dependencies": { "@ridit/relay": "^0.1.1", "vscode-languageserver-protocol": "^3.17.5", "vscode-ws-jsonrpc": "^3.5.0", "ws": "^8.18.0" }, "peerDependencies": { "monaco-editor": ">=0.30.0" }, "optionalPeers": ["monaco-editor"] }, "sha512-NzX7ZM++sbJkdWGkTQazt0sxGNsMjuc4oSXYhtk0XPMsDjjhDBdd8DgPPNWSCw12xHsLKQuEC6Z6c6W5vLu07g=="],
 
@@ -961,6 +961,8 @@
     "yoctocolors": ["yoctocolors@2.1.2", "", {}, "sha512-CzhO+pFNo8ajLM2d2IW/R93ipy99LWjtwblvC1RsoSUMZgyLbYFr221TnSNT7GjGdYui6P459mw9JH/g/zW2ug=="],
 
     "zip-stream": ["zip-stream@4.1.1", "", { "dependencies": { "archiver-utils": "^3.0.4", "compress-commons": "^4.1.2", "readable-stream": "^3.6.0" } }, "sha512-9qv4rlDiopXg4E69k+vMHjNN63YFMe9sZMrdlvKnCjlCRWeCBswPPMPUfx+ipsAWq1LXHe70RcbaHdJJpS6hyQ=="],
+
+    "zod": ["zod@4.3.6", "", {}, "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg=="],
 
     "@electron/asar/glob": ["glob@7.2.3", "", { "dependencies": { "fs.realpath": "^1.0.0", "inflight": "^1.0.4", "inherits": "2", "minimatch": "^3.1.1", "once": "^1.3.0", "path-is-absolute": "^1.0.0" } }, "sha512-nFR0zLpU2YCaRxwoCJvL6UvCH2JFyFVIvwTLsIf21AuHlMskA1hhTdk+LlYJtOlYt9v6dvszD2BGRqBL+iQK9Q=="],
 
