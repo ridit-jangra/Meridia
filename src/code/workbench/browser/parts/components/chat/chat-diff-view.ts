@@ -98,45 +98,45 @@ export function ChatDiffView(opts: {
 
   const btn_row = h("div", { class: "flex items-center gap-1" });
 
-  if (opts.onAccept) {
-    const btn = h("button", {
-      class:
-        "h-5 px-2 text-[10px] rounded-[4px] bg-transparent border-0 cursor-pointer transition-colors",
-      attrs: { type: "button" },
-    });
-    btn.textContent = "Accept";
-    btn.style.color = "var(--chat-diff-added-foreground)";
-    btn.addEventListener(
-      "mouseenter",
-      () => (btn.style.backgroundColor = "var(--chat-diff-added-background)"),
-    );
-    btn.addEventListener(
-      "mouseleave",
-      () => (btn.style.backgroundColor = "transparent"),
-    );
-    btn.addEventListener("click", opts.onAccept);
-    btn_row.appendChild(btn);
-  }
+  // if (opts.onAccept) {
+  //   const btn = h("button", {
+  //     class:
+  //       "h-5 px-2 text-[10px] rounded-[4px] bg-transparent border-0 cursor-pointer transition-colors",
+  //     attrs: { type: "button" },
+  //   });
+  //   btn.textContent = "Accept";
+  //   btn.style.color = "var(--chat-diff-added-foreground)";
+  //   btn.addEventListener(
+  //     "mouseenter",
+  //     () => (btn.style.backgroundColor = "var(--chat-diff-added-background)"),
+  //   );
+  //   btn.addEventListener(
+  //     "mouseleave",
+  //     () => (btn.style.backgroundColor = "transparent"),
+  //   );
+  //   btn.addEventListener("click", opts.onAccept);
+  //   btn_row.appendChild(btn);
+  // }
 
-  if (opts.onReject) {
-    const btn = h("button", {
-      class:
-        "h-5 px-2 text-[10px] rounded-[4px] bg-transparent border-0 cursor-pointer transition-colors",
-      attrs: { type: "button" },
-    });
-    btn.textContent = "Reject";
-    btn.style.color = "var(--chat-diff-removed-foreground)";
-    btn.addEventListener(
-      "mouseenter",
-      () => (btn.style.backgroundColor = "var(--chat-diff-removed-background)"),
-    );
-    btn.addEventListener(
-      "mouseleave",
-      () => (btn.style.backgroundColor = "transparent"),
-    );
-    btn.addEventListener("click", opts.onReject);
-    btn_row.appendChild(btn);
-  }
+  // if (opts.onReject) {
+  //   const btn = h("button", {
+  //     class:
+  //       "h-5 px-2 text-[10px] rounded-[4px] bg-transparent border-0 cursor-pointer transition-colors",
+  //     attrs: { type: "button" },
+  //   });
+  //   btn.textContent = "Reject";
+  //   btn.style.color = "var(--chat-diff-removed-foreground)";
+  //   btn.addEventListener(
+  //     "mouseenter",
+  //     () => (btn.style.backgroundColor = "var(--chat-diff-removed-background)"),
+  //   );
+  //   btn.addEventListener(
+  //     "mouseleave",
+  //     () => (btn.style.backgroundColor = "transparent"),
+  //   );
+  //   btn.addEventListener("click", opts.onReject);
+  //   btn_row.appendChild(btn);
+  // }
 
   const header = h(
     "div",
