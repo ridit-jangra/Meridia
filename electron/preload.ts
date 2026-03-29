@@ -39,6 +39,8 @@ import {
   FS_RELATIVE,
   FS_OPEN,
   CHAT_PUSH,
+  CHAT_RUN_TOOL,
+  CHAT_SKIP_TOOL,
 } from "../shared/ipc/channels";
 import type { IChatContext, IChatResult } from "../shared/types/chat.types";
 
@@ -185,4 +187,8 @@ contextBridge.exposeInMainWorld("platform", {
 contextBridge.exposeInMainWorld("chat", {
   push: (session_id: string, message: string, context: IChatContext) =>
     ipcRenderer.invoke(CHAT_PUSH, session_id, message, context) as Promise<IChatResult>,
+  runTool: (session_id: string, tool: unknown) =>
+    ipcRenderer.invoke(CHAT_RUN_TOOL, session_id, tool) as Promise<{ message: string; tools: any[] }>,
+  skipTool: (session_id: string, tool: unknown) =>
+    ipcRenderer.invoke(CHAT_SKIP_TOOL, session_id, tool) as Promise<{ message: string; tools: any[] }>,
 });

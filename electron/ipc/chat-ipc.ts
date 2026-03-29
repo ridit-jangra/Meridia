@@ -1,12 +1,16 @@
 import { ipcMain } from "electron";
-import { Chat } from "@ridit/dev";
-import { CHAT_PUSH } from "../../shared/ipc/channels";
-import type { IChatContext } from "../../shared/types/chat.types";
+import { Chat, Tool } from "@ridit/dev";
+import {
+  CHAT_PUSH,
+  CHAT_RUN_TOOL,
+  CHAT_SKIP_TOOL,
+} from "../../shared/ipc/channels";
+import type { IChatContext, IChatResult } from "../../shared/types/chat.types";
 import { join } from "path";
 import { homedir } from "os";
 import { register_editor_tools } from "../lens/tools/editor.tools";
 import { register_terminal_tools } from "../lens/tools/terminal.tools";
-// import { register_fs_tools } from "../lens/tools/fs.tools";
+import { register_fs_tools } from "../lens/tools/fs.tools";
 import { register_workspace_tools } from "../lens/tools/workspace.tools";
 import { register_ui_tools } from "../lens/tools/ui.tools";
 
@@ -33,13 +37,40 @@ function get_session(session_id: string): Chat {
 
 ipcMain.handle(
   CHAT_PUSH,
-  async (_, session_id: string, message: string, context?: IChatContext) => {
+  async (
+    _,
+    session_id: string,
+    message: string,
+    context?: IChatContext,
+  ): Promise<IChatResult> => {
     const chat = get_session(session_id);
     try {
       const result = await chat.push(message, context);
-      return { message: result.message, tools: result.tools };
+      console.log("result", result);
+      return {
+        message: result.message,
+        tools: result.tools,
+        permissionRequired: result.permissionRequired,
+        model: result.model,
+      };
     } catch (e) {
-      return { error: e instanceof Error ? e.message : String(e) };
+      return {
+        error: e instanceof Error ? e.message : String(e),
+        message: "",
+        tools: [],
+      };
     }
   },
 );
+
+ipcMain.handle(CHAT_RUN_TOOL, async (_, session_id: string, tool: Tool) => {
+  const chat = get_session(session_id);
+  const result = await chat.runTool(tool);
+  return { message: result.message, tools: result.tools };
+});
+
+ipcMain.handle(CHAT_SKIP_TOOL, async (_, session_id: string, tool: Tool) => {
+  const chat = get_session(session_id);
+  const result = await chat.skipTool(tool);
+  return { message: result.message, tools: result.tools };
+});

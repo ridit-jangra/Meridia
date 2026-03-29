@@ -11,6 +11,7 @@ import type {
 } from "../shared/types/explorer.types";
 import type { IWorkspace } from "../shared/types/workspace.types";
 import type { IChatContext, IChatResult } from "../shared/types/chat.types";
+import { Tool } from "@ridit/dev";
 
 declare namespace NodeJS {
   interface ProcessEnv {
@@ -84,6 +85,14 @@ type chat_api = {
     message: string,
     context?: IChatContext,
   ): Promise<IChatResult>;
+  runTool(
+    session_id: string,
+    tool: unknown,
+  ): Promise<{ message: string; tools: Tool[] }>;
+  skipTool(
+    session_id: string,
+    tool: unknown,
+  ): Promise<{ message: string; tools: Tool[] }>;
 };
 
 type pty_api = {
