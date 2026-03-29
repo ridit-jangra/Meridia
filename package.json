@@ -32,7 +32,7 @@
   "main": "dist-electron/main.js",
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
-    "@ridit/dev": "0.2.0",
+    "@ridit/dev": "0.2.2",
     "@ridit/relay": "^0.1.4",
     "@tailwindcss/vite": "^4.1.18",
     "@vscode/codicons": "^0.0.44",
