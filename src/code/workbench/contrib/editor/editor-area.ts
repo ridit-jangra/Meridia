@@ -39,6 +39,8 @@ export function EditorArea() {
 
     if (!key) {
       editors.forEach((e) => e.set_visible(false));
+      last_active_path = "";
+      last_active_status = "";
       return;
     }
 

@@ -16,6 +16,8 @@ import {
 } from "../../../../../shared/storage-keys";
 import { marked } from "marked";
 import hljs from "highlight.js";
+import { Tool } from "@ridit/dev";
+import { Permission } from "../../../../../shared/types/chat.types";
 
 marked.use({
   renderer: {
@@ -27,16 +29,12 @@ marked.use({
   },
 });
 
-interface StoredTool {
-  tool: string;
-  args: unknown;
-  result: unknown;
-}
-
 interface StoredMessage {
   role: "user" | "assistant";
   text: string;
-  tools?: StoredTool[];
+  tools?: Tool[];
+  is_error?: boolean;
+  permission?: { tool: string; description: string }[];
 }
 
 interface StoredSession {
@@ -189,13 +187,26 @@ export function Chat() {
     return { pane, scroll, messages_el, empty_el };
   }
 
-  function render_message(container: HTMLElement, m: StoredMessage) {
-    const bubble = ChatBubble({ role: m.role, text: m.text });
+  function render_message(
+    container: HTMLElement,
+    m: StoredMessage,
+    session_id?: string,
+    onResult?: (message: string, tools: Tool[]) => void,
+  ) {
+    const bubble = ChatBubble({
+      role: m.role,
+      text: m.text,
+      is_error: m.is_error,
+    });
+
+    console.log(m);
 
     if (m.tools?.length) {
       const tools_row = h("div", { class: "flex flex-col gap-1 mb-2" });
       for (const t of m.tools) {
-        tools_row.appendChild(ChatToolChip(t).el);
+        tools_row.appendChild(
+          ChatToolChip(t, m.permission ?? [], session_id, onResult).el,
+        );
       }
       bubble.insertBefore(tools_row, bubble.firstChild);
     }
@@ -284,7 +295,9 @@ export function Chat() {
     s: Session,
     role: "user" | "assistant",
     text: string,
-    tools?: StoredTool[],
+    tools?: Tool[],
+    is_error?: boolean,
+    permission?: Permission[],
   ) {
     if (s.message_count === 0) {
       s.empty_el.style.display = "none";
@@ -296,9 +309,13 @@ export function Chat() {
       role,
       text,
       ...(tools?.length ? { tools } : {}),
+      ...(is_error ? { is_error: true } : {}),
+      permission,
     };
     s.messages.push(m);
-    render_message(s.messages_el, m);
+    render_message(s.messages_el, m, s.session_id, (msg, tools) => {
+      append_message(s, "assistant", msg, tools);
+    });
 
     requestAnimationFrame(
       () => (s.scroll.viewport.scrollTop = s.scroll.viewport.scrollHeight),
@@ -340,19 +357,58 @@ export function Chat() {
         thinking,
       });
       if (result.error) {
-        append_message(s, "assistant", result.error);
+        append_message(s, "assistant", result.error, undefined, true);
       } else {
-        append_message(s, "assistant", result.message, result.tools);
+        append_message(
+          s,
+          "assistant",
+          result.message,
+          result.tools,
+          !!result.error,
+          result.permissionRequired,
+        );
         if (result.model) {
           chat_input.setModel(result.model);
         }
         if (result.permissionRequired?.length) {
           for (const p of result.permissionRequired) {
+            const matching_tool = result.tools?.find((t) => t.tool === p.tool);
+            if (!matching_tool) continue;
+
+            if (chat_input.allowEdits) {
+              const run_result = await window.chat.runTool(
+                s.session_id,
+                matching_tool,
+              );
+              if (run_result.message?.trim()) {
+                append_message(
+                  s,
+                  "assistant",
+                  run_result.message,
+                  run_result.tools,
+                );
+              }
+              continue;
+            }
+
             const card = ChatPermissionCard({
               tool: p.tool,
               description: p.description,
-              onAllow: () => console.log("allow", p.tool),
-              onDeny: () => console.log("deny", p.tool),
+              onAllow: async () => {
+                const run_result = await window.chat.runTool(
+                  s.session_id,
+                  matching_tool,
+                );
+                if (run_result.message?.trim()) {
+                  append_message(
+                    s,
+                    "assistant",
+                    run_result.message,
+                    run_result.tools,
+                  );
+                }
+              },
+              onDeny: () => {},
             });
             s.messages_el.appendChild(card.el);
           }
@@ -367,6 +423,8 @@ export function Chat() {
         s,
         "assistant",
         e instanceof Error ? e.message : "Something went wrong.",
+        undefined,
+        true,
       );
     } finally {
       set_loading(s, false);
