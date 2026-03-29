@@ -1,13 +1,21 @@
 import { ipcMain } from "electron";
 import { Chat } from "@ridit/dev";
 import fs from "node:fs/promises";
+import { isAbsolute, join } from "node:path";
 import { event_emitter } from "../../shared/emitter";
+import { workspace } from "../../main-services/workspace-service";
 import {
   EDITOR_ACTIVE_FILE,
   EDITOR_OPEN_FILE,
   EDITOR_SCROLL_TO_LINE,
   EDITOR_SELECTION,
 } from "../../../shared/ipc/channels";
+
+async function resolve_path(p: string): Promise<string> {
+  if (isAbsolute(p)) return p;
+  const root = await workspace.get_current_workspace_path();
+  return root ? join(root, p) : p;
+}
 
 let _active_file: string | null = null;
 let _selection: string | null = null;
@@ -23,12 +31,13 @@ ipcMain.on(EDITOR_SELECTION, (_, text: string) => {
 export function register_editor_tools(chat: Chat) {
   chat.registerTool({
     name: "openFile",
-    description: "Open a file in the code editor",
+    description: "Open a file in the code editor — accepts absolute or workspace-relative paths",
     parameters: {
-      path: { type: "string", description: "Absolute path to the file" },
+      path: { type: "string", description: "Absolute or workspace-relative path to the file" },
     },
     async onRun({ path }) {
-      event_emitter.emit("window.webContents.send", EDITOR_OPEN_FILE, path);
+      const resolved = await resolve_path(path);
+      event_emitter.emit("window.webContents.send", EDITOR_OPEN_FILE, resolved);
       return { ok: true };
     },
   });
@@ -44,11 +53,14 @@ export function register_editor_tools(chat: Chat) {
 
   chat.registerTool({
     name: "getFileContent",
-    description: "Get the full text content of the file currently open in the editor",
-    parameters: {},
-    async onRun() {
-      if (!_active_file) return { content: null };
-      const content = await fs.readFile(_active_file, "utf8");
+    description: "Get the full text content of the file currently open in the editor, or of a specific file by path",
+    parameters: {
+      path: { type: "string", description: "Absolute or workspace-relative path (omit to use the active file)" },
+    },
+    async onRun({ path }) {
+      const target = path ? await resolve_path(path) : _active_file;
+      if (!target) return { content: null };
+      const content = await fs.readFile(target, "utf8");
       return { content };
     },
   });
@@ -66,11 +78,12 @@ export function register_editor_tools(chat: Chat) {
     name: "scrollToLine",
     description: "Scroll the editor to a specific line number in a file, opening it first if needed",
     parameters: {
-      path: { type: "string", description: "Absolute path to the file" },
+      path: { type: "string", description: "Absolute or workspace-relative path to the file" },
       line: { type: "number", description: "1-based line number to scroll to" },
     },
     async onRun({ path, line }) {
-      event_emitter.emit("window.webContents.send", EDITOR_SCROLL_TO_LINE, path, line);
+      const resolved = await resolve_path(path);
+      event_emitter.emit("window.webContents.send", EDITOR_SCROLL_TO_LINE, resolved, line);
       return { ok: true };
     },
   });

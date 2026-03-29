@@ -1,16 +1,23 @@
 import { Chat } from "@ridit/dev";
 import fs from "node:fs/promises";
-import path from "node:path";
+import { isAbsolute, join, dirname } from "node:path";
+import { workspace } from "../../main-services/workspace-service";
+
+async function resolve(p: string): Promise<string> {
+  if (isAbsolute(p)) return p;
+  const root = await workspace.get_current_workspace_path();
+  return root ? join(root, p) : p;
+}
 
 export function register_fs_tools(chat: Chat) {
   chat.registerTool({
     name: "readFile",
-    description: "Read the text content of a file",
+    description: "Read the text content of a file — accepts absolute or workspace-relative paths",
     parameters: {
-      path: { type: "string", description: "Absolute path to the file" },
+      path: { type: "string", description: "Absolute or workspace-relative path to the file" },
     },
     async onRun({ path: p }) {
-      const content = await fs.readFile(p, "utf8");
+      const content = await fs.readFile(await resolve(p), "utf8");
       return { content };
     },
   });
@@ -19,12 +26,13 @@ export function register_fs_tools(chat: Chat) {
     name: "writeFile",
     description: "Write text content to a file, creating it and any missing parent directories if needed",
     parameters: {
-      path: { type: "string", description: "Absolute path to the file" },
+      path: { type: "string", description: "Absolute or workspace-relative path to the file" },
       content: { type: "string", description: "Text content to write" },
     },
     async onRun({ path: p, content }) {
-      await fs.mkdir(path.dirname(p), { recursive: true });
-      await fs.writeFile(p, content, "utf8");
+      const resolved = await resolve(p);
+      await fs.mkdir(dirname(resolved), { recursive: true });
+      await fs.writeFile(resolved, content, "utf8");
       return { ok: true };
     },
   });
@@ -33,10 +41,10 @@ export function register_fs_tools(chat: Chat) {
     name: "listDirectory",
     description: "List files and folders inside a directory",
     parameters: {
-      path: { type: "string", description: "Absolute path to the directory" },
+      path: { type: "string", description: "Absolute or workspace-relative path to the directory" },
     },
     async onRun({ path: p }) {
-      const items = await fs.readdir(p, { withFileTypes: true });
+      const items = await fs.readdir(await resolve(p), { withFileTypes: true });
       return {
         items: items.map((d) => ({
           name: d.name,
@@ -50,10 +58,10 @@ export function register_fs_tools(chat: Chat) {
     name: "deleteFile",
     description: "Delete a file or directory",
     parameters: {
-      path: { type: "string", description: "Absolute path to delete" },
+      path: { type: "string", description: "Absolute or workspace-relative path to delete" },
     },
     async onRun({ path: p }) {
-      await fs.rm(p, { recursive: true });
+      await fs.rm(await resolve(p), { recursive: true });
       return { ok: true };
     },
   });
@@ -62,10 +70,10 @@ export function register_fs_tools(chat: Chat) {
     name: "createDirectory",
     description: "Create a directory and any missing parent directories",
     parameters: {
-      path: { type: "string", description: "Absolute path to create" },
+      path: { type: "string", description: "Absolute or workspace-relative path to create" },
     },
     async onRun({ path: p }) {
-      await fs.mkdir(p, { recursive: true });
+      await fs.mkdir(await resolve(p), { recursive: true });
       return { ok: true };
     },
   });
