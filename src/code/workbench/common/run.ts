@@ -1,4 +1,4 @@
-import { TERMINAL_RUN_FILE } from "../../../../shared/ipc/channels";
+import { TERMINAL_RUN_COMMAND, TERMINAL_RUN_FILE } from "../../../../shared/ipc/channels";
 import { get_file_extension } from "../../editor/editor.helper";
 import { terminal } from "../../platform/terminal/terminal.service";
 import {
@@ -58,5 +58,12 @@ setTimeout(() => {
 
   ipc.on(TERMINAL_RUN_FILE, (_, path: string) => {
     runFile(path);
+  });
+
+  ipc.on(TERMINAL_RUN_COMMAND, (_, command: string) => {
+    const active_terminal = terminal.get_active();
+    if (!active_terminal) return;
+    update_layout([1, 1], enable_node_at_path);
+    window.pty.write(active_terminal.id, `${command}\r`);
   });
 }, 200);

@@ -45,7 +45,7 @@ import { shortcuts } from "../../workbench/common/shortcut/shortcut.service";
 import { editor_events } from "../../platform/events/editor.events";
 import { statusbar_events } from "../../platform/events/statusbar.events";
 import { LSP_BRIDGE_PORT } from "../../../../shared/lsp/lsp.constants";
-import { EDITOR_OPEN_FILE } from "../../../../shared/ipc/channels";
+import { EDITOR_ACTIVE_FILE, EDITOR_OPEN_FILE } from "../../../../shared/ipc/channels";
 
 type Disposer = () => void;
 
@@ -445,6 +445,16 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
     ipc.on(EDITOR_OPEN_FILE, (_, path: string) => {
       open_editor_tab(path);
+    });
+
+    let _last_active: string | null = null;
+    store.subscribe(() => {
+      const active = store.getState().editor.tabs.find((t) => t.active);
+      const path = active?.file_path ?? null;
+      if (path && path !== _last_active) {
+        _last_active = path;
+        ipc.send(EDITOR_ACTIVE_FILE, path);
+      }
     });
   }
 
