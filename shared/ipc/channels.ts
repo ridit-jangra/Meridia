@@ -50,6 +50,8 @@ export const GIT_GET_LOG = "git:get-log";
 export const GIT_DISCARD = "git:discard";
 
 export const CHAT_PUSH = "chat:push";
+export const CHAT_RUN_TOOL = "chat:run_tool";
+export const CHAT_SKIP_TOOL = "chat:skip_tool";
 
 export const SHORTCUT_EXECUTE = "shortcut:execute";
 
