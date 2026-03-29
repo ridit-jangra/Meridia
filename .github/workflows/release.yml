@@ -4,9 +4,17 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release (e.g. v2.0.0-beta.1)"
+        required: true
 
 permissions:
   contents: write
+
+env:
+  RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
 
 jobs:
   build-windows:
@@ -29,7 +37,7 @@ jobs:
       - name: Sync version in package.json
         shell: powershell
         run: |
-          $version = "${{ github.ref_name }}".TrimStart("v")
+          $version = "${{ env.RELEASE_TAG }}".TrimStart("v")
           $pkg = Get-Content package.json -Raw | ConvertFrom-Json
           $pkg.version = $version
           $pkg | ConvertTo-Json -Depth 100 | Set-Content package.json
@@ -70,7 +78,7 @@ jobs:
       - name: Compile Inno Setup installer
         shell: powershell
         run: |
-          $version = "${{ github.ref_name }}".TrimStart("v")
+          $version = "${{ env.RELEASE_TAG }}".TrimStart("v")
           $iss = Get-Content installer.iss -Raw
           $iss = $iss -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"$version`""
           $iss = $iss -replace 'release\\{#MyAppVersion}\\win-unpacked', "release\$version\win-unpacked"
@@ -115,7 +123,7 @@ jobs:
 
       - name: Sync version in package.json
         run: |
-          VERSION="${{ github.ref_name }}"
+          VERSION="${{ env.RELEASE_TAG }}"
           VERSION="${VERSION#v}"
           node -e "
             const fs = require('fs');
@@ -155,7 +163,7 @@ jobs:
 
       - name: Sync version in package.json
         run: |
-          VERSION="${{ github.ref_name }}"
+          VERSION="${{ env.RELEASE_TAG }}"
           VERSION="${VERSION#v}"
           node -e "
             const fs = require('fs');
@@ -204,8 +212,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "Meridia ${{ github.ref_name }}"
-          tag_name: ${{ github.ref_name }}
+          name: "Meridia ${{ env.RELEASE_TAG }}"
+          tag_name: ${{ env.RELEASE_TAG }}
           draft: false
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
           generate_release_notes: true
