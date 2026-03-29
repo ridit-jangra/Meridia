@@ -54,4 +54,7 @@ export const CHAT_PUSH = "chat:push";
 export const SHORTCUT_EXECUTE = "shortcut:execute";
 
 export const EDITOR_OPEN_FILE = "editor:openFile";
+export const EDITOR_ACTIVE_FILE = "editor:activeFile";
+
 export const TERMINAL_RUN_FILE = "terminal:runFile";
+export const TERMINAL_RUN_COMMAND = "terminal:runCommand";
