@@ -1,5 +1,5 @@
 import { h } from "../core/dom/h";
-import { UI_SHOW_NOTIFICATION } from "../../../../../../shared/ipc/channels";
+import { UI_SHOW_NOTIFICATION } from "../../../../../shared/ipc/channels";
 
 type NotificationType = "info" | "success" | "warning" | "error";
 
@@ -39,14 +39,17 @@ function create_container() {
 export function init_notifications() {
   const container = create_container();
 
-  window.ipc.on(UI_SHOW_NOTIFICATION, (_, message: string, type: NotificationType = "info") => {
-    const toast = Toast(message, type);
-    container.appendChild(toast);
+  window.ipc.on(
+    UI_SHOW_NOTIFICATION,
+    (_, message: string, type: NotificationType = "info") => {
+      const toast = Toast(message, type);
+      container.appendChild(toast);
 
-    setTimeout(() => {
-      toast.style.opacity = "0";
-      toast.style.transform = "translateY(4px)";
-      setTimeout(() => toast.remove(), 300);
-    }, 4000);
-  });
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(4px)";
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    },
+  );
 }
