@@ -6,6 +6,7 @@ import {
 } from "../../../../types/shortcut.types";
 import { eval_when } from "./shortcut.when";
 import { event_combo, normalize_chord } from "./shortcut.parse";
+import { SHORTCUT_EXECUTE } from "../../../../../shared/ipc/channels";
 
 type match = shortcut_def & { _norm: string };
 
@@ -25,6 +26,10 @@ export class shortcut_service {
   private chord: string[] = [];
   private chord_timer: number | null = null;
   private chord_timeout_ms = 900;
+
+  constructor() {
+    this.setup_ipc_listeners();
+  }
 
   register_command(cmd: command_def) {
     this.commands[cmd.id] = cmd.run;
@@ -81,6 +86,14 @@ export class shortcut_service {
 
   set_scope(scope: shortcut_scope) {
     this.scope = scope;
+  }
+
+  setup_ipc_listeners() {
+    const ipc = window.ipc;
+
+    ipc.on(SHORTCUT_EXECUTE, (_, command: string) => {
+      this.run_shortcut(command);
+    });
   }
 
   bind(target: Window | Document = window) {
