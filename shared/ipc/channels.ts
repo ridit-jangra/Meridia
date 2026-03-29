@@ -55,6 +55,13 @@ export const SHORTCUT_EXECUTE = "shortcut:execute";
 
 export const EDITOR_OPEN_FILE = "editor:openFile";
 export const EDITOR_ACTIVE_FILE = "editor:activeFile";
+export const EDITOR_SELECTION = "editor:selection";
+export const EDITOR_SCROLL_TO_LINE = "editor:scrollToLine";
 
 export const TERMINAL_RUN_FILE = "terminal:runFile";
 export const TERMINAL_RUN_COMMAND = "terminal:runCommand";
+export const TERMINAL_GET_OUTPUT = "terminal:getOutput";
+export const TERMINAL_OUTPUT_RESPONSE = "terminal:outputResponse";
+
+export const UI_SHOW_NOTIFICATION = "ui:showNotification";
+export const UI_SET_STATUS_BAR = "ui:setStatusBar";
