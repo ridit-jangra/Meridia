@@ -30,6 +30,7 @@ import {
 } from "../../../types/editor.types";
 import {
   monaco,
+  open_editor_tab,
   path_to_language,
   update_editor_tab,
   update_editor_tab_status,
@@ -44,6 +45,7 @@ import { shortcuts } from "../../workbench/common/shortcut/shortcut.service";
 import { editor_events } from "../../platform/events/editor.events";
 import { statusbar_events } from "../../platform/events/statusbar.events";
 import { LSP_BRIDGE_PORT } from "../../../../shared/lsp/lsp.constants";
+import { EDITOR_OPEN_FILE } from "../../../../shared/ipc/channels";
 
 type Disposer = () => void;
 
@@ -134,6 +136,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
   constructor() {
     super(EDITOR_DEF);
+    this.setup_ipc_listener();
   }
 
   public set_visible(visible = true): void {
@@ -239,10 +242,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
         if (is_active && saved_position) {
           const line_count = model.model.getLineCount();
-          const clamped_line = Math.min(
-            saved_position.lineNumber,
-            line_count,
-          );
+          const clamped_line = Math.min(saved_position.lineNumber, line_count);
           const clamped_col = Math.min(
             saved_position.column,
             model.model.getLineMaxColumn(clamped_line),
@@ -437,6 +437,14 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
           onClick: () => shortcuts.run_shortcut("app.commandPalette"),
         },
       ]);
+    });
+  }
+
+  private setup_ipc_listener() {
+    const ipc = window.ipc;
+
+    ipc.on(EDITOR_OPEN_FILE, (_, path: string) => {
+      open_editor_tab(path);
     });
   }
 
