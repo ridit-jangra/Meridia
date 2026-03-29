@@ -71,11 +71,11 @@ jobs:
         shell: powershell
         run: |
           $version = "${{ github.ref_name }}".TrimStart("v")
-          $iss = Get-Content scripts\installer.iss -Raw
+          $iss = Get-Content installer.iss -Raw
           $iss = $iss -replace '#define MyAppVersion ".*"', "#define MyAppVersion `"$version`""
           $iss = $iss -replace 'release\\{#MyAppVersion}\\win-unpacked', "release\$version\win-unpacked"
-          $iss | Set-Content scripts\installer.iss
-          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" scripts\installer.iss
+          $iss | Set-Content installer.iss
+          & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
 
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
