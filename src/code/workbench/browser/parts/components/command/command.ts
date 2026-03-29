@@ -90,7 +90,7 @@ export function Command(opts: {
   );
 
   const list = ScrollArea({ class: "max-h-[360px] overflow-auto" }).viewport;
-  // Start hidden, we'll use GSAP to animate it
+
   list.style.display = "none";
   list.style.overflow = "hidden";
 
@@ -110,21 +110,17 @@ export function Command(opts: {
     if (listVisible) return;
     listVisible = true;
 
-    // Make elements visible before animating
     list.style.display = "block";
     divider.style.display = "block";
 
-    // Kill any running tweens on these elements
     gsap.killTweensOf([list, divider]);
 
-    // Animate divider fade in
     gsap.fromTo(
       divider,
       { opacity: 0 },
       { opacity: 1, duration: 0.1, ease: "expo.out" },
     );
 
-    // Animate list slide down + fade in
     gsap.fromTo(
       list,
       { height: 0, opacity: 0, y: -4 },
@@ -194,11 +190,11 @@ export function Command(opts: {
 
     if (!activeGroup) {
       if (!q) {
-        return opts.groups
+        return []
           .map((group) => ({
             kind: "group" as const,
             group,
-            score: Math.max(score(group.name, q), score(group.prefix, q)),
+            score: Math.max(score(group, q), score(group, q)),
           }))
           .filter((x) => x.score > 0)
           .sort((a, b) => b.score - a.score);
