@@ -1,14 +1,13 @@
-import { ipcMain, BrowserWindow } from "electron";
+import { ipcMain } from "electron";
 import { Chat } from "@ridit/dev";
-import {
-  CHAT_PUSH,
-  EDITOR_OPEN_FILE,
-  TERMINAL_RUN_FILE,
-} from "../../shared/ipc/channels";
+import { CHAT_PUSH } from "../../shared/ipc/channels";
 import type { IChatContext } from "../../shared/types/chat.types";
 import { join } from "path";
 import { homedir } from "os";
-import { event_emitter } from "../shared/emitter";
+import { register_editor_tools } from "../lens/tools/editor.tools";
+import { register_terminal_tools } from "../lens/tools/terminal.tools";
+import { register_fs_tools } from "../lens/tools/fs.tools";
+import { register_workspace_tools } from "../lens/tools/workspace.tools";
 
 const sessions = new Map<string, Chat>();
 
@@ -20,39 +19,10 @@ function get_session(session_id: string): Chat {
       join(homedir(), ".meridia", "lens-runtime-tools.json"),
     );
 
-    chat.registerTool({
-      name: "openFile",
-      description: "Open a file in the Meridia editor",
-      parameters: {
-        path: { type: "string", description: "path to the file" },
-      },
-      async onRun({ path }) {
-        event_emitter.emit("window.webContents.send", EDITOR_OPEN_FILE, path);
-        return { ok: true };
-      },
-    });
-
-    chat.registerTool({
-      name: "runFile",
-      description: "Run a file in the Meridia terminal",
-      parameters: {
-        path: { type: "string", description: "path to the file" },
-      },
-      async onRun({ path }) {
-        event_emitter.emit("window.webContents.send", TERMINAL_RUN_FILE, path);
-        return { ok: true };
-      },
-    });
-
-    chat.registerTool({
-      name: "getActiveFile",
-      description: "Get the currently open file path in the editor",
-      parameters: {},
-      async onRun() {
-        // const path = storage.get("editor:activeFile", null);
-        // return { path }
-      },
-    });
+    register_editor_tools(chat);
+    register_terminal_tools(chat);
+    register_fs_tools(chat);
+    register_workspace_tools(chat);
 
     sessions.set(session_id, chat);
   }
@@ -64,7 +34,6 @@ ipcMain.handle(
   async (_, session_id: string, message: string, context?: IChatContext) => {
     const chat = get_session(session_id);
     const result = await chat.push(message, context);
-    console.log("[chat-ipc] result:", JSON.stringify(result, null, 2), message);
     return { message: result.message, tools: result.tools };
   },
 );
