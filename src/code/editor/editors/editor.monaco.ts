@@ -45,7 +45,12 @@ import { shortcuts } from "../../workbench/common/shortcut/shortcut.service";
 import { editor_events } from "../../platform/events/editor.events";
 import { statusbar_events } from "../../platform/events/statusbar.events";
 import { LSP_BRIDGE_PORT } from "../../../../shared/lsp/lsp.constants";
-import { EDITOR_ACTIVE_FILE, EDITOR_OPEN_FILE } from "../../../../shared/ipc/channels";
+import {
+  EDITOR_ACTIVE_FILE,
+  EDITOR_OPEN_FILE,
+  EDITOR_SCROLL_TO_LINE,
+  EDITOR_SELECTION,
+} from "../../../../shared/ipc/channels";
 
 type Disposer = () => void;
 
@@ -184,6 +189,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     this.setup_statusbar_events();
     this.setup_hover_invalidation();
     this.setup_file_watcher();
+    this.setup_selection_listener();
     await this.setup_lsp();
 
     this.instance.addCommand(monaco.KeyCode.F1, () => {});
@@ -447,6 +453,11 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       open_editor_tab(path);
     });
 
+    ipc.on(EDITOR_SCROLL_TO_LINE, (_, path: string, line: number) => {
+      open_editor_tab(path);
+      requestAnimationFrame(() => this.instance.revealLineInCenter(line));
+    });
+
     let _last_active: string | null = null;
     store.subscribe(() => {
       const active = store.getState().editor.tabs.find((t) => t.active);
@@ -455,6 +466,17 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
         _last_active = path;
         ipc.send(EDITOR_ACTIVE_FILE, path);
       }
+    });
+  }
+
+  setup_selection_listener() {
+    this.instance.onDidChangeCursorSelection(() => {
+      const model = this.instance.getModel();
+      if (!model) return;
+      const selection = this.instance.getSelection();
+      if (!selection || selection.isEmpty()) return;
+      const text = model.getValueInRange(selection);
+      if (text) window.ipc.send(EDITOR_SELECTION, text);
     });
   }
 

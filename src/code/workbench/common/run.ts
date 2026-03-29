@@ -1,4 +1,9 @@
-import { TERMINAL_RUN_COMMAND, TERMINAL_RUN_FILE } from "../../../../shared/ipc/channels";
+import {
+  TERMINAL_GET_OUTPUT,
+  TERMINAL_OUTPUT_RESPONSE,
+  TERMINAL_RUN_COMMAND,
+  TERMINAL_RUN_FILE,
+} from "../../../../shared/ipc/channels";
 import { get_file_extension } from "../../editor/editor.helper";
 import { terminal } from "../../platform/terminal/terminal.service";
 import {
@@ -53,6 +58,20 @@ export function runFile(file_path: string) {
   window.pty.write(id, script);
 }
 
+const STRIP_ANSI = /\x1B(?:[@-Z\\-_]|\[[0-9;]*[ -/]*[@-~])/g;
+const _output_buffer: string[] = [];
+const MAX_BUFFER = 500;
+
+window.pty.on_data((_, _id, data: string) => {
+  const lines = data.replace(STRIP_ANSI, "").replace(/\r\n|\r/g, "\n").split("\n");
+  for (const line of lines) {
+    if (line.trim()) _output_buffer.push(line);
+  }
+  if (_output_buffer.length > MAX_BUFFER) {
+    _output_buffer.splice(0, _output_buffer.length - MAX_BUFFER);
+  }
+});
+
 setTimeout(() => {
   const ipc = window.ipc;
 
@@ -65,5 +84,10 @@ setTimeout(() => {
     if (!active_terminal) return;
     update_layout([1, 1], enable_node_at_path);
     window.pty.write(active_terminal.id, `${command}\r`);
+  });
+
+  ipc.on(TERMINAL_GET_OUTPUT, (_, lines: number = 50) => {
+    const slice = _output_buffer.slice(-lines).join("\n");
+    ipc.send(TERMINAL_OUTPUT_RESPONSE, slice);
   });
 }, 200);
