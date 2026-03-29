@@ -63,7 +63,25 @@ Nothing much just fixing some bugs, adding minor features and improving the ui t
 - Add window controls space and menu in MAC.
 - Add Glass UI in components like command, command-list, contextmenu, dropdown.
 
-### Next Milestone
+### Next Milestones
 
 - All previous milestones.
 - Improve UI to match a modern UI that makes the user eyes glow.
+
+## 29th March 2026
+
+I know too late, was working on lens :)
+
+- Added MacOS support by adding workflow.yml and macOS native menu and context menu support. ✅
+- Added Glass UI in components: commands, command-list, contextmenu, dropdown, tooltip. ✅
+- Added window controls of mac. ✅
+- Added AI features using @ridit/dev. ✅
+- Added custom runtime tools for meridia. ✅
+
+### Next Milestones
+
+- Add provider setup for lens.
+- Improve chat ui.
+- Add git support.
+- Add search panel.
+- Add problems panel.
