@@ -9,6 +9,7 @@ export function ChatMessageBox(opts?: {
   onSubmit?: (value: string, thinking: boolean) => void;
 }) {
   let thinking = false;
+  let allow_edits = false;
 
   const textarea_el = h("textarea", {
     class: cn(
@@ -67,6 +68,35 @@ export function ChatMessageBox(opts?: {
     opts?.onSubmit?.(val, thinking);
   }
 
+  const allow_edits_btn = h(
+    "button",
+    {
+      class:
+        "flex items-center gap-1 h-5 px-1.5 rounded-[4px] text-[10px] text-chat-foreground/30 hover:text-chat-foreground/60 transition-colors cursor-pointer bg-transparent border-0 shrink-0 select-none",
+      attrs: { type: "button", title: "Auto-approve all tool calls" },
+    },
+    codicon("pass", "text-[10px]"),
+  ) as HTMLButtonElement;
+
+  const allow_edits_label = document.createTextNode("Allow edits");
+  allow_edits_btn.appendChild(allow_edits_label);
+
+  function update_allow_edits_style() {
+    if (allow_edits) {
+      allow_edits_btn.classList.remove("text-chat-foreground/30", "hover:text-chat-foreground/60");
+      allow_edits_btn.classList.add("text-yellow-400", "hover:text-yellow-300");
+    } else {
+      allow_edits_btn.classList.remove("text-yellow-400", "hover:text-yellow-300");
+      allow_edits_btn.classList.add("text-chat-foreground/30", "hover:text-chat-foreground/60");
+    }
+  }
+
+  allow_edits_btn.addEventListener("click", (e: MouseEvent) => {
+    e.stopPropagation();
+    allow_edits = !allow_edits;
+    update_allow_edits_style();
+  });
+
   const footer = h(
     "div",
     { class: "flex items-center mt-1.5" },
@@ -74,7 +104,7 @@ export function ChatMessageBox(opts?: {
     h(
       "div",
       { class: "flex items-center gap-0.5 ml-auto" },
-
+      allow_edits_btn,
       send_btn,
     ),
   );
@@ -102,6 +132,9 @@ export function ChatMessageBox(opts?: {
     el,
     get value() {
       return textarea_el.value;
+    },
+    get allowEdits() {
+      return allow_edits;
     },
     setValue(v: string) {
       textarea_el.value = v;

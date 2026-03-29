@@ -19,6 +19,18 @@ export function ChatPermissionCard(opts: {
 
   const btn_row = h("div", { class: "flex items-center gap-2 mt-3" });
 
+  const status_text = h("span", {
+    class: "text-[11px] text-[#9ca3af] hidden",
+  });
+
+  const disable_buttons = () => {
+    btn_row.querySelectorAll("button").forEach((b) => {
+      (b as HTMLButtonElement).disabled = true;
+      b.classList.add("opacity-40", "cursor-not-allowed");
+      b.classList.remove("cursor-pointer");
+    });
+  };
+
   if (opts.onAllow) {
     const allow_btn = h("button", {
       class:
@@ -26,7 +38,12 @@ export function ChatPermissionCard(opts: {
       attrs: { type: "button" },
     });
     allow_btn.textContent = "Allow";
-    allow_btn.addEventListener("click", opts.onAllow);
+    allow_btn.addEventListener("click", () => {
+      disable_buttons();
+      status_text.textContent = "Executing...";
+      status_text.classList.remove("hidden");
+      opts.onAllow!();
+    });
     btn_row.appendChild(allow_btn);
   }
 
@@ -37,15 +54,22 @@ export function ChatPermissionCard(opts: {
       attrs: { type: "button" },
     });
     deny_btn.textContent = "Deny";
-    deny_btn.addEventListener("click", opts.onDeny);
+    deny_btn.addEventListener("click", () => {
+      disable_buttons();
+      status_text.textContent = "Denied";
+      status_text.classList.remove("hidden");
+      opts.onDeny!();
+    });
     btn_row.appendChild(deny_btn);
   }
+
+  btn_row.appendChild(status_text);
 
   const el = h(
     "div",
     {
       class:
-        "self-start flex flex-col rounded-[8px] border border-[#3a3020] bg-[#1a1a14] px-3.5 py-3 max-w-[85%] my-1",
+        "flex flex-col rounded-[8px] border border-[#3a3020] bg-[#1a1a14] px-3.5 py-3 max-w-[85%] my-1",
     },
     h(
       "div",
