@@ -1,9 +1,9 @@
-import { INode } from "../../../../../../../shared/types/explorer.types";
-import { get_file_icon } from "../../../../../platform/explorer/explorer.helper";
-import { h } from "../../../../contrib/core/dom/h";
-import { cn } from "../../../../contrib/core/utils/cn";
+import { INode } from "../../../../../shared/types/explorer.types";
+import { get_file_icon } from "../../../platform/explorer/explorer.helper";
+import { h } from "../../contrib/core/dom/h";
+import { cn } from "../../contrib/core/utils/cn";
 
-import { lucide } from "../icon";
+import { lucide } from "../../browser/parts/components/icon";
 import {
   add_node_to_parent,
   generate_node_id,

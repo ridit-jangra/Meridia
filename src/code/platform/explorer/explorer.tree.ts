@@ -27,7 +27,7 @@ export class explorer_tree {
     };
 
     this.tree = VirtualTree({
-      rowHeight: 28.5,
+      rowHeight: 27.5,
       height: "full",
       get_icon: get_file_icon,
       icon_folder_name: "file-icons",

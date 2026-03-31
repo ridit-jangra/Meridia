@@ -230,7 +230,7 @@ function render_node(
 
   const splitter = Splitter({
     direction: dir,
-    gutterSize: dir === "horizontal" ? 7 : 9,
+    gutterSize: 2,
     panels,
     onResize: (sizes) => {
       const updated_sizes = [...raw_sizes];
@@ -330,8 +330,7 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
   const el = h(
     "div",
     {
-      class:
-        "h-screen w-screen min-h-0 min-w-0 overflow-hidden bg-background p-2",
+      class: "h-screen w-screen min-h-0 min-w-0 overflow-hidden bg-background",
     },
     titlebar,
     content_host,

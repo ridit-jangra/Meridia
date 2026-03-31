@@ -90,12 +90,17 @@ export const lsp_server = new Server();
 
 lsp_server.register({
   languageId: "python",
-
   resolve: () => {
     const pythonPath = resolve_python();
     if (!pythonPath) return null;
     return resolve_pylsp(pythonPath);
   },
+});
+
+lsp_server.register({
+  languageId: "typescript",
+  command: "typescript-language-server",
+  args: ["--stdio"],
 });
 
 lsp_server.start(LSP_BRIDGE_PORT);
@@ -134,13 +139,18 @@ function createWindow() {
 
   const inset = is_mac ? 75 : is_win ? 170 : 115;
 
+  const win_height = 21;
+  const other_height = 31;
+
+  const option_height = is_win ? win_height : other_height;
+
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC!, "electron-vite.svg"),
     backgroundColor: theme.get_color("workbench.background"),
     titleBarOverlay: {
       color: theme.get_color("workbench.background"),
       symbolColor: theme.get_color("workbench.foreground"),
-      height: is_win ? 27 : 37,
+      height: option_height,
     },
     titleBarStyle: "hidden",
     webPreferences: {
@@ -152,7 +162,7 @@ function createWindow() {
     if (!win) return;
     const zoom_factor = win.webContents.getZoomFactor();
     const clamped = Math.min(Math.max(zoom_factor, 0.75), 2.0);
-    const new_height = Math.round(27 * 1.4 * clamped);
+    const new_height = Math.round(option_height * 1.4 * clamped);
     if (!is_mac) {
       win.setTitleBarOverlay({
         color: theme.get_color("workbench.background"),

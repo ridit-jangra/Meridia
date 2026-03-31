@@ -14,9 +14,9 @@ import {
   rename_by_path,
   remove_node_by_path,
   add_node,
-} from "./virtual-tree.helpers";
-import { create_add_node_input } from "./add-node.helpers";
-import { create_rename_input } from "./rename-node.helpers";
+} from "../../../../common/virtual-tree/virtual-tree.helpers";
+import { create_add_node_input } from "../../../../common/virtual-tree/add-node.helpers";
+import { create_rename_input } from "../../../../common/virtual-tree/rename-node.helpers";
 import {
   norm,
   uris_equal,
@@ -450,18 +450,6 @@ export function VirtualTree(opts: {
       items.push(
         {
           type: "item",
-          label: "Highlight in tree",
-          onClick: () => {
-            selected.id = row.id;
-            list.refresh();
-            const tree = explorer.tree.tree;
-            if (!tree) return;
-            tree?.highlight?.(row.node.id);
-          },
-        },
-        { type: "separator" },
-        {
-          type: "item",
           label: "New File",
           onClick: () => {
             selected.id = row.id;
@@ -716,7 +704,7 @@ export function VirtualTree(opts: {
         {
           "data-row-id": row.id,
           class: cn(
-            "relative flex items-center justify-between select-none cursor-pointer text-[14px] rounded-[7px]",
+            "relative flex items-center justify-between select-none cursor-pointer text-[12.5px] rounded-[7px]",
             active ? active_cls : passive_cls,
           ),
           style: `padding-left:${row.depth * 1.4}rem`,
@@ -741,6 +729,13 @@ export function VirtualTree(opts: {
         left,
         right ?? "",
       );
+
+      row_el.oncontextmenu = async () => {
+        selected.id = norm(row.id);
+        // await expand_to(row.id);
+        rebuild();
+        requestAnimationFrame(() => scroll_to_id(norm(row.id)));
+      };
 
       contextMenu.bind(row_el, () => get_context_menu_items(row));
 

@@ -49,7 +49,7 @@ export function Splitter(opts: SplitterOpts) {
   const states: PanelState[] = opts.panels.map((p, i) => {
     const paneEl = h("div", {
       class: cn(
-        "min-h-0 min-w-0 overflow-hidden rounded-2xl",
+        "min-h-0 min-w-0 overflow-hidden",
         isHorizontal ? "h-full" : "w-full",
       ),
     });

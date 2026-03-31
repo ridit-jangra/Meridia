@@ -203,6 +203,7 @@ monaco.editor.defineTheme("theme", {
     { token: "string.key.json", foreground: t("identifier.field") },
     { token: "number.json", foreground: t("number") },
     { token: "keyword.json", foreground: t("keyword.json") },
+
     {
       token: "comment.line.json",
       foreground: t("comment"),

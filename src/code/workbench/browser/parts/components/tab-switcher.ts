@@ -5,6 +5,7 @@ import { ITab } from "../../../../../types/editor.types";
 import { ScrollArea } from "./scroll-area";
 import { get_file_icon } from "../../../../platform/explorer/explorer.helper";
 import { open_editor_tab } from "../../../../editor/editor.helper";
+import { GLASS } from "../../../contrib/styles/glass";
 
 export function TabSwitcher() {
   let open = false;
@@ -15,10 +16,11 @@ export function TabSwitcher() {
     class: cn(
       "fixed z-[9999] hidden",
       "left-1/2 top-[5%] -translate-x-1/2",
-      "w-[560px] max-w-[calc(100vw-24px)] p-1.5 px-0.5",
-      "bg-command-background text-command-item-foreground",
+      "w-[860px] max-w-[calc(100vw-24px)] p-1.5 px-0.5",
+      "text-command-item-foreground",
       "border border-workbench-border rounded-xl overflow-hidden",
       "shadow-lg",
+      GLASS,
     ),
   });
 
@@ -93,7 +95,7 @@ export function TabSwitcher() {
             "div",
             { class: "flex gap-2 items-center" },
             icon,
-            h("div", { class: "text-[13px] truncate font-medium" }, tab.name),
+            h("div", { class: "text-[13px] truncate" }, tab.name),
           ),
 
           h(

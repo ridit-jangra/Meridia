@@ -1,4 +1,4 @@
-import { INode } from "../../../../../../../shared/types/explorer.types";
+import { INode } from "../../../../../shared/types/explorer.types";
 import {
   norm,
   get_drive,
@@ -9,8 +9,8 @@ import {
   rebase_uri,
   uris_equal,
   is_descendant_of,
-} from "../../../../../../../shared/uri/generate";
-import { update_editor_tab_status } from "../../../../../editor/editor.helper";
+} from "../../../../../shared/uri/generate";
+import { update_editor_tab_status } from "../../../editor/editor.helper";
 
 export type FlatRow = {
   id: string;

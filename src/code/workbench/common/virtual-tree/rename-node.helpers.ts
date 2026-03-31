@@ -1,7 +1,7 @@
-import { INode } from "../../../../../../../shared/types/explorer.types";
-import { h } from "../../../../contrib/core/dom/h";
-import { cn } from "../../../../contrib/core/utils/cn";
-import { lucide } from "../icon";
+import { INode } from "../../../../../shared/types/explorer.types";
+import { h } from "../../contrib/core/dom/h";
+import { cn } from "../../contrib/core/utils/cn";
+import { lucide } from "../../browser/parts/components/icon";
 import {
   rename_node,
   name_exists_in_folder,
@@ -10,7 +10,7 @@ import {
 import {
   generate_child_uri,
   get_parent_uri,
-} from "../../../../../../../shared/uri/generate";
+} from "../../../../../shared/uri/generate";
 
 export type rename_node_options = {
   nodeId: string;

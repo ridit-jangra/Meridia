@@ -75,10 +75,11 @@ class terminal_service {
       cursorBlink: true,
       cursorStyle: "block",
       cursorInactiveStyle: "none",
-      fontFamily: '"Cascadia Code", monospace',
+      fontFamily: '"JetBrains Mono", monospace',
 
       fontSize: 14,
       fontWeight: theme.get_active().base === "light" ? 600 : 400,
+      // fontWeightBold: "300",
 
       disableStdin: false,
       scrollback: 10000,
