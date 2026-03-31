@@ -1,6 +1,6 @@
 # Meridia (Beta)
 
-![MeridiaPreview](./public/preview/ss-6.png)
+![MeridiaPreview](./public/preview/ss-7.png)
 
 Meridia is a modern code editor where you code, and AI collaborates — never takes control.
 
