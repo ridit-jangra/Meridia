@@ -898,7 +898,7 @@ body {
 .peekview-widget .body {
   border-color: var(--workbench-border) !important;
 }
-
+/* 
 .monaco-editor .monaco-hover {
   background: rgba(var(--command-background), 0.4) !important;
   backdrop-filter: blur(24px) saturate(150%) !important;
@@ -906,7 +906,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3) !important;
   border-radius: 8px !important;
-}
+} */
 
 .monaco-editor .monaco-hover .hover-contents {
   background: transparent !important;

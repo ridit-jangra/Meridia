@@ -12,7 +12,6 @@ import html_worker from "monaco-editor/esm/vs/language/html/html.worker?worker";
     if (label === "html" || label === "handlebars" || label === "razor")
       return new html_worker();
     if (label === "typescript" || label === "javascript")
-      // return new typescript_worker();
       return new Worker(new URL(""));
     return new editor_worker();
   },
@@ -237,7 +236,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
 
         model.model.setValue(content);
 
-        // Reset touched — this is a disk reload, not a user edit
         const tabs_after = store.getState().editor.tabs;
         store.dispatch(
           update_tabs(
