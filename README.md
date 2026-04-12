@@ -15,7 +15,7 @@ If you want to read about using Meridia or developing extensions in Meridia, the
 ## Prerequisites
 
 - [Git](https://git-scm.com/)
-- [Lens](https://github.com/ridit-jangra/lens) (optional, for AI features)
+- [Milo](https://github.com/ridit-jangra/milo) (optional, for AI features)
 
 ### Windows
 
@@ -38,7 +38,7 @@ Meridia will automatically update when a new release is available.
 - [Python 13+](https://python.org/)
 - [NPM or Yarn](https://npmjs.com/)
 - [Ollama](https://ollama.com/download) (optional, for AI features)
-- [Lens](https://github.com/ridit-jangra/lens) (optional, for AI features)
+- [Milo](https://github.com/ridit-jangra/milo) (optional, for AI features)
 
 ### Clone the repository
 

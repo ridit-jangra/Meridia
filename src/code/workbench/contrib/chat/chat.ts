@@ -4,7 +4,6 @@ import { codicon } from "../../browser/parts/components/icon";
 import {
   ChatBubble,
   ChatLoadingBubble,
-  ChatToolChip,
   ChatMessageBox,
   ChatPermissionCard,
 } from "../../browser/parts/components/chat";
@@ -16,8 +15,13 @@ import {
 } from "../../../../../shared/storage-keys";
 import { marked } from "marked";
 import hljs from "highlight.js";
-import { Tool } from "@ridit/dev";
+import {
+  type Tool,
+  ChatToolChip,
+} from "../../browser/parts/components/chat/chat-tool-chip";
 import { Permission } from "../../../../../shared/types/chat.types";
+
+let listenersInitialized = false;
 
 marked.use({
   renderer: {
@@ -61,6 +65,7 @@ export function Chat() {
   const sessions = new Map<string, Session>();
   let active_id = "";
   let save_timer: ReturnType<typeof setTimeout> | null = null;
+  const live_chips = new Map<string, { el: HTMLElement; tool: string }>();
 
   function save() {
     if (save_timer) clearTimeout(save_timer);
@@ -199,13 +204,11 @@ export function Chat() {
       is_error: m.is_error,
     });
 
-    console.log(m);
-
     if (m.tools?.length) {
       const tools_row = h("div", { class: "flex flex-col gap-1 mb-2" });
       for (const t of m.tools) {
         tools_row.appendChild(
-          ChatToolChip(t, m.permission ?? [], session_id, onResult).el,
+          ChatToolChip(t, m.permission ?? [], session_id).el,
         );
       }
       bubble.insertBefore(tools_row, bubble.firstChild);
@@ -363,7 +366,7 @@ export function Chat() {
           s,
           "assistant",
           result.message,
-          result.tools,
+          result.tools as unknown as Tool[],
           !!result.error,
           result.permissionRequired,
         );
@@ -375,40 +378,30 @@ export function Chat() {
             const matching_tool = result.tools?.find((t) => t.tool === p.tool);
             if (!matching_tool) continue;
 
-            if (chat_input.allowEdits) {
-              const run_result = await window.chat.runTool(
-                s.session_id,
-                matching_tool,
-              );
-              if (run_result.message?.trim()) {
-                append_message(
-                  s,
-                  "assistant",
-                  run_result.message,
-                  run_result.tools,
-                );
-              }
-              continue;
-            }
-
             const card = ChatPermissionCard({
               tool: p.tool,
               description: p.description,
               onAllow: async () => {
-                const run_result = await window.chat.runTool(
-                  s.session_id,
-                  matching_tool,
+                await window.chat.resolvePermission(
+                  s.session_id!,
+                  p.id!,
+                  "allow",
                 );
-                if (run_result.message?.trim()) {
-                  append_message(
-                    s,
-                    "assistant",
-                    run_result.message,
-                    run_result.tools,
-                  );
-                }
               },
-              onDeny: () => {},
+              onAllowSession: async () => {
+                await window.chat.resolvePermission(
+                  s.session_id!,
+                  p.id!,
+                  "allow_session",
+                );
+              },
+              onDeny: async () => {
+                await window.chat.resolvePermission(
+                  s.session_id!,
+                  p.id!,
+                  "deny",
+                );
+              },
             });
             s.messages_el.appendChild(card.el);
           }
@@ -430,6 +423,79 @@ export function Chat() {
       set_loading(s, false);
       if (s.id === active_id) chat_input.focus();
     }
+  }
+
+  if (!listenersInitialized) {
+    window.chat.onPermissionRequest(({ id, tool, args }) => {
+      const s = sessions.get(active_id);
+      if (!s) return;
+
+      const chip = ChatToolChip(
+        { tool, input: args as Record<string, any>, output: null },
+        [],
+        s.session_id,
+      );
+      s.messages_el.appendChild(chip.el);
+
+      const card = ChatPermissionCard({
+        tool,
+        description:
+          typeof args === "object" ? JSON.stringify(args) : String(args),
+        onAllow: () => window.chat.resolvePermission(s.session_id, id, "allow"),
+        onAllowSession: () =>
+          window.chat.resolvePermission(s.session_id, id, "allow_session"),
+        onDeny: () => window.chat.resolvePermission(s.session_id, id, "deny"),
+      });
+      s.messages_el.appendChild(card.el);
+      requestAnimationFrame(
+        () => (s.scroll.viewport.scrollTop = s.scroll.viewport.scrollHeight),
+      );
+    });
+
+    window.chat.onToolCall(({ id, tool, args }) => {
+      const s = sessions.get(active_id);
+      if (!s) return;
+      if (s.message_count === 0) {
+        s.empty_el.style.display = "none";
+        s.messages_el.style.display = "flex";
+      }
+
+      const chip = ChatToolChip(
+        { tool, input: args as Record<string, any>, output: null },
+        [],
+        s.session_id,
+      );
+      live_chips.set(id, { el: chip.el, tool });
+      s.messages_el.insertBefore(chip.el, s.loading_bubble);
+      requestAnimationFrame(
+        () => (s.scroll.viewport.scrollTop = s.scroll.viewport.scrollHeight),
+      );
+    });
+
+    window.chat.onToolResult(({ id, tool, result }) => {
+      const entry = live_chips.get(id);
+      if (!entry) return;
+      live_chips.delete(id);
+
+      const remove_after = ["WriteFileTool", "FileEditTool", "FileReadTool"];
+      if (remove_after.includes(tool)) {
+        entry.el.remove();
+        return;
+      }
+
+      const chip = ChatToolChip(
+        {
+          tool,
+          input: {},
+          output: typeof result === "string" ? result : JSON.stringify(result),
+        },
+        [],
+        undefined,
+      );
+      entry.el.replaceWith(chip.el);
+    });
+
+    listenersInitialized = true;
   }
 
   const el = h(

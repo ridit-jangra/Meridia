@@ -6,7 +6,7 @@
       "name": "Meridia",
       "dependencies": {
         "@reduxjs/toolkit": "^2.11.2",
-        "@ridit/dev": "0.2.2",
+        "@ridit/dev": "^0.2.4",
         "@ridit/relay": "^0.1.4",
         "@tailwindcss/vite": "^4.1.18",
         "@vscode/codicons": "^0.0.44",
@@ -139,7 +139,7 @@
 
     "@reduxjs/toolkit": ["@reduxjs/toolkit@2.11.2", "", { "dependencies": { "@standard-schema/spec": "^1.0.0", "@standard-schema/utils": "^0.3.0", "immer": "^11.0.0", "redux": "^5.0.1", "redux-thunk": "^3.1.0", "reselect": "^5.1.0" }, "peerDependencies": { "react": "^16.9.0 || ^17.0.0 || ^18 || ^19", "react-redux": "^7.2.1 || ^8.1.3 || ^9.0.0" }, "optionalPeers": ["react", "react-redux"] }, "sha512-Kd6kAHTA6/nUpp8mySPqj3en3dm0tdMIgbttnQ1xFMVpufoj+ADi8pXLBsd4xzTRHQa7t/Jv8W5UnCuW4kuWMQ=="],
 
-    "@ridit/dev": ["@ridit/dev@0.2.2", "", { "dependencies": { "execa": "^9.0.0", "zod": "^4.3.6" }, "peerDependencies": { "typescript": "^5" } }, "sha512-oxy7sX+sEZVIKctZ4hJo/eGSIkS9PRLrjkkluNWIbvX6WtZbv4tYfoddKmhKrRs6JqpjECULfJBbR7jxnubaUQ=="],
+    "@ridit/dev": ["@ridit/dev@0.2.4", "", { "dependencies": { "execa": "^9.0.0", "zod": "^4.3.6" }, "peerDependencies": { "typescript": "^5" } }, "sha512-omleug5JDw5q7v9nRk+81sXzdCa9nPDkk4j0c3tiDfkd3kZ2rIPEcy5xIXfjcUl/GDhV1nZXegVir4hQ+fA1vg=="],
 
     "@ridit/relay": ["@ridit/relay@0.1.4", "", { "dependencies": { "@ridit/relay": "^0.1.1", "vscode-languageserver-protocol": "^3.17.5", "vscode-ws-jsonrpc": "^3.5.0", "ws": "^8.18.0" }, "peerDependencies": { "monaco-editor": ">=0.30.0" }, "optionalPeers": ["monaco-editor"] }, "sha512-NzX7ZM++sbJkdWGkTQazt0sxGNsMjuc4oSXYhtk0XPMsDjjhDBdd8DgPPNWSCw12xHsLKQuEC6Z6c6W5vLu07g=="],
 

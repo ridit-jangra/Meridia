@@ -41,6 +41,10 @@ import {
   CHAT_PUSH,
   CHAT_RUN_TOOL,
   CHAT_SKIP_TOOL,
+  CHAT_RESOLVE_PERMISSION,
+  CHAT_PERMISSION_REQUEST,
+  CHAT_TOOL_RESULT,
+  CHAT_TOOL_CALL,
 } from "../shared/ipc/channels";
 import type { IChatContext, IChatResult } from "../shared/types/chat.types";
 
@@ -186,9 +190,49 @@ contextBridge.exposeInMainWorld("platform", {
 
 contextBridge.exposeInMainWorld("chat", {
   push: (session_id: string, message: string, context: IChatContext) =>
-    ipcRenderer.invoke(CHAT_PUSH, session_id, message, context) as Promise<IChatResult>,
+    ipcRenderer.invoke(
+      CHAT_PUSH,
+      session_id,
+      message,
+      context,
+    ) as Promise<IChatResult>,
   runTool: (session_id: string, tool: unknown) =>
-    ipcRenderer.invoke(CHAT_RUN_TOOL, session_id, tool) as Promise<{ message: string; tools: any[] }>,
+    ipcRenderer.invoke(CHAT_RUN_TOOL, session_id, tool) as Promise<{
+      message: string;
+      tools: any[];
+    }>,
   skipTool: (session_id: string, tool: unknown) =>
-    ipcRenderer.invoke(CHAT_SKIP_TOOL, session_id, tool) as Promise<{ message: string; tools: any[] }>,
+    ipcRenderer.invoke(CHAT_SKIP_TOOL, session_id, tool) as Promise<{
+      message: string;
+      tools: any[];
+    }>,
+  resolvePermission: (
+    session_id: string,
+    permission_id: string,
+    decision: "allow" | "deny" | "allow_session",
+  ) =>
+    ipcRenderer.invoke(
+      CHAT_RESOLVE_PERMISSION,
+      session_id,
+      permission_id,
+      decision,
+    ) as Promise<void>,
+  onPermissionRequest: (
+    cb: (p: { id: string; tool: string; args: unknown }) => void,
+  ) => {
+    ipcRenderer.on(CHAT_PERMISSION_REQUEST, (_, p) => cb(p));
+    return () => ipcRenderer.removeAllListeners(CHAT_PERMISSION_REQUEST);
+  },
+  onToolCall: (
+    cb: (t: { id: string; tool: string; args: unknown }) => void,
+  ) => {
+    ipcRenderer.on(CHAT_TOOL_CALL, (_, t) => cb(t));
+    return () => ipcRenderer.removeAllListeners(CHAT_TOOL_CALL);
+  },
+  onToolResult: (
+    cb: (t: { id: string; tool: string; result: unknown }) => void,
+  ) => {
+    ipcRenderer.on(CHAT_TOOL_RESULT, (_, t) => cb(t));
+    return () => ipcRenderer.removeAllListeners(CHAT_TOOL_RESULT);
+  },
 });

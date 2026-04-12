@@ -6,6 +6,7 @@ export function ChatPermissionCard(opts: {
   description: string;
   onAllow?: () => void;
   onDeny?: () => void;
+  onAllowSession?: () => void; // new optional callback
 }): { el: HTMLElement } {
   const tool_label = h("span", {
     class: "font-mono text-[12px] font-medium text-[#e2e8f0]",
@@ -45,6 +46,23 @@ export function ChatPermissionCard(opts: {
       opts.onAllow!();
     });
     btn_row.appendChild(allow_btn);
+  }
+
+  // New Session button, placed between Allow and Deny
+  if (opts.onAllowSession) {
+    const session_btn = h("button", {
+      class:
+        "h-6 px-3 text-[11px] rounded-[5px] bg-[#1a3a1a] text-[#6db86d] hover:bg-[#1f4a1f] border border-[#2a4a2a] cursor-pointer transition-colors bg-transparent opacity-70",
+      attrs: { type: "button" },
+    });
+    session_btn.textContent = "Session";
+    session_btn.addEventListener("click", () => {
+      disable_buttons();
+      status_text.textContent = "Session allowed";
+      status_text.classList.remove("hidden");
+      opts.onAllowSession!();
+    });
+    btn_row.appendChild(session_btn);
   }
 
   if (opts.onDeny) {

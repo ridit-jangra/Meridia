@@ -1,36 +1,60 @@
-import { Tool } from "@ridit/dev";
 import { h } from "../../../../contrib/core/dom/h";
 import { codicon } from "../icon";
 import { ChatDiffView } from "./chat-diff-view";
 import hljs from "highlight.js";
 import { Permission } from "../../../../../../../shared/types/chat.types";
 
+// SSE sends `input` and `output`, not `args` and `result`
+export interface Tool {
+  tool: string;
+  input: Record<string, any>;
+  output: Record<string, any> | string | null;
+}
+
 function tool_icon(tool: string): HTMLElement {
   const map: Record<string, string> = {
-    write: "edit",
-    writeFile: "edit",
-    bash: "terminal",
-    read: "file-text",
-    ls: "list-tree",
+    WriteFileTool: "edit",
+    FileEditTool: "diff",
+    ReadFileTool: "file-text",
+    FileReadTool: "file-text",
+    ReadManyFilesTool: "files",
+    BashTool: "terminal",
+    GlobTool: "list-tree",
+    GrepTool: "search",
+    ThinkTool: "lightbulb",
+    AgentTool: "robot",
+    WebSearchTool: "globe",
+    WebFetchTool: "link",
+    MemoryReadTool: "database",
+    MemoryWriteTool: "database",
+    MemoryEditTool: "database",
+    RecallTool: "history",
+    CompactTool: "archive",
   };
   return codicon(map[tool] ?? "tools", "text-[10px] shrink-0 opacity-40");
 }
 
 function tool_preview(t: Tool): string {
-  const args = t.args as Record<string, unknown> | null;
-  if (!args) return "";
+  const input = t.input ?? {};
   switch (t.tool) {
-    case "write":
-    case "writeFile":
-    case "readFile":
-    case "read": {
-      const p = String(args.path ?? "");
+    case "WriteFileTool":
+    case "FileEditTool":
+    case "ReadFileTool":
+    case "ReadManyFilesTool": {
+      const p = String(input.path ?? "");
       return p.split(/[\\/]/).pop() ?? p;
     }
-    case "bash":
-      return String(args.command ?? "").slice(0, 60);
-    case "ls":
-      return String(args.path ?? "");
+    case "BashTool":
+      return String(input.command ?? "").slice(0, 60);
+    case "GlobTool":
+    case "GrepTool":
+      return String(input.pattern ?? input.path ?? "");
+    case "ThinkTool":
+      return String(input.thought ?? "").slice(0, 60);
+    case "WebSearchTool":
+      return String(input.query ?? "").slice(0, 60);
+    case "WebFetchTool":
+      return String(input.url ?? "").slice(0, 60);
     default:
       return "";
   }
@@ -83,8 +107,6 @@ function make_action_row(pending: PendingOpts): HTMLElement {
     reject_btn.disabled = true;
     accept_btn.classList.add("opacity-40", "cursor-not-allowed");
     reject_btn.classList.add("opacity-40", "cursor-not-allowed");
-    accept_btn.classList.remove("cursor-pointer");
-    reject_btn.classList.remove("cursor-pointer");
   };
 
   const accept_btn = h("button", {
@@ -123,13 +145,14 @@ function make_action_row(pending: PendingOpts): HTMLElement {
 }
 
 function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
-  if (t.tool === "write" || t.tool === "writeFile") {
-    const args = t.args as { path?: string; content?: string } | null;
-    const result = t.result as { ok?: boolean; prevContent?: string } | null;
+  // ── WriteFileTool ──────────────────────────────────────────
+  if (t.tool === "WriteFileTool") {
+    const input = t.input as { path?: string; content?: string } | null;
+    const output = t.output as { ok?: boolean; prevContent?: string } | null;
 
-    const path = args?.path ?? "";
-    const newContent = args?.content ?? "";
-    const prevContent = result?.prevContent ?? "";
+    const path = input?.path ?? "";
+    const newContent = input?.content ?? "";
+    const prevContent = output?.prevContent ?? "";
 
     if (!prevContent) {
       const lang = lang_from_path(path);
@@ -142,26 +165,19 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
         class:
           "flex items-center gap-2 px-2.5 py-1.5 border-b border-chat-border",
       });
-
       const path_text = h("span", {
         class:
           "font-mono text-[10px] text-chat-foreground truncate select-none min-w-0",
       });
       path_text.textContent = path;
       path_row.appendChild(path_text);
-
-      if (pending) {
-        path_row.appendChild(make_action_row(pending));
-      }
+      if (pending) path_row.appendChild(make_action_row(pending));
 
       const code_el = h("code", {
         class: `hljs language-${safe_lang} block text-[11px] font-mono leading-relaxed whitespace-pre`,
       });
       code_el.innerHTML = highlighted;
-
-      const pre_el = h("pre", {
-        class: "m-0 bg-transparent write-code",
-      });
+      const pre_el = h("pre", { class: "m-0 bg-transparent write-code" });
       pre_el.appendChild(code_el);
 
       const wrapper = h("div", {
@@ -182,20 +198,54 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
     return diff.el;
   }
 
-  if (t.tool === "bash") {
-    const args = t.args as { command?: string } | null;
+  // ── FileEditTool ───────────────────────────────────────────
+  if (t.tool === "FileEditTool") {
+    const input = t.input as {
+      path?: string;
+      old_string?: string;
+      new_string?: string;
+    } | null;
+    const path = input?.path ?? "";
+    const prevContent = input?.old_string ?? "";
+    const newContent = input?.new_string ?? "";
+
+    if (prevContent || newContent) {
+      const diff = ChatDiffView({
+        path,
+        prevContent,
+        newContent,
+        onAccept: pending ? () => pending.onAccept() : () => {},
+        onReject: pending ? () => pending.onReject() : () => {},
+      });
+      return diff.el;
+    }
+
+    const wrapper = h("div", {
+      class:
+        "mt-1 rounded-[6px] border border-chat-border px-2.5 py-2 font-mono text-[10px] text-chat-foreground/40",
+    });
+    wrapper.textContent = path || "edit";
+    return wrapper;
+  }
+
+  // ── BashTool ───────────────────────────────────────────────
+  if (t.tool === "BashTool") {
+    const input = t.input as { command?: string } | null;
+    const raw = t.output;
     const output =
-      !t.result || t.result === "null"
+      !raw || raw === "null"
         ? ""
-        : typeof t.result === "string"
-          ? t.result
-          : JSON.stringify(t.result, null, 2);
+        : typeof raw === "string"
+          ? raw
+          : (raw as any).stdout
+            ? `${(raw as any).stdout}${(raw as any).stderr ? "\n" + (raw as any).stderr : ""}`
+            : JSON.stringify(raw, null, 2);
 
     const wrapper = h("div", {
       class: "mt-1 rounded-[6px] overflow-hidden border border-chat-border",
     });
 
-    if (args?.command) {
+    if (input?.command) {
       const cmd_row = h("div", {
         class:
           "flex items-center gap-2 px-2.5 py-1.5 border-b border-chat-border",
@@ -208,7 +258,7 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
       const cmd_el = h("span", {
         class: "font-mono text-[11px] text-[#E6E6E6CC] truncate",
       });
-      cmd_el.textContent = args.command;
+      cmd_el.textContent = input.command;
       cmd_row.appendChild(prompt);
       cmd_row.appendChild(cmd_el);
       wrapper.appendChild(cmd_row);
@@ -226,12 +276,45 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
     return wrapper;
   }
 
-  if (t.tool === "read" || t.tool === "readFile") {
-    const args = t.args as { path?: string } | null;
-    const path = args?.path ?? "";
+  // ── ThinkTool ──────────────────────────────────────────────
+  if (t.tool === "ThinkTool") {
+    const input = t.input as { thought?: string } | null;
+    const thought = input?.thought ?? "";
 
-    const raw = t.result as any;
+    console.log(input);
 
+    const wrapper = h("div", {
+      class: "mt-1 rounded-[6px] overflow-hidden border border-chat-border",
+    });
+
+    const header = h("div", {
+      class:
+        "flex items-center gap-2 px-2.5 py-1.5 border-b border-chat-border",
+    });
+    const label = h("span", {
+      class: "font-mono text-[10px] text-chat-foreground/40 select-none",
+    });
+    label.textContent = "thinking...";
+    header.appendChild(label);
+    wrapper.appendChild(header);
+
+    if (thought) {
+      const out_el = h("div", {
+        class:
+          "px-2.5 py-2 font-mono text-[11px] text-[#E6E6E660] whitespace-pre-wrap break-all max-h-[180px] overflow-y-auto leading-relaxed italic",
+      });
+      out_el.textContent = thought;
+      wrapper.appendChild(out_el);
+    }
+
+    return wrapper;
+  }
+
+  // ── ReadFileTool ───────────────────────────────────────────
+  if (t.tool === "ReadFileTool") {
+    const input = t.input as { path?: string } | null;
+    const path = input?.path ?? "";
+    const raw = t.output as any;
     const content =
       typeof raw === "string"
         ? raw
@@ -241,76 +324,144 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
 
     const lang = lang_from_path(path);
     const safe_lang = hljs.getLanguage(lang) ? lang : "plaintext";
-    const highlighted = hljs.highlight(content, {
-      language: safe_lang,
-    }).value;
-
-    const path_row = h("div", {
-      class:
-        "px-2.5 py-1.5 border-b border-chat-border font-mono text-[10px] text-chat-foreground truncate select-none",
-    });
-    path_row.textContent = path;
+    const highlighted = hljs.highlight(content, { language: safe_lang }).value;
 
     const code_el = h("code", {
       class: `hljs language-${safe_lang} block text-[11px] font-mono leading-relaxed whitespace-pre`,
     });
     code_el.innerHTML = highlighted;
-
-    const pre_el = h("pre", {
-      class: "m-0 bg-transparent write-code",
-    });
+    const pre_el = h("pre", { class: "m-0 bg-transparent write-code" });
     pre_el.appendChild(code_el);
 
     const wrapper = h("div", {
       class: "mt-1 rounded-[6px] overflow-hidden border border-chat-border",
     });
-
-    if (args?.path) {
+    if (path) {
       const path_row = h("div", {
         class:
           "px-2.5 py-1.5 border-b border-chat-border font-mono text-[10px] text-[#E6E6E640] truncate",
       });
-      path_row.textContent = args.path;
+      path_row.textContent = path;
       wrapper.appendChild(path_row);
     }
-
-    // wrapper.appendChild(path_row);
     wrapper.appendChild(pre_el);
+    return wrapper;
+  }
+
+  // ── GrepTool ───────────────────────────────────────────────
+  if (t.tool === "GrepTool") {
+    const raw = t.output as any;
+    const matches: Array<{ path: string; line_number: number; line: string }> =
+      Array.isArray(raw?.matches) ? raw.matches : [];
+
+    const wrapper = h("div", {
+      class: "mt-1 rounded-[6px] overflow-hidden border border-chat-border",
+    });
+    const count_row = h("div", {
+      class:
+        "px-2.5 py-1.5 border-b border-chat-border font-mono text-[10px] text-chat-foreground/40",
+    });
+    count_row.textContent = `${matches.length} match${matches.length !== 1 ? "es" : ""}`;
+    wrapper.appendChild(count_row);
+
+    if (matches.length) {
+      const list = h("div", { class: "max-h-[180px] overflow-y-auto" });
+      matches.slice(0, 20).forEach((m) => {
+        const row = h("div", {
+          class:
+            "flex gap-2 px-2.5 py-[3px] font-mono text-[10px] text-chat-foreground/50 hover:bg-white/5",
+        });
+        const ln = h("span", {
+          class: "shrink-0 opacity-40 tabular-nums w-8 text-right",
+        });
+        ln.textContent = String(m.line_number);
+        const line = h("span", { class: "truncate" });
+        line.textContent = m.line.trim();
+        row.appendChild(ln);
+        row.appendChild(line);
+        list.appendChild(row);
+      });
+      wrapper.appendChild(list);
+    }
 
     return wrapper;
   }
 
-  if (t.tool === "ls") {
-    const result_str =
-      typeof t.result === "string"
-        ? t.result
-        : JSON.stringify(t.result, null, 2);
+  // ── GlobTool ───────────────────────────────────────────────
+  if (t.tool === "GlobTool") {
+    const raw = t.output as any;
+    const paths: string[] = Array.isArray(raw?.paths) ? raw.paths : [];
+
+    const wrapper = h("div", {
+      class: "mt-1 rounded-[6px] overflow-hidden border border-chat-border",
+    });
+    const count_row = h("div", {
+      class:
+        "px-2.5 py-1.5 border-b border-chat-border font-mono text-[10px] text-chat-foreground/40",
+    });
+    count_row.textContent = `${paths.length} file${paths.length !== 1 ? "s" : ""}`;
+    wrapper.appendChild(count_row);
+
+    if (paths.length) {
+      const list = h("div", {
+        class: "max-h-[150px] overflow-y-auto px-2.5 py-1.5",
+      });
+      paths.slice(0, 30).forEach((p) => {
+        const row = h("div", {
+          class:
+            "font-mono text-[10px] text-chat-foreground/50 py-[2px] truncate",
+        });
+        row.textContent = p;
+        list.appendChild(row);
+      });
+      wrapper.appendChild(list);
+    }
+
+    return wrapper;
+  }
+
+  // ── WebSearchTool ──────────────────────────────────────────
+  if (t.tool === "WebSearchTool") {
+    const raw = t.output as any;
+    const results: Array<{ title: string; url: string; snippet: string }> =
+      Array.isArray(raw?.results) ? raw.results : [];
 
     const wrapper = h("div", {
       class:
-        "mt-1 rounded-[6px] border border-chat-border bg-[#0D0D0D] px-2.5 py-2 font-mono text-[11px] text-[#E6E6E660] whitespace-pre-wrap break-all max-h-[200px] overflow-y-auto leading-relaxed",
+        "mt-1 rounded-[6px] overflow-hidden border border-chat-border max-h-[200px] overflow-y-auto",
     });
-    wrapper.textContent = result_str;
+    results.slice(0, 5).forEach((r) => {
+      const row = h("div", {
+        class: "px-2.5 py-2 border-b border-chat-border last:border-0",
+      });
+      const title = h("div", {
+        class: "font-mono text-[10px] text-chat-foreground/70 truncate",
+      });
+      title.textContent = r.title;
+      const url = h("div", {
+        class: "font-mono text-[9px] text-chat-foreground/30 truncate mt-[2px]",
+      });
+      url.textContent = r.url;
+      row.appendChild(title);
+      row.appendChild(url);
+      wrapper.appendChild(row);
+    });
+
     return wrapper;
   }
 
-  // fallback
-  const args_str =
-    !t.args || typeof t.args === "object"
+  // ── fallback ───────────────────────────────────────────────
+  const input_str = t.input ? JSON.stringify(t.input, null, 2) : "";
+  const output_str =
+    !t.output || t.output === "null"
       ? ""
-      : typeof t.args === "string"
-        ? t.args
-        : JSON.stringify(t.args, null, 2);
-  const result_str =
-    !t.result || t.result === "null"
-      ? ""
-      : typeof t.result === "string"
-        ? t.result
-        : JSON.stringify(t.result, null, 2);
+      : typeof t.output === "string"
+        ? t.output
+        : JSON.stringify(t.output, null, 2);
 
   const lines = [
-    args_str ? `args\n${args_str}` : "",
-    result_str ? `result\n${result_str}` : "",
+    input_str ? `input\n${input_str}` : "",
+    output_str ? `output\n${output_str}` : "",
   ]
     .filter(Boolean)
     .join("\n\n");
@@ -327,29 +478,12 @@ export function ChatToolChip(
   t: Tool,
   permissionRequired: Permission[],
   session_id?: string,
-  onResult?: (message: string, tools: Tool[]) => void,
 ) {
-  const default_expanded = t.tool === "write" || t.tool === "writeFile";
+  const default_expanded =
+    t.tool === "WriteFileTool" || t.tool === "FileEditTool";
   let expanded = default_expanded;
 
-  const is_pending =
-    !!session_id && permissionRequired.some((p) => p.tool === t.tool);
-
-  console.log(t, permissionRequired, session_id);
-
-  const pending: PendingOpts | undefined = is_pending
-    ? {
-        onAccept: async () => {
-          const result = await window.chat.runTool(session_id!, t);
-          if (result.message?.trim()) {
-            onResult?.(result.message, result.tools);
-          }
-        },
-        onReject: async () => {
-          await window.chat.skipTool(session_id!, t);
-        },
-      }
-    : undefined;
+  const pending: PendingOpts | undefined = undefined;
 
   const body_el = render_body(t, pending);
   body_el.style.display = expanded ? "" : "none";
@@ -397,6 +531,5 @@ export function ChatToolChip(
   });
 
   const el = h("div", { class: "flex flex-col min-w-0" }, chip, body_el);
-
   return { el };
 }

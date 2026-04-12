@@ -93,6 +93,20 @@ type chat_api = {
     session_id: string,
     tool: unknown,
   ): Promise<{ message: string; tools: Tool[] }>;
+  resolvePermission(
+    session_id: string,
+    permission_id: string,
+    decision: "allow" | "allow_session" | "deny",
+  ): Promise<void>;
+  onPermissionRequest(
+    cb: (p: { id: string; tool: string; args: unknown }) => void,
+  ): () => void;
+  onToolCall(
+    cb: (t: { id: string; tool: string; args: unknown }) => void,
+  ): () => void;
+  onToolResult(
+    cb: (t: { id: string; tool: string; result: unknown }) => void,
+  ): () => void;
 };
 
 type pty_api = {

@@ -21,6 +21,7 @@ export interface IChatTool {
 }
 
 export interface Permission {
+  id?: string;
   tool: string;
   description: string;
 }
