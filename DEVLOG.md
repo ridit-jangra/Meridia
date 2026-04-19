@@ -85,3 +85,10 @@ I know too late, was working on lens :)
 - Add git support.
 - Add search panel.
 - Add problems panel.
+
+##  19th April 2026
+
+I haven't been working on Meridia for 20 days or something.
+
+- I am too focused on Milo and other big projects.
+- Idk if i am going to even work on this project. But I will try to finish it by this year.
