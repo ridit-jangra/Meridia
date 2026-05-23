@@ -247,7 +247,10 @@ class terminal_service {
     }
 
     this.tabs.push(tab);
-    this.set_active(id);
+
+    setTimeout(() => {
+      this.set_active(id);
+    }, 100);
 
     return tab;
   }

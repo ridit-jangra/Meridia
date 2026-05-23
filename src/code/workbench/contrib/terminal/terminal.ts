@@ -256,6 +256,7 @@ export function TerminalPanel(opts?: { class?: string }) {
     mountTab(tab);
     renderTabs();
     schedule_save();
+
     return tab;
   };
 
