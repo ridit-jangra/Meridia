@@ -57,7 +57,8 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
 
   const calcRange = () => {
     const top = viewport.scrollTop;
-    const viewH = viewport.clientHeight;
+    const viewH =
+      viewport.clientHeight || viewport.parentElement?.clientHeight || 600;
 
     const first = Math.floor(top / opts.itemHeight);
     const visible = Math.ceil(viewH / opts.itemHeight);
