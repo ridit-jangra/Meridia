@@ -14,6 +14,7 @@ import {
   FS_RELATIVE,
   FS_OPEN,
   FS_READ_BASE_64,
+  FS_REAL_PATH,
 } from "../../shared/ipc/channels";
 import path from "node:path";
 
@@ -86,6 +87,14 @@ ipcMain.handle(FS_STAT, async (_, p: string) => {
 
 ipcMain.handle(FS_READ_FILE_TEXT, async (_, p: string) => {
   return fs.readFile(p, "utf8");
+});
+
+ipcMain.handle(FS_REAL_PATH, async (_, p: string) => {
+  try {
+    return await fs.realpath(p);
+  } catch {
+    return p;
+  }
 });
 
 ipcMain.handle(FS_CREATE_DIR, async (_, p: string) => {

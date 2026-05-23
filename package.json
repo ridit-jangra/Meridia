@@ -55,6 +55,7 @@
     "monaco-editor": "^0.52.2",
     "node-pty": "^1.1.0",
     "react-redux": "^9.2.0",
+    "simple-git": "^3.36.0",
     "split.js": "^1.6.5",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7"

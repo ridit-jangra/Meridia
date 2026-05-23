@@ -17,6 +17,7 @@ export const FS_SAVE_AS = "fs:save-as";
 export const FS_READDIR = "fs:readdir";
 export const FS_STAT = "fs:stat";
 export const FS_READ_FILE_TEXT = "fs:read-file-text";
+export const FS_REAL_PATH = "fs:realpath";
 export const FS_CREATE_DIR = "fs:create-dir";
 export const FS_REMOVE = "fs:remove";
 export const FS_WRITE_FILE_TEXT = "fs:write-file-text";
@@ -40,6 +41,7 @@ export const SHELL_OPEN_EXTERNAL = "shell:open-external";
 
 export const GIT_IS_REPO = "git:is-repo";
 export const GIT_GET_STATUS = "git:get-status";
+export const GIT_REFRESH_STATUS = "git:refresh-status";
 export const GIT_STAGE_FILE = "git:stage-file";
 export const GIT_STAGE_ALL = "git:stage-all";
 export const GIT_UNSTAGE_FILE = "git:unstage-file";

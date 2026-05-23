@@ -51,9 +51,10 @@ export const dark: ITheme = {
 
     "git.background": "#131313",
     "git.foreground": "#E6E6E6A6",
-    "git.modified.foreground": "#F1B467",
+    "git.modified.foreground": "#F5CA8E",
     "git.untracked.foreground": "#88C0D0",
     "git.ignored.foreground": "#E6E6E66B",
+    "git.staged.foreground": "#C8F0A0",
 
     "problems.background": "#131313",
     "problems.foreground": "#E6E6E6EB",

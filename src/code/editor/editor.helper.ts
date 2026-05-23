@@ -142,6 +142,7 @@ export function path_to_language(file_path: string) {
 
     for (const ext of lang.extensions) {
       if (file_path.endsWith(ext)) {
+        console.log(lang.id);
         return lang.id;
       }
     }

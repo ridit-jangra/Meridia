@@ -89,6 +89,7 @@ export const colors = [
   "git.modified.foreground",
   "git.untracked.foreground",
   "git.ignored.foreground",
+  "git.staged.foreground",
 
   "problems.background",
   "problems.foreground",

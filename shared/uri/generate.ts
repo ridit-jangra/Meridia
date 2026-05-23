@@ -1,3 +1,8 @@
+const IS_WINDOWS =
+  typeof window !== "undefined"
+    ? window.platform.get_platform() === "win32"
+    : process.platform === "win32";
+
 export const norm = (p: string): string => p.replace(/\\/g, "/");
 
 export const get_drive = (p: string): string => {
@@ -60,9 +65,11 @@ export function get_stem(uri: string): string {
 export function uris_equal(a: string, b: string): boolean {
   const na = norm(a).replace(/\/$/, "");
   const nb = norm(b).replace(/\/$/, "");
-  if (get_drive(na) || get_drive(nb)) {
+
+  if (IS_WINDOWS) {
     return na.toLowerCase() === nb.toLowerCase();
   }
+
   return na === nb;
 }
 

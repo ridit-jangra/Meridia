@@ -34,6 +34,7 @@ import {
 } from "../../../../../editor/editor.helper";
 import { ScrollArea } from "../scroll-area";
 import { Button } from "../button";
+import { GitStatus } from "../../../../../../../shared/types/git.types";
 
 function deep_clone_nodes(nodes: INode[]): INode[] {
   return nodes.map((n) => ({
@@ -100,11 +101,63 @@ export function VirtualTree(opts: {
   const loading = new Set<string>();
   const loaded = new Set<string>();
 
+  const git_status_map = new Map<string, string>();
+
   const load_queue = new Map<string, Promise<void>>();
 
   opts.folderStructure = {
     ...opts.folderStructure,
     structure: deep_clone_nodes(opts.folderStructure.structure),
+  };
+
+  const get_git_badge = (file_path: string): string | null => {
+    const norm_path = norm(file_path);
+
+    for (const [p, code] of git_status_map) {
+      if (norm_path.endsWith(p) || norm_path.endsWith(norm(p))) return code;
+    }
+    return null;
+  };
+
+  const GIT_COLORS: Record<string, string> = {
+    M: "--git-modified-foreground",
+    A: "--git-staged-foreground",
+    D: "--git-removed-foreground",
+    "?": "--git-untracked-foreground",
+  };
+
+  const GIT_LABELS: Record<string, string> = {
+    "?": "M",
+  };
+
+  const patch_git_badge = (row: FlatRow) => {
+    const row_el = list.layer.querySelector<HTMLElement>(
+      `[data-row-id="${CSS.escape(row.id)}"]`,
+    );
+    if (!row_el) return;
+
+    let badge = row_el.querySelector<HTMLElement>("[data-git-badge]");
+    const code = get_git_badge(row.node.path);
+    const label = row_el.querySelector<HTMLElement>(".truncate");
+
+    if (!code) {
+      badge?.remove();
+      if (label) label.style.color = "";
+      return;
+    }
+
+    if (!badge) {
+      badge = document.createElement("span");
+      badge.dataset.gitBadge = "1";
+      badge.style.cssText =
+        "font-size:12px;font-weight:1000;margin-right:6px;flex-shrink:0;";
+      row_el.appendChild(badge);
+    }
+
+    const css_var = GIT_COLORS[code] ? `var(${GIT_COLORS[code]})` : "";
+    badge.textContent = GIT_LABELS[code] ?? code;
+    badge.style.color = css_var;
+    if (label) label.style.color = css_var;
   };
 
   const init_open = (n: INode) => {
@@ -160,14 +213,17 @@ export function VirtualTree(opts: {
     }
   };
 
+  let prev_active_el: HTMLElement | null = null;
+
   const active_cls =
     "bg-explorer-item-active-background text-explorer-item-active-foreground";
+
+  const active_cls_list = active_cls.split(" ");
+
   const passive_cls =
     "text-explorer-foreground hover:bg-explorer-item-hover-background hover:text-explorer-item-hover-foreground";
-  const active_cls_list = active_cls.split(" ");
-  const passive_cls_list = passive_cls.split(" ");
 
-  let prev_active_el: HTMLElement | null = null;
+  const passive_cls_list = passive_cls.split(" ");
 
   const set_row_active = (el: HTMLElement, active: boolean) => {
     if (active) {
@@ -178,7 +234,6 @@ export function VirtualTree(opts: {
       passive_cls_list.forEach((c) => el.classList.add(c));
     }
   };
-
   const patch_row_el = (id: string) => {
     const row_el = list.layer.querySelector<HTMLElement>(
       `[data-row-id="${CSS.escape(id)}"]`,
@@ -388,11 +443,31 @@ export function VirtualTree(opts: {
     open.add(parent_id);
     editing_node_id = `__adding_${type}_${parent_id}`;
 
-    const result = find_node_by_id(opts.folderStructure.structure, parent_id);
+    const result = uris_equal(parent_id, opts.folderStructure.path)
+      ? {
+          node: {
+            id: opts.folderStructure.path,
+            path: opts.folderStructure.path,
+            type: "folder",
+            name: opts.folderStructure.root.name,
+            child_nodes: opts.folderStructure.structure,
+          } as INode,
+        }
+      : find_node_by_id(opts.folderStructure.structure, parent_id);
+
+    console.log(result);
+
     if (!result) return;
 
-    const parent_depth = rows.find((r) => r.id === parent_id)?.depth ?? 0;
-    const parent_index = rows.findIndex((r) => r.id === parent_id);
+    const is_root = uris_equal(parent_id, opts.folderStructure.path);
+
+    const parent_depth = is_root
+      ? -1
+      : (rows.find((r) => r.id === parent_id)?.depth ?? 0);
+
+    const parent_index = is_root
+      ? -1
+      : rows.findIndex((r) => r.id === parent_id);
 
     if (parent_index === -1) {
       rebuild();
@@ -407,6 +482,12 @@ export function VirtualTree(opts: {
     };
 
     const new_rows = [...rows];
+
+    if (is_root) {
+      new_rows.unshift(temp_row);
+    } else {
+      new_rows.splice(parent_index + 1, 0, temp_row);
+    }
     new_rows.splice(parent_index + 1, 0, temp_row);
     rows = new_rows;
     list.update_rows(rows);
@@ -912,6 +993,17 @@ export function VirtualTree(opts: {
       }
       console.timeEnd("add_many");
       rebuild_debounced();
+    },
+    refresh_git_status(status: GitStatus) {
+      git_status_map.clear();
+      for (const f of status.files) {
+        const code = f.working_dir.trim() || f.index.trim();
+        if (code) git_status_map.set(f.path, code);
+      }
+
+      for (const row of rows) {
+        if (row.node.type === "file") patch_git_badge(row);
+      }
     },
   };
 }

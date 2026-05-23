@@ -2,7 +2,7 @@ import editor_worker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import json_worker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 import css_worker from "monaco-editor/esm/vs/language/css/css.worker?worker";
 import html_worker from "monaco-editor/esm/vs/language/html/html.worker?worker";
-// import typescript_worker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
+import typescript_worker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
 
 (self as any).MonacoEnvironment = {
   getWorker(_: unknown, label: string) {
@@ -12,7 +12,7 @@ import html_worker from "monaco-editor/esm/vs/language/html/html.worker?worker";
     if (label === "html" || label === "handlebars" || label === "razor")
       return new html_worker();
     if (label === "typescript" || label === "javascript")
-      return new Worker(new URL(""));
+      return new typescript_worker();
     return new editor_worker();
   },
 };
@@ -566,7 +566,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     });
     lsp_client.register({
       languageId: "typescript",
-      extensions: ["ts", "tsx", "js", "jsx", "mjs", "mts"],
+      extensions: ["ts", "js", "mjs", "mts"],
     });
     await lsp_client.start(
       (await window.workspace.get_current_workspace_path()) ?? "C:\\",

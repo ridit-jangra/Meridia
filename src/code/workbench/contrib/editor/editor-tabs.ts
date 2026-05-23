@@ -20,6 +20,19 @@ import { update_tabs } from "../../common/state/slices/editor.slice";
 import { h } from "../core/dom/h";
 import { cn } from "../core/utils/cn";
 import { editor_events } from "../../../platform/events/editor.events";
+import { git_events } from "../../../platform/events/git.events";
+import { GitStatus } from "../../../../../shared/types/git.types";
+
+const GIT_COLORS: Record<string, string> = {
+  M: "--git-modified-foreground",
+  A: "--git-staged-foreground",
+  D: "--git-removed-foreground",
+  "?": "--git-untracked-foreground",
+};
+
+const GIT_LABELS: Record<string, string> = {
+  "?": "U",
+};
 
 const LoadingBar = () => {
   const bar = h("div", {
@@ -64,6 +77,56 @@ export function EditorTabs() {
   let drag_source_path: string | null = null;
   let drag_ghost: HTMLElement | null = null;
   let drag_over_path: string | null = null;
+
+  const git_status_map = new Map<string, string>();
+
+  const get_git_code = (file_path: string): string | null => {
+    for (const [p, code] of git_status_map) {
+      if (file_path.endsWith(p) || file_path.endsWith(p.replace(/\//g, "\\")))
+        return code;
+    }
+    return null;
+  };
+
+  const patch_tab_git = (file_path: string) => {
+    const el = tabElements.get(file_path);
+    if (!el) return;
+    const name_el = el.querySelector<HTMLElement>('[data-role="name"]');
+    if (!name_el) return;
+
+    const code = get_git_code(file_path);
+    const css_var = code ? `var(${GIT_COLORS[code] ?? ""})` : "";
+
+    name_el.style.color = css_var;
+
+    let badge = el.querySelector<HTMLElement>("[data-git-badge]");
+
+    if (!code) {
+      badge?.remove();
+      return;
+    }
+
+    if (!badge) {
+      badge = document.createElement("span");
+      badge.dataset.gitBadge = "1";
+      badge.style.cssText = "font-size:11px;font-weight:1000;flex-shrink:0;";
+      name_el.after(badge);
+    }
+
+    badge.textContent = GIT_LABELS[code] ?? code;
+    badge.style.color = css_var;
+  };
+
+  git_events.on("refresh-status", (status: GitStatus) => {
+    git_status_map.clear();
+    for (const f of status.files) {
+      const code = f.working_dir.trim() || f.index.trim();
+      if (code) git_status_map.set(f.path, code);
+    }
+    for (const file_path of tabElements.keys()) {
+      patch_tab_git(file_path);
+    }
+  });
 
   const get_tab_order = (): string[] =>
     store.getState().editor.tabs.map((t) => t.file_path);
@@ -360,6 +423,8 @@ export function EditorTabs() {
       );
     }
 
+    patch_tab_git(tab.file_path);
+
     return element;
   };
 
@@ -409,6 +474,7 @@ export function EditorTabs() {
       if (!element) {
         element = renderTab(tab);
         tabElements.set(tab.file_path, element);
+        patch_tab_git(tab.file_path);
       } else if (prevTab) {
         if (
           prevTab.active !== tab.active ||

@@ -13,6 +13,7 @@ import "./ipc/files-ipc";
 import "./ipc/storage-ipc";
 import "./ipc/shell-ipc";
 import "./ipc/explorer-ipc";
+import "./ipc/git-ipc";
 import "./ipc/watcher-ipc";
 import "./ipc/terminal-ipc";
 import "./ipc/chat-ipc";

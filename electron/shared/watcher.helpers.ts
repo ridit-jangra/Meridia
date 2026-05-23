@@ -2,6 +2,7 @@ import path from "path";
 import { INode, TWatchEvent } from "../../shared/types/explorer.types";
 import { generate_uri } from "../../shared/uri/generate";
 import { event_emitter } from "./emitter";
+import { git } from "../main-services/git-service";
 
 type PendingEvent =
   | { type: "add"; node: INode }
@@ -24,6 +25,12 @@ let add_batch_timer: ReturnType<typeof setInterval> | null = null;
 const DEBOUNCE_MS = 50;
 const MAX_NODES = 50000;
 let total_nodes = 0;
+
+let current_repo_path: string | null = null;
+
+export function set_repo_path(p: string | null) {
+  current_repo_path = p;
+}
 
 export function reset_watcher_state() {
   total_nodes = 0;
@@ -222,5 +229,10 @@ export function attach_event_emitter(e: TWatchEvent) {
   } else {
     const uri = generate_uri(e.path);
     debounce(uri, { type: "change", uri });
+  }
+
+  // piggyback git refresh — one watcher, two consumers
+  if (current_repo_path) {
+    git.push_status(current_repo_path);
   }
 }

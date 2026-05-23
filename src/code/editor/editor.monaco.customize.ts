@@ -32,6 +32,9 @@ monaco.languages.registerCompletionItemProvider("typescript", {
   provideCompletionItems: () => ({ suggestions: [] }),
 });
 
+monaco.languages.register({ id: "typescriptreact" });
+monaco.languages.register({ id: "javascriptreact" });
+
 //
 
 export function patch_peek_model_service(): void {
@@ -52,11 +55,13 @@ export function patch_peek_model_service(): void {
     svc.createModelReference = async (resource: monaco.Uri) => {
       if (!monaco.editor.getModel(resource)) {
         try {
-          const fsPath =
-            resource.fsPath ||
-            decodeURIComponent(resource.path).replace(/^\//, "");
+          const fsPath = resource.fsPath;
+
+          console.log(resource.toString());
+          console.log(resource.fsPath);
 
           const content = await window.files.read_file_text(fsPath);
+
           monaco.editor.createModel(
             content,
             path_to_language(fsPath),
