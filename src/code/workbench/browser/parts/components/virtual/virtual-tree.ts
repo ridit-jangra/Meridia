@@ -337,6 +337,7 @@ export function VirtualTree(opts: {
     rows = out;
 
     list.update_rows(rows);
+    update_sticky();
   };
 
   const load_children = (folder_node: INode): Promise<void> => {
@@ -814,7 +815,7 @@ export function VirtualTree(opts: {
 
       row_el.oncontextmenu = async () => {
         selected.id = norm(row.id);
-        // await expand_to(row.id);
+
         rebuild();
         requestAnimationFrame(() => scroll_to_id(norm(row.id)));
       };
@@ -852,6 +853,155 @@ export function VirtualTree(opts: {
         }
       }
     }
+  };
+
+  const sticky_el = h("div", {
+    class: "absolute left-0 right-0 z-10 pointer-events-none",
+    style: `top:${opts.rowHeight}px;`,
+  });
+
+  el.style.position = "relative";
+  el.appendChild(sticky_el);
+
+  const get_ancestors_at_scroll = (): FlatRow[] => {
+    const viewport = opts.scrollViewport ?? list.viewport;
+    const scrollTop = viewport.scrollTop;
+    const first_visible_index = Math.floor(scrollTop / opts.rowHeight);
+
+    if (first_visible_index <= 0 || rows.length === 0) return [];
+
+    const first_visible = rows[Math.min(first_visible_index, rows.length - 1)];
+    if (!first_visible) return [];
+
+    const ancestors: FlatRow[] = [];
+    let target_depth = first_visible.depth - 1;
+
+    for (let i = first_visible_index - 1; i >= 0 && target_depth >= 0; i--) {
+      const row = rows[i];
+      if (row.node.type === "folder" && row.depth === target_depth) {
+        ancestors.unshift(row);
+        target_depth--;
+      }
+    }
+
+    return ancestors;
+  };
+
+  const render_sticky_row = (row: FlatRow): HTMLElement => {
+    const file_icon =
+      row.node.type !== "folder" && h("img", { class: "w-4 h-4 mr-1" });
+    if (file_icon && opts.get_icon && opts.icon_folder_name)
+      file_icon.src = `./${opts.icon_folder_name}/${opts.get_icon(row.id)}`;
+
+    const caret = h("span", {
+      class: "mr-1 opacity-70 inline-flex items-center [&_svg]:w-5 [&_svg]:h-5",
+      style: "transform:rotate(90deg);display:inline-flex;align-items:center;",
+    });
+    caret.appendChild(lucide("chevron-right"));
+
+    const left = h(
+      "div",
+      { class: "ml-2 flex items-center min-w-0" },
+      caret,
+      file_icon,
+      h("span", { class: "truncate font-normal" }, row.label),
+    );
+
+    const row_el = h(
+      "div",
+      {
+        class: cn(
+          "flex items-center pointer-events-auto cursor-pointer select-none text-[12.5px]",
+          "text-explorer-foreground",
+          "border-b border-workbench-border",
+        ),
+        style: `height:${opts.rowHeight}px;padding-left:${row.depth * 1.4}rem;background:var(--explorer-background);`,
+      },
+      left,
+    );
+
+    row_el.addEventListener("mouseenter", () => {
+      row_el.style.background = "var(--workbench-background)";
+    });
+    row_el.addEventListener("mouseleave", () => {
+      row_el.style.background = "var(--explorer-background)";
+    });
+
+    row_el.dataset.stickyId = row.id;
+
+    row_el.addEventListener("click", () => {
+      const index = rows.findIndex((r) => r.id === row.id);
+      if (index === -1) return;
+      const viewport = opts.scrollViewport ?? list.viewport;
+      viewport.scrollTop = index * opts.rowHeight;
+      update_sticky();
+    });
+
+    return row_el;
+  };
+
+  let sticky_raf = 0;
+  let last_sticky_ids: string[] = [];
+
+  const update_sticky = () => {
+    if (sticky_raf) cancelAnimationFrame(sticky_raf);
+    sticky_raf = requestAnimationFrame(() => {
+      sticky_raf = 0;
+      const ancestors = get_ancestors_at_scroll();
+      const new_ids = ancestors.map((r) => r.id);
+
+      if (
+        new_ids.length === last_sticky_ids.length &&
+        new_ids.every((id, i) => id === last_sticky_ids[i])
+      )
+        return;
+
+      last_sticky_ids = new_ids;
+
+      const viewport = opts.scrollViewport ?? list.viewport;
+      if (viewport.scrollTop < opts.rowHeight) {
+        sticky_el.style.display = "none";
+        return;
+      }
+      sticky_el.style.display = "";
+
+      const existing = new Map<string, HTMLElement>();
+      Array.from(sticky_el.children).forEach((c) => {
+        const el = c as HTMLElement;
+        const id = el.dataset.stickyId;
+        if (id) existing.set(id, el);
+      });
+
+      const next: HTMLElement[] = [];
+      for (const row of ancestors) {
+        const reused = existing.get(row.id);
+        if (reused) {
+          existing.delete(row.id);
+          next.push(reused);
+        } else {
+          const el = render_sticky_row(row);
+          el.dataset.stickyId = row.id;
+          next.push(el);
+        }
+      }
+
+      existing.forEach((el) => el.remove());
+      next.forEach((el, i) => {
+        if (sticky_el.children[i] !== el) {
+          sticky_el.insertBefore(el, sticky_el.children[i] ?? null);
+        }
+      });
+    });
+  };
+
+  const scroll_viewport = opts.scrollViewport ?? list.viewport;
+  scroll_viewport.addEventListener("scroll", update_sticky, { passive: true });
+
+  const orig_rebuild = rebuild;
+
+  const rebuild_with_sticky = () => {
+    orig_rebuild();
+    update_sticky();
   };
 
   const restore_open_folders = async () => {
@@ -958,6 +1108,8 @@ export function VirtualTree(opts: {
       list.destroy();
       contextMenu.destroy();
       el.removeEventListener("keydown", on_local_key, true);
+      scroll_viewport.removeEventListener("scroll", update_sticky);
+      if (sticky_raf) cancelAnimationFrame(sticky_raf);
     },
     remove_many(paths: string[]) {
       console.time("top_level");

@@ -152,15 +152,22 @@ export function VirtualList<T>(opts: VirtualListOpts<T>) {
     opts.onRangeChange?.(start, end);
   };
 
-  const tick = () => {
-    raf = 0;
-    const { s, e } = calcRange();
-    renderRange(s, e);
-  };
-
   const schedule = () => {
     if (raf) return;
-    raf = window.requestAnimationFrame(tick);
+    raf = window.requestAnimationFrame(() => {
+      raf = 0;
+      const { s, e } = calcRange();
+
+      if (viewport.clientHeight === 0) {
+        setTimeout(() => {
+          start = -1;
+          end = -1;
+          schedule();
+        }, 50);
+        return;
+      }
+      renderRange(s, e);
+    });
   };
 
   const onScroll = () => schedule();
