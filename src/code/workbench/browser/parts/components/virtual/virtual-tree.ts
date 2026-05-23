@@ -14,6 +14,7 @@ import {
   rename_by_path,
   remove_node_by_path,
   add_node,
+  remove_nodes_by_paths_inplace,
 } from "../../../../common/virtual-tree/virtual-tree.helpers";
 import { create_add_node_input } from "../../../../common/virtual-tree/add-node.helpers";
 import { create_rename_input } from "../../../../common/virtual-tree/rename-node.helpers";
@@ -761,6 +762,17 @@ export function VirtualTree(opts: {
     }
   };
 
+  const fix_set_many = (set: Set<string>, top_level: Set<string>) => {
+    for (const id of set) {
+      for (const path of top_level) {
+        if (uris_equal(id, path) || is_descendant_of(id, path)) {
+          set.delete(id);
+          break;
+        }
+      }
+    }
+  };
+
   const restore_open_folders = async () => {
     if (!opts.initialOpenFolders?.length) return;
     for (const id of opts.initialOpenFolders) {
@@ -828,9 +840,15 @@ export function VirtualTree(opts: {
       rebuild();
     },
     add(node: INode) {
-      add_node(opts.folderStructure.structure, node, opts.folderStructure.path);
+      add_node(
+        opts.folderStructure.structure,
+        node,
+        opts.folderStructure.path,
+        loaded,
+      );
       rebuild_debounced();
     },
+
     remove(path: string) {
       remove_node_by_path(opts.folderStructure.structure, path);
       fix_set(open, path);
@@ -859,6 +877,41 @@ export function VirtualTree(opts: {
       list.destroy();
       contextMenu.destroy();
       el.removeEventListener("keydown", on_local_key, true);
+    },
+    remove_many(paths: string[]) {
+      console.time("top_level");
+      const top_set = new Set(paths);
+      console.timeEnd("top_level");
+
+      console.time("remove_inplace");
+      remove_nodes_by_paths_inplace(opts.folderStructure.structure, top_set);
+      console.timeEnd("remove_inplace");
+
+      console.time("fix_sets");
+      fix_set_many(open, top_set);
+      fix_set_many(loaded, top_set);
+      load_queue.forEach((_, key) => {
+        if (top_set.has(key)) load_queue.delete(key);
+      });
+      if (top_set.has(selected.id)) selected.id = "";
+      console.timeEnd("fix_sets");
+
+      console.time("rebuild");
+      rebuild();
+      console.timeEnd("rebuild");
+    },
+    add_many(nodes: INode[]) {
+      console.time("add_many");
+      for (const node of nodes) {
+        add_node(
+          opts.folderStructure.structure,
+          node,
+          opts.folderStructure.path,
+          loaded,
+        );
+      }
+      console.timeEnd("add_many");
+      rebuild_debounced();
     },
   };
 }

@@ -11,8 +11,15 @@ export const path_parts = (p: string): string[] =>
     .split("/")
     .filter(Boolean);
 
-export const join_path = (drive: string, parts: string[]): string =>
-  drive ? `${drive}/${parts.join("/")}` : parts.join("/");
+export const join_path = (
+  drive: string,
+  parts: string[],
+  absolute = false,
+): string => {
+  if (drive) return `${drive}/${parts.join("/")}`;
+  if (absolute) return `/${parts.join("/")}`;
+  return parts.join("/");
+};
 
 export function generate_uri(raw_path: string): string {
   return norm(raw_path).replace(/\/$/, "");
@@ -27,10 +34,10 @@ export function get_parent_uri(uri: string): string {
   const normalized = norm(uri).replace(/\/$/, "");
   const drive = get_drive(normalized);
   const parts = path_parts(normalized);
+  const is_absolute = !drive && normalized.startsWith("/");
   parts.pop();
-
   if (parts.length === 0) return drive ? `${drive}/` : "/";
-  return join_path(drive, parts);
+  return drive ? join_path(drive, parts, is_absolute) : `/${parts.join("/")}`;
 }
 
 export function get_basename(uri: string): string {

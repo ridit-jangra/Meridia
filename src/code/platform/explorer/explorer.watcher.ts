@@ -19,12 +19,26 @@ export class explorer_watcher {
       tree.add(node);
     });
 
+    explorer_events.on("add_many", (nodes: INode[]) => {
+      console.log("add_many received", nodes.length, "nodes");
+      console.time("add_many_total");
+      explorer_events.emit("start-loading");
+      tree.add_many(nodes);
+      explorer_events.emit("stop-loading");
+      console.timeEnd("add_many_total");
+    });
+
     explorer_events.on("remove", (path: string) => {
       tree.remove(path);
     });
 
+    explorer_events.on("remove_many", (paths: string[]) => {
+      explorer_events.emit("start-loading");
+      tree.remove_many(paths);
+      explorer_events.emit("stop-loading");
+    });
+
     explorer_events.on("rename", (from: string, to: string) => {
-      console.log("rename", from, to);
       tree.rename(from, to);
     });
 
@@ -44,8 +58,24 @@ export class explorer_watcher {
     );
 
     this.disposers.push(
+      window.ipc.on("workbench.explorer.add_many", (_, nodes: INode[]) => {
+        console.log("ipc add_many received", nodes.length, "nodes");
+        explorer_events.emit("add_many", nodes);
+      }),
+    );
+
+    this.disposers.push(
       window.ipc.on("workbench.explorer.remove", (_, p: string) => {
         explorer_events.emit("remove", p);
+      }),
+    );
+
+    this.disposers.push(
+      window.ipc.on("workbench.explorer.remove_many", (_, paths: string[]) => {
+        console.log("ipc remove_many received", paths.length, "paths");
+        console.time("remove_many_total");
+        explorer_events.emit("remove_many", paths);
+        console.timeEnd("remove_many_total");
       }),
     );
 

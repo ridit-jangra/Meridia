@@ -144,7 +144,7 @@ export function Titlebar() {
     },
     run_btn,
     settings_btn,
-    new_custom_agent,
+    // new_custom_agent,
   );
 
   layout_engine.subscribe(() => {

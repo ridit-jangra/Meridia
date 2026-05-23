@@ -245,10 +245,12 @@ export function add_node(
   nodes: INode[],
   new_node: INode,
   workspace_path?: string,
+  loaded?: Set<string>,
 ): boolean {
   new_node.path = norm(new_node.path);
   new_node.id = norm(new_node.id);
 
+  const is_absolute = new_node.path.startsWith("/");
   const drive = get_drive(new_node.path);
   const parts = path_parts(new_node.path);
   parts.pop();
@@ -258,19 +260,20 @@ export function add_node(
     return true;
   }
 
-  const parent_path = norm(join_path(drive, parts));
+  const parent_path = join_path(drive, parts, is_absolute);
 
   if (workspace_path && uris_equal(parent_path, norm(workspace_path))) {
     nodes.push(new_node);
     return true;
   }
 
+  if (loaded && !loaded.has(parent_path)) return false;
+
   ensure_parents(
     nodes,
     new_node.path,
     workspace_path ? norm(workspace_path) : undefined,
   );
-
   return add_node_recursive(nodes, parent_path, new_node);
 }
 
@@ -308,6 +311,34 @@ export function remove_node_by_path(nodes: INode[], path: string): boolean {
     }
   }
   return false;
+}
+
+export function remove_nodes_by_paths_inplace(
+  nodes: INode[],
+  paths: Set<string>,
+): void {
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    const node = nodes[i];
+    if (paths.has(node.path) || paths.has(node.id)) {
+      nodes.splice(i, 1);
+    } else if (node.child_nodes?.length) {
+      remove_nodes_by_paths_inplace(node.child_nodes, paths);
+    }
+  }
+}
+
+export function remove_nodes_by_paths(
+  nodes: INode[],
+  paths: Set<string>,
+): INode[] {
+  return nodes
+    .filter((node) => !paths.has(node.path) && !paths.has(node.id))
+    .map((node) => ({
+      ...node,
+      child_nodes: node.child_nodes
+        ? remove_nodes_by_paths(node.child_nodes, paths)
+        : [],
+    }));
 }
 
 export function rename_by_path(

@@ -7,6 +7,12 @@ import path from "path";
 import fs from "fs/promises";
 import chokidar, { FSWatcher } from "chokidar";
 
+const is_inside_node_modules = (p: string) => {
+  const parts = p.split(/[\\/]/);
+  const nm_index = parts.indexOf("node_modules");
+  return nm_index !== -1 && parts.length > nm_index + 2;
+};
+
 class explorer_services {
   private watchers: Map<string, FSWatcher> = new Map();
   private recentUnlinks: Map<
@@ -27,7 +33,6 @@ class explorer_services {
 
       for (const entry of entries) {
         const full_path = path.join(folder_path, entry.name);
-
         structure.push({
           id: full_path,
           type: entry.isDirectory() ? "folder" : "file",
@@ -64,7 +69,6 @@ class explorer_services {
 
       for (const entry of entries) {
         const full_path = path.join(node.path, entry.name);
-
         child_nodes.push({
           id: full_path,
           type: entry.isDirectory() ? "folder" : "file",
@@ -93,13 +97,12 @@ class explorer_services {
 
     const recursive = opts?.recursive ?? true;
     const renameWindow = opts?.rename_window_ms ?? 250;
-
     const ignored = opts?.ignored ?? [];
 
     const watcher = chokidar.watch(watch_path, {
       ignoreInitial: true,
       persistent: true,
-      ignored,
+      ignored: [...ignored, is_inside_node_modules, /\.git[\\/]/],
       depth: recursive ? undefined : 0,
       awaitWriteFinish: {
         stabilityThreshold: 150,
@@ -167,7 +170,6 @@ class explorer_services {
       });
 
     this.watchers.set(watch_path, watcher);
-
     return watch_path;
   }
 

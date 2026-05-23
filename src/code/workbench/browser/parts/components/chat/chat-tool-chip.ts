@@ -4,7 +4,6 @@ import { ChatDiffView } from "./chat-diff-view";
 import hljs from "highlight.js";
 import { Permission } from "../../../../../../../shared/types/chat.types";
 
-// SSE sends `input` and `output`, not `args` and `result`
 export interface Tool {
   tool: string;
   input: Record<string, any>;
@@ -145,7 +144,6 @@ function make_action_row(pending: PendingOpts): HTMLElement {
 }
 
 function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
-  // ── WriteFileTool ──────────────────────────────────────────
   if (t.tool === "WriteFileTool") {
     const input = t.input as { path?: string; content?: string } | null;
     const output = t.output as { ok?: boolean; prevContent?: string } | null;
@@ -198,7 +196,6 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
     return diff.el;
   }
 
-  // ── FileEditTool ───────────────────────────────────────────
   if (t.tool === "FileEditTool") {
     const input = t.input as {
       path?: string;
@@ -228,7 +225,6 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
     return wrapper;
   }
 
-  // ── BashTool ───────────────────────────────────────────────
   if (t.tool === "BashTool") {
     const input = t.input as { command?: string } | null;
     const raw = t.output;
@@ -276,7 +272,6 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
     return wrapper;
   }
 
-  // ── ThinkTool ──────────────────────────────────────────────
   if (t.tool === "ThinkTool") {
     const input = t.input as { thought?: string } | null;
     const thought = input?.thought ?? "";
@@ -310,7 +305,6 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
     return wrapper;
   }
 
-  // ── ReadFileTool ───────────────────────────────────────────
   if (t.tool === "ReadFileTool") {
     const input = t.input as { path?: string } | null;
     const path = input?.path ?? "";
@@ -348,7 +342,6 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
     return wrapper;
   }
 
-  // ── GrepTool ───────────────────────────────────────────────
   if (t.tool === "GrepTool") {
     const raw = t.output as any;
     const matches: Array<{ path: string; line_number: number; line: string }> =
@@ -387,7 +380,6 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
     return wrapper;
   }
 
-  // ── GlobTool ───────────────────────────────────────────────
   if (t.tool === "GlobTool") {
     const raw = t.output as any;
     const paths: string[] = Array.isArray(raw?.paths) ? raw.paths : [];
@@ -420,7 +412,6 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
     return wrapper;
   }
 
-  // ── WebSearchTool ──────────────────────────────────────────
   if (t.tool === "WebSearchTool") {
     const raw = t.output as any;
     const results: Array<{ title: string; url: string; snippet: string }> =
@@ -450,7 +441,6 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
     return wrapper;
   }
 
-  // ── fallback ───────────────────────────────────────────────
   const input_str = t.input ? JSON.stringify(t.input, null, 2) : "";
   const output_str =
     !t.output || t.output === "null"
