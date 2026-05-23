@@ -124,17 +124,17 @@ export function Titlebar() {
     },
   );
 
-  const new_custom_agent = Button(
-    lucide("plus", 18, "[&_path]:stroke-titlebar-foreground"),
-    {
-      variant: "ghost",
-      size: "sm",
+  // const new_custom_agent = Button(
+  //   lucide("plus", 18, "[&_path]:stroke-titlebar-foreground"),
+  //   {
+  //     variant: "ghost",
+  //     size: "sm",
 
-      tooltip: {
-        text: "New Custom Agent",
-      },
-    },
-  );
+  //     tooltip: {
+  //       text: "New Custom Agent",
+  //     },
+  //   },
+  // );
 
   const right = h(
     "div",
