@@ -2,7 +2,7 @@ import { h } from "../../../../contrib/core/dom/h";
 import { codicon } from "../icon";
 import { ChatDiffView } from "./chat-diff-view";
 import hljs from "highlight.js";
-import { Permission } from "../../../../../../../shared/types/chat.types";
+// import { Permission } from "../../../../../../../shared/types/chat.types";
 
 export interface Tool {
   tool: string;
@@ -466,8 +466,8 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
 
 export function ChatToolChip(
   t: Tool,
-  permissionRequired: Permission[],
-  session_id?: string,
+  // permissionRequired: Permission[],
+  // session_id?: string,
 ) {
   const default_expanded =
     t.tool === "WriteFileTool" || t.tool === "FileEditTool";

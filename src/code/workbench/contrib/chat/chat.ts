@@ -192,12 +192,7 @@ export function Chat() {
     return { pane, scroll, messages_el, empty_el };
   }
 
-  function render_message(
-    container: HTMLElement,
-    m: StoredMessage,
-    session_id?: string,
-    onResult?: (message: string, tools: Tool[]) => void,
-  ) {
+  function render_message(container: HTMLElement, m: StoredMessage) {
     const bubble = ChatBubble({
       role: m.role,
       text: m.text,
@@ -207,9 +202,7 @@ export function Chat() {
     if (m.tools?.length) {
       const tools_row = h("div", { class: "flex flex-col gap-1 mb-2" });
       for (const t of m.tools) {
-        tools_row.appendChild(
-          ChatToolChip(t, m.permission ?? [], session_id).el,
-        );
+        tools_row.appendChild(ChatToolChip(t).el);
       }
       bubble.insertBefore(tools_row, bubble.firstChild);
     }
@@ -316,9 +309,7 @@ export function Chat() {
       permission,
     };
     s.messages.push(m);
-    render_message(s.messages_el, m, s.session_id, (msg, tools) => {
-      append_message(s, "assistant", msg, tools);
-    });
+    render_message(s.messages_el, m);
 
     requestAnimationFrame(
       () => (s.scroll.viewport.scrollTop = s.scroll.viewport.scrollHeight),
@@ -430,11 +421,11 @@ export function Chat() {
       const s = sessions.get(active_id);
       if (!s) return;
 
-      const chip = ChatToolChip(
-        { tool, input: args as Record<string, any>, output: null },
-        [],
-        s.session_id,
-      );
+      const chip = ChatToolChip({
+        tool,
+        input: args as Record<string, any>,
+        output: null,
+      });
       s.messages_el.appendChild(chip.el);
 
       const card = ChatPermissionCard({
@@ -460,11 +451,11 @@ export function Chat() {
         s.messages_el.style.display = "flex";
       }
 
-      const chip = ChatToolChip(
-        { tool, input: args as Record<string, any>, output: null },
-        [],
-        s.session_id,
-      );
+      const chip = ChatToolChip({
+        tool,
+        input: args as Record<string, any>,
+        output: null,
+      });
       live_chips.set(id, { el: chip.el, tool });
       s.messages_el.insertBefore(chip.el, s.loading_bubble);
       requestAnimationFrame(
@@ -483,15 +474,11 @@ export function Chat() {
         return;
       }
 
-      const chip = ChatToolChip(
-        {
-          tool,
-          input: {},
-          output: typeof result === "string" ? result : JSON.stringify(result),
-        },
-        [],
-        undefined,
-      );
+      const chip = ChatToolChip({
+        tool,
+        input: {},
+        output: typeof result === "string" ? result : JSON.stringify(result),
+      });
       entry.el.replaceWith(chip.el);
     });
 
