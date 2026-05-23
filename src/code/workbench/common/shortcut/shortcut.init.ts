@@ -22,8 +22,8 @@ import {
   open_new_editor_tab,
 } from "../../../editor/editor.helper";
 import { terminal_events } from "../../../platform/events/terminal.events";
-import { focus_terminal } from "../focus";
 import { runCurrentFile } from "../run";
+import { focus_editor, focus_terminal, is_terminal_focus } from "../focus";
 
 shortcuts.register_command({
   id: "layout.toggleSearch",
@@ -69,15 +69,15 @@ shortcuts.register_command({
         active_tab_key === "terminal" &&
         is_node_enabled_at_path(preset.root, [1, 1])
       ) {
-        if (terminal.is_focus()) {
-          if (is_node_enabled_at_path_active_preset([1, 1]))
-            new_root = disable_node_at_path(preset.root, [1, 1]);
-        } else {
+        if (!is_terminal_focus()) {
           focus_terminal();
+        } else {
+          new_root = disable_node_at_path(preset.root, [1, 1]);
+          focus_editor();
         }
       } else {
-        if (!is_node_enabled_at_path_active_preset([1, 1]))
-          new_root = enable_node_at_path(preset.root, [1, 1]);
+        new_root = enable_node_at_path(preset.root, [1, 1]);
+        focus_terminal();
       }
 
       if (new_root) {
@@ -111,11 +111,11 @@ shortcuts.register_command({
         active_tab_key === "problems" &&
         is_node_enabled_at_path(preset.root, [1, 1])
       ) {
-        if (is_node_enabled_at_path_active_preset([1, 1]))
-          new_root = disable_node_at_path(preset.root, [1, 1]);
+        new_root = disable_node_at_path(preset.root, [1, 1]);
+        focus_editor();
       } else {
-        if (!is_node_enabled_at_path_active_preset([1, 1]))
-          new_root = enable_node_at_path(preset.root, [1, 1]);
+        new_root = enable_node_at_path(preset.root, [1, 1]);
+        // focus_terminal();
       }
 
       if (new_root)
@@ -133,6 +133,12 @@ shortcuts.register_command({
   id: "layout.toggleBottomPanel",
   run: () => {
     update_layout([1, 1], toggle_node_at_path);
+
+    if (is_node_enabled_at_path_active_preset([1, 1])) {
+      focus_editor();
+    } else {
+      focus_terminal();
+    }
   },
 });
 

@@ -4,19 +4,31 @@ import { terminal } from "../../platform/terminal/terminal.service";
 export function focus_terminal() {
   (document.activeElement as HTMLElement | null)?.blur();
 
-  requestAnimationFrame(() => {
+  setTimeout(() => {
     requestAnimationFrame(() => {
-      terminal.focus();
+      requestAnimationFrame(() => {
+        terminal.focus();
+      });
     });
-  });
+  }, 50);
+
+  console.log("focusing terminal");
+}
+
+export function is_terminal_focus() {
+  return terminal.is_focus();
 }
 
 export function focus_editor() {
   terminal.unfocus();
 
-  requestAnimationFrame(() => {
+  setTimeout(() => {
     requestAnimationFrame(() => {
-      editor_events.emit("focus");
+      requestAnimationFrame(() => {
+        editor_events.emit("focus");
+      });
     });
-  });
+  }, 50);
+
+  console.log("focusing editor");
 }

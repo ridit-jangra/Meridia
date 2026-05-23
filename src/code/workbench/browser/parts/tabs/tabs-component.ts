@@ -143,7 +143,7 @@ export function TabsComponent(opts: { node: TTabNode }) {
           on: { click: () => handle_click(tab.id) },
           tooltip: {
             text: tab.label + (shortcut_text ? ` (${shortcut_text})` : ""),
-            position: "top",
+            position: "bottom",
           },
         },
         tab.icon && (lucide(tab.icon) ?? codicon(tab.icon)),

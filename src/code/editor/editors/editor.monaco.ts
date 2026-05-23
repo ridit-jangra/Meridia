@@ -81,6 +81,7 @@ const EDITOR_DEF: IMonacoEditor = {
     "md",
     "markdown",
     "py",
+    "pyi",
     "sh",
     "bash",
     "yaml",

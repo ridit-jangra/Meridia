@@ -16,7 +16,7 @@ import { store } from "./state/store";
 const program_map: Record<string, string> = {
   py: "python",
   js: "node",
-  ts: "ts-node",
+  ts: "bun",
   rs: "cargo run",
   go: "go run",
   java: "javac && java",
@@ -52,6 +52,10 @@ export function runFile(file_path: string) {
 
   shortcuts.run_shortcut("editor.save");
 
+  if (file_path.includes(" ")) {
+    file_path = `"${file_path}"`;
+  }
+
   const id = active_terminal.id;
   const script = `${program} ${file_path}\r`;
 
@@ -63,7 +67,10 @@ const _output_buffer: string[] = [];
 const MAX_BUFFER = 500;
 
 window.pty.on_data((_, _id, data: string) => {
-  const lines = data.replace(STRIP_ANSI, "").replace(/\r\n|\r/g, "\n").split("\n");
+  const lines = data
+    .replace(STRIP_ANSI, "")
+    .replace(/\r\n|\r/g, "\n")
+    .split("\n");
   for (const line of lines) {
     if (line.trim()) _output_buffer.push(line);
   }

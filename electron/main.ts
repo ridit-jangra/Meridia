@@ -27,6 +27,10 @@ import type { ContextMenuItem } from "../src/code/workbench/browser/parts/compon
 import { resolve_pylsp, resolve_python } from "./lsp.resolver";
 import { LSP_BRIDGE_PORT } from "../shared/lsp/lsp.constants";
 
+if (process.platform === "linux") {
+  app.disableHardwareAcceleration();
+}
+
 export function get_accelerator(
   shortcuts: shortcut_def[],
   command: string,
@@ -135,14 +139,20 @@ ipcMain.on("updater:install-now", () => {
 
 function createWindow() {
   const is_win = process.platform === "win32";
+  const is_linux = process.platform === "linux";
   const is_mac = process.platform === "darwin";
 
   const inset = is_mac ? 75 : is_win ? 170 : 115;
 
   const win_height = 21;
+  const linux_height = 21;
   const other_height = 31;
 
-  const option_height = is_win ? win_height : other_height;
+  const option_height = is_win
+    ? win_height
+    : is_linux
+      ? linux_height
+      : other_height;
 
   win = new BrowserWindow({
     icon: path.join(process.env.VITE_PUBLIC!, "electron-vite.svg"),

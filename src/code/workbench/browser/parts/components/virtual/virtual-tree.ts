@@ -662,7 +662,7 @@ export function VirtualTree(opts: {
         (() => {
           const span = h("span", {
             class:
-              "mr-1 opacity-70 inline-flex items-center [&_svg]:w-4 [&_svg]:h-4",
+              "mr-1 opacity-70 inline-flex items-center [&_svg]:w-5 [&_svg]:h-5",
             "data-caret": "1",
             "data-loading": is_loading ? "1" : "0",
             style: `display:inline-flex;align-items:center;transform:rotate(${is_open ? "90deg" : "0deg"});`,

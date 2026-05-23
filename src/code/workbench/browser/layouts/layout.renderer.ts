@@ -320,7 +320,7 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
   };
 
   const content_host = h("div", {
-    class: "min-h-0 min-w-0 h-[calc(100vh-4.7rem)] overflow-hidden",
+    class: "min-h-0 min-w-0 h-[calc(100vh-4.15rem)] overflow-hidden",
   });
 
   const titlebar = Titlebar();
