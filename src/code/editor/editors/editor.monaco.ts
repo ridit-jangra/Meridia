@@ -51,6 +51,10 @@ import {
   EDITOR_SCROLL_TO_LINE,
   EDITOR_SELECTION,
 } from "../../../../shared/ipc/channels";
+import {
+  register_html_language,
+  setup_html_auto_close,
+} from "../languages/html";
 
 type Disposer = () => void;
 
@@ -203,6 +207,10 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       id: "editor.saveAs",
       run: () => this.save_file_as(),
     });
+
+    register_html_language();
+
+    setup_html_auto_close(this.editor.instance);
   }
 
   private setup_file_watcher(): void {
