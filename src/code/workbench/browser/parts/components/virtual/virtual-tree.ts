@@ -1000,12 +1000,12 @@ export function VirtualTree(opts: {
   const scroll_viewport = opts.scrollViewport ?? list.viewport;
   scroll_viewport.addEventListener("scroll", update_sticky, { passive: true });
 
-  const orig_rebuild = rebuild;
+  // const orig_rebuild = rebuild;
 
-  const rebuild_with_sticky = () => {
-    orig_rebuild();
-    update_sticky();
-  };
+  // const rebuild_with_sticky = () => {
+  //   orig_rebuild();
+  //   update_sticky();
+  // };
 
   const restore_open_folders = async () => {
     if (!opts.initialOpenFolders?.length) return;

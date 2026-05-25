@@ -78,11 +78,11 @@ const COMMON_TAGS = [
   "slot",
 ];
 
-function wrap(tag: string, inner = "$1"): string {
-  return VOID_TAGS.has(tag)
-    ? `<${tag} ${inner} />`
-    : `<${tag}>${inner}</${tag}>`;
-}
+// function wrap(tag: string, inner = "$1"): string {
+//   return VOID_TAGS.has(tag)
+//     ? `<${tag} ${inner} />`
+//     : `<${tag}>${inner}</${tag}>`;
+// }
 
 function build_snippets(): Snippet[] {
   const snippets: Snippet[] = [
@@ -539,10 +539,10 @@ export function setup_html_auto_close(
       const tag_name = tag_match[1].toLowerCase();
       if (VOID_TAGS.has(tag_name)) return;
 
-      const before_close = text_up_to_cursor.slice(
-        0,
-        text_up_to_cursor.lastIndexOf("<" + tag_match[1]),
-      );
+      // const before_close = text_up_to_cursor.slice(
+      //   0,
+      //   text_up_to_cursor.lastIndexOf("<" + tag_match[1]),
+      // );
       if (text_up_to_cursor.trimEnd().endsWith("/")) return;
 
       const closing_tag = `</${tag_name}>`;
