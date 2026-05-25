@@ -146,6 +146,7 @@ shortcuts.register_command({
   id: "layout.togglePrimarySideBar",
   run: () => {
     update_layout([0], toggle_node_at_path);
+    focus_editor();
   },
 });
 
@@ -153,6 +154,7 @@ shortcuts.register_command({
   id: "layout.toggleSecondarySideBar",
   run: () => {
     update_layout([2], toggle_node_at_path);
+    focus_editor();
   },
 });
 

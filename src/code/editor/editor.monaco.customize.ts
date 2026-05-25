@@ -12,6 +12,20 @@ monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
   noSyntaxValidation: true,
   noSuggestionDiagnostics: true,
 });
+monaco.languages.css.cssDefaults.setOptions({
+  validate: true,
+});
+monaco.languages.html.htmlDefaults.setOptions({
+  // format: {
+  //   tabSize: 2,
+  //   insertSpaces: true,
+  //   wrapLineLength: 120,
+
+  // },
+  suggest: {
+    html5: true,
+  },
+});
 monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
   noSemanticValidation: true,
   noSyntaxValidation: true,

@@ -218,5 +218,54 @@ monaco.editor.defineTheme("theme", {
     { token: "delimiter.array.json", foreground: t("punctuation") },
     { token: "delimiter.colon.json", foreground: t("punctuation") },
     { token: "delimiter.comma.json", foreground: t("punctuation") },
+    { token: "tag", foreground: t("keyword") },
+    { token: "tag.html", foreground: t("keyword") },
+
+    { token: "attribute.name", foreground: t("identifier.field") },
+    { token: "attribute.value", foreground: t("string") },
+
+    { token: "delimiter.html", foreground: t("punctuation") },
+    { token: "attribute.name.css", foreground: t("identifier.field") },
+    { token: "attribute.value.css", foreground: t("string") },
+
+    { token: "tag.css", foreground: t("keyword") },
+
+    { token: "class.css", foreground: t("identifier.type.class") },
+    { token: "id.css", foreground: t("identifier.constant") },
+
+    { token: "number.css", foreground: t("number") },
+
+    { token: "keyword.css", foreground: t("keyword") },
   ],
+  encodedTokensColors: [],
+  semanticHighlighting: true,
+  semanticTokenColors: {
+    variable: t("identifier"),
+    parameter: t("identifier.parameter"),
+
+    property: t("identifier.field"),
+
+    function: t("identifier.function.declaration"),
+    method: t("identifier.function.declaration"),
+
+    class: t("identifier.type.class"),
+    interface: t("identifier.interface"),
+    type: t("identifier.type"),
+
+    keyword: t("keyword"),
+    string: t("string"),
+    number: t("number"),
+    comment: t("comment"),
+
+    regexp: t("string.regexp"),
+
+    operator: t("punctuation"),
+
+    namespace: t("identifier"),
+
+    decorator: t("identifier.builtin"),
+
+    enum: t("identifier.type"),
+    enumMember: t("identifier.constant"),
+  },
 } as monaco.editor.IStandaloneThemeData);
