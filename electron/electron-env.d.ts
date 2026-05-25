@@ -119,6 +119,11 @@ type pty_api = {
   on_exit(listener: IpcListener): () => void;
 };
 
+type clipboard_api = {
+  readText: () => string;
+  writeText: (data: any) => void;
+};
+
 declare global {
   interface Window {
     storage: storage_api;
@@ -129,6 +134,11 @@ declare global {
     pty: pty_api;
     chat: chat_api;
     shell: shell_api;
+    nativeClipboard: clipboard_api;
+    dialog: {
+      confirm: (message: string) => Promise<boolean>;
+    };
+
     platform: {
       get_platform(): NodeJS.Platform;
     };

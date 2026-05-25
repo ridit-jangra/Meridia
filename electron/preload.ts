@@ -188,6 +188,11 @@ contextBridge.exposeInMainWorld("platform", {
   get_platform: () => process.platform,
 });
 
+contextBridge.exposeInMainWorld("nativeClipboard", {
+  readText: () => ipcRenderer.sendSync("clipboard:read"),
+  writeText: (text: string) => ipcRenderer.sendSync("clipboard:write", text),
+});
+
 contextBridge.exposeInMainWorld("chat", {
   push: (session_id: string, message: string, context: IChatContext) =>
     ipcRenderer.invoke(
@@ -235,4 +240,8 @@ contextBridge.exposeInMainWorld("chat", {
     ipcRenderer.on(CHAT_TOOL_RESULT, (_, t) => cb(t));
     return () => ipcRenderer.removeAllListeners(CHAT_TOOL_RESULT);
   },
+});
+
+contextBridge.exposeInMainWorld("dialog", {
+  confirm: (message: string) => ipcRenderer.invoke("dialog:confirm", message),
 });

@@ -9,6 +9,8 @@ import { autoUpdater } from "electron-updater";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import "./ipc/workspace-ipc";
+import "./ipc/clipboard-ipc";
+import "./ipc/dialog-ipc";
 import "./ipc/files-ipc";
 import "./ipc/storage-ipc";
 import "./ipc/shell-ipc";

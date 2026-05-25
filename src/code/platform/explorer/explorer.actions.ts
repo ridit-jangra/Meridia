@@ -25,7 +25,9 @@ export class explorer_actions {
   }
 
   public async delete_file(path: string) {
-    return await window.files.remove(path);
+    const result = await window.files.remove(path);
+    console.log("delete_file result:", result, "path:", path);
+    return result;
   }
 
   public async delete_dir(path: string) {

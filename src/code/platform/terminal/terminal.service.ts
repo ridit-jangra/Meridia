@@ -2,15 +2,10 @@ import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { FileLinksAddon } from "./addons/file-links.addon";
 import { WebLinksAddon } from "@xterm/addon-web-links";
-import { ClipboardAddon } from "@xterm/addon-clipboard";
 import { ImageAddon } from "@xterm/addon-image";
 import { WebglAddon } from "@xterm/addon-webgl";
 import { Unicode11Addon } from "@xterm/addon-unicode11";
 import { SearchAddon } from "@xterm/addon-search";
-import {
-  Base64Provider,
-  ClipboardProvider,
-} from "./addons/provider-clipboard.addon";
 import { theme } from "../../workbench/contrib/theme/theme.service";
 import {
   IPersistedTerminalTab,
@@ -79,7 +74,6 @@ class terminal_service {
 
       fontSize: 14,
       fontWeight: theme.get_active().base === "light" ? 600 : 400,
-      // fontWeightBold: "300",
 
       disableStdin: false,
       scrollback: 10000,
@@ -130,6 +124,13 @@ class terminal_service {
         brightWhite: theme.get_color("terminal.bright.white"),
       },
     });
+
+    const el = document.createElement("div");
+    el.className = "terminal-instance-viewport";
+    el.style.cssText = "width:100%;height:100%;display:none;";
+    document.body.appendChild(el);
+
+    terminal.open(el); // ← open before loading addons
 
     const fitAddon = new FitAddon();
     terminal.loadAddon(fitAddon);
@@ -183,11 +184,16 @@ class terminal_service {
       ),
     );
 
-    const clipboardAddon = new ClipboardAddon(
-      new Base64Provider(),
-      new ClipboardProvider(),
-    );
-    terminal.loadAddon(clipboardAddon);
+    terminal.attachCustomKeyEventHandler((e) => {
+      if (e.ctrlKey && e.shiftKey && e.key === "C") {
+        const selection = terminal.getSelection();
+        if (selection) {
+          window.nativeClipboard.writeText(selection);
+        }
+        return false;
+      }
+      return true;
+    });
 
     const webgl = new WebglAddon();
     webgl.onContextLoss(() => webgl.dispose());
@@ -211,15 +217,11 @@ class terminal_service {
           else {
             const tree = explorer.tree.tree;
             if (!tree) return;
-
             await tree?.highlight?.(path);
           }
         },
       }),
     );
-    const el = document.createElement("div");
-    el.className = "terminal-instance-viewport";
-    el.style.cssText = "width:100%;height:100%;display:none;";
 
     const tab: ITerminalTab = {
       id,

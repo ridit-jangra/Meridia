@@ -127,7 +127,7 @@ export function VirtualTree(opts: {
   };
 
   const GIT_LABELS: Record<string, string> = {
-    "?": "M",
+    "?": "U",
   };
 
   const patch_git_badge = (row: FlatRow) => {
@@ -213,8 +213,6 @@ export function VirtualTree(opts: {
     }
   };
 
-  let prev_active_el: HTMLElement | null = null;
-
   const active_cls =
     "bg-explorer-item-active-background text-explorer-item-active-foreground";
 
@@ -234,6 +232,13 @@ export function VirtualTree(opts: {
       passive_cls_list.forEach((c) => el.classList.add(c));
     }
   };
+
+  const clear_all_active = () => {
+    list.layer.querySelectorAll<HTMLElement>("[data-row-id]").forEach((el) => {
+      set_row_active(el, false);
+    });
+  };
+
   const patch_row_el = (id: string) => {
     const row_el = list.layer.querySelector<HTMLElement>(
       `[data-row-id="${CSS.escape(id)}"]`,
@@ -244,11 +249,8 @@ export function VirtualTree(opts: {
     const is_loading = loading.has(id);
     const active = uris_equal(id, selected.id);
 
-    if (active && prev_active_el && prev_active_el !== row_el) {
-      set_row_active(prev_active_el, false);
-    }
+    if (active) clear_all_active();
     set_row_active(row_el, active);
-    if (active) prev_active_el = row_el;
 
     const caret = row_el.querySelector<HTMLElement>("[data-caret]");
     if (!caret) return;
@@ -489,7 +491,7 @@ export function VirtualTree(opts: {
     } else {
       new_rows.splice(parent_index + 1, 0, temp_row);
     }
-    new_rows.splice(parent_index + 1, 0, temp_row);
+
     rows = new_rows;
     list.update_rows(rows);
   };
@@ -502,13 +504,17 @@ export function VirtualTree(opts: {
   const delete_node = async (node_id: string) => {
     const result = find_node_by_id(opts.folderStructure.structure, node_id);
     if (!result) return;
-
     const type = result.node.type === "folder" ? "folder" : "file";
-    if (!confirm(`Are you sure you want to delete this ${type}?`)) return;
-
+    const ok = await window.dialog.confirm(
+      `Are you sure you want to delete this ${type}?`,
+    );
+    if (!ok) return;
     try {
-      await explorer.actions.delete_file(result.node.path);
-    } catch {}
+      const res = await explorer.actions.delete_file(result.node.path);
+      console.log("delete result:", res, "path:", result.node.path);
+    } catch (e) {
+      console.error("delete error:", e);
+    }
   };
 
   const get_context_menu_items = (row: FlatRow): ContextMenuItem[] => {
@@ -797,12 +803,9 @@ export function VirtualTree(opts: {
               if (row.node.type === "folder") {
                 handle_folder_click(row);
               } else {
-                if (prev_active_el && prev_active_el !== row_el) {
-                  set_row_active(prev_active_el, false);
-                }
+                clear_all_active();
                 selected.id = row.id;
                 set_row_active(row_el, true);
-                prev_active_el = row_el;
                 opts.onSelect?.(row.id, row.node);
               }
             },
@@ -1032,7 +1035,6 @@ export function VirtualTree(opts: {
       load_queue.clear();
       open.clear();
       root_node_el = null;
-      prev_active_el = null;
       rebuild();
     },
     open(id: string) {
@@ -1048,22 +1050,35 @@ export function VirtualTree(opts: {
       if (row) handle_folder_click(row);
     },
     select: async (id: string) => {
+      clear_all_active();
       selected.id = norm(id);
       await expand_to(id);
       rebuild();
-      requestAnimationFrame(() => scroll_to_id(norm(id)));
+      requestAnimationFrame(() => {
+        clear_all_active();
+        const row_el = list.layer.querySelector<HTMLElement>(
+          `[data-row-id="${CSS.escape(norm(id))}"]`,
+        );
+        if (row_el) set_row_active(row_el, true);
+        scroll_to_id(norm(id));
+      });
     },
     highlight: async (id: string) => {
+      clear_all_active();
       selected.id = norm(id);
       await expand_to(id);
       rebuild();
-      requestAnimationFrame(() => scroll_to_id(norm(id)));
+      requestAnimationFrame(() => {
+        clear_all_active();
+        const row_el = list.layer.querySelector<HTMLElement>(
+          `[data-row-id="${CSS.escape(norm(id))}"]`,
+        );
+        if (row_el) set_row_active(row_el, true);
+        scroll_to_id(norm(id));
+      });
     },
     clear_highlight() {
-      if (prev_active_el) {
-        set_row_active(prev_active_el, false);
-        prev_active_el = null;
-      }
+      clear_all_active();
       selected.id = "";
     },
     mutate(fn: (nodes: INode[]) => void) {
@@ -1147,15 +1162,17 @@ export function VirtualTree(opts: {
       rebuild_debounced();
     },
     refresh_git_status(status: GitStatus) {
+      if (editing_node_id) return false;
+
       git_status_map.clear();
       for (const f of status.files) {
         const code = f.working_dir.trim() || f.index.trim();
         if (code) git_status_map.set(f.path, code);
       }
-
       for (const row of rows) {
         if (row.node.type === "file") patch_git_badge(row);
       }
+      return true;
     },
   };
 }

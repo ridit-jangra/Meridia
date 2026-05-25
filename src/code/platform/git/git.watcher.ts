@@ -12,6 +12,7 @@ export class git_watcher {
   private tree: VirtualTreeInstance | null = null;
   private pending_status: GitStatus | null = null;
   private raf: number | null = null;
+  private queued_status: GitStatus | null = null;
 
   attach_tree_listener(tree: VirtualTreeInstance) {
     this.tree = tree;
@@ -28,14 +29,28 @@ export class git_watcher {
     if (this.raf) cancelAnimationFrame(this.raf);
     this.raf = requestAnimationFrame(() => {
       this.raf = null;
-      this.tree?.refresh_git_status(status);
+      if (!this.tree) return;
+
+      const accepted = this.tree.refresh_git_status(status);
+      if (!accepted) {
+        this.queued_status = status;
+      } else {
+        this.queued_status = null;
+      }
     });
+  }
+
+  // call this when editing_node_id becomes null
+  flush_queued_status() {
+    if (!this.queued_status) return;
+    const status = this.queued_status;
+    this.queued_status = null;
+    this.schedule_refresh(status);
   }
 
   attach_listener() {
     if (this.attached) return;
     this.attached = true;
-
     this.disposers.push(
       window.ipc.on(GIT_REFRESH_STATUS, (_, status: GitStatus) => {
         if (!this.tree) {
@@ -45,7 +60,6 @@ export class git_watcher {
         git_events.emit("refresh-status", status);
       }),
     );
-
     this.request_status();
   }
 
