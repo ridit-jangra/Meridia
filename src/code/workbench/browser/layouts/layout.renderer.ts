@@ -3,6 +3,7 @@ import { layout_engine } from "./layout.engine";
 import type {
   TLayoutNode,
   TLayoutPreset,
+  TSplitNode,
 } from "../../../../types/preset.types";
 import { node_path } from "../../../../types/layout.types";
 import { Splitter } from "../parts/components/splitter/splitter";
@@ -172,6 +173,85 @@ function compute_sizes(
   return sizes;
 }
 
+// ── Incremental update helpers ──
+
+const splitter_map = new Map<string, ReturnType<typeof Splitter>>();
+const prev_leaf_states = new Map<string, boolean>();
+
+function path_str(p: node_path): string {
+  return p.join(".");
+}
+
+function collect_leaf_states(node: TLayoutNode): Map<string, boolean> {
+  const states = new Map<string, boolean>();
+  function walk(n: TLayoutNode, path: number[]) {
+    if (n.type === "split") {
+      n.children.forEach((child, i) => walk(child, [...path, i]));
+    } else {
+      states.set(path.join("."), n.enabled !== false);
+    }
+  }
+  walk(node, []);
+  return states;
+}
+
+function tree_structure_changed(a: TLayoutNode, b: TLayoutNode): boolean {
+  if (a.type !== b.type) return true;
+  if (a.type === "split") {
+    const sa = a as TSplitNode;
+    const sb = b as TSplitNode;
+    if (sa.dir !== sb.dir || sa.children.length !== sb.children.length)
+      return true;
+    return sa.children.some((c, i) =>
+      tree_structure_changed(c, sb.children[i]),
+    );
+  }
+  return (a as any).id !== (b as any).id;
+}
+
+function apply_enabled_changes(new_states: Map<string, boolean>) {
+  for (const [key, is_enabled] of new_states) {
+    const prev = prev_leaf_states.get(key);
+    if (prev === is_enabled) continue;
+
+    const parts = key.split(".").map(Number);
+    const child_index = parts[parts.length - 1];
+    const parent_split_path = parts.slice(0, -1);
+    const splitter_key = parent_split_path.join(".");
+
+    const splitter = splitter_map.get(splitter_key);
+    if (!splitter) continue;
+
+    const panelId = String(child_index);
+
+    if (is_enabled) {
+      const sizes = splitter.getSizes();
+      const idx = sizes.findIndex((s) => s.id === panelId);
+      if (idx === -1 || sizes[idx].size > 0) continue;
+
+      const neighborIdx = idx > 0 ? idx - 1 : idx + 1;
+      const restore = saved_sizes.get(key) ?? 20;
+      const actual = Math.min(restore, sizes[neighborIdx].size);
+      sizes[idx].size = actual;
+      sizes[neighborIdx].size -= actual;
+      splitter.setSizes(sizes);
+    } else {
+      const sizes = splitter.getSizes();
+      const idx = sizes.findIndex((s) => s.id === panelId);
+      if (idx === -1 || sizes[idx].size === 0) continue;
+
+      saved_sizes.set(key, sizes[idx].size);
+
+      const neighborIdx = idx > 0 ? idx - 1 : idx + 1;
+      sizes[neighborIdx].size += sizes[idx].size;
+      sizes[idx].size = 0;
+      splitter.setSizes(sizes);
+    }
+  }
+}
+
+// ── Render node ──
+
 function render_node(
   node: TLayoutNode,
   path: node_path,
@@ -182,48 +262,21 @@ function render_node(
   ) => void,
 ): RenderResult | null {
   if (node.type !== "split") {
-    if (node.enabled === false) return null;
     return get_or_create_leaf(node);
-  }
-
-  const enabled_children = node.children
-    .map((child, i) => ({ child, i }))
-    .filter(({ child }) =>
-      child.type === "split"
-        ? child.children.some((c: any) => c.enabled !== false)
-        : child.enabled !== false,
-    );
-
-  if (enabled_children.length === 0) return null;
-
-  if (enabled_children.length === 1) {
-    const { child, i } = enabled_children[0];
-    return render_node(child, [...path, i], on_update_node);
   }
 
   const dir = node.dir === "col" ? "vertical" : "horizontal";
   const total = node.children.length;
   const raw_sizes = node.sizes ?? node.children.map(() => 100 / total);
-
   const display_sizes = compute_sizes(node.children, raw_sizes, path);
 
-  const enabled_total = enabled_children.reduce(
-    (sum, { i }) => sum + display_sizes[i],
-    0,
-  );
-
-  const panels = enabled_children.map(({ child, i }) => {
+  const panels = node.children.map((child, i) => {
     const result = render_node(child, [...path, i], on_update_node);
-    const size =
-      enabled_total > 0
-        ? (display_sizes[i] / enabled_total) * 100
-        : 100 / enabled_children.length;
-
     return {
       id: String(i),
-      size,
+      size: display_sizes[i],
       minSize: 80,
-      collapsible: false,
+      collapsible: true,
       el: result?.el ?? h("div", {}),
     };
   });
@@ -235,18 +288,20 @@ function render_node(
     onResize: (sizes) => {
       const updated_sizes = [...raw_sizes];
       sizes.forEach(({ id, size }) => {
-        updated_sizes[enabled_children[Number(id)]?.i ?? Number(id)] = size;
+        updated_sizes[Number(id)] = size;
       });
       on_update_node(path, { ...node, sizes: updated_sizes }, true);
     },
     onResizeEnd: (sizes) => {
       const updated_sizes = [...raw_sizes];
       sizes.forEach(({ id, size }) => {
-        updated_sizes[enabled_children[Number(id)]?.i ?? Number(id)] = size;
+        updated_sizes[Number(id)] = size;
       });
       on_update_node(path, { ...node, sizes: updated_sizes }, true);
     },
   });
+
+  splitter_map.set(path_str(path), splitter);
 
   return {
     el: splitter.el,
@@ -255,6 +310,8 @@ function render_node(
     },
   };
 }
+
+// ── LayoutRenderer ──
 
 export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
   let preset = opts.layout_preset;
@@ -265,6 +322,8 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
 
   let suspend_external = false;
   let suspend_timer: number | null = null;
+
+  let rendered_root: TLayoutNode | null = null;
 
   const scroll_els = new Map<HTMLElement, number>();
 
@@ -301,20 +360,45 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
     }
   };
 
-  const rerender = () => {
+  const do_rerender = (old_root: TLayoutNode) => {
+    if (!rendered_root) {
+      const r = render_node(root_node, [], on_update_node);
+      if (r) {
+        current_splitters.push(r);
+        content_host.appendChild(r.el);
+      }
+      rendered_root = root_node;
+      collect_leaf_states(root_node).forEach((v, k) =>
+        prev_leaf_states.set(k, v),
+      );
+      return;
+    }
+
+    const new_states = collect_leaf_states(root_node);
+
+    if (!tree_structure_changed(old_root, root_node)) {
+      apply_enabled_changes(new_states);
+      rendered_root = root_node;
+      prev_leaf_states.clear();
+      new_states.forEach((v, k) => prev_leaf_states.set(k, v));
+      return;
+    }
+
     capture_scroll();
-
-    const r = render_node(root_node, [], on_update_node);
-
+    for (const [, splitter] of splitter_map) splitter.destroy();
+    splitter_map.clear();
     for (const s of current_splitters) s.destroy();
     current_splitters = [];
 
+    const r = render_node(root_node, [], on_update_node);
     if (!r) return;
-
     current_splitters.push(r);
     content_host.innerHTML = "";
     content_host.appendChild(r.el);
 
+    rendered_root = root_node;
+    prev_leaf_states.clear();
+    new_states.forEach((v, k) => prev_leaf_states.set(k, v));
     restore_scroll();
     requestAnimationFrame(() => terminal.refresh_active());
   };
@@ -342,7 +426,10 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
     save_timer = window.setTimeout(() => {
       suspend_external = true;
       if (suspend_timer) window.clearTimeout(suspend_timer);
-      suspend_timer = window.setTimeout(() => (suspend_external = false), 120);
+      suspend_timer = window.setTimeout(
+        () => (suspend_external = false),
+        120,
+      );
       layout_engine.update_preset(preset.id, { ...preset, root: new_root });
     }, delay);
   };
@@ -353,12 +440,13 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
     persist_only?: boolean,
   ) => {
     const new_root = set_node_at_path(root_node, path, node);
+    const old_root = root_node;
     root_node = new_root;
-    if (!persist_only) rerender();
+    if (!persist_only) do_rerender(old_root);
     persist(new_root, 50);
   };
 
-  rerender();
+  do_rerender(root_node);
 
   const unsubscribe = layout_engine.subscribe(() => {
     if (suspend_external) return;
@@ -366,18 +454,20 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
     if (!latest) return;
 
     if (latest !== preset || latest.root !== root_node) {
+      const old_root = root_node;
       preset = latest;
       root_node = latest.root;
-      rerender();
+      do_rerender(old_root);
     }
   });
 
   return {
     el,
     update_preset(next: TLayoutPreset) {
+      const old_root = root_node;
       preset = next;
       root_node = next.root;
-      rerender();
+      do_rerender(old_root);
     },
     destroy() {
       unsubscribe();
@@ -385,7 +475,11 @@ export function LayoutRenderer(opts: { layout_preset: TLayoutPreset }) {
       if (suspend_timer) window.clearTimeout(suspend_timer);
       for (const r of current_splitters) r.destroy();
       for (const r of panel_store.values()) r.destroy();
+      for (const [, splitter] of splitter_map) splitter.destroy();
       panel_store.clear();
+      splitter_map.clear();
+      prev_leaf_states.clear();
+      rendered_root = null;
       el.remove();
     },
   };
