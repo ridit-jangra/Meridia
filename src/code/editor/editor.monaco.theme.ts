@@ -236,6 +236,101 @@ monaco.editor.defineTheme("theme", {
     { token: "number.css", foreground: t("number") },
 
     { token: "keyword.css", foreground: t("keyword") },
+
+    { token: "comment.tsx", foreground: t("comment"), fontStyle: "italic" },
+    { token: "comment.ts", foreground: t("comment"), fontStyle: "italic" },
+
+    { token: "keyword.tsx", foreground: t("keyword") },
+    { token: "keyword.control", foreground: t("keyword") },
+    { token: "keyword.operator", foreground: t("punctuation") },
+    {
+      token: "keyword.operator.expression",
+      foreground: t("keyword"),
+    },
+    { token: "storage", foreground: t("keyword") },
+    { token: "storage.type", foreground: t("keyword") },
+    { token: "storage.modifier", foreground: t("keyword.typeModifier") },
+
+    { token: "constant.numeric", foreground: t("number") },
+    { token: "constant.language", foreground: t("boolean") },
+    { token: "constant.character", foreground: t("string.escape") },
+    {
+      token: "constant.character.escape",
+      foreground: t("string.escape"),
+    },
+    { token: "constant.other", foreground: t("identifier.constant") },
+
+    { token: "string.tsx", foreground: t("string") },
+    { token: "string.quoted", foreground: t("string") },
+    { token: "string.template", foreground: t("string") },
+    { token: "string.regexp", foreground: t("string.regexp") },
+
+    { token: "variable", foreground: t("identifier") },
+    { token: "variable.parameter", foreground: t("identifier.parameter") },
+    {
+      token: "variable.language",
+      foreground: t("identifier.this"),
+    },
+    {
+      token: "variable.other.constant",
+      foreground: t("identifier.constant"),
+    },
+    {
+      token: "variable.other.property",
+      foreground: t("identifier.field"),
+    },
+    {
+      token: "variable.other.object.property",
+      foreground: t("identifier.field"),
+    },
+
+    {
+      token: "entity.name.function",
+      foreground: t("identifier.function.declaration"),
+    },
+    { token: "entity.name.type", foreground: t("identifier.type") },
+    { token: "entity.name.type.class", foreground: t("identifier.type.class") },
+    {
+      token: "entity.name.type.interface",
+      foreground: t("identifier.interface"),
+    },
+    { token: "entity.name.class", foreground: t("identifier.type.class") },
+    {
+      token: "entity.other.inherited-class",
+      foreground: t("identifier.type.class"),
+    },
+    { token: "entity.name.namespace", foreground: t("identifier.type") },
+
+    {
+      token: "support.function",
+      foreground: t("identifier.function.declaration"),
+    },
+    { token: "support.class", foreground: t("identifier.type.class") },
+    { token: "support.type", foreground: t("identifier.type") },
+    {
+      token: "support.variable.property",
+      foreground: t("identifier.field"),
+    },
+
+    { token: "meta.object-literal.key", foreground: t("identifier.field") },
+
+    { token: "entity.name.tag", foreground: t("keyword") },
+    {
+      token: "support.class.component",
+      foreground: t("identifier.type.class"),
+    },
+    {
+      token: "entity.other.attribute-name",
+      foreground: t("identifier.field"),
+    },
+
+    { token: "meta.decorator", foreground: t("identifier.builtin") },
+    {
+      token: "entity.name.function.decorator",
+      foreground: t("identifier.builtin"),
+    },
+
+    { token: "punctuation", foreground: t("punctuation") },
   ],
   encodedTokensColors: [],
   semanticHighlighting: true,

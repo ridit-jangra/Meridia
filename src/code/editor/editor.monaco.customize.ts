@@ -1,5 +1,6 @@
 import { explorer } from "../platform/explorer/explorer.service";
 import { monaco, open_editor_tab, path_to_language } from "./editor.helper";
+import { init_textmate } from "./languages/textmate";
 
 import { StandaloneServices } from "monaco-editor/esm/vs/editor/standalone/browser/standaloneServices";
 import { ITextModelService } from "monaco-editor/esm/vs/editor/common/services/resolverService";
@@ -69,7 +70,7 @@ monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
 monaco.languages.register({ id: "typescriptreact" });
 monaco.languages.register({ id: "javascriptreact" });
 
-//
+init_textmate();
 
 export function patch_peek_model_service(): void {
   try {
