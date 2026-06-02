@@ -86,4 +86,10 @@ export class EventEmitter {
   eventNames() {
     return Array.from(this._events.keys());
   }
+
+  emitAndCollect(event: EventKey, ...args: any[]): any[] {
+    const arr = this._events.get(event);
+    if (!arr || arr.length === 0) return [];
+    return arr.slice().map((fn) => fn(...args));
+  }
 }

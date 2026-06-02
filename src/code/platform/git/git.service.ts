@@ -1,4 +1,5 @@
 import { VirtualTreeInstance } from "../../../types/explorer.types";
+import { git_events } from "../events/git.events";
 import { explorer_tree } from "../explorer/explorer.tree";
 import { git_watcher } from "./git.watcher";
 

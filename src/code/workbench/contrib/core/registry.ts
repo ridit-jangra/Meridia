@@ -13,6 +13,7 @@ import { Explorer } from "../explorer/explorer";
 import { editor } from "../../../editor/editor";
 import { EditorArea } from "../editor/editor-area";
 import { Chat } from "../chat/chat";
+import { Git } from "../git/git";
 
 export const tabs_registry: Record<string, () => HTMLElement> = {
   terminal: () => {
@@ -47,10 +48,14 @@ export const tabs_options_registery: Record<string, () => HTMLElement> = {
   },
 };
 
-export const panels_registry: Record<string, () => HTMLElement> = {
+export const panels_registry: Record<
+  string,
+  () => HTMLElement | Promise<HTMLElement>
+> = {
   explorer: () => Explorer(),
   editor: () => EditorArea(),
   ai_chat: () => Chat(),
+  git: () => Git(),
 };
 
 export const editors_registry: Record<

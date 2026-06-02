@@ -231,7 +231,6 @@ export function attach_event_emitter(e: TWatchEvent) {
     debounce(uri, { type: "change", uri });
   }
 
-  // piggyback git refresh — one watcher, two consumers
   if (current_repo_path) {
     git.push_status(current_repo_path);
   }

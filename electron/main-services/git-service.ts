@@ -33,6 +33,29 @@ class git_service {
       console.error("[git] push_status error:", err);
     }
   }
+
+  public async is_git_repo(folder_path: string): Promise<boolean> {
+    try {
+      const git = simpleGit(folder_path);
+      const isRepo = await git.checkIsRepo();
+      if (!isRepo) return false;
+
+      const root = await git.revparse(["--show-toplevel"]);
+      return root.trim() === folder_path.trim();
+    } catch (err) {
+      console.error("[git] is_git_repo error:", err);
+      return false;
+    }
+  }
+
+  public async init_repo(folder_path: string): Promise<void> {
+    try {
+      const git = simpleGit(folder_path);
+      await git.init();
+    } catch (err) {
+      console.error("[git] init_repo error:", err);
+    }
+  }
 }
 
 export const git = new git_service();

@@ -124,6 +124,11 @@ type clipboard_api = {
   writeText: (data: any) => void;
 };
 
+type git_api = {
+  isGitRepo: (path: string) => Promise<boolean>;
+  initRepo: (path: string) => Promise<boolean>;
+};
+
 declare global {
   interface Window {
     storage: storage_api;
@@ -138,7 +143,7 @@ declare global {
     dialog: {
       confirm: (message: string) => Promise<boolean>;
     };
-
+    git: git_api;
     platform: {
       get_platform(): NodeJS.Platform;
     };

@@ -1,7 +1,7 @@
 import { h } from "../../../contrib/core/dom/h";
 import { panels_registry } from "../../../contrib/core/registry";
 
-type ViewFactory = () => HTMLElement;
+type ViewFactory = () => HTMLElement | Promise<HTMLElement>;
 
 export function PanelComponent(opts: { id: string }) {
   const container = h("div", {
@@ -13,7 +13,12 @@ export function PanelComponent(opts: { id: string }) {
   ];
 
   if (panel) {
-    container.appendChild(panel());
+    const result = panel();
+    if (result instanceof Promise) {
+      result.then((el) => container.appendChild(el));
+    } else {
+      container.appendChild(result);
+    }
   } else {
     container.appendChild(
       h(

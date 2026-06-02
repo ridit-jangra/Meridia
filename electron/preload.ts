@@ -45,6 +45,8 @@ import {
   CHAT_PERMISSION_REQUEST,
   CHAT_TOOL_RESULT,
   CHAT_TOOL_CALL,
+  GIT_IS_REPO,
+  GIT_INIT_REPO,
 } from "../shared/ipc/channels";
 import type { IChatContext, IChatResult } from "../shared/types/chat.types";
 
@@ -244,4 +246,11 @@ contextBridge.exposeInMainWorld("chat", {
 
 contextBridge.exposeInMainWorld("dialog", {
   confirm: (message: string) => ipcRenderer.invoke("dialog:confirm", message),
+});
+
+contextBridge.exposeInMainWorld("git", {
+  isGitRepo: (path: string) =>
+    ipcRenderer.invoke(GIT_IS_REPO, path) as Promise<boolean>,
+  initRepo: (path: string) =>
+    ipcRenderer.invoke(GIT_INIT_REPO, path) as Promise<boolean>,
 });

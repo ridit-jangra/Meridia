@@ -6,44 +6,85 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm run dev        # Start development (Vite + Electron hot reload)
-npm run build      # Full build: tsc → vite build → electron packaging
+npm run build      # Full build: tsc → vite build → electron-builder packaging
 npm run preview    # Preview production build
 npm run rebuild    # Rebuild native modules (node-pty) for Electron
 ```
 
-There is no linting, formatting, or test runner configured.
+There is no linting, formatting, or test runner configured. However, `tsc` runs as the
+first step of `build` with `strict`, `noUnusedLocals`, and `noUnusedParameters` enabled —
+unused variables/parameters or type errors will fail the build, so keep the tree clean.
+
+Local-dev prerequisites: Node 20.x and Python 3.x (the latter only for the Python LSP).
+`bun.lock` is committed, but the npm scripts above are the canonical workflow.
 
 ## Architecture
 
-Meridia is an Electron-based code editor. The codebase is split into three layers:
+Meridia is an Electron-based code editor following VS Code-like layering (workbench /
+contrib / platform). The codebase splits into three top-level layers:
 
 ### 1. Electron Main Process (`electron/`)
-- `electron/main.ts` — window creation, auto-updater, menu, IPC handler registration
-- `electron/preload.ts` — exposes IPC bridge to renderer via `contextBridge`
-- `electron/ipc/` — handlers for workspace, files, storage, shell, explorer, watcher, terminal
-- `electron/lsp.resolver.ts` — detects Python interpreter and starts pylsp via `@ridit/relay`
+- `electron/main.ts` — window creation, auto-updater, menu, IPC registration, and the
+  `@ridit/relay` WebSocket **Server** for the LSP bridge.
+- `electron/preload.ts` — exposes the typed IPC bridge to the renderer via `contextBridge`.
+- `electron/ipc/` — **thin** IPC handlers (chat, clipboard, dialog, explorer, files, git,
+  shell, storage, terminal, watcher, workspace).
+- `electron/main-services/` — the **actual** main-process service logic (explorer, git,
+  storage, terminal, workspace). IPC handlers delegate here; put real logic in services.
+- `electron/lsp.resolver.ts` — detects a Python interpreter and resolves `pylsp`.
 
 ### 2. Renderer Process (`src/`)
-- `src/main.ts` — entry point; initializes layout engine, command palette, keyboard shortcuts
-- `src/code/workbench/` — UI shell (layout, parts, components)
-- `src/code/platform/` — core services (explorer, terminal, editor, insight, events)
-- `src/code/editor/` — Monaco editor integration, LSP client, language configs
-- `src/types/` — type definitions
+- `src/main.ts` — entry point; initializes the layout engine, command palette, shortcuts.
+- `src/code/workbench/` — UI shell, itself split three ways:
+  - `browser/parts/` — visual parts (activitybar, titlebar, statusbar, tabs, panels, and
+    shared `components/`).
+  - `common/` — cross-cutting infra: Redux store + slices (`common/state/`), the shortcut
+    service with when-clauses (`common/shortcut/`), focus tracking, virtual-tree helpers.
+  - `contrib/` — feature modules (chat, editor, explorer, terminal, theme, notification)
+    plus `contrib/core/` which holds the foundational primitives: `dom/h.ts` (the `h()`
+    DOM builder), `event-emitter.ts`, and `registry.ts`.
+- `src/code/platform/` — renderer-side services (explorer, terminal, git, history,
+  insight) and their `events/` emitters.
+- `src/code/editor/` — Monaco integration, the custom LSP client
+  (`editor.monaco.lsp.ts`), language configs, and the pluggable editor implementations.
+- `src/types/` — type definitions.
 
 ### 3. Shared (`shared/`)
-IPC channel type definitions, LSP constants, URI utilities, storage key constants — used by both main and renderer.
+IPC channel types (`shared/ipc/channels.ts`), LSP constants, URI utilities, storage-key
+constants, and shared domain types — imported by both main and renderer.
 
 ## Key Patterns
 
-**No React.** The UI is built with a custom DOM utility (`h()` for element creation) and an event emitter pattern for component communication. Do not introduce React or other UI frameworks.
+**No React.** UI is built with the custom `h()` DOM builder (`contrib/core/dom/h.ts`) and
+an event-emitter pattern for component communication. `react-redux` is present only as RTK
+glue — do not introduce React or any other UI framework.
 
-**Registry pattern** — editors and panels are registered into maps (e.g., `editors_registry`). This enables the pluggable/extension-ready architecture.
+**snake_case for functions and variables** (e.g. `resolve_python`, `explorer_service`).
+Types and components use PascalCase. Match this; it is consistent across the codebase.
 
-**Redux** manages UI state in three slices: `layout` (panels, command palette, focus), `explorer` (file tree), `editor` (open files, active tab).
+**Registry pattern** — `contrib/core/registry.ts` exports maps (`editors_registry`,
+`panels_registry`, `tabs_registry`, ...) that map keys to element factories. This is what
+makes parts pluggable/extension-ready.
 
-**IPC** is the only way for renderer code to access the filesystem, terminal PTY, or shell. All IPC channels are typed in `shared/ipc/`.
+**Redux (RTK)** — store in `src/code/workbench/common/state/store.ts` with three slices:
+`layout` (panels, command palette, focus), `explorer` (file tree), `editor` (open files,
+active tab). Use the typed hooks in `common/state/hooks.ts`.
 
-**LSP** uses a WebSocket bridge (`@ridit/relay`) — the main process spawns the language server and forwards JSON-RPC over WebSocket; Monaco's LSP client (`src/code/editor/editor.monaco.lsp.ts`) connects to it.
+**IPC is the only renderer path to the filesystem, terminal PTY, or shell.** All channels
+are typed in `shared/ipc/`; renderer reaches them via the `contextBridge` preload.
+
+**LSP** uses `@ridit/relay`: the main process runs the relay `Server` and spawns the
+language server, forwarding JSON-RPC over WebSocket; the renderer's `Client`
+(`src/code/editor/editor.monaco.lsp.ts`) connects to it. A custom client is used
+deliberately to avoid pulling VS Code deps via `monaco-languageclient`.
+
+## First-Party Packages
+
+| Package | Role |
+|---|---|
+| `@ridit/relay` | WebSocket JSON-RPC bridge between main (Server) and renderer (Client) for LSP |
+| `@ridit/dev` | AI feature tooling (`Tool` types, chat) used by the chat contrib/IPC |
+| `@ridit/ai` | AI runtime support |
 
 ## File Naming Conventions
 
@@ -58,4 +99,6 @@ IPC channel type definitions, LSP constants, URI utilities, storage key constant
 
 ## Native Modules
 
-`node-pty` is a native module. After any `npm install`, run `npm run rebuild` to recompile it against the installed Electron version. This is automated via `postinstall`.
+`node-pty` is a native module. After any `npm install`, run `npm run rebuild`
+(`electron-rebuild`) to recompile it against the installed Electron version. This is
+automated via `postinstall`.

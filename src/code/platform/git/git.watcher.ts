@@ -1,4 +1,5 @@
 import {
+  GIT_DELETED_REPO,
   GIT_GET_STATUS,
   GIT_REFRESH_STATUS,
 } from "../../../../shared/ipc/channels";
@@ -40,7 +41,6 @@ export class git_watcher {
     });
   }
 
-  // call this when editing_node_id becomes null
   flush_queued_status() {
     if (!this.queued_status) return;
     const status = this.queued_status;
@@ -58,6 +58,16 @@ export class git_watcher {
           return;
         }
         git_events.emit("refresh-status", status);
+      }),
+      window.ipc.on(GIT_DELETED_REPO, () => {
+        git_events.emit("refresh-status", {
+          branch: "",
+          ahead: 0,
+          behind: 0,
+          files: [],
+          has_commits: false,
+        });
+        git_events.emit("initUi");
       }),
     );
     this.request_status();

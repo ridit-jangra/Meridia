@@ -50,6 +50,8 @@ export const GIT_PUSH = "git:push";
 export const GIT_PULL = "git:pull";
 export const GIT_GET_LOG = "git:get-log";
 export const GIT_DISCARD = "git:discard";
+export const GIT_INIT_REPO = "git:init-repo";
+export const GIT_DELETED_REPO = "git:deleted-repo";
 
 export const CHAT_PUSH = "chat:push";
 export const CHAT_RUN_TOOL = "chat:run_tool";
