@@ -1,4 +1,3 @@
-
 import { LAYOUT_PRESETS_KEY } from "../../../../../shared/storage-keys";
 import { TLayoutPreset } from "../../../../types/preset.types";
 
@@ -7,12 +6,6 @@ const clone = <T>(v: T): T => {
   return JSON.parse(JSON.stringify(v));
 };
 
-// Compares the structural skeleton of two layout nodes (node type, id, and
-// children arity) while ignoring user-mutable fields (sizes, enabled, active
-// tab, panel/tab lists). This lets a persisted layout keep the user's resizes
-// and toggles, but rejects anything whose structure has drifted from the
-// current default (e.g. a panel added/removed across an app update) so it can
-// fall back to the default instead of rendering broken.
 const same_shape = (a: any, b: any): boolean => {
   if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
   if (a.type !== b.type) return false;
@@ -56,9 +49,6 @@ export class Engine {
 
     if (!this.presets[preset.id]) {
       const saved = this.persisted?.[preset.id];
-      // Use the persisted layout only if it still matches the default's
-      // structure; otherwise fall back to the default (and re-save it below to
-      // heal the stored copy).
       this.presets[preset.id] = is_valid_preset(saved, preset)
         ? clone(saved)
         : clone(preset);
@@ -107,12 +97,13 @@ export class Engine {
           LAYOUT_PRESETS_KEY,
         );
 
-      if (loaded) this.presets = loaded;
-      this.notify();
+      this.persisted =
+        loaded && typeof loaded === "object" && !Array.isArray(loaded)
+          ? loaded
+          : null;
     } catch (e) {
       console.error("Failed to load presets:", e);
-      this.presets = {};
-      this.notify();
+      this.persisted = null;
     }
   }
 

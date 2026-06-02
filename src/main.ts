@@ -25,7 +25,10 @@ async function init() {
 
   // layout_engine.reset_all();
 
-  const preset = layout_engine.get_layout("ide");
+  const preset =
+    layout_engine.get_layout(store.getState().layout.active_layout_id) ??
+    layout_engine.get_layout("ide") ??
+    ide_preset;
   const lr = LayoutRenderer({ layout_preset: preset });
 
   root.appendChild(lr.el);
