@@ -8,7 +8,7 @@
         "@reduxjs/toolkit": "^2.11.2",
         "@ridit/ai": "^0.1.84",
         "@ridit/dev": "^0.2.4",
-        "@ridit/relay": "^0.1.4",
+        "@ridit/relay": "^0.1.5",
         "@tailwindcss/vite": "^4.1.18",
         "@vscode/codicons": "^0.0.44",
         "@xterm/addon-clipboard": "^0.2.0",
@@ -33,6 +33,8 @@
         "split.js": "^1.6.5",
         "tailwindcss": "^4.1.18",
         "tailwindcss-animate": "^1.0.7",
+        "vscode-oniguruma": "^2.0.1",
+        "vscode-textmate": "^9.3.2",
       },
       "devDependencies": {
         "@electron/rebuild": "^4.0.3",
@@ -167,7 +169,7 @@
 
     "@ridit/dev": ["@ridit/dev@0.2.4", "", { "dependencies": { "execa": "^9.0.0", "zod": "^4.3.6" }, "peerDependencies": { "typescript": "^5" } }, "sha512-omleug5JDw5q7v9nRk+81sXzdCa9nPDkk4j0c3tiDfkd3kZ2rIPEcy5xIXfjcUl/GDhV1nZXegVir4hQ+fA1vg=="],
 
-    "@ridit/relay": ["@ridit/relay@0.1.4", "", { "dependencies": { "@ridit/relay": "^0.1.1", "vscode-languageserver-protocol": "^3.17.5", "vscode-ws-jsonrpc": "^3.5.0", "ws": "^8.18.0" }, "peerDependencies": { "monaco-editor": ">=0.30.0" } }, "sha512-NzX7ZM++sbJkdWGkTQazt0sxGNsMjuc4oSXYhtk0XPMsDjjhDBdd8DgPPNWSCw12xHsLKQuEC6Z6c6W5vLu07g=="],
+    "@ridit/relay": ["@ridit/relay@0.1.5", "", { "dependencies": { "@ridit/relay": "^0.1.1", "vscode-languageserver-protocol": "^3.17.5", "vscode-ws-jsonrpc": "^3.5.0", "ws": "^8.18.0" } }, "sha512-1AJ3VbAwDuLn5RhXBdVRN0Rj+0SUr4RkIEuKlWcAHypuWgQqRh4N5oqrauaMs19DVemYOIhzA0kuqMGF3I0mHg=="],
 
     "@rollup/rollup-android-arm-eabi": ["@rollup/rollup-android-arm-eabi@4.60.0", "", { "os": "android", "cpu": "arm" }, "sha512-WOhNW9K8bR3kf4zLxbfg6Pxu2ybOUbB2AjMDHSQx86LIF4rH4Ft7vmMwNt0loO0eonglSNy4cpD3MKXXKQu0/A=="],
 
@@ -986,6 +988,10 @@
     "vscode-languageserver-protocol": ["vscode-languageserver-protocol@3.17.5", "", { "dependencies": { "vscode-jsonrpc": "8.2.0", "vscode-languageserver-types": "3.17.5" } }, ""],
 
     "vscode-languageserver-types": ["vscode-languageserver-types@3.17.5", "", {}, ""],
+
+    "vscode-oniguruma": ["vscode-oniguruma@2.0.1", "", {}, "sha512-poJU8iHIWnC3vgphJnrLZyI3YdqRlR27xzqDmpPXYzA93R4Gk8z7T6oqDzDoHjoikA2aS82crdXFkjELCdJsjQ=="],
+
+    "vscode-textmate": ["vscode-textmate@9.3.2", "", {}, "sha512-n2uGbUcrjhUEBH16uGA0TvUfhWwliFZ1e3+pTjrkim1Mt7ydB41lV08aUvsi70OlzDWp6X7Bx3w/x3fAXIsN0Q=="],
 
     "vscode-ws-jsonrpc": ["vscode-ws-jsonrpc@3.5.0", "", { "dependencies": { "vscode-jsonrpc": "~8.2.1" } }, ""],
 
