@@ -23,10 +23,16 @@ const pending_adds: INode[] = [];
 let add_batch_timer: ReturnType<typeof setInterval> | null = null;
 
 const DEBOUNCE_MS = 50;
+const BATCH_FLUSH_MS = 16;
+const GIT_STATUS_DEBOUNCE_MS = 150;
 const MAX_NODES = 50000;
 let total_nodes = 0;
 
 let current_repo_path: string | null = null;
+
+let git_status_timer: ReturnType<typeof setTimeout> | null = null;
+let git_status_running = false;
+let git_status_pending = false;
 
 export function set_repo_path(p: string | null) {
   current_repo_path = p;
@@ -44,8 +50,20 @@ export function reset_watcher_state() {
     clearInterval(remove_batch_timer);
     remove_batch_timer = null;
   }
-  add_timing_active = false;
-  remove_timing_active = false;
+  if (git_status_timer) {
+    clearTimeout(git_status_timer);
+    git_status_timer = null;
+  }
+  git_status_running = false;
+  git_status_pending = false;
+}
+
+function is_batching() {
+  return add_batch_timer !== null || remove_batch_timer !== null;
+}
+
+function on_batch_idle() {
+  if (git_status_pending) request_git_status();
 }
 
 function flush(key: string) {
@@ -90,8 +108,7 @@ function debounce(key: string, event: PendingEvent) {
 
 function flush_removes() {
   if (!pending_removes.length) return;
-  const batch = [...pending_removes];
-  pending_removes.length = 0;
+  const batch = pending_removes.splice(0, pending_removes.length);
 
   console.log("flushing", batch.length, "removes");
   console.time("flush_removes");
@@ -115,30 +132,21 @@ function flush_removes() {
   console.timeEnd("flush_removes");
 }
 
-let remove_timing_active = false;
-
 function batch_remove(uri: string) {
-  if (pending_removes.length === 0 && !remove_timing_active) {
-    console.time("batch_collect");
-    remove_timing_active = true;
-    remove_batch_timer = setInterval(() => {
-      if (pending_removes.length > 0) {
-        console.timeEnd("batch_collect");
-        remove_timing_active = false;
-        flush_removes();
-        console.time("batch_collect");
-        remove_timing_active = true;
-      } else {
-        clearInterval(remove_batch_timer!);
-        remove_batch_timer = null;
-        if (remove_timing_active) {
-          console.timeEnd("batch_collect");
-          remove_timing_active = false;
-        }
-      }
-    }, 200);
-  }
   pending_removes.push(uri);
+  if (remove_batch_timer) return;
+  console.time("batch_collect");
+  remove_batch_timer = setInterval(() => {
+    console.timeEnd("batch_collect");
+    if (pending_removes.length > 0) {
+      flush_removes();
+      console.time("batch_collect");
+    } else {
+      clearInterval(remove_batch_timer!);
+      remove_batch_timer = null;
+      on_batch_idle();
+    }
+  }, BATCH_FLUSH_MS);
 }
 
 function flush_adds() {
@@ -146,7 +154,6 @@ function flush_adds() {
 
   const remaining = MAX_NODES - total_nodes;
   if (remaining <= 0) {
-    console.warn("max nodes reached, skipping", pending_adds.length, "adds");
     pending_adds.length = 0;
     return;
   }
@@ -179,33 +186,57 @@ function flush_adds() {
   console.timeEnd("flush_adds");
 }
 
-let add_timing_active = false;
-
 function batch_add(node: INode) {
-  if (total_nodes >= MAX_NODES) {
-    console.warn("max nodes reached, ignoring add:", node.path);
-    return;
-  }
+  if (total_nodes >= MAX_NODES) return;
 
-  if (pending_adds.length === 0 && !add_timing_active) {
-    console.time("batch_add_collect");
-    add_timing_active = true;
-    add_batch_timer = setInterval(() => {
-      if (pending_adds.length > 0) {
-        console.timeEnd("batch_add_collect");
-        add_timing_active = false;
-        flush_adds();
-      } else {
-        clearInterval(add_batch_timer!);
-        add_batch_timer = null;
-        if (add_timing_active) {
-          console.timeEnd("batch_add_collect");
-          add_timing_active = false;
-        }
-      }
-    }, 200);
-  }
   pending_adds.push(node);
+  if (add_batch_timer) return;
+  console.time("batch_add_collect");
+  add_batch_timer = setInterval(() => {
+    console.timeEnd("batch_add_collect");
+    if (pending_adds.length > 0) {
+      flush_adds();
+      console.time("batch_add_collect");
+    } else {
+      clearInterval(add_batch_timer!);
+      add_batch_timer = null;
+      on_batch_idle();
+    }
+  }, BATCH_FLUSH_MS);
+}
+
+function request_git_status() {
+  if (!current_repo_path) return;
+  git_status_pending = true;
+
+  if (is_batching()) return;
+
+  if (git_status_running) return;
+  schedule_git_status();
+}
+
+function schedule_git_status() {
+  if (!current_repo_path) return;
+  if (git_status_timer) clearTimeout(git_status_timer);
+  git_status_timer = setTimeout(() => {
+    git_status_timer = null;
+
+    if (is_batching()) return;
+    run_git_status();
+  }, GIT_STATUS_DEBOUNCE_MS);
+}
+
+function run_git_status() {
+  if (!current_repo_path || git_status_running) return;
+  git_status_pending = false;
+  git_status_running = true;
+  console.time("git_push_status");
+  Promise.resolve(git.push_status(current_repo_path)).finally(() => {
+    console.timeEnd("git_push_status");
+    git_status_running = false;
+
+    if (git_status_pending) request_git_status();
+  });
 }
 
 export function attach_event_emitter(e: TWatchEvent) {
@@ -232,6 +263,6 @@ export function attach_event_emitter(e: TWatchEvent) {
   }
 
   if (current_repo_path) {
-    git.push_status(current_repo_path);
+    request_git_status();
   }
 }

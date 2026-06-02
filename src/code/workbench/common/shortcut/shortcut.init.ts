@@ -288,6 +288,7 @@ shortcuts.register_command({
   id: "editor.runCurrentFile",
   run: () => {
     runCurrentFile();
+    focus_terminal();
   },
 });
 
@@ -432,7 +433,7 @@ shortcuts.register_shortcuts([
     id: "openFolder",
     label: "Open Folder",
     category: "App",
-    keys: "ctrl+alt+o",
+    keys: ["ctrl+k ctrl+o", "ctrl+k o", "ctrl+alt+o"],
     command: "app.openFolder",
     scope: "app",
   },

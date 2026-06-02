@@ -7,6 +7,29 @@ import { ITextModelService } from "monaco-editor/esm/vs/editor/common/services/r
 monaco.languages.typescript.typescriptDefaults.setEagerModelSync(false);
 monaco.languages.typescript.typescriptDefaults.setMaximumWorkerIdleTime(-1);
 monaco.languages.typescript.javascriptDefaults.setMaximumWorkerIdleTime(-1);
+
+const disable_ts_worker_features: monaco.languages.typescript.ModeConfiguration =
+  {
+    completionItems: false,
+    hovers: false,
+    documentSymbols: false,
+    definitions: false,
+    references: false,
+    documentHighlights: false,
+    rename: false,
+    diagnostics: false,
+    documentRangeFormattingEdits: false,
+    signatureHelp: false,
+    onTypeFormattingEdits: false,
+    codeActions: false,
+    inlayHints: false,
+  };
+monaco.languages.typescript.typescriptDefaults.setModeConfiguration(
+  disable_ts_worker_features,
+);
+monaco.languages.typescript.javascriptDefaults.setModeConfiguration(
+  disable_ts_worker_features,
+);
 monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
   noSemanticValidation: true,
   noSyntaxValidation: true,
@@ -42,9 +65,6 @@ monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
   noSuggestionDiagnostics: true,
 });
 (monaco.languages.typescript as any).typescriptDefaults._onDidChange.fire();
-monaco.languages.registerCompletionItemProvider("typescript", {
-  provideCompletionItems: () => ({ suggestions: [] }),
-});
 
 monaco.languages.register({ id: "typescriptreact" });
 monaco.languages.register({ id: "javascriptreact" });
