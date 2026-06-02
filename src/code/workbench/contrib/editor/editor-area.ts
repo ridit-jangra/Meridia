@@ -25,9 +25,6 @@ export function EditorArea() {
 
   const get_active = () => store.getState().editor.tabs.find((v) => v.active);
 
-  // The diff editor is routed by tab_type rather than file extension, so it
-  // lives outside `editors_registry`; track it explicitly and fold it into the
-  // visibility/mount set.
   type registry_editor = (typeof editors_registry)[string];
   let diff_ed: registry_editor | null = null;
 

@@ -242,7 +242,7 @@ export function EditorTabs() {
 
   const openTabByPath = (file_path: string) => {
     history.push("editor.tab.open", { file_path });
-    open_editor_tab(file_path);
+    open_editor_tab(file_path, "EDITOR_SINGLE");
     insights_service.evaluate();
     insights_events.emit("insight.change.ui", insights_service.get_current());
   };

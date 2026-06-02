@@ -213,7 +213,7 @@ class terminal_service {
         },
         onOpen: async (path) => {
           const stat = await explorer.actions.stat(path);
-          if (stat.isFile) open_editor_tab(path);
+          if (stat.isFile) open_editor_tab(path, "EDITOR_SINGLE");
           else {
             const tree = explorer.tree.tree;
             if (!tree) return;

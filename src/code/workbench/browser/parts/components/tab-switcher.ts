@@ -118,7 +118,7 @@ export function TabSwitcher() {
 
   const selectTab = (tab: ITab) => {
     close();
-    open_editor_tab(tab.file_path);
+    open_editor_tab(tab.file_path, "EDITOR_SINGLE");
   };
 
   const openUI = (currentTabs: ITab[], initialOffset: number = 0) => {

@@ -244,7 +244,7 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "editor.newFile",
   run: () => {
-    open_new_editor_tab();
+    open_new_editor_tab("EDITOR_SINGLE");
   },
 });
 shortcuts.register_command({
@@ -275,7 +275,7 @@ shortcuts.register_command({
     const res = await window.files.open_file();
     if (res.cancel) return;
 
-    open_editor_tab(res.path);
+    open_editor_tab(res.path, "EDITOR_SINGLE");
   },
 });
 shortcuts.register_command({
