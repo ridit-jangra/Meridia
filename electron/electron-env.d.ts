@@ -127,6 +127,8 @@ type clipboard_api = {
 type git_api = {
   isGitRepo: (path: string) => Promise<boolean>;
   initRepo: (path: string) => Promise<boolean>;
+  getHeadContent: (repoPath: string, filePath: string) => Promise<string>;
+  commit: (repoPath: string, message: string) => Promise<boolean>;
 };
 
 declare global {

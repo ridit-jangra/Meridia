@@ -1,6 +1,6 @@
 import * as monaco from "monaco-editor";
 
-import { ITab, tab_status } from "../../types/editor.types";
+import { ITab, tab_status, tab_type } from "../../types/editor.types";
 import { shortcut_def } from "../../types/shortcut.types";
 
 import { generate_uri, uris_equal } from "../../../shared/uri/generate";
@@ -10,15 +10,19 @@ import { get_base_name } from "../platform/explorer/explorer.helper";
 import { ContextMenuItem } from "../workbench/browser/parts/components/context-menu";
 import { shortcuts } from "../workbench/common/shortcut/shortcut.service";
 
-export function open_editor_tab(file_path: string) {
+export function open_editor_tab(file_path: string, type: tab_type) {
   const current_tabs = store.getState().editor.tabs;
   const target = current_tabs.find((v) => uris_equal(v.file_path, file_path));
 
   if (target) {
-    const updated_tabs = current_tabs.map((tab) => ({
-      ...tab,
-      active: uris_equal(tab.file_path, file_path),
-    }));
+    const updated_tabs = current_tabs.map((tab) => {
+      const is_match = uris_equal(tab.file_path, file_path);
+      return {
+        ...tab,
+        tab_type: is_match ? type : tab.tab_type,
+        active: is_match,
+      };
+    });
 
     store.dispatch(update_tabs(updated_tabs));
     return;
@@ -34,12 +38,13 @@ export function open_editor_tab(file_path: string) {
     name: get_base_name(file_path),
     active: true,
     tab_status: "EXISTS",
+    tab_type: type,
   };
 
   store.dispatch(update_tabs([...updated_tabs, new_tab]));
 }
 
-export function open_new_editor_tab() {
+export function open_new_editor_tab(type: tab_type) {
   const current_tabs = store.getState().editor.tabs;
 
   const updated_tabs = current_tabs.map((tab) => ({
@@ -53,6 +58,7 @@ export function open_new_editor_tab() {
     active: true,
     tab_status: "NEW",
     is_touched: true,
+    tab_type: type,
   };
 
   store.dispatch(update_tabs([...updated_tabs, new_tab]));

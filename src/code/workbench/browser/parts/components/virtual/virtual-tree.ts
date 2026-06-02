@@ -528,7 +528,7 @@ export function VirtualTree(opts: {
           onClick: () => {
             selected.id = row.id;
             list.refresh();
-            open_editor_tab(row.node.path);
+            open_editor_tab(row.node.path, "EDITOR_SINGLE");
           },
         },
         { type: "separator" },

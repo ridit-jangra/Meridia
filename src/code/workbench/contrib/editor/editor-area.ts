@@ -2,6 +2,7 @@ import { IWorkspace } from "../../../../../shared/types/workspace.types";
 import { get_file_extension } from "../../../editor/editor.helper";
 import { image_editor } from "../../../editor/editors/editor.image";
 import { monaco_editor } from "../../../editor/editors/editor.monaco";
+import { diff_editor } from "../../../editor/editors/editor.monaco.diff";
 import { ScrollArea } from "../../browser/parts/components/scroll-area";
 import { update_tabs } from "../../common/state/slices/editor.slice";
 import { store } from "../../common/state/store";
@@ -24,12 +25,22 @@ export function EditorArea() {
 
   const get_active = () => store.getState().editor.tabs.find((v) => v.active);
 
-  const get_editors_unique = () =>
-    Array.from(new Set(Object.values(editors_registry)));
+  // The diff editor is routed by tab_type rather than file extension, so it
+  // lives outside `editors_registry`; track it explicitly and fold it into the
+  // visibility/mount set.
+  type registry_editor = (typeof editors_registry)[string];
+  let diff_ed: registry_editor | null = null;
+
+  const get_editors_unique = () => {
+    const set = new Set(Object.values(editors_registry));
+    if (diff_ed) set.add(diff_ed);
+    return Array.from(set);
+  };
 
   let is_initialized = false;
   let last_active_path = "";
   let last_active_status = "";
+  let last_active_type = "";
   let saving = false;
   let queued_tabs: any = null;
 
@@ -41,19 +52,25 @@ export function EditorArea() {
       editors.forEach((e) => e.set_visible(false));
       last_active_path = "";
       last_active_status = "";
+      last_active_type = "";
       return;
     }
 
     if (
       key.file_path === last_active_path &&
-      key.tab_status === last_active_status
+      key.tab_status === last_active_status &&
+      key.tab_type === last_active_type
     )
       return;
     last_active_path = key.file_path;
     last_active_status = key.tab_status;
+    last_active_type = key.tab_type;
 
     const extension = get_file_extension(key.file_path);
-    let editor = editors_registry[extension] ?? editors_registry["ts"];
+    let editor =
+      key.tab_type === "EDITOR_DIFF" && diff_ed
+        ? diff_ed
+        : (editors_registry[extension] ?? editors_registry["ts"]);
 
     editors.forEach((e) => e.set_visible(false));
 
@@ -121,6 +138,7 @@ export function EditorArea() {
   const init = async () => {
     new image_editor();
     new monaco_editor();
+    diff_ed = new diff_editor() as unknown as registry_editor;
 
     get_editors_unique().forEach((e) => e.mount(scroll.inner));
 

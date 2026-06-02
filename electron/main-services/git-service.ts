@@ -1,3 +1,4 @@
+import path from "node:path";
 import simpleGit from "simple-git";
 import { event_emitter } from "../shared/emitter";
 import { GIT_REFRESH_STATUS } from "../../shared/ipc/channels";
@@ -48,12 +49,46 @@ class git_service {
     }
   }
 
+  /**
+   * Returns the committed (HEAD) version of a file so it can be used as the
+   * "original" side of a diff. Returns "" when the file is untracked/new or the
+   * repo has no commits, which renders the working-tree copy as fully added.
+   */
+  public async get_head_content(
+    repo_path: string,
+    file_path: string,
+  ): Promise<string> {
+    try {
+      const git = simpleGit(repo_path);
+      const is_repo = await git.checkIsRepo().catch(() => false);
+      if (!is_repo) return "";
+
+      const rel = path.relative(repo_path, file_path).split(path.sep).join("/");
+
+      const content = await git.show([`HEAD:${rel}`]).catch(() => null);
+      return content ?? "";
+    } catch (err) {
+      console.error("[git] get_head_content error:", err);
+      return "";
+    }
+  }
+
   public async init_repo(folder_path: string): Promise<void> {
     try {
       const git = simpleGit(folder_path);
       await git.init();
     } catch (err) {
       console.error("[git] init_repo error:", err);
+    }
+  }
+
+  public async commit(repo_path: string, message: string): Promise<void> {
+    try {
+      const git = simpleGit(repo_path);
+      await git.add(".");
+      await git.commit(message);
+    } catch (err) {
+      console.error("[git] commit error:", err);
     }
   }
 }

@@ -8,6 +8,7 @@ export type cursor_position = {
   col: number;
 };
 export type tab_status = "EXISTS" | "NEW" | "DELETED";
+export type tab_type = "EDITOR_SINGLE" | "EDITOR_DIFF";
 export type selection = {
   startLine: number;
   startCol: number;
@@ -20,6 +21,7 @@ export interface ITab {
   git_badge?: git_badge;
   git_status?: git_status;
   file_status?: file_status;
+  tab_type: tab_type;
   tab_status: tab_status;
   file_path: string;
   active: boolean;

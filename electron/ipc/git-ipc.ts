@@ -1,6 +1,8 @@
 import { ipcMain } from "electron";
 import { git } from "../main-services/git-service";
 import {
+  GIT_COMMIT,
+  GIT_GET_HEAD_CONTENT,
   GIT_GET_STATUS,
   GIT_INIT_REPO,
   GIT_IS_REPO,
@@ -20,12 +22,29 @@ ipcMain.handle(GIT_IS_REPO, async (_, folder_path: string) => {
   }
 });
 
+ipcMain.handle(
+  GIT_GET_HEAD_CONTENT,
+  async (_, repo_path: string, file_path: string) => {
+    return await git.get_head_content(repo_path, file_path);
+  },
+);
+
 ipcMain.handle(GIT_INIT_REPO, async (_, folder_path: string) => {
   try {
     await git.init_repo(folder_path);
     return true;
   } catch (err) {
     console.error("[git] init_repo error:", err);
+    return false;
+  }
+});
+
+ipcMain.handle(GIT_COMMIT, async (_, repo_path: string, message: string) => {
+  try {
+    await git.commit(repo_path, message);
+    return true;
+  } catch (err) {
+    console.error("[git] commit error:", err);
     return false;
   }
 });

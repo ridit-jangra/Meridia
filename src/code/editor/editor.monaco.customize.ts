@@ -157,12 +157,12 @@ monaco.editor.registerLinkOpener({
       const tree = explorer.tree.structure;
 
       if (!tree) {
-        open_editor_tab(url);
+        open_editor_tab(url, "EDITOR_SINGLE");
         return true;
       }
 
       const resolved = resolve_file_uri(url, tree.path);
-      open_editor_tab(resolved);
+      open_editor_tab(resolved, "EDITOR_SINGLE");
       return true;
     }
 
@@ -179,7 +179,7 @@ monaco.editor.registerEditorOpener({
   openCodeEditor(_, resource, selectionOrPosition) {
     const url = resource.fsPath;
 
-    open_editor_tab(url);
+    open_editor_tab(url, "EDITOR_SINGLE");
 
     if (selectionOrPosition) {
       setTimeout(() => {
@@ -208,7 +208,7 @@ monaco.editor.registerEditorOpener({
 
     const model = await get_or_create_model(path);
 
-    open_editor_tab(path);
+    open_editor_tab(path, "EDITOR_SINGLE");
 
     if (selectionOrPosition) {
       setTimeout(() => {

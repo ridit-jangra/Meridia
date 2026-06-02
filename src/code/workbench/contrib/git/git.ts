@@ -10,6 +10,7 @@ import {
   GitStatus,
   GitFileStatus,
 } from "../../../../../shared/types/git.types";
+import { open_editor_tab } from "../../../editor/editor.helper";
 
 const ROW_HEIGHT = 22;
 
@@ -114,6 +115,13 @@ function render_file_row(
         is_active ? active_cls : passive_cls,
       ),
       tooltip: { text: f.path, delay: 200 },
+      on: {
+        click: async () => {
+          const root = await window.workspace.get_current_workspace_path();
+          const abs = root ? `${root}/${f.path}` : f.path;
+          open_editor_tab(abs, "EDITOR_DIFF");
+        },
+      },
     },
     left,
     badge,
@@ -163,11 +171,21 @@ const RepoState = () => {
       onClick: async () => {
         const msg = (message_input.el as HTMLInputElement).value.trim();
         if (!msg || !status?.files.length) return;
-        git_events.emit("commit", msg);
+        const path = await window.workspace.get_current_workspace_path();
+        if (!path) return;
+        await window.git.commit(path, msg);
         (message_input.el as HTMLInputElement).value = "";
+        sync_commit_btn();
       },
     },
   );
+
+  const sync_commit_btn = () => {
+    const msg = (message_input.el as HTMLInputElement).value.trim();
+    (commit_btn as HTMLButtonElement).disabled = !msg || !status?.files.length;
+  };
+
+  message_input.el.addEventListener("input", sync_commit_btn);
 
   const branch_label = h("span", {
     class: "text-xs text-muted-foreground truncate flex items-center gap-1",
@@ -209,6 +227,8 @@ const RepoState = () => {
 
     selected.path = "";
     list.update_rows(files);
+
+    sync_commit_btn();
   };
 
   git_events.on("refresh-status", (s: GitStatus) => {

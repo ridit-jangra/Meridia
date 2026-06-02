@@ -47,6 +47,8 @@ import {
   CHAT_TOOL_CALL,
   GIT_IS_REPO,
   GIT_INIT_REPO,
+  GIT_GET_HEAD_CONTENT,
+  GIT_COMMIT,
 } from "../shared/ipc/channels";
 import type { IChatContext, IChatResult } from "../shared/types/chat.types";
 
@@ -253,4 +255,12 @@ contextBridge.exposeInMainWorld("git", {
     ipcRenderer.invoke(GIT_IS_REPO, path) as Promise<boolean>,
   initRepo: (path: string) =>
     ipcRenderer.invoke(GIT_INIT_REPO, path) as Promise<boolean>,
+  getHeadContent: (repoPath: string, filePath: string) =>
+    ipcRenderer.invoke(
+      GIT_GET_HEAD_CONTENT,
+      repoPath,
+      filePath,
+    ) as Promise<string>,
+  commit: (repoPath: string, message: string) =>
+    ipcRenderer.invoke(GIT_COMMIT, repoPath, message) as Promise<boolean>,
 });

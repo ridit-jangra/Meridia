@@ -27,6 +27,7 @@ import {
   IMonacoEditor,
   IMonacoModel,
   tab_status,
+  tab_type,
 } from "../../../types/editor.types";
 import {
   monaco,
@@ -472,12 +473,12 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   private setup_ipc_listener() {
     const ipc = window.ipc;
 
-    ipc.on(EDITOR_OPEN_FILE, (_, path: string) => {
-      open_editor_tab(path);
+    ipc.on(EDITOR_OPEN_FILE, (_, path: string, type: tab_type) => {
+      open_editor_tab(path, type);
     });
 
     ipc.on(EDITOR_SCROLL_TO_LINE, (_, path: string, line: number) => {
-      open_editor_tab(path);
+      open_editor_tab(path, "EDITOR_SINGLE");
       requestAnimationFrame(() => this.instance.revealLineInCenter(line));
     });
 

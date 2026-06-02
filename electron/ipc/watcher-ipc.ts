@@ -32,34 +32,43 @@ ipcMain.handle(WATCHER_START, async (_, folder_path: string) => {
 
   const git_dot_path = path.join(folder_path, ".git");
 
+  let git_status_debounce: ReturnType<typeof setTimeout> | null = null;
+  const refresh_git = () => {
+    if (git_status_debounce) clearTimeout(git_status_debounce);
+    git_status_debounce = setTimeout(() => {
+      git_status_debounce = null;
+      git.push_status(folder_path);
+    }, 120);
+  };
+
   const git_watcher = chokidar.watch(folder_path, {
     ignoreInitial: true,
-    depth: 0,
     ignored: (p: string) => {
       if (p === folder_path) return false;
       if (p === git_dot_path) return false;
       if (p.startsWith(git_dot_path + path.sep)) {
         const rel = path.relative(git_dot_path, p);
-        return /^(objects|logs)/.test(rel);
+        // Skip high-churn internals and lock files; watch HEAD/index/refs/etc.
+        if (/^(objects|logs)([\\/]|$)/.test(rel)) return true;
+        if (rel.endsWith(".lock")) return true;
+        return false;
       }
       return true;
     },
-    awaitWriteFinish: { stabilityThreshold: 300 },
+    awaitWriteFinish: { stabilityThreshold: 300, pollInterval: 100 },
   });
 
   git_watcher.on("all", (event, changed_path) => {
-    if (changed_path === git_dot_path) {
-      if (event === "unlinkDir") {
-        event_emitter.emit("window.webContents.send", GIT_DELETED_REPO, {});
-        return;
+    if (changed_path === git_dot_path && event === "unlinkDir") {
+      if (git_status_debounce) {
+        clearTimeout(git_status_debounce);
+        git_status_debounce = null;
       }
-      if (event === "addDir") {
-        git.push_status(folder_path);
-        return;
-      }
+      event_emitter.emit("window.webContents.send", GIT_DELETED_REPO, {});
+      return;
     }
 
-    git.push_status(folder_path);
+    refresh_git();
   });
 
   git_internal_watchers.set(folder_path, git_watcher);

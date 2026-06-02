@@ -33,7 +33,7 @@ export class explorer_tree {
       icon_folder_name: "file-icons",
       folderStructure: structure,
       initialOpenFolders: initial_open_folders,
-      onSelect: (id) => open_editor_tab(id),
+      onSelect: (id) => open_editor_tab(id, "EDITOR_SINGLE"),
       onOpenFoldersChange: save_open_folders,
       scrollViewport: viewport_el,
     });
