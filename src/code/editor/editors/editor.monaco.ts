@@ -55,6 +55,10 @@ import {
   register_html_language,
   setup_html_auto_close,
 } from "../languages/html";
+import {
+  register_react_language,
+  setup_react_auto_close,
+} from "../languages/react";
 
 type Disposer = () => void;
 
@@ -211,6 +215,10 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     register_html_language();
 
     setup_html_auto_close(this.editor.instance);
+
+    register_react_language();
+
+    setup_react_auto_close(this.editor.instance);
   }
 
   private setup_file_watcher(): void {
