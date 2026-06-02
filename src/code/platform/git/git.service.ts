@@ -1,8 +1,6 @@
 import { VirtualTreeInstance } from "../../../types/explorer.types";
-import { git_events } from "../events/git.events";
 import { explorer_tree } from "../explorer/explorer.tree";
 import { git_watcher } from "./git.watcher";
-
 export class git_service {
   public readonly watcher = new git_watcher();
   public readonly tree = new explorer_tree();

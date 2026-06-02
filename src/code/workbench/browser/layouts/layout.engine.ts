@@ -7,9 +7,43 @@ const clone = <T>(v: T): T => {
   return JSON.parse(JSON.stringify(v));
 };
 
+// Compares the structural skeleton of two layout nodes (node type, id, and
+// children arity) while ignoring user-mutable fields (sizes, enabled, active
+// tab, panel/tab lists). This lets a persisted layout keep the user's resizes
+// and toggles, but rejects anything whose structure has drifted from the
+// current default (e.g. a panel added/removed across an app update) so it can
+// fall back to the default instead of rendering broken.
+const same_shape = (a: any, b: any): boolean => {
+  if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
+  if (a.type !== b.type) return false;
+  if ((a.id ?? null) !== (b.id ?? null)) return false;
+
+  const ac = Array.isArray(a.children) ? a.children : null;
+  const bc = Array.isArray(b.children) ? b.children : null;
+  if (!!ac !== !!bc) return false;
+  if (ac && bc) {
+    if (ac.length !== bc.length) return false;
+    for (let i = 0; i < bc.length; i++) {
+      if (!same_shape(ac[i], bc[i])) return false;
+    }
+  }
+  return true;
+};
+
+const is_valid_preset = (
+  saved: TLayoutPreset | undefined,
+  def: TLayoutPreset,
+): saved is TLayoutPreset => {
+  if (!saved || typeof saved !== "object") return false;
+  if (saved.id !== def.id) return false;
+  if (!saved.root || typeof saved.root !== "object") return false;
+  return same_shape(saved.root, def.root);
+};
+
 export class Engine {
   private presets: Record<string, TLayoutPreset> = {};
   private default_presets: Record<string, TLayoutPreset> = {};
+  private persisted: Record<string, TLayoutPreset> | null = null;
   private listeners: Set<() => void> = new Set();
   private save_timer: number | null = null;
 
@@ -21,7 +55,13 @@ export class Engine {
     this.default_presets[preset.id] = clone(preset);
 
     if (!this.presets[preset.id]) {
-      this.presets[preset.id] = clone(preset);
+      const saved = this.persisted?.[preset.id];
+      // Use the persisted layout only if it still matches the default's
+      // structure; otherwise fall back to the default (and re-save it below to
+      // heal the stored copy).
+      this.presets[preset.id] = is_valid_preset(saved, preset)
+        ? clone(saved)
+        : clone(preset);
       this.notify();
       this.schedule_save();
     }

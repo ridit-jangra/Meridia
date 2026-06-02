@@ -7,7 +7,6 @@ import {
 } from "../shared/watcher.helpers";
 import {
   GIT_DELETED_REPO,
-  GIT_REFRESH_STATUS,
   WATCHER_START,
   WATCHER_STOP,
 } from "../../shared/ipc/channels";
