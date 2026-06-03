@@ -160,6 +160,13 @@ shortcuts.register_command({
 });
 
 shortcuts.register_command({
+  id: "layout.togglePreview",
+  run: () => {
+    update_layout([1, 0, 1], toggle_node_at_path);
+  },
+});
+
+shortcuts.register_command({
   id: "terminal.new",
   run: () => console.log("new terminal"),
 });
@@ -356,6 +363,14 @@ shortcuts.register_shortcuts([
     category: "Layout",
     keys: "ctrl+alt+b",
     command: "layout.toggleSecondarySideBar",
+    scope: "app",
+  },
+  {
+    id: "togglePreview",
+    label: "Toggle Browser Preview",
+    category: "Layout",
+    keys: "ctrl+alt+v",
+    command: "layout.togglePreview",
     scope: "app",
   },
   {
