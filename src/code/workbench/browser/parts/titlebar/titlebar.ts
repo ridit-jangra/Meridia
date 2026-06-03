@@ -118,9 +118,9 @@ export function Titlebar() {
       variant: "ghost",
       size: "sm",
       tooltip: {
-        text: `Settings (${shortcuts.get_shortcut({ id: "openSettings" })?.keys})`,
+        text: `Settings (${shortcuts.get_shortcut({ command: "app.openSettings" })?.keys})`,
       },
-      onClick: () => shortcuts.run_shortcut("openSettings"),
+      onClick: () => shortcuts.run_shortcut("app.openSettings"),
     },
   );
 
