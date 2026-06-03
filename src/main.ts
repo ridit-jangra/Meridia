@@ -13,6 +13,7 @@ import { shortcuts } from "./code/workbench/common/shortcut/shortcut.service";
 import { Command } from "./code/workbench/browser/parts/components/command/command";
 import { store } from "./code/workbench/common/state/store";
 import { set_command_palette_open } from "./code/workbench/common/state/slices/layout.slice";
+import { focus_editor } from "./code/workbench/common/focus";
 
 async function init() {
   const root = document.getElementById("app")!;
@@ -35,6 +36,7 @@ async function init() {
     groups: build_command_groups(),
     onOpenChange(open) {
       store.dispatch(set_command_palette_open(open));
+      if (open === false) focus_editor();
     },
     open: false,
   });
