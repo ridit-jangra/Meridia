@@ -60,7 +60,7 @@ import {
   register_react_language,
   setup_react_auto_close,
 } from "../languages/react";
-import { check_and_install_lsp } from "../../workbench/browser/lsp";
+import { on_file_opened } from "../../workbench/browser/lsp";
 
 type Disposer = () => void;
 
@@ -591,11 +591,6 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       extensions: ["ts", "js", "mjs", "mts"],
     });
 
-    await Promise.all([
-      check_and_install_lsp("pylsp"),
-      check_and_install_lsp("typescript-language-server"),
-    ]);
-
     await lsp_client.start(
       (await window.workspace.get_current_workspace_path()) ?? "C:\\",
       LSP_BRIDGE_PORT,
@@ -776,6 +771,8 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     uri: string,
     status?: tab_status,
   ): Promise<void> {
+    on_file_opened(uri).catch(() => {});
+
     const model = this.models.find((m) => m.uri === uri) as IMonacoModel;
     if (!model) return;
 
