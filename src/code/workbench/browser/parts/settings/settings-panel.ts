@@ -1,6 +1,6 @@
 import { h } from "../../../contrib/core/dom/h";
 import { cn } from "../../../contrib/core/utils/cn";
-import { codicon } from "../components/icon";
+import { Select } from "../components/select";
 import { ScrollArea } from "../components/scroll-area";
 import {
   ISettings,
@@ -9,7 +9,7 @@ import {
 
 const MONO = "'JetBrains Mono', monospace";
 
-type Control = { el: HTMLElement; refresh: () => void };
+type Control = { el: HTMLElement; refresh: () => void; destroy?: () => void };
 
 function toggle(get: () => boolean, on_change: (v: boolean) => void): Control {
   const thumb = h("span", {
@@ -47,45 +47,31 @@ function select(
   options: { value: string; label?: string }[],
   on_change: (v: string) => void,
 ): Control {
-  const sel = h("select", {
-    class: cn(
-      "appearance-none w-[120px] h-[22px] rounded-[5px] pl-2 pr-6 text-[12px]",
-      "bg-select-background text-select-foreground",
-      "border border-workbench-border outline-none cursor-pointer",
-      "hover:bg-select-hover-background transition-colors",
-    ),
-    style: { fontFamily: MONO },
-    on: { change: () => on_change((sel as HTMLSelectElement).value) },
-  }) as HTMLSelectElement;
+  // Guards programmatic setValue (which fires onChange) from looping back into
+  // a save when we're merely syncing the control to external state.
+  let applying = false;
 
-  for (const opt of options) {
-    sel.appendChild(
-      h(
-        "option",
-        { attrs: { value: opt.value }, style: { fontFamily: MONO } },
-        opt.label ?? opt.value,
-      ),
-    );
-  }
+  const sel = Select({
+    items: options.map((o) => ({ value: o.value, label: o.label ?? o.value })),
+    value: get(),
+    class:
+      "!h-[22px] !min-h-0 !py-0 !text-[12px] !rounded-[5px] !border !border-workbench-border",
+    onChange: (v) => {
+      if (!applying) on_change(v);
+    },
+  });
 
-  const chevron = codicon(
-    "chevron-down",
-    "absolute right-1.5 top-1/2 -translate-y-1/2 pointer-events-none text-[12px] opacity-50",
-  );
-
-  const wrap = h(
-    "div",
-    { class: "relative inline-flex items-center" },
-    sel,
-    chevron,
-  );
+  const wrap = h("div", { class: "w-[140px]", style: { fontFamily: MONO } }, sel.el);
 
   const refresh = () => {
-    sel.value = get();
+    const v = get();
+    if (sel.value === v) return;
+    applying = true;
+    sel.setValue(v);
+    applying = false;
   };
 
-  refresh();
-  return { el: wrap, refresh };
+  return { el: wrap, refresh, destroy: () => sel.destroy() };
 }
 
 function number_input(
@@ -407,6 +393,7 @@ export function SettingsPanel(): { el: HTMLElement; destroy: () => void } {
     el,
     destroy() {
       unsubscribe();
+      for (const c of controls) c.destroy?.();
       scroll.destroy();
       el.remove();
     },

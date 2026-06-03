@@ -125,7 +125,7 @@ export const dark: ITheme = {
     "select.border": "#FFFFFF1A",
     "select.hover.background": "#1A1A1A",
     "select.menu.background": "#141414",
-    "select.option.foreground": "#141414",
+    "select.option.foreground": "#E6E6E6EB",
     "select.option.hover.background": "#1A1A1A",
     "select.option.active.background": "#2A2A2A",
 

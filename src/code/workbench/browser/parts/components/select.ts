@@ -68,41 +68,52 @@ export function Select(opts: {
     opts.onChange?.(v);
   };
 
+  const optionEls: HTMLElement[] = [];
+
+  const applyActiveClasses = () => {
+    optionEls.forEach((optEl, i) => {
+      optEl.classList.toggle(
+        "bg-select-option-active-background",
+        i === activeIndex,
+      );
+    });
+    optionEls[activeIndex]?.scrollIntoView({ block: "nearest" });
+  };
+
   const renderMenu = () => {
     menu.innerHTML = "";
-    const idx = Math.max(
-      0,
-      opts.items.findIndex((i) => i.value === currentValue),
-    );
+    optionEls.length = 0;
+
+    const idx = opts.items.findIndex((i) => i.value === currentValue);
     activeIndex = idx === -1 ? 0 : idx;
 
     opts.items.forEach((item, i) => {
-      menu.appendChild(
-        h(
-          "div",
-          {
-            class: cn(
-              "px-2 py-1.5 text-[14px] cursor-pointer select-none rounded-[7px]",
-              i === activeIndex
-                ? "bg-select-option-active-background text-select-option-foreground"
-                : "hover:bg-select-option-hover-background text-select-option-foreground",
-            ),
-            on: {
-              mouseenter: () => {
-                activeIndex = i;
-                renderMenu();
-              },
-              mousedown: (e) => {
-                e.preventDefault();
-                setValue(item.value);
-                close();
-              },
+      const optEl = h(
+        "div",
+        {
+          class: cn(
+            "px-2 py-1.5 text-[14px] cursor-pointer select-none rounded-[7px]",
+            "text-select-option-foreground hover:bg-select-option-hover-background",
+          ),
+          on: {
+            mouseenter: () => {
+              activeIndex = i;
+              applyActiveClasses();
+            },
+            mousedown: (e) => {
+              e.preventDefault();
+              setValue(item.value);
+              close();
             },
           },
-          item.label,
-        ),
+        },
+        item.label,
       );
+      optionEls.push(optEl);
+      menu.appendChild(optEl);
     });
+
+    applyActiveClasses();
   };
 
   const onOutside = (e: MouseEvent) => {
@@ -125,14 +136,14 @@ export function Select(opts: {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       activeIndex = Math.min(opts.items.length - 1, activeIndex + 1);
-      renderMenu();
+      applyActiveClasses();
       return;
     }
 
     if (e.key === "ArrowUp") {
       e.preventDefault();
       activeIndex = Math.max(0, activeIndex - 1);
-      renderMenu();
+      applyActiveClasses();
       return;
     }
 

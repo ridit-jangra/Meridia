@@ -1,7 +1,6 @@
 import { SETTINGS_KEY } from "../../../../shared/storage-keys";
 
 export interface ISettings {
-  // Editor
   editor_font_size: number;
   editor_font_family: string;
   editor_tab_size: number;
@@ -11,7 +10,7 @@ export interface ISettings {
   editor_smooth_scrolling: boolean;
   editor_cursor_blinking: string;
   editor_ligatures: boolean;
-  // UI
+
   ui_sidebar_position: "left" | "right";
   ui_compact_tabs: boolean;
   ui_show_breadcrumbs: boolean;
@@ -34,10 +33,10 @@ export const DEFAULT_SETTINGS: ISettings = {
 
 type settings_listener = (settings: ISettings) => void;
 
-// Merge a (possibly partial / stale) persisted blob onto the defaults, keeping
-// only known keys whose stored type matches the default — guards against
-// corrupt storage flipping a boolean into a string, etc.
-function merge_settings(base: ISettings, patch: Partial<ISettings> | null): ISettings {
+function merge_settings(
+  base: ISettings,
+  patch: Partial<ISettings> | null,
+): ISettings {
   const out: ISettings = { ...base };
   if (!patch || typeof patch !== "object") return out;
 

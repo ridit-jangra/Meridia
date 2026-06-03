@@ -1,17 +1,7 @@
 import { settings_service } from "./settings.service";
 import { store } from "../../workbench/common/state/store";
 import { layout_engine } from "../../workbench/browser/layouts/layout.engine";
-import {
-  TLayoutNode,
-  TSplitNode,
-} from "../../../types/preset.types";
-
-// ── Sidebar position ──
-//
-// The "ide" root is a horizontal split whose children are the activity-bar
-// (primary sidebar), the editor-area split, and the chat panel. Moving the
-// sidebar right reorders the activity-bar relative to the editor-area split
-// and swaps their sizes so the proportions follow the panel.
+import { TLayoutNode, TSplitNode } from "../../../types/preset.types";
 
 function is_activity_bar(node: TLayoutNode): boolean {
   return node.type === "activity-bar-panel";
@@ -31,7 +21,7 @@ function apply_sidebar_position(position: "left" | "right") {
 
   const sidebar_is_left = ab_idx < editor_idx;
   const want_left = position === "left";
-  if (sidebar_is_left === want_left) return; // already in the desired order
+  if (sidebar_is_left === want_left) return;
 
   const children = [...root.children];
   const sizes = [...root.sizes];
