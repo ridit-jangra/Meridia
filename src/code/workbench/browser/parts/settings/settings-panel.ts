@@ -78,14 +78,14 @@ function select(
   return { el: wrap, refresh, destroy: () => sel.destroy() };
 }
 
-function button(label: string, on_click: () => void): Control {
-  const btn = Button(label, { onClick: on_click });
+// function button(label: string, on_click: () => void): Control {
+//   const btn = Button(label, { onClick: on_click });
 
-  return {
-    el: btn,
-    refresh: () => {},
-  };
-}
+//   return {
+//     el: btn,
+//     refresh: () => {},
+//   };
+// }
 
 function number_input(
   get: () => number,

@@ -7,6 +7,7 @@ import {
   LSP_INSTALL_DONE,
   LSP_INSTALL_ERROR,
 } from "../../../../shared/ipc/channels";
+import { settings_service } from "../../platform/settings/settings.service";
 
 export type LspId =
   | "pylsp"
@@ -85,6 +86,13 @@ export async function on_file_opened(file_path: string): Promise<void> {
 
   const exists = await check_lsp(lsp_id);
   if (exists) return;
+
+  const auto = settings_service.get().lsp_auto_install;
+
+  if (auto) {
+    await check_and_install_lsp(lsp_id);
+    return;
+  }
 
   // await check_and_install_lsp(lsp_id);
   const dialog = await window.dialog.confirm(
