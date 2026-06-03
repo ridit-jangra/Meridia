@@ -23,6 +23,21 @@ const same_shape = (a: any, b: any): boolean => {
   return true;
 };
 
+const has_zero_collapse = (node: any): boolean => {
+  if (!node) return false;
+  if (node.type === "split") {
+    const sizes: number[] = node.sizes ?? [];
+    const children: any[] = node.children ?? [];
+
+    const has_bad_size = children.some(
+      (c, i) => c.enabled !== false && (sizes[i] ?? -1) === 0,
+    );
+    if (has_bad_size) return true;
+    return children.some(has_zero_collapse);
+  }
+  return false;
+};
+
 const is_valid_preset = (
   saved: TLayoutPreset | undefined,
   def: TLayoutPreset,
@@ -30,7 +45,10 @@ const is_valid_preset = (
   if (!saved || typeof saved !== "object") return false;
   if (saved.id !== def.id) return false;
   if (!saved.root || typeof saved.root !== "object") return false;
-  return same_shape(saved.root, def.root);
+  if (!same_shape(saved.root, def.root)) return false;
+
+  if (has_zero_collapse(saved.root)) return false;
+  return true;
 };
 
 export class Engine {
@@ -96,11 +114,18 @@ export class Engine {
         await window.storage.get<Record<string, TLayoutPreset>>(
           LAYOUT_PRESETS_KEY,
         );
-
-      this.persisted =
+      const raw =
         loaded && typeof loaded === "object" && !Array.isArray(loaded)
           ? loaded
           : null;
+
+      if (raw && Object.values(raw).some((p) => has_zero_collapse(p.root))) {
+        await window.storage.set(LAYOUT_PRESETS_KEY, {});
+        this.persisted = null;
+        return;
+      }
+
+      this.persisted = raw;
     } catch (e) {
       console.error("Failed to load presets:", e);
       this.persisted = null;

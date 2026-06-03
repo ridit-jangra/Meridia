@@ -6,7 +6,7 @@ export const ide_preset: TLayoutPreset = {
   root: {
     type: "split",
     dir: "row",
-    sizes: [20, 80],
+    sizes: [20, 60, 20],
     children: [
       {
         type: "activity-bar-panel",
