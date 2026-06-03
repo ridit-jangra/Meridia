@@ -32,7 +32,7 @@
     "@reduxjs/toolkit": "^2.11.2",
     "@ridit/ai": "^0.1.84",
     "@ridit/dev": "^0.2.4",
-    "@ridit/relay": "^0.1.5",
+    "@ridit/relay": "^0.1.6",
     "@tailwindcss/vite": "^4.1.18",
     "@vscode/codicons": "^0.0.44",
     "@xterm/addon-clipboard": "^0.2.0",
