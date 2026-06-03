@@ -8,7 +8,11 @@ import {
   LSP_INSTALL_ERROR,
 } from "../../../../shared/ipc/channels";
 
-export type LspId = "pylsp" | "typescript-language-server";
+export type LspId =
+  | "pylsp"
+  | "typescript-language-server"
+  | "rust-analyzer"
+  | "golsp";
 
 const EXTENSION_LSP_MAP: Record<string, LspId> = {
   py: "pylsp",
@@ -20,6 +24,23 @@ const EXTENSION_LSP_MAP: Record<string, LspId> = {
   mjs: "typescript-language-server",
   mts: "typescript-language-server",
   cjs: "typescript-language-server",
+  rs: "rust-analyzer",
+  go: "golsp",
+};
+
+export const LSPS: Record<LspId, { name: string }> = {
+  pylsp: {
+    name: "Python LSP Server",
+  },
+  "typescript-language-server": {
+    name: "TypeScript Language Server",
+  },
+  "rust-analyzer": {
+    name: "Rust Analyzer",
+  },
+  golsp: {
+    name: "Go Language Server",
+  },
 };
 
 const checked = new Set<LspId>();
@@ -48,6 +69,7 @@ function show_install_item(lsp_id: LspId) {
       item.setText(`${lsp_id} failed`);
       item.el.style.color = "var(--color-error, #f87171)";
       item.el.title = msg;
+      console.log("lsp install error", msg);
       (cleanup_done as unknown as () => void)();
       (cleanup_err as unknown as () => void)();
     },
@@ -61,7 +83,16 @@ export async function on_file_opened(file_path: string): Promise<void> {
   const lsp_id = EXTENSION_LSP_MAP[ext];
   if (!lsp_id) return;
 
-  await check_and_install_lsp(lsp_id);
+  const exists = await check_lsp(lsp_id);
+  if (exists) return;
+
+  // await check_and_install_lsp(lsp_id);
+  const dialog = await window.dialog.confirm(
+    `The file you opened (${file_path}) can be enhanced with ${LSPS[lsp_id].name}. Do you want to install it? you can always install later from settings.`,
+  );
+  if (dialog) {
+    await check_and_install_lsp(lsp_id);
+  }
 }
 
 export async function check_and_install_lsp(lsp_id: LspId): Promise<void> {
@@ -74,6 +105,18 @@ export async function check_and_install_lsp(lsp_id: LspId): Promise<void> {
   }
 
   await install_lsp(lsp_id);
+}
+
+export async function check_lsp(lsp_id: LspId): Promise<boolean> {
+  if (checked.has(lsp_id)) return true;
+  if (installing.has(lsp_id)) return false;
+
+  const result = await window.ipc.invoke(LSP_CHECK, lsp_id).catch(() => null);
+  if (result?.installed) {
+    checked.add(lsp_id);
+    return true;
+  }
+  return false;
 }
 
 async function install_lsp(lsp_id: LspId): Promise<void> {

@@ -6,6 +6,8 @@ import {
   ISettings,
   settings_service,
 } from "../../../../platform/settings/settings.service";
+import { check_and_install_lsp, check_lsp, LSPS } from "../../lsp";
+import { Button } from "../components/button";
 
 const MONO = "'JetBrains Mono', monospace";
 
@@ -47,8 +49,6 @@ function select(
   options: { value: string; label?: string }[],
   on_change: (v: string) => void,
 ): Control {
-  // Guards programmatic setValue (which fires onChange) from looping back into
-  // a save when we're merely syncing the control to external state.
   let applying = false;
 
   const sel = Select({
@@ -61,7 +61,11 @@ function select(
     },
   });
 
-  const wrap = h("div", { class: "w-[140px]", style: { fontFamily: MONO } }, sel.el);
+  const wrap = h(
+    "div",
+    { class: "w-[140px]", style: { fontFamily: MONO } },
+    sel.el,
+  );
 
   const refresh = () => {
     const v = get();
@@ -72,6 +76,15 @@ function select(
   };
 
   return { el: wrap, refresh, destroy: () => sel.destroy() };
+}
+
+function button(label: string, on_click: () => void): Control {
+  const btn = Button(label, { onClick: on_click });
+
+  return {
+    el: btn,
+    refresh: () => {},
+  };
 }
 
 function number_input(
@@ -163,6 +176,45 @@ function setting_row(name: string, control: Control, description?: string) {
     label,
     h("div", { class: "shrink-0 flex items-center" }, control.el),
   );
+}
+
+function lsp_button(id: keyof typeof LSPS): Control {
+  const btn = Button("Checking...", {
+    onClick: async () => {
+      btn.textContent = "Installing...";
+      btn.setAttribute("disabled", "true");
+
+      try {
+        await check_and_install_lsp(id);
+
+        btn.textContent = "Installed";
+      } catch {
+        btn.textContent = "Failed";
+        btn.removeAttribute("disabled");
+      }
+    },
+  });
+
+  const refresh = async () => {
+    const installed = await check_lsp(id);
+
+    btn.textContent = installed ? "Installed" : "Install";
+
+    if (installed) {
+      btn.setAttribute("disabled", "true");
+    } else {
+      btn.removeAttribute("disabled");
+    }
+  };
+
+  void refresh();
+
+  return {
+    el: btn,
+    refresh: () => {
+      void refresh();
+    },
+  };
 }
 
 export function SettingsPanel(): { el: HTMLElement; destroy: () => void } {
@@ -302,6 +354,29 @@ export function SettingsPanel(): { el: HTMLElement; destroy: () => void } {
               () => s().ui_show_breadcrumbs,
               (v) => set({ ui_show_breadcrumbs: v }),
             ),
+          ),
+        ),
+      ],
+    },
+    {
+      id: "lsp",
+      label: "Language Servers",
+      rows: [
+        setting_row(
+          "Auto-Install",
+          ctrl(
+            toggle(
+              () => s().lsp_auto_install,
+              (v) => set({ lsp_auto_install: v }),
+            ),
+          ),
+          "Automatically install language servers when opening files that require them",
+        ),
+        ...Object.entries(LSPS).map(([id, { name }]) =>
+          setting_row(
+            name,
+            ctrl(lsp_button(id as keyof typeof LSPS)),
+            `Automatically install ${name} when opening files that require it`,
           ),
         ),
       ],

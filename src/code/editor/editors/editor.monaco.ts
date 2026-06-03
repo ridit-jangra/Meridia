@@ -623,6 +623,14 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       languageId: "typescript",
       extensions: ["ts", "js", "mjs", "mts"],
     });
+    lsp_client.register({
+      languageId: "rust",
+      extensions: ["rs"],
+    });
+    lsp_client.register({
+      languageId: "go",
+      extensions: ["go"],
+    });
 
     await lsp_client.start(
       (await window.workspace.get_current_workspace_path()) ?? "C:\\",

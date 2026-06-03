@@ -37,7 +37,39 @@ function find_pip(pythonPath: string): { cmd: string; args: string[] } {
   return { cmd: pythonPath, args: ["-m", "pip"] };
 }
 
-type LspId = "pylsp" | "typescript-language-server";
+function find_tool(name: string): string | null {
+  const exe = process.platform === "win32" ? `${name}.exe` : name;
+  const which = cp.spawnSync(
+    process.platform === "win32" ? "where" : "which",
+    [exe],
+    { encoding: "utf8", timeout: 3000 },
+  );
+  if (which.status !== 0) return null;
+  const first = which.stdout
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .find(Boolean);
+  return first ?? null;
+}
+
+function resolve_gopath_bin(): string | null {
+  const go = find_tool("go");
+  if (!go) return null;
+  const env = cp.spawnSync(go, ["env", "GOPATH"], {
+    encoding: "utf8",
+    timeout: 5000,
+    shell: process.platform === "win32",
+  });
+  if (env.status !== 0) return null;
+  const gopath = env.stdout.trim();
+  if (!gopath) return null;
+  const bin =
+    process.platform === "win32" ? "bin\\gopls.exe" : "bin/gopls";
+  const gopls = path.join(gopath, bin);
+  return existsSync(gopls) ? gopls : null;
+}
+
+type LspId = "pylsp" | "typescript-language-server" | "rust-analyzer" | "golsp";
 
 interface InstallRecipe {
   check(): boolean;
@@ -98,6 +130,67 @@ function make_recipes(pythonPath: string | null): Record<LspId, InstallRecipe> {
       },
       install_error_hint() {
         return "npm install -g typescript-language-server typescript";
+      },
+    },
+    "rust-analyzer": {
+      check() {
+        if (find_tool("rust-analyzer")) return true;
+        const rustup = find_tool("rustup");
+        if (!rustup) return false;
+        const list = cp.spawnSync(
+          rustup,
+          ["component", "list", "--installed"],
+          {
+            encoding: "utf8",
+            timeout: 10000,
+            shell: process.platform === "win32",
+          },
+        );
+        if (list.status === 0 && /\brust-analyzer\b/.test(list.stdout)) {
+          return true;
+        }
+        return false;
+      },
+      install_cmd() {
+        const rustup = find_tool("rustup");
+        if (rustup) {
+          return {
+            cmd: rustup,
+            args: ["component", "add", "rust-analyzer"],
+          };
+        }
+        const cargo = find_tool("cargo");
+        if (cargo) {
+          return {
+            cmd: cargo,
+            args: ["install", "--locked", "rust-analyzer"],
+          };
+        }
+        return null;
+      },
+      install_error_hint() {
+        if (find_tool("rustup")) return "rustup component add rust-analyzer";
+        if (find_tool("cargo"))
+          return "cargo install --locked rust-analyzer";
+        return "Install rustup from https://rustup.rs (then: rustup component add rust-analyzer) or download a release from https://github.com/rust-lang/rust-analyzer/releases";
+      },
+    },
+    golsp: {
+      check() {
+        if (find_tool("gopls")) return true;
+        return resolve_gopath_bin() !== null;
+      },
+      install_cmd() {
+        const go = find_tool("go");
+        if (!go) return null;
+        return {
+          cmd: go,
+          args: ["install", "golang.org/x/tools/gopls@latest"],
+        };
+      },
+      install_error_hint() {
+        if (find_tool("go")) return "go install golang.org/x/tools/gopls@latest";
+        return "Install Go from https://go.dev/dl/ (then: go install golang.org/x/tools/gopls@latest)";
       },
     },
   };

@@ -14,6 +14,8 @@ export interface ISettings {
   ui_sidebar_position: "left" | "right";
   ui_compact_tabs: boolean;
   ui_show_breadcrumbs: boolean;
+
+  lsp_auto_install: boolean;
 }
 
 export const DEFAULT_SETTINGS: ISettings = {
@@ -29,6 +31,7 @@ export const DEFAULT_SETTINGS: ISettings = {
   ui_sidebar_position: "left",
   ui_compact_tabs: false,
   ui_show_breadcrumbs: true,
+  lsp_auto_install: true,
 };
 
 type settings_listener = (settings: ISettings) => void;
