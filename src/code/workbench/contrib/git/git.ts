@@ -12,7 +12,7 @@ import {
 } from "../../../../../shared/types/git.types";
 import { open_editor_tab } from "../../../editor/editor.helper";
 
-const ROW_HEIGHT = 22;
+const ROW_HEIGHT = 26;
 
 const GIT_LABELS: Record<string, string> = { "?": "U" };
 const GIT_COLORS: Record<string, string> = {
@@ -111,7 +111,7 @@ function render_file_row(
     {
       "data-row-id": f.path,
       class: cn(
-        "relative flex items-center justify-between select-none cursor-pointer text-[12.5px] rounded-[7px] px-1",
+        "relative flex items-center justify-between select-none cursor-pointer text-[13px] px-1 py-2",
         is_active ? active_cls : passive_cls,
       ),
       tooltip: { text: f.path, delay: 200 },
@@ -193,7 +193,7 @@ const RepoState = () => {
 
   const changes_count = h(
     "p",
-    { class: "text-xs font-medium px-1" },
+    { class: "text-sm font-medium px-1 px-2 mb-2" },
     "Changes",
   );
 
@@ -254,7 +254,7 @@ const RepoState = () => {
 
     h(
       "div",
-      { class: "flex flex-col min-h-0 flex-1 px-2" },
+      { class: "flex flex-col min-h-0 flex-1 mt-2" },
       changes_count,
       list.el,
     ),
