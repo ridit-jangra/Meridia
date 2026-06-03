@@ -14,6 +14,8 @@ import { Command } from "./code/workbench/browser/parts/components/command/comma
 import { store } from "./code/workbench/common/state/store";
 import { set_command_palette_open } from "./code/workbench/common/state/slices/layout.slice";
 import { focus_editor } from "./code/workbench/common/focus";
+import { settings_service } from "./code/platform/settings/settings.service";
+import { init_settings_apply } from "./code/platform/settings/settings.apply";
 
 async function init() {
   const root = document.getElementById("app")!;
@@ -25,6 +27,9 @@ async function init() {
   layout_engine.register_default_layout(ide_preset);
   layout_engine.register_default_layout(agent_preset);
   layout_engine.register_default_layout(editor_preset);
+
+  await settings_service.load();
+  init_settings_apply();
 
   const preset = layout_engine.get_layout(ide_preset.id)!;
   const lr = LayoutRenderer({ layout_preset: preset });

@@ -61,6 +61,10 @@ import {
   setup_react_auto_close,
 } from "../languages/react";
 import { on_file_opened } from "../../workbench/browser/lsp";
+import {
+  ISettings,
+  settings_service,
+} from "../../platform/settings/settings.service";
 
 type Disposer = () => void;
 
@@ -149,6 +153,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
   private model_disposers = new Map<string, Disposer[]>();
   private editor_context_menu = ContextMenu();
   private file_watcher_off: (() => void) | null = null;
+  private settings_off: (() => void) | null = null;
 
   constructor() {
     super(EDITOR_DEF);
@@ -201,6 +206,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     this.setup_hover_invalidation();
     this.setup_file_watcher();
     this.setup_selection_listener();
+    this.setup_settings();
     await this.setup_lsp();
 
     this.instance.addCommand(monaco.KeyCode.F1, () => {});
@@ -285,6 +291,33 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
           this.instance.setScrollLeft(saved_scroll.left);
         }
       },
+    );
+  }
+
+  private apply_settings(s: ISettings): void {
+    if (!this.instance) return;
+    this.instance.updateOptions({
+      fontSize: s.editor_font_size,
+      fontFamily: s.editor_font_family,
+      wordWrap: s.editor_word_wrap ? "on" : "off",
+      minimap: { enabled: s.editor_minimap },
+      lineNumbers: s.editor_line_numbers ? "on" : "off",
+      smoothScrolling: s.editor_smooth_scrolling,
+      cursorBlinking: s.editor_cursor_blinking as
+        | "blink"
+        | "smooth"
+        | "phase"
+        | "expand"
+        | "solid",
+      fontLigatures: s.editor_ligatures,
+    });
+    this.instance.getModel()?.updateOptions({ tabSize: s.editor_tab_size });
+  }
+
+  private setup_settings(): void {
+    this.apply_settings(settings_service.get());
+    this.settings_off = settings_service.subscribe((s) =>
+      this.apply_settings(s),
     );
   }
 
@@ -803,6 +836,9 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     this.hide_error();
     this.active_model = model;
     this.instance.setModel(model.model);
+    model.model.updateOptions({
+      tabSize: settings_service.get().editor_tab_size,
+    });
 
     if (model.selection) {
       const s = model.selection;
@@ -880,6 +916,7 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     this.model_disposers.forEach((disposers) => disposers.forEach((d) => d()));
     this.model_disposers.clear();
     this.file_watcher_off?.();
+    this.settings_off?.();
     this.editor_context_menu.destroy();
     this.instance?.dispose();
   }

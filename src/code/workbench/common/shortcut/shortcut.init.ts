@@ -20,6 +20,7 @@ import {
   close_active_editor_tab,
   open_editor_tab,
   open_new_editor_tab,
+  open_settings_tab,
 } from "../../../editor/editor.helper";
 import { terminal_events } from "../../../platform/events/terminal.events";
 import { runCurrentFile } from "../run";
@@ -261,7 +262,7 @@ shortcuts.register_command({
 });
 shortcuts.register_command({
   id: "app.openSettings",
-  run: () => {},
+  run: () => open_settings_tab(),
 });
 shortcuts.register_command({
   id: "terminal.new",

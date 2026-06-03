@@ -19,7 +19,7 @@ export function open_editor_tab(file_path: string, type: tab_type) {
       const is_match = uris_equal(tab.file_path, file_path);
       return {
         ...tab,
-        tab_type: is_match ? type : tab.tab_type,
+        tab_type: is_match && tab.tab_type !== "SETTINGS" ? type : tab.tab_type,
         active: is_match,
       };
     });
@@ -39,6 +39,35 @@ export function open_editor_tab(file_path: string, type: tab_type) {
     active: true,
     tab_status: "EXISTS",
     tab_type: type,
+  };
+
+  store.dispatch(update_tabs([...updated_tabs, new_tab]));
+}
+
+export const SETTINGS_URI = "meridia://settings";
+
+export function open_settings_tab() {
+  const current_tabs = store.getState().editor.tabs;
+  const existing = current_tabs.find((t) => t.tab_type === "SETTINGS");
+
+  // Only one settings tab ever exists — focus it if already open.
+  if (existing) {
+    store.dispatch(
+      update_tabs(
+        current_tabs.map((t) => ({ ...t, active: t.tab_type === "SETTINGS" })),
+      ),
+    );
+    return;
+  }
+
+  const updated_tabs = current_tabs.map((tab) => ({ ...tab, active: false }));
+
+  const new_tab: ITab = {
+    file_path: SETTINGS_URI,
+    name: "Settings",
+    active: true,
+    tab_status: "EXISTS",
+    tab_type: "SETTINGS",
   };
 
   store.dispatch(update_tabs([...updated_tabs, new_tab]));

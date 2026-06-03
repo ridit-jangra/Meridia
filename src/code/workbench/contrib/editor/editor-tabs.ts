@@ -11,12 +11,13 @@ import { get_file_icon } from "../../../platform/explorer/explorer.helper";
 import { history } from "../../../platform/history/history.service";
 import { insights as insights_service } from "../../../platform/insight/insight.service";
 import { ContextMenu } from "../../browser/parts/components/context-menu";
-import { lucide } from "../../browser/parts/components/icon";
+import { codicon, lucide } from "../../browser/parts/components/icon";
 import { ScrollArea } from "../../browser/parts/components/scroll-area";
 import { TabSwitcher } from "../../browser/parts/components/tab-switcher";
 import { shortcuts } from "../../common/shortcut/shortcut.service";
 import { store } from "../../common/state/store";
 import { update_tabs } from "../../common/state/slices/editor.slice";
+import { settings_service } from "../../../platform/settings/settings.service";
 import { h } from "../core/dom/h";
 import { cn } from "../core/utils/cn";
 import { editor_events } from "../../../platform/events/editor.events";
@@ -248,11 +249,18 @@ export function EditorTabs() {
   };
 
   const renderTab = (tab: ITab, element?: HTMLElement) => {
+    const is_settings = tab.tab_type === "SETTINGS";
+
     if (!element) {
-      const icon = h("img", {
-        attrs: { "data-role": "icon" },
-        class: "w-5 h-5 mt-px",
-      }) as HTMLImageElement;
+      const icon = is_settings
+        ? codicon(
+            "gear",
+            "text-[17px] leading-none mt-px text-editor-tab-icon-foreground",
+          )
+        : (h("img", {
+            attrs: { "data-role": "icon" },
+            class: "w-5 h-5 mt-px",
+          }) as HTMLImageElement);
 
       const dirtyDot = h(
         "span",
@@ -318,7 +326,7 @@ export function EditorTabs() {
           },
         },
         tooltip: {
-          text: tab.file_path,
+          text: is_settings ? "Settings" : tab.file_path,
           position: "bottom",
           delay: 200,
         },
@@ -380,7 +388,7 @@ export function EditorTabs() {
     element.dataset.path = tab.file_path;
 
     element.className = cn(
-      "group relative",
+      "editor-tab group relative",
       "px-3.5 py-2.5 text-[14px] flex items-center gap-2 cursor-pointer select-none border-r border-r-editor-tab-border whitespace-nowrap",
       tab.active
         ? "bg-editor-tab-active-background text-editor-tab-active-foreground"
@@ -423,7 +431,7 @@ export function EditorTabs() {
       );
     }
 
-    patch_tab_git(tab.file_path);
+    if (!is_settings) patch_tab_git(tab.file_path);
 
     return element;
   };
@@ -529,13 +537,20 @@ export function EditorTabs() {
   renderTabs();
   header.appendChild(scrollArea.el);
 
-  const el = h("div", { class: "relative" }, header);
+  const el = h("div", { class: "editor-tabs-host relative" }, header);
   el.appendChild(LoadingBar());
+
+  const apply_compact = () => {
+    el.dataset.compact = String(settings_service.get().ui_compact_tabs);
+  };
+  apply_compact();
+  const unsub_settings = settings_service.subscribe(apply_compact);
 
   return {
     el,
     destroy() {
       unsub();
+      unsub_settings();
       document.removeEventListener("keydown", onKeyDown, true);
       switcher.destroy();
       scrollArea.destroy();

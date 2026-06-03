@@ -10,6 +10,7 @@ import { h } from "../core/dom/h";
 import { editors_registry } from "../core/registry";
 import { EditorTabs } from "./editor-tabs";
 import { editor_events } from "../../../platform/events/editor.events";
+import { SettingsPanel } from "../../browser/parts/settings/settings-panel";
 
 export function EditorArea() {
   const el = h("div", {
@@ -41,12 +42,28 @@ export function EditorArea() {
   let saving = false;
   let queued_tabs: any = null;
 
+  let settings_panel: ReturnType<typeof SettingsPanel> | null = null;
+
+  const show_settings = () => {
+    if (!settings_panel) {
+      settings_panel = SettingsPanel();
+      settings_panel.el.style.height = "100%";
+      scroll.inner.appendChild(settings_panel.el);
+    }
+    settings_panel.el.style.display = "";
+  };
+
+  const hide_settings = () => {
+    if (settings_panel) settings_panel.el.style.display = "none";
+  };
+
   const mount_panel = async () => {
     const key = get_active();
     const editors = get_editors_unique();
 
     if (!key) {
       editors.forEach((e) => e.set_visible(false));
+      hide_settings();
       last_active_path = "";
       last_active_status = "";
       last_active_type = "";
@@ -62,6 +79,14 @@ export function EditorArea() {
     last_active_path = key.file_path;
     last_active_status = key.tab_status;
     last_active_type = key.tab_type;
+
+    if (key.tab_type === "SETTINGS") {
+      editors.forEach((e) => e.set_visible(false));
+      show_settings();
+      return;
+    }
+
+    hide_settings();
 
     const extension = get_file_extension(key.file_path);
     let editor =
@@ -172,6 +197,8 @@ export function EditorArea() {
   (el as any).destroy = () => {
     unsub();
     get_editors_unique().forEach((e) => e.set_visible(false));
+    settings_panel?.destroy();
+    settings_panel = null;
   };
 
   return el;

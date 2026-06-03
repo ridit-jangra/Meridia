@@ -12,6 +12,7 @@ import { cn } from "../../../contrib/core/utils/cn";
 import { Breadcrumb } from "../components/breadcrumb";
 import { Tooltip } from "../components/tooltip";
 import { editor_events } from "../../../../platform/events/editor.events";
+import { settings_service } from "../../../../platform/settings/settings.service";
 import { UI_SET_STATUS_BAR } from "../../../../../../shared/ipc/channels";
 
 export function StatusbarItem(text?: string) {
@@ -55,6 +56,14 @@ export function Statusbar() {
   });
 
   const left = h("div", { class: "flex items-center min-w-0" });
+
+  const apply_breadcrumb_visibility = () => {
+    left.style.display = settings_service.get().ui_show_breadcrumbs
+      ? ""
+      : "none";
+  };
+  apply_breadcrumb_visibility();
+  settings_service.subscribe(apply_breadcrumb_visibility);
 
   const lineColItem = StatusbarItem();
   const indentItem = StatusbarItem();
