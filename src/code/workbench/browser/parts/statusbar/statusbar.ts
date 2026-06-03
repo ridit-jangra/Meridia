@@ -14,7 +14,7 @@ import { Tooltip } from "../components/tooltip";
 import { editor_events } from "../../../../platform/events/editor.events";
 import { UI_SET_STATUS_BAR } from "../../../../../../shared/ipc/channels";
 
-function StatusbarItem(text?: string) {
+export function StatusbarItem(text?: string) {
   const el = h(
     "div",
     {
@@ -206,6 +206,14 @@ export function Statusbar() {
     encodingItem.el,
     languageItem.el,
   );
+
+  statusbar_events.on("addItemOnRight", (item: HTMLElement) => {
+    right.prepend(item);
+  });
+
+  statusbar_events.on("removeItemFromRight", (item: HTMLElement) => {
+    right.removeChild(item);
+  });
 
   const el = h(
     "div",

@@ -76,3 +76,9 @@ export const TERMINAL_OUTPUT_RESPONSE = "terminal:outputResponse";
 
 export const UI_SHOW_NOTIFICATION = "ui:showNotification";
 export const UI_SET_STATUS_BAR = "ui:setStatusBar";
+
+export const LSP_CHECK = "lsp:check";
+export const LSP_INSTALL = "lsp:install";
+export const LSP_INSTALL_PROGRESS = "lsp:install-progress";
+export const LSP_INSTALL_DONE = "lsp:install-done";
+export const LSP_INSTALL_ERROR = "lsp:install-error";

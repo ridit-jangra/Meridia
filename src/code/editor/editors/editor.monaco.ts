@@ -60,6 +60,7 @@ import {
   register_react_language,
   setup_react_auto_close,
 } from "../languages/react";
+import { check_and_install_lsp } from "../../workbench/browser/lsp";
 
 type Disposer = () => void;
 
@@ -220,6 +221,10 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     register_react_language();
 
     setup_react_auto_close(this.editor.instance);
+
+    editor_events.on("lsp-restart", async () => {
+      await this.restart_lsp();
+    });
   }
 
   private setup_file_watcher(): void {
@@ -585,6 +590,12 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       languageId: "typescript",
       extensions: ["ts", "js", "mjs", "mts"],
     });
+
+    await Promise.all([
+      check_and_install_lsp("pylsp"),
+      check_and_install_lsp("typescript-language-server"),
+    ]);
+
     await lsp_client.start(
       (await window.workspace.get_current_workspace_path()) ?? "C:\\",
       LSP_BRIDGE_PORT,
@@ -846,6 +857,11 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
     );
     if (!this.error_el.parentElement) this.parent_el.appendChild(this.error_el);
     this.error_el.classList.remove("hidden");
+  }
+
+  public async restart_lsp(): Promise<void> {
+    lsp_client.dispose();
+    await this.setup_lsp();
   }
 
   private hide_error(): void {
