@@ -82,3 +82,6 @@ export const LSP_INSTALL = "lsp:install";
 export const LSP_INSTALL_PROGRESS = "lsp:install-progress";
 export const LSP_INSTALL_DONE = "lsp:install-done";
 export const LSP_INSTALL_ERROR = "lsp:install-error";
+export const LSP_UNINSTALL = "lsp:uninstall";
+export const LSP_UNINSTALL_DONE = "lsp:uninstall:done";
+export const LSP_UNINSTALL_ERROR = "lsp:uninstall:error";

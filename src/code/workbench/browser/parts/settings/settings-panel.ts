@@ -6,7 +6,12 @@ import {
   ISettings,
   settings_service,
 } from "../../../../platform/settings/settings.service";
-import { check_and_install_lsp, check_lsp, LSPS } from "../../lsp";
+import {
+  check_and_install_lsp,
+  check_lsp,
+  LSPS,
+  uninstall_lsp,
+} from "../../lsp";
 import { Button } from "../components/button";
 
 const MONO = "'JetBrains Mono', monospace";
@@ -178,7 +183,39 @@ function setting_row(name: string, control: Control, description?: string) {
   );
 }
 
-function lsp_button(id: keyof typeof LSPS): Control {
+function lsp_button(
+  id: keyof typeof LSPS,
+  get: () => ISettings[`lsp_${string & keyof typeof LSPS}`],
+  on_change: (v: "Installed" | "Not Installed") => void,
+  installed: boolean,
+): Control {
+  if (installed) {
+    const tog = toggle(
+      () => get() === "Installed",
+      (v) => on_change(v ? "Installed" : "Not Installed"),
+    );
+
+    const uninstall_btn = Button("Uninstall", {
+      variant: "destructive",
+      onClick: async () => {
+        uninstall_btn.setAttribute("disabled", "true");
+        uninstall_btn.textContent = "Uninstalling...";
+        try {
+          await uninstall_lsp(id);
+          on_change("Not Installed");
+        } catch {
+          uninstall_btn.textContent = "Failed";
+          uninstall_btn.removeAttribute("disabled");
+        }
+      },
+    });
+
+    return {
+      el: h("div", { class: "flex items-center gap-2" }, tog.el, uninstall_btn),
+      refresh: () => tog.refresh(),
+    };
+  }
+
   const btn = Button("Checking...", {
     onClick: async () => {
       btn.textContent = "Installing...";
@@ -186,7 +223,7 @@ function lsp_button(id: keyof typeof LSPS): Control {
 
       try {
         await check_and_install_lsp(id);
-
+        on_change("Installed");
         btn.textContent = "Installed";
       } catch {
         btn.textContent = "Failed";
@@ -196,15 +233,19 @@ function lsp_button(id: keyof typeof LSPS): Control {
   });
 
   const refresh = async () => {
-    const installed = await check_lsp(id);
+    const stored = get();
+    // Trust the persisted value first, then verify with check_lsp
+    const installed = stored === "Installed" ? true : await check_lsp(id);
+    const status: "Installed" | "Not Installed" = installed
+      ? "Installed"
+      : "Not Installed";
+
+    // Sync back if there's a mismatch
+    if (stored !== status) on_change(status);
 
     btn.textContent = installed ? "Installed" : "Install";
-
-    if (installed) {
-      btn.setAttribute("disabled", "true");
-    } else {
-      btn.removeAttribute("disabled");
-    }
+    if (installed) btn.setAttribute("disabled", "true");
+    else btn.removeAttribute("disabled");
   };
 
   void refresh();
@@ -372,13 +413,21 @@ export function SettingsPanel(): { el: HTMLElement; destroy: () => void } {
           ),
           "Automatically install language servers when opening files that require them",
         ),
-        ...Object.entries(LSPS).map(([id, { name }]) =>
-          setting_row(
+        ...Object.entries(LSPS).map(([id, { name }]) => {
+          const key = `lsp_${id}` as keyof ISettings;
+          return setting_row(
             name,
-            ctrl(lsp_button(id as keyof typeof LSPS)),
+            ctrl(
+              lsp_button(
+                id as keyof typeof LSPS,
+                () => s()[key] as "Installed" | "Not Installed",
+                (v) => set({ [key]: v }),
+                s()[key] === "Installed",
+              ),
+            ),
             `Automatically install ${name} when opening files that require it`,
-          ),
-        ),
+          );
+        }),
       ],
     },
   ];

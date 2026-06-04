@@ -6,6 +6,9 @@ import {
   LSP_INSTALL,
   LSP_INSTALL_DONE,
   LSP_INSTALL_ERROR,
+  LSP_UNINSTALL,
+  LSP_UNINSTALL_DONE,
+  LSP_UNINSTALL_ERROR,
 } from "../../../../shared/ipc/channels";
 import { settings_service } from "../../platform/settings/settings.service";
 
@@ -29,18 +32,22 @@ const EXTENSION_LSP_MAP: Record<string, LspId> = {
   go: "golsp",
 };
 
-export const LSPS: Record<LspId, { name: string }> = {
+export const LSPS: Record<LspId, { name: string; id: string }> = {
   pylsp: {
     name: "Python LSP Server",
+    id: "pylsp",
   },
   "typescript-language-server": {
     name: "TypeScript Language Server",
+    id: "tslsp",
   },
   "rust-analyzer": {
     name: "Rust Analyzer",
+    id: "rs",
   },
   golsp: {
     name: "Go Language Server",
+    id: "go",
   },
 };
 
@@ -157,4 +164,46 @@ async function install_lsp(lsp_id: LspId): Promise<void> {
   });
 
   await done;
+}
+
+export async function uninstall_lsp(lsp_id: LspId): Promise<void> {
+  checked.delete(lsp_id);
+
+  const item = StatusbarItem();
+  item.setText(`Uninstalling ${lsp_id}...`);
+  statusbar_events.emit("addItemOnRight", item.el);
+
+  await window.ipc.invoke(LSP_UNINSTALL, lsp_id);
+
+  await new Promise<void>((resolve) => {
+    const off_done = window.ipc.on(LSP_UNINSTALL_DONE, (_: any, id: LspId) => {
+      if (id !== lsp_id) return;
+      item.setText(`${lsp_id} removed`);
+      item.el.style.color = "var(--color-success, #4ade80)";
+      setTimeout(
+        () => statusbar_events.emit("removeItemFromRight", item.el),
+        3000,
+      );
+      (off_done as unknown as () => void)();
+      (off_err as unknown as () => void)();
+      resolve();
+    });
+    const off_err = window.ipc.on(
+      LSP_UNINSTALL_ERROR,
+      (_: any, id: LspId, msg: string) => {
+        if (id !== lsp_id) return;
+        checked.add(lsp_id);
+        item.setText(`${lsp_id} uninstall failed`);
+        item.el.style.color = "var(--color-error, #f87171)";
+        item.el.title = msg;
+        setTimeout(
+          () => statusbar_events.emit("removeItemFromRight", item.el),
+          3000,
+        );
+        (off_done as unknown as () => void)();
+        (off_err as unknown as () => void)();
+        resolve();
+      },
+    );
+  });
 }

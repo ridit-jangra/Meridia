@@ -8,6 +8,9 @@ import {
   LSP_INSTALL_PROGRESS,
   LSP_INSTALL_DONE,
   LSP_INSTALL_ERROR,
+  LSP_UNINSTALL,
+  LSP_UNINSTALL_ERROR,
+  LSP_UNINSTALL_DONE,
 } from "../../shared/ipc/channels";
 import { resolve_python, resolve_pylsp } from "../lsp.resolver";
 
@@ -63,8 +66,7 @@ function resolve_gopath_bin(): string | null {
   if (env.status !== 0) return null;
   const gopath = env.stdout.trim();
   if (!gopath) return null;
-  const bin =
-    process.platform === "win32" ? "bin\\gopls.exe" : "bin/gopls";
+  const bin = process.platform === "win32" ? "bin\\gopls.exe" : "bin/gopls";
   const gopls = path.join(gopath, bin);
   return existsSync(gopls) ? gopls : null;
 }
@@ -75,6 +77,7 @@ interface InstallRecipe {
   check(): boolean;
   install_cmd(): { cmd: string; args: string[] } | null;
   install_error_hint(): string;
+  uninstall_cmd(): { cmd: string; args: string[] } | null;
 }
 
 function make_recipes(pythonPath: string | null): Record<LspId, InstallRecipe> {
@@ -93,6 +96,11 @@ function make_recipes(pythonPath: string | null): Record<LspId, InstallRecipe> {
         return pythonPath
           ? `"${pythonPath}" -m pip install python-lsp-server[all]`
           : "Python not found — install Python 3.8+ first";
+      },
+      uninstall_cmd() {
+        if (!pythonPath) return null;
+        const { cmd, args } = find_pip(pythonPath);
+        return { cmd, args: [...args, "uninstall", "-y", "python-lsp-server"] };
       },
     },
 
@@ -130,6 +138,12 @@ function make_recipes(pythonPath: string | null): Record<LspId, InstallRecipe> {
       },
       install_error_hint() {
         return "npm install -g typescript-language-server typescript";
+      },
+      uninstall_cmd() {
+        return {
+          cmd: find_npm(),
+          args: ["uninstall", "-g", "typescript-language-server", "typescript"],
+        };
       },
     },
     "rust-analyzer": {
@@ -170,9 +184,19 @@ function make_recipes(pythonPath: string | null): Record<LspId, InstallRecipe> {
       },
       install_error_hint() {
         if (find_tool("rustup")) return "rustup component add rust-analyzer";
-        if (find_tool("cargo"))
-          return "cargo install --locked rust-analyzer";
+        if (find_tool("cargo")) return "cargo install --locked rust-analyzer";
         return "Install rustup from https://rustup.rs (then: rustup component add rust-analyzer) or download a release from https://github.com/rust-lang/rust-analyzer/releases";
+      },
+      uninstall_cmd() {
+        const rustup = find_tool("rustup");
+        if (rustup)
+          return {
+            cmd: rustup,
+            args: ["component", "remove", "rust-analyzer"],
+          };
+        const cargo = find_tool("cargo");
+        if (cargo) return { cmd: cargo, args: ["uninstall", "rust-analyzer"] };
+        return null;
       },
     },
     golsp: {
@@ -189,8 +213,16 @@ function make_recipes(pythonPath: string | null): Record<LspId, InstallRecipe> {
         };
       },
       install_error_hint() {
-        if (find_tool("go")) return "go install golang.org/x/tools/gopls@latest";
+        if (find_tool("go"))
+          return "go install golang.org/x/tools/gopls@latest";
         return "Install Go from https://go.dev/dl/ (then: go install golang.org/x/tools/gopls@latest)";
+      },
+      uninstall_cmd() {
+        const gopls = find_tool("gopls") ?? resolve_gopath_bin();
+        if (!gopls) return null;
+        return process.platform === "win32"
+          ? { cmd: "del", args: [gopls] }
+          : { cmd: "rm", args: [gopls] };
       },
     },
   };
@@ -278,6 +310,54 @@ ipcMain.handle(LSP_INSTALL, async (_, lsp_id: LspId) => {
         lsp_id,
         `Spawn error: ${err.message}\nTry manually:\n  ${recipe.install_error_hint()}`,
       );
+      resolve({ ok: false });
+    });
+  });
+});
+
+const uninstalling = new Set<LspId>();
+
+ipcMain.handle(LSP_UNINSTALL, async (_, lsp_id: LspId) => {
+  if (uninstalling.has(lsp_id)) return { already_uninstalling: true };
+
+  const python = resolve_python();
+  const recipes = make_recipes(python);
+  const recipe = recipes[lsp_id];
+  if (!recipe) return { error: `Unknown LSP: ${lsp_id}` };
+
+  const cmd_spec = recipe.uninstall_cmd();
+  if (!cmd_spec) {
+    const msg = `Cannot auto-uninstall ${lsp_id} — remove it manually`;
+    broadcast(LSP_UNINSTALL_ERROR, lsp_id, msg);
+    return { error: msg };
+  }
+
+  uninstalling.add(lsp_id);
+
+  return new Promise<{ ok: boolean }>((resolve) => {
+    const proc = cp.spawn(cmd_spec.cmd, cmd_spec.args, {
+      shell: process.platform === "win32",
+      env: { ...process.env, PYTHONUNBUFFERED: "1" },
+    });
+
+    proc.on("close", (code) => {
+      uninstalling.delete(lsp_id);
+      if (code === 0) {
+        broadcast(LSP_UNINSTALL_DONE, lsp_id);
+        resolve({ ok: true });
+      } else {
+        broadcast(
+          LSP_UNINSTALL_ERROR,
+          lsp_id,
+          `Uninstall failed (exit ${code})`,
+        );
+        resolve({ ok: false });
+      }
+    });
+
+    proc.on("error", (err) => {
+      uninstalling.delete(lsp_id);
+      broadcast(LSP_UNINSTALL_ERROR, lsp_id, `Spawn error: ${err.message}`);
       resolve({ ok: false });
     });
   });

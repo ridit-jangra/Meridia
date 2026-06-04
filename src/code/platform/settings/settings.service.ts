@@ -16,6 +16,11 @@ export interface ISettings {
   ui_show_breadcrumbs: boolean;
 
   lsp_auto_install: boolean;
+
+  lsp_pylsp: boolean | "Installed" | "Not Installed";
+  "lsp_typescript-language-server": boolean | "Installed" | "Not Installed";
+  "lsp_rust-analyzer": boolean | "Installed" | "Not Installed";
+  lsp_golsp: boolean | "Installed" | "Not Installed";
 }
 
 export const DEFAULT_SETTINGS: ISettings = {
@@ -32,6 +37,10 @@ export const DEFAULT_SETTINGS: ISettings = {
   ui_compact_tabs: false,
   ui_show_breadcrumbs: true,
   lsp_auto_install: true,
+  lsp_pylsp: "Not Installed",
+  "lsp_typescript-language-server": "Not Installed",
+  "lsp_rust-analyzer": "Not Installed",
+  lsp_golsp: "Not Installed",
 };
 
 type settings_listener = (settings: ISettings) => void;
