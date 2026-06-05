@@ -160,8 +160,10 @@ function make_recipes(pythonPath: string | null): Record<LspId, InstallRecipe> {
             shell: process.platform === "win32",
           },
         );
-        if (list.status === 0 && /\brust-analyzer\b/.test(list.stdout)) {
-          return true;
+        if (list.status === 0) {
+          return list.stdout
+            .split(/\r?\n/)
+            .some((line) => /^rust-analyzer(\b|-)/.test(line.trim()));
         }
         return false;
       },

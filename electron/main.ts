@@ -111,6 +111,18 @@ lsp_server.register({
   args: ["--stdio"],
 });
 
+lsp_server.register({
+  languageId: "rust",
+  command: "rust-analyzer",
+  args: ["--stdio"],
+});
+
+lsp_server.register({
+  languageId: "go",
+  command: "gopls",
+  args: ["--stdio"],
+});
+
 lsp_server.start(LSP_BRIDGE_PORT);
 
 let win: BrowserWindow | null = null;

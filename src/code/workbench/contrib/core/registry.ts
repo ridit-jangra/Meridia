@@ -15,6 +15,7 @@ import { EditorArea } from "../editor/editor-area";
 import { Chat } from "../chat/chat";
 import { Git } from "../git/git";
 import { Preview } from "../preview/preview";
+import { Search } from "../search/search";
 
 export const tabs_registry: Record<string, () => HTMLElement> = {
   terminal: () => {
@@ -58,6 +59,7 @@ export const panels_registry: Record<
   ai_chat: () => Chat(),
   git: () => Git(),
   preview: () => Preview(),
+  search: () => Search(),
 };
 
 export const editors_registry: Record<

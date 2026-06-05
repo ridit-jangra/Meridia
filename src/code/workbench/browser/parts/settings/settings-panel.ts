@@ -83,15 +83,6 @@ function select(
   return { el: wrap, refresh, destroy: () => sel.destroy() };
 }
 
-// function button(label: string, on_click: () => void): Control {
-//   const btn = Button(label, { onClick: on_click });
-
-//   return {
-//     el: btn,
-//     refresh: () => {},
-//   };
-// }
-
 function number_input(
   get: () => number,
   bounds: { min: number; max: number; step: number },
@@ -185,75 +176,72 @@ function setting_row(name: string, control: Control, description?: string) {
 
 function lsp_button(
   id: keyof typeof LSPS,
-  get: () => ISettings[`lsp_${string & keyof typeof LSPS}`],
+  get: () => "Installed" | "Not Installed",
   on_change: (v: "Installed" | "Not Installed") => void,
-  installed: boolean,
 ): Control {
-  if (installed) {
-    const tog = toggle(
-      () => get() === "Installed",
-      (v) => on_change(v ? "Installed" : "Not Installed"),
-    );
+  const container = h("div", { class: "flex items-center gap-2" });
 
-    const uninstall_btn = Button("Uninstall", {
-      variant: "destructive",
-      onClick: async () => {
-        uninstall_btn.setAttribute("disabled", "true");
-        uninstall_btn.textContent = "Uninstalling...";
-        try {
-          await uninstall_lsp(id);
-          on_change("Not Installed");
-        } catch {
-          uninstall_btn.textContent = "Failed";
-          uninstall_btn.removeAttribute("disabled");
-        }
-      },
-    });
+  const render = (installed: boolean) => {
+    container.innerHTML = "";
 
-    return {
-      el: h("div", { class: "flex items-center gap-2" }, tog.el, uninstall_btn),
-      refresh: () => tog.refresh(),
-    };
-  }
+    if (installed) {
+      const tog = toggle(
+        () => get() === "Installed",
+        (v) => on_change(v ? "Installed" : "Not Installed"),
+      );
 
-  const btn = Button("Checking...", {
-    onClick: async () => {
-      btn.textContent = "Installing...";
-      btn.setAttribute("disabled", "true");
+      const uninstall_btn = Button("Uninstall", {
+        variant: "destructive",
+        onClick: async () => {
+          uninstall_btn.setAttribute("disabled", "true");
+          uninstall_btn.textContent = "Uninstalling...";
+          try {
+            await uninstall_lsp(id);
+            on_change("Not Installed");
+            render(false);
+          } catch {
+            uninstall_btn.textContent = "Failed";
+            uninstall_btn.removeAttribute("disabled");
+          }
+        },
+      });
 
-      try {
-        await check_and_install_lsp(id);
-        on_change("Installed");
-        btn.textContent = "Installed";
-      } catch {
-        btn.textContent = "Failed";
-        btn.removeAttribute("disabled");
-      }
-    },
-  });
+      container.appendChild(tog.el);
+      container.appendChild(uninstall_btn);
+    } else {
+      const btn = Button("Checking...", {
+        onClick: async () => {
+          btn.textContent = "Installing...";
+          btn.setAttribute("disabled", "true");
+          try {
+            await check_and_install_lsp(id);
+            on_change("Installed");
+            render(true);
+          } catch {
+            btn.textContent = "Failed";
+            btn.removeAttribute("disabled");
+          }
+        },
+      });
 
-  const refresh = async () => {
-    const stored = get();
-    // Trust the persisted value first, then verify with check_lsp
-    const installed = stored === "Installed" ? true : await check_lsp(id);
-    const status: "Installed" | "Not Installed" = installed
-      ? "Installed"
-      : "Not Installed";
+      container.appendChild(btn);
 
-    // Sync back if there's a mismatch
-    if (stored !== status) on_change(status);
-
-    btn.textContent = installed ? "Installed" : "Install";
-    if (installed) btn.setAttribute("disabled", "true");
-    else btn.removeAttribute("disabled");
+      check_lsp(id).then((is_installed) => {
+        const status = is_installed ? "Installed" : "Not Installed";
+        on_change(status);
+        if (is_installed) render(true);
+        else btn.textContent = "Install";
+      });
+    }
   };
 
-  void refresh();
+  // Bootstrap from persisted settings, then verify with actual check
+  render(get() === "Installed");
 
   return {
-    el: btn,
+    el: container,
     refresh: () => {
-      void refresh();
+      check_lsp(id).then((is_installed) => render(is_installed));
     },
   };
 }
@@ -422,7 +410,6 @@ export function SettingsPanel(): { el: HTMLElement; destroy: () => void } {
                 id as keyof typeof LSPS,
                 () => s()[key] as "Installed" | "Not Installed",
                 (v) => set({ [key]: v }),
-                s()[key] === "Installed",
               ),
             ),
             `Automatically install ${name} when opening files that require it`,
