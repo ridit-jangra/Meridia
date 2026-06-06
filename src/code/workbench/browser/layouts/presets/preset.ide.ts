@@ -47,7 +47,7 @@ export const ide_preset: TLayoutPreset = {
             sizes: [70, 30],
             children: [
               { type: "panel", id: "editor", enabled: true },
-              { type: "panel", id: "preview", enabled: false },
+              // { type: "panel", id: "preview", enabled: false },
             ],
           },
 

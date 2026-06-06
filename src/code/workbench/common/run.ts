@@ -1,4 +1,5 @@
 import {
+  TERMINAL_AI_RUN,
   TERMINAL_GET_OUTPUT,
   TERMINAL_OUTPUT_RESPONSE,
   TERMINAL_RUN_COMMAND,
@@ -6,6 +7,7 @@ import {
 } from "../../../../shared/ipc/channels";
 import { get_file_extension } from "../../editor/editor.helper";
 import { terminal } from "../../platform/terminal/terminal.service";
+import { terminal_events } from "../../platform/events/terminal.events";
 import {
   enable_node_at_path,
   update_layout,
@@ -96,5 +98,10 @@ setTimeout(() => {
   ipc.on(TERMINAL_GET_OUTPUT, (_, lines: number = 50) => {
     const slice = _output_buffer.slice(-lines).join("\n");
     ipc.send(TERMINAL_OUTPUT_RESPONSE, slice);
+  });
+
+  ipc.on(TERMINAL_AI_RUN, (_, command: string) => {
+    update_layout([1, 1], enable_node_at_path);
+    terminal_events.emit("aiRun", command);
   });
 }, 200);

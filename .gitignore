@@ -30,3 +30,6 @@ release
 old-meridia
 
 .claude
+
+.env
+.env*

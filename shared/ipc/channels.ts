@@ -73,6 +73,7 @@ export const TERMINAL_RUN_FILE = "terminal:runFile";
 export const TERMINAL_RUN_COMMAND = "terminal:runCommand";
 export const TERMINAL_GET_OUTPUT = "terminal:getOutput";
 export const TERMINAL_OUTPUT_RESPONSE = "terminal:outputResponse";
+export const TERMINAL_AI_RUN = "terminal:aiRun";
 
 export const UI_SHOW_NOTIFICATION = "ui:showNotification";
 export const UI_SET_STATUS_BAR = "ui:setStatusBar";

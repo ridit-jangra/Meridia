@@ -8,6 +8,25 @@ import { cn } from "../core/utils/cn";
 import { ITerminalTab } from "../../../../types/terminal.types";
 import { codicon, lucide } from "../../browser/parts/components/icon";
 
+function write_when_fitted(tab: ITerminalTab, data: string, tries = 0): void {
+  const ready = tab.el.offsetWidth > 0 && tab.el.offsetHeight > 0;
+
+  if (ready) {
+    try {
+      tab.fitAddon.fit();
+    } catch {}
+    requestAnimationFrame(() => window.pty.write(tab.id, data));
+    return;
+  }
+
+  if (tries >= 60) {
+    window.pty.write(tab.id, data);
+    return;
+  }
+
+  requestAnimationFrame(() => write_when_fitted(tab, data, tries + 1));
+}
+
 export function TerminalPanel(opts?: { class?: string }) {
   let unsub: (() => void) | null = null;
   let resizeObserver: ResizeObserver | null = null;
@@ -83,6 +102,27 @@ export function TerminalPanel(opts?: { class?: string }) {
 
   terminal_events.on("newTab", async () => {
     await add();
+  });
+
+  let ai_terminal_id: string | null = null;
+
+  const run_ai_command = async (command: string) => {
+    let tab = terminal.get_tabs().find((t) => t.id === ai_terminal_id);
+
+    if (!tab) {
+      tab = await terminal.create_tab("AI Agent");
+      ai_terminal_id = tab.id;
+      mountTab(tab);
+      renderTabs();
+      schedule_save();
+    }
+
+    terminal.set_active(tab.id);
+    write_when_fitted(tab, `${command}\r`);
+  };
+
+  terminal_events.on("aiRun", (command: string) => {
+    void run_ai_command(command);
   });
 
   tabBar.appendChild(addBtn);
