@@ -5,11 +5,9 @@ export class git_service {
   public readonly watcher = new git_watcher();
   public readonly tree = new explorer_tree();
 
-  constructor(tree: VirtualTreeInstance) {
-    this.init(tree);
-  }
+  constructor() {}
 
-  private async init(tree: VirtualTreeInstance) {
+  async init(tree: VirtualTreeInstance) {
     this.init_watcher(tree);
   }
 

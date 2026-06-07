@@ -53,11 +53,13 @@ export class git_watcher {
     this.attached = true;
     this.disposers.push(
       window.ipc.on(GIT_REFRESH_STATUS, (_, status: GitStatus) => {
+        console.log("tree", this.tree);
         if (!this.tree) {
           this.pending_status = status;
           return;
         }
         git_events.emit("refresh-status", status);
+        console.log("sending new status", status);
       }),
       window.ipc.on(GIT_DELETED_REPO, () => {
         git_events.emit("refresh-status", {

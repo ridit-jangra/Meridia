@@ -234,6 +234,7 @@ const RepoState = () => {
   git_events.on("refresh-status", (s: GitStatus) => {
     status = s;
     refresh_ui();
+    console.log("new git status", s);
   });
 
   refresh_ui();

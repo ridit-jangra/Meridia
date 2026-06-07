@@ -1,6 +1,5 @@
 import { explorer_events } from "../../../platform/events/explorer.events";
 import { explorer } from "../../../platform/explorer/explorer.service";
-import { git_service } from "../../../platform/git/git.service";
 import { Button } from "../../browser/parts/components/button";
 import { h } from "../core/dom/h";
 import { cn } from "../core/utils/cn";
@@ -58,8 +57,6 @@ const EmptyState = () =>
     h("div", {}),
   );
 
-export let git: git_service;
-
 export function Explorer() {
   const { structure, tree } = explorer.tree;
   const hasTree = structure?.path && tree;
@@ -69,8 +66,6 @@ export function Explorer() {
 
   const el = h("div", { class: cn("h-full w-full relative overflow-hidden") });
   el.append(LoadingBar(), content);
-
-  if (hasTree) git = new git_service(tree);
 
   explorer_events.on("initTree", () => {
     content.innerHTML = "";

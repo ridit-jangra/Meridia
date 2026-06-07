@@ -2,6 +2,7 @@ import { VirtualTreeInstance } from "../../../types/explorer.types";
 import { set_folder_structure } from "../../workbench/common/state/slices/explorer.slice";
 import { store } from "../../workbench/common/state/store";
 import { explorer_events } from "../events/explorer.events";
+import { git_service } from "../git/git.service";
 import { explorer_actions } from "./explorer.actions";
 import { explorer_state } from "./explorer.state";
 import { explorer_tree } from "./explorer.tree";
@@ -12,6 +13,7 @@ class explorer_service {
   public readonly state = new explorer_state();
   public readonly watcher = new explorer_watcher();
   public readonly tree = new explorer_tree();
+  public readonly git = new git_service();
 
   constructor() {
     this.init();
@@ -25,6 +27,8 @@ class explorer_service {
     this.init_watcher(structure.path, tree);
 
     explorer_events.emit("initTree");
+
+    this.git.init(tree);
   }
 
   private async init_watcher(path: string, tree: VirtualTreeInstance) {
