@@ -624,6 +624,14 @@ export class monaco_editor extends editor<IMonacoEditor, IMonacoModel> {
       extensions: ["ts", "js", "mjs", "mts"],
     });
     lsp_client.register({
+      languageId: "typescriptreact",
+      extensions: ["tsx"],
+    });
+    lsp_client.register({
+      languageId: "javascriptreact",
+      extensions: ["jsx"],
+    });
+    lsp_client.register({
       languageId: "rust",
       extensions: ["rs"],
     });

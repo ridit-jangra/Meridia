@@ -170,6 +170,9 @@ export function get_file_extension(file_path: string) {
 }
 
 export function path_to_language(file_path: string) {
+  if (file_path.endsWith(".tsx")) return "typescriptreact";
+  if (file_path.endsWith(".jsx")) return "javascriptreact";
+
   const languages = monaco.languages.getLanguages();
 
   for (const lang of languages) {

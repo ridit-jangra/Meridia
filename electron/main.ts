@@ -112,6 +112,18 @@ lsp_server.register({
 });
 
 lsp_server.register({
+  languageId: "typescriptreact",
+  command: "typescript-language-server",
+  args: ["--stdio"],
+});
+
+lsp_server.register({
+  languageId: "javascriptreact",
+  command: "typescript-language-server",
+  args: ["--stdio"],
+});
+
+lsp_server.register({
   languageId: "rust",
   command: "rust-analyzer",
   args: ["--stdio"],

@@ -16,8 +16,8 @@ import onig_wasm_url from "vscode-oniguruma/release/onig.wasm?url";
 import tsx_grammar_source from "./grammars/TypeScriptReact.tmLanguage?raw";
 
 const LANGUAGE_SCOPE: Record<string, string> = {
-  typescript: "source.tsx",
-  javascript: "source.tsx",
+  typescriptreact: "source.tsx",
+  javascriptreact: "source.tsx",
 };
 
 const GRAMMAR_SOURCES: Record<string, string> = {

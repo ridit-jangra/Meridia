@@ -67,8 +67,33 @@ monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
 });
 (monaco.languages.typescript as any).typescriptDefaults._onDidChange.fire();
 
-monaco.languages.register({ id: "typescriptreact" });
-monaco.languages.register({ id: "javascriptreact" });
+monaco.languages.register({
+  id: "typescriptreact",
+  extensions: [".tsx"],
+  aliases: ["TypeScript React", "tsx"],
+  mimetypes: ["text/typescript-jsx"],
+});
+
+monaco.languages.register({
+  id: "javascriptreact",
+  extensions: [".jsx"],
+  aliases: ["Javascript React", "jsx"],
+  mimetypes: ["text/typescript-jsx"],
+});
+
+monaco.languages.setMonarchTokensProvider(
+  "typescriptreact",
+  (
+    monaco.languages.getLanguages().find((l) => l.id === "typescript") as any
+  )?.loader?.(),
+);
+
+monaco.languages.setMonarchTokensProvider(
+  "javascriptreact",
+  (
+    monaco.languages.getLanguages().find((l) => l.id === "javascript") as any
+  )?.loader?.(),
+);
 
 init_textmate();
 
