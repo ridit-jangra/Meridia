@@ -1,5 +1,3 @@
-import { Tool } from "@ridit/dev";
-
 export interface IChatContextFile {
   name: string;
   path: string;
@@ -29,7 +27,7 @@ export interface Permission {
 export interface IChatResult {
   message: string;
   model?: string;
-  tools: Tool[];
+  tools: any[];
   error?: string;
   permissionRequired?: Permission[];
 }
