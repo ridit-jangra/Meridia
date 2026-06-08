@@ -18,6 +18,20 @@ import {
   current_tab_drag,
   end_tab_drag,
 } from "./dnd";
+import { ContextMenu } from "../../../browser/parts/components/context-menu";
+import {
+  MovableViewId,
+  VIEW_META,
+  is_movable_view,
+  view_id_from_uri,
+} from "./view-host";
+import { move_view_to_panel } from "./actions";
+
+function tab_view_id(tab: ITab): MovableViewId | null {
+  if (tab.tab_type !== "VIEW") return null;
+  if (tab.view_id && is_movable_view(tab.view_id)) return tab.view_id;
+  return view_id_from_uri(tab.file_path);
+}
 import { Button } from "../../../browser/parts/components/button";
 
 function group_tabs(group_id: string): ITab[] {
@@ -66,6 +80,20 @@ function close_tab(group_id: string, file_path: string): void {
       })),
     }),
   );
+}
+
+function close_others(group_id: string, file_path: string): void {
+  const keep = group_tabs(group_id).find((t) => t.file_path === file_path);
+  if (!keep) return;
+  store.dispatch(
+    set_group_tabs({ group_id, tabs: [{ ...keep, active: true }] }),
+  );
+}
+
+function close_all(group_id: string): void {
+  if (store.getState().editor.groups.length > 1)
+    store.dispatch(close_group(group_id));
+  else store.dispatch(set_group_tabs({ group_id, tabs: [] }));
 }
 
 function reorder(group_id: string, from: string, to: string): void {
@@ -127,20 +155,31 @@ export function GroupTabs(group_id: string) {
 
   const render_tab = (tab: ITab, el?: HTMLElement): HTMLElement => {
     if (!el) {
-      const icon =
+      const special =
         tab.tab_type === "SETTINGS"
-          ? h(
-              "span",
-              {
-                class:
-                  "mt-px flex items-center text-editor-tab-icon-foreground [&_svg]:w-[17px] [&_svg]:h-[17px]",
-              },
-              tab.tab_type === "SETTINGS" ? codicon("gear") : lucide("globe"),
-            )
-          : (h("img", {
-              attrs: { "data-role": "icon" },
-              class: "w-5 h-5 mt-px",
-            }) as HTMLImageElement);
+          ? codicon("gear")
+          : tab.tab_type === "PREVIEW"
+            ? lucide("globe")
+            : tab.tab_type === "VIEW"
+              ? (() => {
+                  const vid = tab_view_id(tab);
+                  return vid ? lucide(VIEW_META[vid].icon) : null;
+                })()
+              : null;
+
+      const icon = special
+        ? h(
+            "span",
+            {
+              class:
+                "mt-px flex items-center text-editor-tab-icon-foreground [&_svg]:w-[17px] [&_svg]:h-[17px]",
+            },
+            special,
+          )
+        : (h("img", {
+            attrs: { "data-role": "icon" },
+            class: "w-5 h-5 mt-px",
+          }) as HTMLImageElement);
 
       const dirty = h(
         "span",
@@ -208,6 +247,87 @@ export function GroupTabs(group_id: string) {
       el.appendChild(title);
       el.appendChild(end);
       bind_drag(el, tab.file_path);
+
+      const view_id = tab_view_id(tab);
+      const ctx = ContextMenu();
+      ctx.bind(el, () => {
+        const fp = (el as HTMLElement).dataset.path ?? tab.file_path;
+        const this_tab = group_tabs(group_id).find((t) => t.file_path === fp);
+        const is_file = this_tab?.tab_type === "EDITOR_SINGLE";
+        const count = group_tabs(group_id).length;
+        const items: any[] = [];
+
+        if (view_id) {
+          items.push({
+            type: "item",
+            label: "Move Back to Panel",
+            onClick: () => move_view_to_panel(view_id),
+          });
+          items.push({ type: "separator" });
+        }
+
+        items.push(
+          { type: "item", label: "Close", onClick: () => close_tab(group_id, fp) },
+          {
+            type: "item",
+            label: "Close Others",
+            disabled: count <= 1,
+            onClick: () => close_others(group_id, fp),
+          },
+          {
+            type: "item",
+            label: "Close All",
+            onClick: () => close_all(group_id),
+          },
+        );
+
+        items.push(
+          { type: "separator" },
+          {
+            type: "item",
+            label: "Split Right",
+            onClick: () =>
+              store.dispatch(
+                split_group({
+                  source_group_id: group_id,
+                  side: "right",
+                  tab: this_tab,
+                }),
+              ),
+          },
+          {
+            type: "item",
+            label: "Split Down",
+            onClick: () =>
+              store.dispatch(
+                split_group({
+                  source_group_id: group_id,
+                  side: "bottom",
+                  tab: this_tab,
+                }),
+              ),
+          },
+        );
+
+        if (is_file) {
+          items.push(
+            { type: "separator" },
+            {
+              type: "item",
+              label: "Copy Path",
+              onClick: () => navigator.clipboard.writeText(fp),
+            },
+            {
+              type: "item",
+              label: "Copy Relative Path",
+              onClick: () =>
+                navigator.clipboard.writeText(fp.split(/[\\/]/).pop() ?? fp),
+            },
+          );
+        }
+
+        return items;
+      });
     }
 
     el.dataset.path = tab.file_path;

@@ -12,7 +12,8 @@ export type tab_type =
   | "EDITOR_SINGLE"
   | "EDITOR_DIFF"
   | "SETTINGS"
-  | "PREVIEW";
+  | "PREVIEW"
+  | "VIEW";
 export type selection = {
   startLine: number;
   startCol: number;
@@ -30,6 +31,7 @@ export interface ITab {
   file_path: string;
   active: boolean;
   is_touched?: boolean;
+  view_id?: string;
 }
 
 export interface IMonacoEditor {

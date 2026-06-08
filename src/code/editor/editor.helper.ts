@@ -319,6 +319,11 @@ export const build_monaco_context_items = (
     submenu("Peek", peekItems),
 
     sep(),
+    action_item(editor, "editor.action.rename", "F2"),
+    action_item(editor, "editor.action.quickOutline", "Ctrl+Shift+O"),
+    action_item(editor, "editor.action.changeAll", "Ctrl+F2"),
+
+    sep(),
     submenu("Format", formatItems),
 
     sep(),

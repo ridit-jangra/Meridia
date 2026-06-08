@@ -8,9 +8,15 @@ import { FS_READ_BASE_64 } from "../../../../../../shared/ipc/channels";
 import { CodeGroupView } from "./code-view";
 import { GroupTabs } from "./group-tabs";
 import { DockSide } from "./grid";
-import { current_tab_drag } from "./dnd";
-import { dock_into_group, dock_to_edge } from "./actions";
+import { current_tab_drag, current_view_drag } from "./dnd";
+import { dock_into_group, dock_to_edge, dock_view } from "./actions";
 import { IMAGE_MIME, diff_view } from "./special";
+import {
+  MovableViewId,
+  get_view_el,
+  is_movable_view,
+  view_id_from_uri,
+} from "./view-host";
 
 function ext_of(file_path: string): string {
   return file_path.slice(file_path.lastIndexOf(".") + 1).toLowerCase();
@@ -48,7 +54,7 @@ export function GroupPane(group_id: string) {
   });
 
   let settings_panel: ReturnType<typeof SettingsPanel> | null = null;
-  // One browser webview per preview tab (keyed by tab uri).
+
   const preview_els = new Map<string, HTMLElement>();
 
   const prune_previews = () => {
@@ -165,9 +171,27 @@ export function GroupPane(group_id: string) {
 
   let last_key = "";
 
+  // The single shared view element this pane currently hosts (terminal, etc.).
+  let mounted_view: MovableViewId | null = null;
+
+  const unmount_view = () => {
+    if (!mounted_view) return;
+    const el = get_view_el(mounted_view);
+    if (body.contains(el)) el.remove();
+    mounted_view = null;
+  };
+
+  const mount_view = (view_id: MovableViewId) => {
+    if (mounted_view && mounted_view !== view_id) unmount_view();
+    const el = get_view_el(view_id);
+    if (!body.contains(el)) body.insertBefore(el, overlay);
+    mounted_view = view_id;
+  };
+
   const hide_aux = () => {
     if (settings_panel) show(settings_panel.el, false);
     for (const e of preview_els.values()) show(e, false);
+    unmount_view();
   };
 
   const update_view = async () => {
@@ -210,6 +234,22 @@ export function GroupPane(group_id: string) {
       show(image_host, false);
       hide_diff();
       last_key = `preview:${active.file_path}`;
+      return;
+    }
+
+    if (active.tab_type === "VIEW") {
+      const view_id = (
+        active.view_id && is_movable_view(active.view_id)
+          ? active.view_id
+          : view_id_from_uri(active.file_path)
+      ) as MovableViewId | null;
+      if (settings_panel) show(settings_panel.el, false);
+      for (const e of preview_els.values()) show(e, false);
+      show(code_view.el, false);
+      show(image_host, false);
+      hide_diff();
+      if (view_id) mount_view(view_id);
+      last_key = `view:${view_id ?? ""}`;
       return;
     }
 
@@ -263,7 +303,7 @@ export function GroupPane(group_id: string) {
 
   let dragging = false;
   const on_doc_dragover = () => {
-    if (current_tab_drag() && !dragging) {
+    if ((current_tab_drag() || current_view_drag()) && !dragging) {
       dragging = true;
       overlay.style.pointerEvents = "auto";
     }
@@ -279,7 +319,7 @@ export function GroupPane(group_id: string) {
   document.addEventListener("drop", reset_drag);
 
   overlay.addEventListener("dragover", (e) => {
-    if (!current_tab_drag()) return;
+    if (!current_tab_drag() && !current_view_drag()) return;
     e.preventDefault();
     e.dataTransfer!.dropEffect = "move";
     const zone = zone_for(e);
@@ -295,12 +335,17 @@ export function GroupPane(group_id: string) {
   });
   overlay.addEventListener("drop", (e) => {
     e.preventDefault();
-    const drag = current_tab_drag();
+    const tab = current_tab_drag();
+    const view = current_view_drag();
     const zone = zone_for(e);
     reset_drag();
-    if (!drag) return;
-    if (zone === "center") dock_into_group(drag, group_id);
-    else dock_to_edge(drag, group_id, zone);
+    if (view && is_movable_view(view.view_id)) {
+      dock_view(view.view_id, group_id, zone === "center" ? undefined : zone);
+      return;
+    }
+    if (!tab) return;
+    if (zone === "center") dock_into_group(tab, group_id);
+    else dock_to_edge(tab, group_id, zone);
   });
 
   let prev = group_tabs(group_id);
@@ -323,6 +368,7 @@ export function GroupPane(group_id: string) {
       document.removeEventListener("dragend", reset_drag);
       document.removeEventListener("drop", reset_drag);
       if (image_blob) URL.revokeObjectURL(image_blob);
+      unmount_view();
       tabs_ui.destroy();
       code_view.dispose();
       settings_panel?.destroy();

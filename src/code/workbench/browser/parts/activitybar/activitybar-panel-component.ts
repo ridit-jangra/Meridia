@@ -12,6 +12,11 @@ import { shortcuts } from "../../../common/shortcut/shortcut.service";
 import { toggle_node_at_path } from "../../layouts/layout.helper";
 import { layout_engine } from "../../layouts/layout.engine";
 import { set_active_panel_key } from "../../../common/state/slices/layout.slice";
+import {
+  begin_view_drag,
+  end_view_drag,
+} from "../../../contrib/editor/group/dnd";
+import { is_movable_view } from "../../../contrib/editor/group/view-host";
 
 type ActivityPanel = TActivityBarPanelNode["panels"][number];
 
@@ -108,6 +113,7 @@ export function ActivityBarPanelComponent(opts: {
 
     element.addEventListener("dragstart", (e) => {
       drag_src_id = id;
+      if (is_movable_view(id)) begin_view_drag({ view_id: id });
       e.dataTransfer!.effectAllowed = "move";
       e.dataTransfer!.setData("text/plain", id);
 
@@ -132,6 +138,7 @@ export function ActivityBarPanelComponent(opts: {
       drag_over_id = null;
       drag_ghost?.remove();
       drag_ghost = null;
+      end_view_drag();
       clear_drag_indicators();
     });
 

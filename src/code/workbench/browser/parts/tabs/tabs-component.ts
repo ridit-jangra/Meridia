@@ -13,6 +13,12 @@ import { store } from "../../../common/state/store";
 import { layout_engine } from "../../layouts/layout.engine";
 import { toggle_node_at_path } from "../../layouts/layout.helper";
 import { set_active_tab_key } from "../../../common/state/slices/layout.slice";
+import {
+  VIEW_DND_MIME,
+  begin_view_drag,
+  end_view_drag,
+} from "../../../contrib/editor/group/dnd";
+import { is_movable_view } from "../../../contrib/editor/group/view-host";
 
 type ViewFactory = () => HTMLElement;
 
@@ -149,6 +155,16 @@ export function TabsComponent(opts: { node: TTabNode }) {
         tab.icon && (lucide(tab.icon) ?? codicon(tab.icon)),
         tab.label,
       );
+
+      if (is_movable_view(tab.id)) {
+        pill.draggable = true;
+        pill.addEventListener("dragstart", (e) => {
+          begin_view_drag({ view_id: tab.id });
+          e.dataTransfer!.effectAllowed = "move";
+          e.dataTransfer!.setData(VIEW_DND_MIME, tab.id);
+        });
+        pill.addEventListener("dragend", () => end_view_drag());
+      }
 
       pills.set(tab.id, pill);
       tabsHeader.appendChild(pill);

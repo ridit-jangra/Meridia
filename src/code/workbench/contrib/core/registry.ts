@@ -7,22 +7,15 @@ import {
 import { lucide } from "../../browser/parts/components/icon";
 
 import { h } from "./dom/h";
-import { TerminalPanel } from "../terminal/terminal";
 import { shortcuts } from "../../common/shortcut/shortcut.service";
-import { Explorer } from "../explorer/explorer";
 import { editor } from "../../../editor/editor";
 import { EditorGroups } from "../editor/editor-groups";
-import { Chat } from "../chat/chat";
-import { Git } from "../git/git";
 import { Preview } from "../preview/preview";
-import { Search } from "../search/search";
+import { MovableViewSlot } from "../editor/group/view-host";
 
 export const tabs_registry: Record<string, () => HTMLElement> = {
-  terminal: () => {
-    const el = TerminalPanel();
-    return el.el;
-  },
-  problems: () => h("div", { class: "p-2" }, "Problems view"),
+  terminal: () => MovableViewSlot("terminal"),
+  problems: () => MovableViewSlot("problems"),
 };
 
 export const tabs_options_registery: Record<string, () => HTMLElement> = {
@@ -54,12 +47,12 @@ export const panels_registry: Record<
   string,
   () => HTMLElement | Promise<HTMLElement>
 > = {
-  explorer: () => Explorer(),
+  explorer: () => MovableViewSlot("explorer"),
   editor: () => EditorGroups(),
-  ai_chat: () => Chat(),
-  git: () => Git(),
+  ai_chat: () => MovableViewSlot("ai_chat"),
+  git: () => MovableViewSlot("git"),
   preview: () => Preview(),
-  search: () => Search(),
+  search: () => MovableViewSlot("search"),
 };
 
 export const editors_registry: Record<
