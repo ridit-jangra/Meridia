@@ -209,6 +209,21 @@ jobs:
           name: macos-build
           path: artifacts/macos
 
+      # Remove any pre-existing release objects (drafts or published) for this
+      # tag so the publish is idempotent. A tag can only belong to one release;
+      # leftover drafts from a previous/failed run cause softprops to fail with
+      # "tag_name already_exists" when finalizing. The git tag itself is kept.
+      - name: Remove existing releases for tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ids=$(gh api "repos/${{ github.repository }}/releases" --paginate \
+            --jq '.[] | select(.tag_name=="${{ env.RELEASE_TAG }}") | .id')
+          for id in $ids; do
+            echo "Deleting existing release $id for tag ${{ env.RELEASE_TAG }}"
+            gh api -X DELETE "repos/${{ github.repository }}/releases/$id"
+          done
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -220,8 +235,6 @@ jobs:
           files: |
             artifacts/windows/**/*.exe
             artifacts/linux/**/*.AppImage
-            artifacts/linux/**/*.deb
-            artifacts/linux/**/*.rpm
             artifacts/macos/**/*.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
