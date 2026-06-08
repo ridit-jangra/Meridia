@@ -16,7 +16,12 @@ type WebviewTag = HTMLElement & {
   goForward(): void;
   canGoBack(): boolean;
   canGoForward(): boolean;
+  setZoomFactor(factor: number): void;
 };
+
+const ZOOM_MIN = 0.3;
+const ZOOM_MAX = 3;
+const ZOOM_STEP = 0.1;
 
 function normalize_url(input: string): string | null {
   const value = input.trim();
@@ -83,18 +88,75 @@ export function Preview(opts?: { class?: string }): HTMLElement {
     if (url) window.open(url, "_blank");
   });
 
+  let zoom = 1;
+
+  const zoom_label = h(
+    "button",
+    {
+      class: cn(
+        "shrink-0 px-1.5 h-7 min-w-[44px] rounded-[7px] text-[12px] tabular-nums text-center cursor-pointer",
+        "text-foreground/70 hover:bg-view-tab-hover-background hover:text-foreground",
+      ),
+      on: {
+        click: () => {
+          zoom = 1;
+          apply_zoom();
+        },
+      },
+      tooltip: { text: "Reset zoom", position: "bottom" },
+    },
+    "100%",
+  );
+
+  const apply_zoom = () => {
+    zoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(zoom * 100) / 100));
+    try {
+      webview.setZoomFactor(zoom);
+    } catch {}
+    zoom_label.textContent = `${Math.round(zoom * 100)}%`;
+  };
+
+  const zoom_out = tool_button("zoom-out", "Zoom out", () => {
+    zoom -= ZOOM_STEP;
+    apply_zoom();
+  });
+  const zoom_in = tool_button("zoom-in", "Zoom in", () => {
+    zoom += ZOOM_STEP;
+    apply_zoom();
+  });
+
+  const divider = () =>
+    h("div", { class: "shrink-0 w-px h-5 bg-workbench-border" });
+
+  const nav_group = h(
+    "div",
+    { class: "flex items-center gap-0.5 shrink-0" },
+    back_btn,
+    forward_btn,
+    reload_btn,
+  );
+
+  const zoom_group = h(
+    "div",
+    { class: "flex items-center gap-0.5 shrink-0" },
+    zoom_out,
+    zoom_label,
+    zoom_in,
+  );
+
   const toolbar = h(
     "div",
     {
       class: cn(
-        "flex items-center gap-1 p-2 shrink-0",
+        "flex items-center gap-2 px-2.5 py-2 shrink-0",
         "border-b border-workbench-border bg-panel-background",
       ),
     },
-    back_btn,
-    forward_btn,
-    reload_btn,
+    nav_group,
     url_input,
+    divider(),
+    zoom_group,
+    divider(),
     external_btn,
   );
 
@@ -115,7 +177,10 @@ export function Preview(opts?: { class?: string }): HTMLElement {
     sync_nav();
   };
 
-  webview.addEventListener("dom-ready", sync_nav);
+  webview.addEventListener("dom-ready", () => {
+    sync_nav();
+    apply_zoom();
+  });
   webview.addEventListener("did-navigate", on_navigate);
   webview.addEventListener("did-navigate-in-page", on_navigate);
 
