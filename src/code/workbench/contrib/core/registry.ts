@@ -11,7 +11,7 @@ import { TerminalPanel } from "../terminal/terminal";
 import { shortcuts } from "../../common/shortcut/shortcut.service";
 import { Explorer } from "../explorer/explorer";
 import { editor } from "../../../editor/editor";
-import { EditorArea } from "../editor/editor-area";
+import { EditorGroups } from "../editor/editor-groups";
 import { Chat } from "../chat/chat";
 import { Git } from "../git/git";
 import { Preview } from "../preview/preview";
@@ -55,7 +55,7 @@ export const panels_registry: Record<
   () => HTMLElement | Promise<HTMLElement>
 > = {
   explorer: () => Explorer(),
-  editor: () => EditorArea(),
+  editor: () => EditorGroups(),
   ai_chat: () => Chat(),
   git: () => Git(),
   preview: () => Preview(),

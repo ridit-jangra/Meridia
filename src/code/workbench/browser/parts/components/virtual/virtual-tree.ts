@@ -26,12 +26,9 @@ import {
   get_parent_uri,
 } from "../../../../../../../shared/uri/generate";
 
-import { editors_registry } from "../../../../contrib/core/registry";
+import { rename_open_file } from "../../../../contrib/editor/group/code-view";
 import { explorer } from "../../../../../platform/explorer/explorer.service";
-import {
-  get_file_extension,
-  open_editor_tab,
-} from "../../../../../editor/editor.helper";
+import { open_editor_tab } from "../../../../../editor/editor.helper";
 import { ScrollArea } from "../scroll-area";
 import { Button } from "../button";
 import { GitStatus } from "../../../../../../../shared/types/git.types";
@@ -728,9 +725,7 @@ export function VirtualTree(opts: {
             rebuild();
             try {
               await explorer.actions.rename(old_uri, new_uri);
-              const editor = editors_registry[get_file_extension(new_uri)];
-              if (!editor) return;
-              editor.update_model_uri(old_uri, new_uri);
+              rename_open_file(old_uri, new_uri);
             } catch (e) {
               console.error("[rename] failed:", e);
             }

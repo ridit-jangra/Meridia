@@ -1,6 +1,8 @@
 import { h } from "../core/dom/h";
 import { cn } from "../core/utils/cn";
-import { lucide } from "../../browser/parts/components/icon";
+import { codicon } from "../../browser/parts/components/icon";
+import { Button } from "../../browser/parts/components/button";
+import { Input } from "../../browser/parts/components/input";
 
 const DEFAULT_URL = "http://localhost:5173";
 
@@ -31,19 +33,21 @@ function tool_button(
   title: string,
   on_click: () => void,
 ): HTMLElement {
-  return h(
-    "button",
+  return Button(
+    codicon(icon),
     {
-      class: cn(
-        "shrink-0 p-1.5 rounded-[7px] cursor-pointer",
-        "[&_svg]:w-4 [&_svg]:h-4 text-foreground/70",
-        "hover:bg-view-tab-hover-background hover:text-foreground",
-        "disabled:opacity-30 disabled:cursor-default disabled:hover:bg-transparent",
-      ),
+      // class: cn(
+      //   "shrink-0 p-1.5 rounded-[7px] cursor-pointer",
+      //   "[&_svg]:w-4 [&_svg]:h-4 text-foreground/70",
+      //   "hover:bg-view-tab-hover-background hover:text-foreground",
+      //   "disabled:opacity-30 disabled:cursor-default disabled:hover:bg-transparent",
+      // ),
+      variant: "ghost",
+      size: "sm",
       tooltip: { text: title, position: "bottom" },
-      on: { click: on_click },
+      onClick: on_click,
     },
-    lucide(icon),
+    // lucide(icon),
   );
 }
 
@@ -60,31 +64,21 @@ export function Preview(opts?: { class?: string }): HTMLElement {
   const forward_btn = tool_button("arrow-right", "Forward", () => {
     if (webview.canGoForward()) webview.goForward();
   });
-  const reload_btn = tool_button("rotate-cw", "Reload", () => webview.reload());
+  const reload_btn = tool_button("refresh", "Reload", () => webview.reload());
 
-  const url_input = h("input", {
-    class: cn(
-      "flex-1 min-w-0 px-2.5 py-1 rounded-[7px] text-[12px]",
-      "bg-input-background text-input-foreground",
-      "border border-workbench-border outline-none",
-      "focus:border-focus-border",
-    ),
-    attrs: {
-      type: "text",
-      spellcheck: "false",
-      placeholder: "Enter a URL (e.g. localhost:5173)",
+  const url_input = Input({
+    type: "text",
+    placeholder: "Enter a URL (e.g. localhost:5137)",
+    onKeyDown: (e) => {
+      if (e.key !== "Enter") return;
+      const url = normalize_url((e.target as HTMLInputElement).value);
+      if (url) webview.loadURL(url);
     },
-    on: {
-      keydown: (e: KeyboardEvent) => {
-        if (e.key !== "Enter") return;
-        const url = normalize_url((e.target as HTMLInputElement).value);
-        if (url) webview.loadURL(url);
-      },
-    },
-  }) as HTMLInputElement;
+  }).el;
+
   url_input.value = DEFAULT_URL;
 
-  const external_btn = tool_button("external-link", "Open in browser", () => {
+  const external_btn = tool_button("link-external", "Open in browser", () => {
     const url = webview.getURL();
     if (url) window.open(url, "_blank");
   });

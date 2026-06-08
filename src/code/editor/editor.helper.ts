@@ -73,6 +73,27 @@ export function open_settings_tab() {
   store.dispatch(update_tabs([...updated_tabs, new_tab]));
 }
 
+export const PREVIEW_URI = "meridia://preview";
+
+// Opens a NEW browser preview each call — each tab is its own browser instance,
+// so you can have as many open as you like.
+export function open_preview_tab() {
+  const current_tabs = store.getState().editor.tabs;
+  const updated_tabs = current_tabs.map((tab) => ({ ...tab, active: false }));
+
+  const count = current_tabs.filter((t) => t.tab_type === "PREVIEW").length;
+
+  const new_tab: ITab = {
+    file_path: `${PREVIEW_URI}/${crypto.randomUUID()}`,
+    name: count === 0 ? "Preview" : `Preview ${count + 1}`,
+    active: true,
+    tab_status: "EXISTS",
+    tab_type: "PREVIEW",
+  };
+
+  store.dispatch(update_tabs([...updated_tabs, new_tab]));
+}
+
 export function open_new_editor_tab(type: tab_type) {
   const current_tabs = store.getState().editor.tabs;
 

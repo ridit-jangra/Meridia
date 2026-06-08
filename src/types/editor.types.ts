@@ -8,7 +8,11 @@ export type cursor_position = {
   col: number;
 };
 export type tab_status = "EXISTS" | "NEW" | "DELETED";
-export type tab_type = "EDITOR_SINGLE" | "EDITOR_DIFF" | "SETTINGS";
+export type tab_type =
+  | "EDITOR_SINGLE"
+  | "EDITOR_DIFF"
+  | "SETTINGS"
+  | "PREVIEW";
 export type selection = {
   startLine: number;
   startCol: number;

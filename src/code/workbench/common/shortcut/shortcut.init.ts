@@ -20,8 +20,15 @@ import {
   close_active_editor_tab,
   open_editor_tab,
   open_new_editor_tab,
+  open_preview_tab,
   open_settings_tab,
 } from "../../../editor/editor.helper";
+import {
+  close_group,
+  set_active_group,
+  split_group,
+} from "../state/slices/editor.slice";
+import { grid_group_ids } from "../../contrib/editor/group/grid";
 import { terminal_events } from "../../../platform/events/terminal.events";
 import { runCurrentFile } from "../run";
 import { focus_editor, focus_terminal, is_terminal_focus } from "../focus";
@@ -160,9 +167,9 @@ shortcuts.register_command({
 });
 
 shortcuts.register_command({
-  id: "layout.togglePreview",
+  id: "layout.openPreview",
   run: () => {
-    update_layout([1, 0, 1], toggle_node_at_path);
+    open_preview_tab();
   },
 });
 
@@ -300,6 +307,53 @@ shortcuts.register_command({
   },
 });
 
+const active_group = () => {
+  const s = store.getState().editor;
+  const tabs = s.groups.find((g) => g.id === s.active_group_id)?.tabs ?? [];
+  return { id: s.active_group_id, active_tab: tabs.find((t) => t.active) };
+};
+
+const focus_group_by_offset = (offset: number) => {
+  const s = store.getState().editor;
+  const ids = grid_group_ids(s.grid);
+  if (ids.length < 2) return;
+  const idx = ids.indexOf(s.active_group_id);
+  const next = ids[(idx + offset + ids.length) % ids.length];
+  store.dispatch(set_active_group(next));
+};
+
+shortcuts.register_command({
+  id: "editor.splitRight",
+  run: () => {
+    const { id, active_tab } = active_group();
+    store.dispatch(
+      split_group({ source_group_id: id, side: "right", tab: active_tab }),
+    );
+  },
+});
+shortcuts.register_command({
+  id: "editor.splitDown",
+  run: () => {
+    const { id, active_tab } = active_group();
+    store.dispatch(
+      split_group({ source_group_id: id, side: "bottom", tab: active_tab }),
+    );
+  },
+});
+shortcuts.register_command({
+  id: "editor.closeGroup",
+  run: () =>
+    store.dispatch(close_group(store.getState().editor.active_group_id)),
+});
+shortcuts.register_command({
+  id: "editor.focusNextGroup",
+  run: () => focus_group_by_offset(1),
+});
+shortcuts.register_command({
+  id: "editor.focusPreviousGroup",
+  run: () => focus_group_by_offset(-1),
+});
+
 shortcuts.register_shortcuts([
   {
     id: "toggleSearch",
@@ -366,11 +420,11 @@ shortcuts.register_shortcuts([
     scope: "app",
   },
   {
-    id: "togglePreview",
-    label: "Toggle Browser Preview",
+    id: "openPreview",
+    label: "Open Browser Preview",
     category: "Layout",
     keys: "ctrl+alt+v",
-    command: "layout.togglePreview",
+    command: "layout.openPreview",
     scope: "app",
   },
   {
@@ -508,5 +562,45 @@ shortcuts.register_shortcuts([
     keys: "F5",
     scope: "app",
     label: "Run Current File",
+  },
+  {
+    id: "splitEditorRight",
+    label: "Split Editor Right",
+    category: "Editor",
+    keys: "ctrl+\\",
+    command: "editor.splitRight",
+    scope: "app",
+  },
+  {
+    id: "splitEditorDown",
+    label: "Split Editor Down",
+    category: "Editor",
+    keys: "ctrl+k ctrl+\\",
+    command: "editor.splitDown",
+    scope: "app",
+  },
+  {
+    id: "closeEditorGroup",
+    label: "Close Editor Group",
+    category: "Editor",
+    keys: "ctrl+k ctrl+w",
+    command: "editor.closeGroup",
+    scope: "app",
+  },
+  {
+    id: "focusNextGroup",
+    label: "Focus Next Editor Group",
+    category: "Editor",
+    keys: "ctrl+k ctrl+right",
+    command: "editor.focusNextGroup",
+    scope: "app",
+  },
+  {
+    id: "focusPreviousGroup",
+    label: "Focus Previous Editor Group",
+    category: "Editor",
+    keys: "ctrl+k ctrl+left",
+    command: "editor.focusPreviousGroup",
+    scope: "app",
   },
 ]);
