@@ -29,11 +29,6 @@ import {
   split_group,
 } from "../state/slices/editor.slice";
 import { grid_group_ids } from "../../contrib/editor/group/grid";
-import { dock_view } from "../../contrib/editor/group/actions";
-import {
-  MOVABLE_VIEW_IDS,
-  VIEW_META,
-} from "../../contrib/editor/group/view-host";
 import { terminal_events } from "../../../platform/events/terminal.events";
 import { runCurrentFile } from "../run";
 import { focus_editor, focus_terminal, is_terminal_focus } from "../focus";
@@ -359,22 +354,22 @@ shortcuts.register_command({
   run: () => focus_group_by_offset(-1),
 });
 
-for (const vid of MOVABLE_VIEW_IDS) {
-  shortcuts.register_command({
-    id: `view.moveToEditor.${vid}`,
-    run: () => dock_view(vid, store.getState().editor.active_group_id),
-  });
-}
-shortcuts.register_shortcuts(
-  MOVABLE_VIEW_IDS.map((vid) => ({
-    id: `moveToEditor_${vid}`,
-    label: `Move ${VIEW_META[vid].label} to Editor Area`,
-    category: "Editor",
-    keys: "",
-    command: `view.moveToEditor.${vid}`,
-    scope: "app" as const,
-  })),
-);
+// for (const vid of MOVABLE_VIEW_IDS) {
+//   shortcuts.register_command({
+//     id: `view.moveToEditor.${vid}`,
+//     run: () => dock_view(vid, store.getState().editor.active_group_id),
+//   });
+// }
+// shortcuts.register_shortcuts(
+//   MOVABLE_VIEW_IDS.map((vid) => ({
+//     id: `moveToEditor_${vid}`,
+//     label: `Move ${VIEW_META[vid].label} to Editor Area`,
+//     category: "Editor",
+//     keys: "",
+//     command: `view.moveToEditor.${vid}`,
+//     scope: "app" as const,
+//   })),
+// );
 
 shortcuts.register_shortcuts([
   {
