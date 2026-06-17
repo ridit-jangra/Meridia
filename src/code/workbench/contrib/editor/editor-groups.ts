@@ -10,6 +10,7 @@ import {
   update_tabs,
 } from "../../common/state/slices/editor.slice";
 import { GroupPane } from "./group/group-pane";
+import { TabSwitcher } from "../../browser/parts/components/tab-switcher";
 import { get_shared_model } from "./group/code-view";
 import {
   open_editor_tab,
@@ -52,6 +53,18 @@ export function EditorGroups() {
 
   const active_pane = (): Pane | undefined =>
     panes.get(store.getState().editor.active_group_id);
+
+  const switcher = TabSwitcher();
+
+  const on_keydown = (e: KeyboardEvent) => {
+    if (e.ctrlKey && e.key === "Tab" && !switcher.is_open()) {
+      e.preventDefault();
+      e.stopPropagation();
+      const tabs = store.getState().editor.tabs;
+      if (tabs.length > 0) switcher.open(tabs, 1);
+    }
+  };
+  document.addEventListener("keydown", on_keydown, true);
 
   const relayout = () => panes.forEach((p) => p.layout());
 
@@ -307,6 +320,8 @@ export function EditorGroups() {
 
   (root as any).destroy = () => {
     unsub();
+    document.removeEventListener("keydown", on_keydown, true);
+    switcher.destroy();
     if (save_timer) window.clearTimeout(save_timer);
     splitters.forEach((s) => s.destroy());
     panes.forEach((p) => p.destroy());
