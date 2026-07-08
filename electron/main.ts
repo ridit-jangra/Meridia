@@ -4,6 +4,7 @@ import {
   ipcMain,
   Menu,
   MenuItemConstructorOptions,
+  shell,
 } from "electron";
 import { autoUpdater } from "electron-updater";
 import { fileURLToPath } from "node:url";
@@ -21,7 +22,7 @@ import "./ipc/watcher-ipc";
 import "./ipc/terminal-ipc";
 import "./ipc/chat-ipc";
 import "./ipc/format-ipc";
-import { Server } from "@ridit/relay/server";
+import { Server } from "./relay/server";
 import { event_emitter } from "./shared/emitter";
 import { theme } from "../src/code/workbench/contrib/theme/theme.service";
 import { titlebar_menu } from "../src/code/workbench/browser/parts/titlebar/titlebar.menu";
@@ -196,6 +197,23 @@ function createWindow() {
       preload: path.join(__dirname, "preload.mjs"),
       webviewTag: true,
     },
+  });
+
+  // Open external links (chat markdown, etc.) in the system browser instead of
+  // navigating the app window or spawning a bare Electron window.
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (/^https?:\/\//i.test(url)) shell.openExternal(url);
+    return { action: "deny" };
+  });
+
+  win.webContents.on("will-navigate", (e, url) => {
+    const is_app_url = VITE_DEV_SERVER_URL
+      ? url.startsWith(VITE_DEV_SERVER_URL)
+      : url.startsWith("file://");
+    if (!is_app_url && /^https?:\/\//i.test(url)) {
+      e.preventDefault();
+      shell.openExternal(url);
+    }
   });
 
   function update_titlebar_height() {

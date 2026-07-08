@@ -108,7 +108,7 @@ type chat_api = {
     decision: "allow" | "allow_session" | "deny",
   ): Promise<void>;
   onPermissionRequest(
-    cb: (p: { id: string; tool: string; args: unknown }) => void,
+    cb: (p: import("../shared/types/chat.types").PermissionRequestPayload) => void,
   ): () => void;
   onToolCall(
     cb: (t: { id: string; tool: string; args: unknown }) => void,

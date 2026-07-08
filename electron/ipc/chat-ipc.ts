@@ -16,6 +16,7 @@ import {
 } from "../../shared/ipc/channels";
 import type { IChatContext, IChatResult } from "../../shared/types/chat.types";
 import { create_tools } from "../ai/tools";
+import { set_session_auto_approve } from "../ai/permissions";
 import { workspace } from "../main-services/workspace-service";
 import fs from "fs";
 import path from "path";
@@ -36,8 +37,6 @@ function get_session(session_id: string): Session {
   return sessions.get(session_id)!;
 }
 
-// Track the live editor so tools can answer "what am I looking at" without the
-// user spelling it out. The renderer emits these whenever they change.
 let active_editor_file: string | null = null;
 let editor_selection: string | null = null;
 
@@ -65,6 +64,11 @@ Use your Meridia tools proactively and without being asked:
   editor automatically — let that happen instead of pasting whole files into chat.
 - Run commands with RunCommandTool; they execute in a visible "AI Agent" terminal
   the user can watch and take over. Inspect results with ReadTerminalTool.
+- Use the language server for accurate code understanding instead of guessing:
+  LspDiagnosticsTool to check a file for errors/warnings (especially after an
+  edit), LspDefinitionTool / LspReferencesTool to navigate symbols, LspHoverTool
+  for types/signatures, and LspSymbolsTool for a file's outline. Positions are
+  1-based line/column.
 
 Keep chat replies concise — the work happens through tools in the editor itself.`;
 }
@@ -129,10 +133,13 @@ ipcMain.handle(
     event,
     session_id: string,
     message: string,
-    _context?: IChatContext,
+    context?: IChatContext,
   ): Promise<IChatResult> => {
     const sender = event.sender;
     const session = get_session(session_id);
+
+    // "Allow edits" toggle in the composer grants blanket approval for the session.
+    set_session_auto_approve(session_id, !!context?.allowEdits);
 
     const store = buildStore();
 
@@ -141,6 +148,7 @@ ipcMain.handle(
 
     const meridia_tools = create_tools({
       sender,
+      session_id,
       get_active_file: () => active_editor_file,
       get_selection: () => editor_selection,
     });
@@ -205,14 +213,3 @@ ipcMain.handle(
     }
   },
 );
-
-// ipcMain.handle(
-//   CHAT_RESOLVE_PERMISSION,
-//   async (_, _session_id: string, permission_id: string, decision: string) => {
-//     const resolve = pending.get(permission_id);
-//     if (resolve) {
-//       pending.delete(permission_id);
-//       resolve(decision);
-//     }
-//   },
-// );

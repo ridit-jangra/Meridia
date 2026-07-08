@@ -6,7 +6,9 @@ import {
   ChatLoadingBubble,
   ChatMessageBox,
   ChatPermissionCard,
+  ChatDiffView,
 } from "../../browser/parts/components/chat";
+import type { PermissionRequestPayload } from "../../../../../shared/types/chat.types";
 import { h } from "../core/dom/h";
 import { cn } from "../core/utils/cn";
 import {
@@ -349,6 +351,7 @@ export function Chat() {
         cwd,
         files: [],
         thinking,
+        allowEdits: chat_input.allowEdits,
       });
       if (result.error) {
         append_message(s, "assistant", result.error, undefined, true);
@@ -417,27 +420,62 @@ export function Chat() {
   }
 
   if (!listenersInitialized) {
-    window.chat.onPermissionRequest(({ id, tool, args }) => {
+    window.chat.onPermissionRequest((p: PermissionRequestPayload) => {
       const s = sessions.get(active_id);
       if (!s) return;
+      if (s.message_count === 0) {
+        s.empty_el.style.display = "none";
+        s.messages_el.style.display = "flex";
+      }
 
-      const chip = ChatToolChip({
-        tool,
-        input: args as Record<string, any>,
-        output: null,
-      });
-      s.messages_el.appendChild(chip.el);
+      const resolve = (decision: "allow" | "deny" | "allow_session") =>
+        window.chat.resolvePermission(p.session_id, p.id, decision);
 
-      const card = ChatPermissionCard({
-        tool,
-        description:
-          typeof args === "object" ? JSON.stringify(args) : String(args),
-        onAllow: () => window.chat.resolvePermission(s.session_id, id, "allow"),
-        onAllowSession: () =>
-          window.chat.resolvePermission(s.session_id, id, "allow_session"),
-        onDeny: () => window.chat.resolvePermission(s.session_id, id, "deny"),
-      });
-      s.messages_el.appendChild(card.el);
+      let node: HTMLElement;
+
+      if (p.kind === "edit" && p.diff) {
+        // File write/edit → inline diff with Accept / Reject, plus a
+        // "for this session" escape hatch.
+        const diff = ChatDiffView({
+          path: p.diff.path,
+          prevContent: p.diff.prevContent,
+          newContent: p.diff.newContent,
+          onAccept: () => resolve("allow"),
+          onReject: () => resolve("deny"),
+        });
+
+        const session_btn = h(
+          "button",
+          {
+            class:
+              "self-end text-[10px] text-chat-foreground/40 hover:text-chat-foreground/70 transition-colors cursor-pointer bg-transparent border-0 px-1",
+            attrs: { type: "button" },
+          },
+          "Allow edits for this session",
+        );
+        session_btn.addEventListener("click", () => {
+          session_btn.remove();
+          resolve("allow_session");
+        });
+
+        node = h(
+          "div",
+          { class: "flex flex-col gap-1 my-1" },
+          diff.el,
+          session_btn,
+        );
+      } else {
+        // Commands / directories → confirmation card.
+        node = ChatPermissionCard({
+          tool: p.title || p.tool,
+          description: p.description,
+          onAllow: () => resolve("allow"),
+          onAllowSession: () => resolve("allow_session"),
+          onDeny: () => resolve("deny"),
+        }).el;
+      }
+
+      s.messages_el.insertBefore(node, s.loading_bubble);
       requestAnimationFrame(
         () => (s.scroll.viewport.scrollTop = s.scroll.viewport.scrollHeight),
       );

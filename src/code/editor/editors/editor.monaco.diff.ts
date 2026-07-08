@@ -123,6 +123,45 @@ export class diff_editor extends editor<IDiffEditorDef, IDiffModel> {
     };
   }
 
+  private ai_models = new Map<
+    string,
+    { original: monaco.editor.ITextModel; modified: monaco.editor.ITextModel }
+  >();
+
+  public show_ai(file_path: string, prev: string, next: string): void {
+    const language = path_to_language(file_path);
+    let m = this.ai_models.get(file_path);
+    if (!m) {
+      const original = this.get_or_create_model(
+        "ai-diff-original",
+        file_path,
+        prev,
+        language,
+      );
+      const modified = this.get_or_create_model(
+        "ai-diff-modified",
+        file_path,
+        next,
+        language,
+      );
+      m = { original, modified };
+      this.ai_models.set(file_path, m);
+    } else {
+      if (m.original.getValue() !== prev) m.original.setValue(prev);
+      if (m.modified.getValue() !== next) m.modified.setValue(next);
+    }
+    this.instance.setModel({ original: m.original, modified: m.modified });
+    this.set_visible(true);
+  }
+
+  public clear_ai(file_path: string): void {
+    const m = this.ai_models.get(file_path);
+    if (!m) return;
+    m.original.dispose();
+    m.modified.dispose();
+    this.ai_models.delete(file_path);
+  }
+
   public add_model(model: IDiffModel): void {
     this.models.push(model);
   }

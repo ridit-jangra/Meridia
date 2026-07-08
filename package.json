@@ -32,7 +32,6 @@
   "dependencies": {
     "@reduxjs/toolkit": "^2.11.2",
     "@ridit/ai": "^0.1.84",
-    "@ridit/relay": "^0.1.6",
     "@tailwindcss/vite": "^4.1.18",
     "@vscode/codicons": "^0.0.44",
     "@xterm/addon-clipboard": "^0.2.0",
@@ -59,7 +58,10 @@
     "split.js": "^1.6.5",
     "tailwindcss": "^4.1.18",
     "tailwindcss-animate": "^1.0.7",
+    "vscode-languageserver-protocol": "^3.17.5",
     "vscode-oniguruma": "^2.0.1",
-    "vscode-textmate": "^9.3.2"
+    "vscode-textmate": "^9.3.2",
+    "vscode-ws-jsonrpc": "^3.5.0",
+    "ws": "^8.20.0"
   }
 }

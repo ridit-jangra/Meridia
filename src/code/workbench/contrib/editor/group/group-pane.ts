@@ -10,7 +10,7 @@ import { GroupTabs } from "./group-tabs";
 import { DockSide } from "./grid";
 import { current_tab_drag, current_view_drag } from "./dnd";
 import { dock_into_group, dock_to_edge, dock_view } from "./actions";
-import { IMAGE_MIME, diff_view } from "./special";
+import { IMAGE_MIME, diff_view, get_pending_ai_diff } from "./special";
 import {
   MovableViewId,
   get_view_el,
@@ -169,6 +169,13 @@ export function GroupPane(group_id: string) {
     ed.set_visible(true);
   };
 
+  const show_ai_diff = (uri: string, prev: string, next: string) => {
+    const ed = diff_view();
+    ed.mount(body);
+    body.insertBefore(ed.editor.el, overlay);
+    ed.show_ai(uri, prev, next);
+  };
+
   let last_key = "";
 
   let mounted_view: MovableViewId | null = null;
@@ -258,8 +265,14 @@ export function GroupPane(group_id: string) {
     if (active.tab_type === "EDITOR_DIFF") {
       show(code_view.el, false);
       show(image_host, false);
-      last_key = `diff:${active.file_path}`;
-      await show_diff(active.file_path);
+      const pending = get_pending_ai_diff(active.file_path);
+      if (pending) {
+        last_key = `ai-diff:${active.file_path}`;
+        show_ai_diff(active.file_path, pending.prev, pending.next);
+      } else {
+        last_key = `diff:${active.file_path}`;
+        await show_diff(active.file_path);
+      }
       return;
     }
     hide_diff();

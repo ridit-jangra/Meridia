@@ -80,6 +80,9 @@ export const UI_SET_STATUS_BAR = "ui:setStatusBar";
 
 export const FORMAT_DOCUMENT = "format:document";
 
+export const LSP_AGENT_REQUEST = "lsp-agent:request";
+export const LSP_AGENT_RESPONSE = "lsp-agent:response";
+
 export const LSP_CHECK = "lsp:check";
 export const LSP_INSTALL = "lsp:install";
 export const LSP_INSTALL_PROGRESS = "lsp:install-progress";

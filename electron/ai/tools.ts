@@ -9,10 +9,16 @@ import {
   TERMINAL_AI_RUN,
   TERMINAL_GET_OUTPUT,
   TERMINAL_OUTPUT_RESPONSE,
+  LSP_AGENT_REQUEST,
+  LSP_AGENT_RESPONSE,
 } from "../../shared/ipc/channels";
+import { randomUUID } from "crypto";
+import { request_permission } from "./permissions";
 
 export interface ToolContext {
   sender: WebContents;
+
+  session_id: string;
 
   get_active_file: () => string | null;
 
@@ -54,8 +60,64 @@ function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+const LSP_REQUEST_TIMEOUT = 15000;
+
+type LspAgentOp =
+  | "diagnostics"
+  | "hover"
+  | "definition"
+  | "references"
+  | "symbols";
+
+// Round-trips an LSP query to the renderer (which owns the Monaco language
+// client) and waits for the correlated response. Mirrors read_terminal_output,
+// but correlates by a per-request id since several can be in flight.
+function lsp_request(
+  sender: WebContents,
+  op: LspAgentOp,
+  params: { path: string; line?: number; column?: number },
+): Promise<unknown> {
+  const id = randomUUID();
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      ipcMain.removeListener(LSP_AGENT_RESPONSE, handler);
+      reject(new Error(`LSP ${op} timed out`));
+    }, LSP_REQUEST_TIMEOUT);
+
+    const handler = (
+      event: Electron.IpcMainEvent,
+      res: { id: string; ok: boolean; result?: unknown; error?: string },
+    ) => {
+      if (event.sender !== sender || res.id !== id) return;
+      clearTimeout(timer);
+      ipcMain.removeListener(LSP_AGENT_RESPONSE, handler);
+      if (res.ok) resolve(res.result);
+      else reject(new Error(res.error ?? `LSP ${op} failed`));
+    };
+
+    ipcMain.on(LSP_AGENT_RESPONSE, handler);
+    sender.send(LSP_AGENT_REQUEST, { id, op, ...params });
+  });
+}
+
 export function create_tools(ctx: ToolContext): ToolSet {
-  const { sender } = ctx;
+  const { sender, session_id } = ctx;
+
+  // Ask the user before a destructive action. Returns false if denied.
+  const gate = async (req: {
+    tool: string;
+    title: string;
+    description: string;
+    kind?: "generic" | "edit" | "command";
+    diff?: { path: string; prevContent: string; newContent: string };
+  }): Promise<boolean> => {
+    const decision = await request_permission({
+      sender,
+      session_id,
+      ...req,
+    });
+    return decision !== "deny";
+  };
 
   const ReadFileTool = tool({
     description:
@@ -104,6 +166,22 @@ export function create_tools(ctx: ToolContext): ToolSet {
     execute: async ({ path: p, content }) => {
       try {
         const full = await resolve_in_workspace(p);
+        let prev = "";
+        try {
+          prev = await fs.readFile(full, "utf-8");
+        } catch {
+          // new file
+        }
+        const approved = await gate({
+          tool: "WriteFileTool",
+          title: `Write ${path.basename(full)}`,
+          description: full,
+          kind: "edit",
+          diff: { path: full, prevContent: prev, newContent: content },
+        });
+        if (!approved) {
+          return { success: false, error: "Write rejected by user." };
+        }
         await fs.mkdir(path.dirname(full), { recursive: true });
         await fs.writeFile(full, content, "utf-8");
         sender.send(EDITOR_OPEN_FILE, full, "EDITOR_SINGLE");
@@ -150,6 +228,16 @@ export function create_tools(ctx: ToolContext): ToolSet {
           };
         }
         const updated = content.replace(old_string, new_string);
+        const approved = await gate({
+          tool: "EditFileTool",
+          title: `Edit ${path.basename(full)}`,
+          description: full,
+          kind: "edit",
+          diff: { path: full, prevContent: content, newContent: updated },
+        });
+        if (!approved) {
+          return { success: false, error: "Edit rejected by user." };
+        }
         await fs.writeFile(full, updated, "utf-8");
         const line = content
           .slice(0, content.indexOf(old_string))
@@ -206,6 +294,14 @@ export function create_tools(ctx: ToolContext): ToolSet {
     execute: async ({ path: p }) => {
       try {
         const full = await resolve_in_workspace(p);
+        const approved = await gate({
+          tool: "CreateDirTool",
+          title: `Create directory ${path.basename(full)}`,
+          description: full,
+        });
+        if (!approved) {
+          return { success: false, error: "Denied by user." };
+        }
         await fs.mkdir(full, { recursive: true });
         return { success: true, path: full };
       } catch (err) {
@@ -321,6 +417,15 @@ export function create_tools(ctx: ToolContext): ToolSet {
       additionalProperties: false,
     }),
     execute: async ({ command, wait_ms }) => {
+      const approved = await gate({
+        tool: "RunCommandTool",
+        title: "Run command",
+        description: command,
+        kind: "command",
+      });
+      if (!approved) {
+        return { success: false, error: "Command rejected by user." };
+      }
       sender.send(TERMINAL_AI_RUN, command);
       await sleep(Math.max(0, wait_ms ?? 1500));
       const output = await read_terminal_output(sender, 100);
@@ -348,6 +453,141 @@ export function create_tools(ctx: ToolContext): ToolSet {
     },
   });
 
+  const LspDiagnosticsTool = tool({
+    description:
+      "Get language-server diagnostics (errors, warnings, hints) for a file. " +
+      "Use this to check whether your edits introduced problems. An empty list " +
+      "means no diagnostics are currently reported.",
+    inputSchema: jsonSchema<{ path: string }>({
+      type: "object",
+      properties: {
+        path: { type: "string", description: "File to diagnose." },
+      },
+      required: ["path"],
+      additionalProperties: false,
+    }),
+    execute: async ({ path: p }) => {
+      try {
+        const full = await resolve_in_workspace(p);
+        const result = await lsp_request(sender, "diagnostics", { path: full });
+        return { success: true, path: full, diagnostics: result };
+      } catch (err) {
+        return { success: false, error: String(err) };
+      }
+    },
+  });
+
+  const LspHoverTool = tool({
+    description:
+      "Get hover info (type signature, documentation) for the symbol at a " +
+      "1-based line/column in a file, from the language server.",
+    inputSchema: jsonSchema<{ path: string; line: number; column: number }>({
+      type: "object",
+      properties: {
+        path: { type: "string", description: "File containing the symbol." },
+        line: { type: "number", description: "1-based line number." },
+        column: { type: "number", description: "1-based column number." },
+      },
+      required: ["path", "line", "column"],
+      additionalProperties: false,
+    }),
+    execute: async ({ path: p, line, column }) => {
+      try {
+        const full = await resolve_in_workspace(p);
+        const result = await lsp_request(sender, "hover", {
+          path: full,
+          line,
+          column,
+        });
+        return { success: true, hover: result };
+      } catch (err) {
+        return { success: false, error: String(err) };
+      }
+    },
+  });
+
+  const LspDefinitionTool = tool({
+    description:
+      "Find where the symbol at a 1-based line/column is defined. Returns a " +
+      "list of { path, line, column } locations from the language server.",
+    inputSchema: jsonSchema<{ path: string; line: number; column: number }>({
+      type: "object",
+      properties: {
+        path: { type: "string", description: "File containing the reference." },
+        line: { type: "number", description: "1-based line number." },
+        column: { type: "number", description: "1-based column number." },
+      },
+      required: ["path", "line", "column"],
+      additionalProperties: false,
+    }),
+    execute: async ({ path: p, line, column }) => {
+      try {
+        const full = await resolve_in_workspace(p);
+        const result = await lsp_request(sender, "definition", {
+          path: full,
+          line,
+          column,
+        });
+        return { success: true, locations: result };
+      } catch (err) {
+        return { success: false, error: String(err) };
+      }
+    },
+  });
+
+  const LspReferencesTool = tool({
+    description:
+      "Find all references/usages of the symbol at a 1-based line/column. " +
+      "Returns a list of { path, line, column } locations from the language server.",
+    inputSchema: jsonSchema<{ path: string; line: number; column: number }>({
+      type: "object",
+      properties: {
+        path: { type: "string", description: "File containing the symbol." },
+        line: { type: "number", description: "1-based line number." },
+        column: { type: "number", description: "1-based column number." },
+      },
+      required: ["path", "line", "column"],
+      additionalProperties: false,
+    }),
+    execute: async ({ path: p, line, column }) => {
+      try {
+        const full = await resolve_in_workspace(p);
+        const result = await lsp_request(sender, "references", {
+          path: full,
+          line,
+          column,
+        });
+        return { success: true, locations: result };
+      } catch (err) {
+        return { success: false, error: String(err) };
+      }
+    },
+  });
+
+  const LspSymbolsTool = tool({
+    description:
+      "Get the document outline (symbols: classes, functions, methods, etc.) " +
+      "for a file from the language server. Each symbol has a name, kind, line, " +
+      "and nesting depth. Use this to understand a file's structure quickly.",
+    inputSchema: jsonSchema<{ path: string }>({
+      type: "object",
+      properties: {
+        path: { type: "string", description: "File to outline." },
+      },
+      required: ["path"],
+      additionalProperties: false,
+    }),
+    execute: async ({ path: p }) => {
+      try {
+        const full = await resolve_in_workspace(p);
+        const result = await lsp_request(sender, "symbols", { path: full });
+        return { success: true, symbols: result };
+      } catch (err) {
+        return { success: false, error: String(err) };
+      }
+    },
+  });
+
   return {
     ReadFileTool,
     WriteFileTool,
@@ -360,5 +600,10 @@ export function create_tools(ctx: ToolContext): ToolSet {
     GetSelectionTool,
     RunCommandTool,
     ReadTerminalTool,
+    LspDiagnosticsTool,
+    LspHoverTool,
+    LspDefinitionTool,
+    LspReferencesTool,
+    LspSymbolsTool,
   };
 }

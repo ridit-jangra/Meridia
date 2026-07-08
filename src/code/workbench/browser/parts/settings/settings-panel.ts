@@ -6,13 +6,9 @@ import {
   ISettings,
   settings_service,
 } from "../../../../platform/settings/settings.service";
-import {
-  check_and_install_lsp,
-  check_lsp,
-  LSPS,
-  uninstall_lsp,
-} from "../../lsp";
+import { check_and_install_lsp, check_lsp, LSPS } from "../../lsp";
 import { Button } from "../components/button";
+import { codicon } from "../components/icon";
 
 const MONO = "'JetBrains Mono', monospace";
 
@@ -185,29 +181,16 @@ function lsp_button(
     container.innerHTML = "";
 
     if (installed) {
-      const tog = toggle(
-        () => get() === "Installed",
-        (v) => on_change(v ? "Installed" : "Not Installed"),
-      );
-
-      const uninstall_btn = Button("Uninstall", {
-        variant: "destructive",
-        onClick: async () => {
-          uninstall_btn.setAttribute("disabled", "true");
-          uninstall_btn.textContent = "Uninstalling...";
-          try {
-            await uninstall_lsp(id);
-            on_change("Not Installed");
-            render(false);
-          } catch {
-            uninstall_btn.textContent = "Failed";
-            uninstall_btn.removeAttribute("disabled");
-          }
+      const status = h(
+        "span",
+        {
+          class:
+            "flex items-center gap-1.5 text-[12px] text-green-400/80 select-none",
         },
-      });
-
-      container.appendChild(tog.el);
-      container.appendChild(uninstall_btn);
+        codicon("check", "text-[11px]"),
+        "Installed",
+      );
+      container.appendChild(status);
     } else {
       const btn = Button("Checking...", {
         onClick: async () => {
