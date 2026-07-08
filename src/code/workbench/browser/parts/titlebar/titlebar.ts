@@ -3,7 +3,13 @@ import { h } from "../../../contrib/core/dom/h";
 import { cn } from "../../../contrib/core/utils/cn";
 import { titlebar_menu } from "./titlebar.menu";
 import { Menubar } from "../components/menubar";
-import { is_node_enabled_at_path_active_preset } from "../../layouts/layout.helper";
+import {
+  is_node_enabled_at_path_active_preset,
+  is_primary_sidebar_on_right,
+  primary_sidebar_path,
+  secondary_sidebar_path,
+  bottom_panel_path,
+} from "../../layouts/layout.helper";
 import { codicon, lucide } from "../components/icon";
 import { shortcuts } from "../../../common/shortcut/shortcut.service";
 import { layout_engine } from "../../layouts/layout.engine";
@@ -56,9 +62,15 @@ export function Titlebar() {
   });
 
   const update_layout_btns = () => {
-    const left_active = is_node_enabled_at_path_active_preset([0]);
-    const right_active = is_node_enabled_at_path_active_preset([2]);
-    const bottom_active = is_node_enabled_at_path_active_preset([1, 1]);
+    const left_active = is_node_enabled_at_path_active_preset(
+      primary_sidebar_path(),
+    );
+    const right_active = is_node_enabled_at_path_active_preset(
+      secondary_sidebar_path(),
+    );
+    const bottom_active = is_node_enabled_at_path_active_preset(
+      bottom_panel_path(),
+    );
 
     const lSpan = left_panel.querySelector("span")!;
     const rSpan = right_panel.querySelector("span")!;
@@ -68,8 +80,14 @@ export function Titlebar() {
     rSpan.innerHTML = "";
     bSpan.innerHTML = "";
 
+    // The primary side bar's icon follows the side it currently sits on.
+    const primary_side = is_primary_sidebar_on_right() ? "right" : "left";
     lSpan.appendChild(
-      codicon(left_active ? "layout-sidebar-left" : "layout-sidebar-left-off"),
+      codicon(
+        left_active
+          ? `layout-sidebar-${primary_side}`
+          : `layout-sidebar-${primary_side}-off`,
+      ),
     );
     rSpan.appendChild(
       codicon(

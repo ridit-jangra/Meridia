@@ -12,6 +12,9 @@ import {
   is_node_enabled_at_path_active_preset,
   toggle_node_at_path,
   update_layout,
+  primary_sidebar_path,
+  secondary_sidebar_path,
+  bottom_panel_path,
 } from "../../browser/layouts/layout.helper";
 import { terminal } from "../../../platform/terminal/terminal.service";
 import { layout_engine } from "../../browser/layouts/layout.engine";
@@ -36,8 +39,9 @@ import { focus_editor, focus_terminal, is_terminal_focus } from "../focus";
 shortcuts.register_command({
   id: "layout.toggleSearch",
   run: () => {
-    if (!is_node_enabled_at_path_active_preset([0]))
-      update_layout([0], enable_node_at_path);
+    const path = primary_sidebar_path();
+    if (!is_node_enabled_at_path_active_preset(path))
+      update_layout(path, enable_node_at_path);
     store.dispatch(set_active_panel_key({ key: "left", value: "search" }));
   },
 });
@@ -45,8 +49,9 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.toggleExplorer",
   run: () => {
-    if (!is_node_enabled_at_path_active_preset([0]))
-      update_layout([0], enable_node_at_path);
+    const path = primary_sidebar_path();
+    if (!is_node_enabled_at_path_active_preset(path))
+      update_layout(path, enable_node_at_path);
     store.dispatch(set_active_panel_key({ key: "left", value: "explorer" }));
   },
 });
@@ -54,8 +59,9 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.toggleGit",
   run: () => {
-    if (!is_node_enabled_at_path_active_preset([0]))
-      update_layout([0], enable_node_at_path);
+    const path = primary_sidebar_path();
+    if (!is_node_enabled_at_path_active_preset(path))
+      update_layout(path, enable_node_at_path);
     store.dispatch(set_active_panel_key({ key: "left", value: "git" }));
   },
 });
@@ -71,20 +77,21 @@ shortcuts.register_command({
 
       if (!preset) return;
 
+      const bottom = bottom_panel_path();
       let new_root;
 
       if (
         active_tab_key === "terminal" &&
-        is_node_enabled_at_path(preset.root, [1, 1])
+        is_node_enabled_at_path(preset.root, bottom)
       ) {
         if (!is_terminal_focus()) {
           focus_terminal();
         } else {
-          new_root = disable_node_at_path(preset.root, [1, 1]);
+          new_root = disable_node_at_path(preset.root, bottom);
           focus_editor();
         }
       } else {
-        new_root = enable_node_at_path(preset.root, [1, 1]);
+        new_root = enable_node_at_path(preset.root, bottom);
         focus_terminal();
       }
 
@@ -113,16 +120,17 @@ shortcuts.register_command({
 
       if (!preset) return;
 
+      const bottom = bottom_panel_path();
       let new_root;
 
       if (
         active_tab_key === "problems" &&
-        is_node_enabled_at_path(preset.root, [1, 1])
+        is_node_enabled_at_path(preset.root, bottom)
       ) {
-        new_root = disable_node_at_path(preset.root, [1, 1]);
+        new_root = disable_node_at_path(preset.root, bottom);
         focus_editor();
       } else {
-        new_root = enable_node_at_path(preset.root, [1, 1]);
+        new_root = enable_node_at_path(preset.root, bottom);
         // focus_terminal();
       }
 
@@ -140,9 +148,10 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.toggleBottomPanel",
   run: () => {
-    update_layout([1, 1], toggle_node_at_path);
+    const path = bottom_panel_path();
+    update_layout(path, toggle_node_at_path);
 
-    if (is_node_enabled_at_path_active_preset([1, 1])) {
+    if (is_node_enabled_at_path_active_preset(path)) {
       focus_editor();
     } else {
       focus_terminal();
@@ -153,7 +162,7 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.togglePrimarySideBar",
   run: () => {
-    update_layout([0], toggle_node_at_path);
+    update_layout(primary_sidebar_path(), toggle_node_at_path);
     // focus_editor();
   },
 });
@@ -161,7 +170,7 @@ shortcuts.register_command({
 shortcuts.register_command({
   id: "layout.toggleSecondarySideBar",
   run: () => {
-    update_layout([2], toggle_node_at_path);
+    update_layout(secondary_sidebar_path(), toggle_node_at_path);
     // focus_editor();
   },
 });

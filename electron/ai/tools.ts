@@ -11,7 +11,7 @@ import {
   TERMINAL_OUTPUT_RESPONSE,
 } from "../../shared/ipc/channels";
 
-export interface MeridiaToolContext {
+export interface ToolContext {
   sender: WebContents;
 
   get_active_file: () => string | null;
@@ -54,7 +54,7 @@ function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
 
-export function create_meridia_tools(ctx: MeridiaToolContext): ToolSet {
+export function create_tools(ctx: ToolContext): ToolSet {
   const { sender } = ctx;
 
   const ReadFileTool = tool({

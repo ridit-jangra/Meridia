@@ -15,7 +15,7 @@ import {
   EDITOR_SELECTION,
 } from "../../shared/ipc/channels";
 import type { IChatContext, IChatResult } from "../../shared/types/chat.types";
-import { create_meridia_tools } from "../ai/tools";
+import { create_tools } from "../ai/tools";
 import { workspace } from "../main-services/workspace-service";
 import fs from "fs";
 import path from "path";
@@ -139,7 +139,7 @@ ipcMain.handle(
     const { MemoryEditTool, MemoryListTool, MemoryReadTool, MemoryWriteTool } =
       createMemoryTools(store);
 
-    const meridia_tools = create_meridia_tools({
+    const meridia_tools = create_tools({
       sender,
       get_active_file: () => active_editor_file,
       get_selection: () => editor_selection,
@@ -149,9 +149,9 @@ ipcMain.handle(
 
     const client = createClient({
       provider: buildProvider({
-        apiKey: process.env.GROQ_API_KEY,
-        model: "openai/gpt-oss-20b",
-        provider: "groq",
+        apiKey: process.env.OPENROUTER_API_KEY,
+        model: "deepseek/deepseek-v4-flash",
+        provider: "openrouter",
       }),
     });
 

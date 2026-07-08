@@ -11,6 +11,7 @@ import { terminal_events } from "../../platform/events/terminal.events";
 import {
   enable_node_at_path,
   update_layout,
+  bottom_panel_path,
 } from "../browser/layouts/layout.helper";
 import { shortcuts } from "./shortcut/shortcut.service";
 import { store } from "./state/store";
@@ -46,7 +47,7 @@ export function runFile(file_path: string) {
   const active_terminal = terminal.get_active();
   if (!active_terminal) return;
 
-  update_layout([1, 1], enable_node_at_path);
+  update_layout(bottom_panel_path(), enable_node_at_path);
 
   const ext = get_file_extension(file_path);
   const program = program_map[ext];
@@ -91,7 +92,7 @@ setTimeout(() => {
   ipc.on(TERMINAL_RUN_COMMAND, (_, command: string) => {
     const active_terminal = terminal.get_active();
     if (!active_terminal) return;
-    update_layout([1, 1], enable_node_at_path);
+    update_layout(bottom_panel_path(), enable_node_at_path);
     window.pty.write(active_terminal.id, `${command}\r`);
   });
 
@@ -101,7 +102,7 @@ setTimeout(() => {
   });
 
   ipc.on(TERMINAL_AI_RUN, (_, command: string) => {
-    update_layout([1, 1], enable_node_at_path);
+    update_layout(bottom_panel_path(), enable_node_at_path);
     terminal_events.emit("aiRun", command);
   });
 }, 200);

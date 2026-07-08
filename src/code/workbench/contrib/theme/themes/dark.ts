@@ -166,7 +166,7 @@ export const dark: ITheme = {
     "titlebar.menu.item.active.background": "#FFFFFF1A",
     "titlebar.menu.item.active.foreground": "#FFFFFF",
 
-    "split.handle.foreground": "#FFFFFF14",
+    "split.handle.foreground": "#0D0D0D",
     "split.handle.hover.foreground": "#FFFFFF26",
     "split.handle.active.foreground": "#FFFFFF33",
 

@@ -171,7 +171,6 @@ export function GroupPane(group_id: string) {
 
   let last_key = "";
 
-  // The single shared view element this pane currently hosts (terminal, etc.).
   let mounted_view: MovableViewId | null = null;
 
   const unmount_view = () => {

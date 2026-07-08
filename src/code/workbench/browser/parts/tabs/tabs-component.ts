@@ -18,7 +18,10 @@ import {
   begin_view_drag,
   end_view_drag,
 } from "../../../contrib/editor/group/dnd";
-import { is_movable_view } from "../../../contrib/editor/group/view-host";
+import {
+  is_movable_view,
+  is_view_docked,
+} from "../../../contrib/editor/group/view-host";
 
 type ViewFactory = () => HTMLElement;
 
@@ -43,7 +46,35 @@ export function TabsComponent(opts: { node: TTabNode }) {
   scroll.inner.classList.add("h-full");
   const content = scroll.inner;
 
+  const empty_state = h(
+    "div",
+    {
+      class:
+        "h-full w-full flex items-center justify-center text-[13px] text-muted-foreground select-none",
+      style: "display:none",
+    },
+    "No tabs",
+  );
+  content.appendChild(empty_state);
+
   const get_active = () => store.getState().layout.active_tab_key;
+
+  // A tab whose view has been dragged into the editor area is no longer hosted
+  // by this panel, so its pill is hidden until the view is brought back.
+  const is_docked_tab = (id: string) =>
+    is_movable_view(id) && is_view_docked(id);
+  const visible_tabs = () => opts.node.tabs.filter((t) => !is_docked_tab(t.id));
+  const docked_sig = () =>
+    opts.node.tabs
+      .filter((t) => is_docked_tab(t.id))
+      .map((t) => t.id)
+      .join(",");
+
+  const ensure_active_visible = () => {
+    const visible = visible_tabs();
+    if (visible.some((t) => t.id === get_active())) return;
+    if (visible.length > 0) store.dispatch(set_active_tab_key(visible[0].id));
+  };
 
   let is_initialized = false;
   const pills = new Map<string, HTMLElement>();
@@ -62,7 +93,7 @@ export function TabsComponent(opts: { node: TTabNode }) {
         tooltip: {
           text: `Close (${shortcuts.get_shortcut({ id: "toggleBottomPanel" })?.keys})`,
           class: "w-max",
-          position: "top",
+          position: "bottom",
         },
       },
       lucide("x"),
@@ -74,6 +105,16 @@ export function TabsComponent(opts: { node: TTabNode }) {
   let last_mounted_key = "";
 
   const mountPanel = () => {
+    if (visible_tabs().length === 0) {
+      for (const [, panel_el] of panel_cache) panel_el.style.display = "none";
+      empty_state.style.display = "";
+      optionsHeader.innerHTML = "";
+      optionsHeader.appendChild(close_opt);
+      last_mounted_key = "";
+      return;
+    }
+    empty_state.style.display = "none";
+
     const key = get_active();
 
     if (key === last_mounted_key) return;
@@ -131,7 +172,7 @@ export function TabsComponent(opts: { node: TTabNode }) {
 
     const active_tab_key = get_active();
 
-    for (const tab of opts.node.tabs) {
+    for (const tab of visible_tabs()) {
       const is_active = tab.id === active_tab_key;
       const shortcut_text = tab.shortcut_id
         ? shortcuts.get_shortcut({ id: tab.shortcut_id })?.keys
@@ -207,14 +248,25 @@ export function TabsComponent(opts: { node: TTabNode }) {
   };
 
   let prev_active_tab_key = get_active();
+  let prev_docked_sig = docked_sig();
 
   const unsub = store.subscribe(() => {
     const current_tab_key = get_active();
-    if (current_tab_key === prev_active_tab_key) return;
-    prev_active_tab_key = current_tab_key;
+    const current_docked_sig = docked_sig();
+    const active_changed = current_tab_key !== prev_active_tab_key;
+    const docked_changed = current_docked_sig !== prev_docked_sig;
+    if (!active_changed && !docked_changed) return;
 
-    if (is_initialized && current_tab_key) {
+    prev_active_tab_key = current_tab_key;
+    prev_docked_sig = current_docked_sig;
+
+    if (is_initialized && current_tab_key && active_changed) {
       window.storage.set(ACTIVE_TAB_KEY, current_tab_key);
+    }
+
+    if (docked_changed) {
+      renderTabs();
+      ensure_active_visible();
     }
 
     render();

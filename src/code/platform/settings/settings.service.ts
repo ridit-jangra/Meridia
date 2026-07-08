@@ -10,6 +10,7 @@ export interface ISettings {
   editor_smooth_scrolling: boolean;
   editor_cursor_blinking: string;
   editor_ligatures: boolean;
+  editor_format_on_save: boolean;
 
   ui_sidebar_position: "left" | "right";
   ui_compact_tabs: boolean;
@@ -33,6 +34,7 @@ export const DEFAULT_SETTINGS: ISettings = {
   editor_smooth_scrolling: true,
   editor_cursor_blinking: "expand",
   editor_ligatures: true,
+  editor_format_on_save: true,
   ui_sidebar_position: "left",
   ui_compact_tabs: false,
   ui_show_breadcrumbs: true,

@@ -31,6 +31,7 @@ import { register_html_language } from "../../../editor/languages/html";
 import { register_react_language } from "../../../editor/languages/react";
 import { IWorkspace } from "../../../../../shared/types/workspace.types";
 import { tab_type } from "../../../../types/editor.types";
+import { settings_service } from "../../../platform/settings/settings.service";
 
 import "../../../editor/editors/editor.monaco";
 
@@ -209,11 +210,16 @@ export function EditorGroups() {
   };
 
   const save_active = async () => {
-    const m = active_pane()?.code_view.active_model;
-    if (!m) return;
+    const view = active_pane()?.code_view;
+    const m = view?.active_model;
+    if (!view || !m) return;
     const tab = store.getState().editor.tabs.find((t) => t.file_path === m.uri);
     if (!tab) return;
     if (tab.tab_status === "NEW") return void save_active_as();
+
+    if (settings_service.get().editor_format_on_save) {
+      await view.format_document();
+    }
 
     editor_events.emit("start-loading");
     const res = await explorer.actions.create_file(m.uri, m.model.getValue());

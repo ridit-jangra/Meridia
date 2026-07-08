@@ -26,6 +26,7 @@ import {
   view_id_from_uri,
 } from "./view-host";
 import { move_view_to_panel } from "./actions";
+import { shortcuts } from "../../../common/shortcut/shortcut.service";
 
 function tab_view_id(tab: ITab): MovableViewId | null {
   if (tab.tab_type !== "VIEW") return null;
@@ -126,7 +127,7 @@ export function GroupTabs(group_id: string) {
       );
     },
     tooltip: {
-      text: "Split Editor Right",
+      text: `Split Editor Right (${shortcuts.get_shortcut({ id: "splitEditorRight" })?.keys})`,
       position: "bottom",
     },
     variant: "ghost",

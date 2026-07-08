@@ -16,7 +16,13 @@ export default defineConfig({
         vite: {
           build: {
             rollupOptions: {
-              external: ["node-pty", "bufferutil", "utf-8-validate", "ws"],
+              external: [
+                "node-pty",
+                "bufferutil",
+                "utf-8-validate",
+                "ws",
+                "prettier",
+              ],
             },
           },
         },

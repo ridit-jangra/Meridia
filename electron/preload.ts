@@ -49,6 +49,7 @@ import {
   GIT_INIT_REPO,
   GIT_GET_HEAD_CONTENT,
   GIT_COMMIT,
+  FORMAT_DOCUMENT,
 } from "../shared/ipc/channels";
 import type { IChatContext, IChatResult } from "../shared/types/chat.types";
 
@@ -244,6 +245,20 @@ contextBridge.exposeInMainWorld("chat", {
     ipcRenderer.on(CHAT_TOOL_RESULT, (_, t) => cb(t));
     return () => ipcRenderer.removeAllListeners(CHAT_TOOL_RESULT);
   },
+});
+
+contextBridge.exposeInMainWorld("format", {
+  document: (
+    path: string,
+    text: string,
+    options: { tab_size?: number; insert_spaces?: boolean } = {},
+  ) =>
+    ipcRenderer.invoke(
+      FORMAT_DOCUMENT,
+      path,
+      text,
+      options,
+    ) as Promise<string | null>,
 });
 
 contextBridge.exposeInMainWorld("dialog", {

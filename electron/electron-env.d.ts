@@ -75,6 +75,14 @@ type files_api = {
   relative(f: string, t: string): Promise<string>;
 };
 
+type format_api = {
+  document(
+    path: string,
+    text: string,
+    options?: { tab_size?: number; insert_spaces?: boolean },
+  ): Promise<string | null>;
+};
+
 type watcher_api = {
   stop(p: string): Promise<boolean>;
   start(p: string): Promise<boolean>;
@@ -137,6 +145,7 @@ declare global {
     explorer: explorer_api;
     workspace: workspace_api;
     files: files_api;
+    format: format_api;
     watcher: watcher_api;
     pty: pty_api;
     chat: chat_api;

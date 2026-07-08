@@ -1,7 +1,51 @@
 import { layout_engine } from "./layout.engine";
-import { TLayoutNode } from "../../../../types/preset.types";
+import { TLayoutNode, TSplitNode } from "../../../../types/preset.types";
 import { store } from "../../common/state/store";
 import { debounce } from "../../contrib/core/utils/utils";
+
+function active_root(): TSplitNode | null {
+  const state = store.getState();
+  const preset = layout_engine.get_layout(state.layout.active_layout_id);
+  if (!preset || preset.root.type !== "split") return null;
+  return preset.root;
+}
+
+/**
+ * The primary side bar (activity bar + panels) is a direct child of the root
+ * split. `ui_sidebar_position` reorders the root children, so its index is not
+ * fixed — resolve it by node type instead of assuming [0].
+ */
+export function primary_sidebar_path(): number[] {
+  const root = active_root();
+  if (!root) return [0];
+  const idx = root.children.findIndex((c) => c.type === "activity-bar-panel");
+  return [idx === -1 ? 0 : idx];
+}
+
+/** The secondary side bar is the standalone panel sharing the root row. */
+export function secondary_sidebar_path(): number[] {
+  const root = active_root();
+  if (!root) return [2];
+  const idx = root.children.findIndex((c) => c.type === "panel");
+  return [idx === -1 ? 2 : idx];
+}
+
+/** The bottom panel lives at index 1 inside the editor split (the row split). */
+export function bottom_panel_path(): number[] {
+  const root = active_root();
+  if (!root) return [1, 1];
+  const idx = root.children.findIndex((c) => c.type === "split");
+  return [idx === -1 ? 1 : idx, 1];
+}
+
+/** True when the primary side bar sits to the right of the editor. */
+export function is_primary_sidebar_on_right(): boolean {
+  const root = active_root();
+  if (!root) return false;
+  const ab = root.children.findIndex((c) => c.type === "activity-bar-panel");
+  const ed = root.children.findIndex((c) => c.type === "split");
+  return ab !== -1 && ed !== -1 && ab > ed;
+}
 
 export function set_node_at_path(
   root: TLayoutNode,

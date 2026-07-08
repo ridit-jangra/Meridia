@@ -64,6 +64,9 @@ export function get_file_icon(_name: string) {
     "ipynb",
     "yaml",
     "xml",
+    "gd",
+    "godot",
+    "yml",
   ];
 
   const icon_name = supported.includes(_ext) ? _ext : "default";

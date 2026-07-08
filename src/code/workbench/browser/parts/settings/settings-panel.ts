@@ -350,6 +350,15 @@ export function SettingsPanel(): { el: HTMLElement; destroy: () => void } {
             ),
           ),
         ),
+        setting_row(
+          "Format On Save",
+          ctrl(
+            toggle(
+              () => s().editor_format_on_save,
+              (v) => set({ editor_format_on_save: v }),
+            ),
+          ),
+        ),
       ],
     },
     {

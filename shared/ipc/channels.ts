@@ -78,6 +78,8 @@ export const TERMINAL_AI_RUN = "terminal:aiRun";
 export const UI_SHOW_NOTIFICATION = "ui:showNotification";
 export const UI_SET_STATUS_BAR = "ui:setStatusBar";
 
+export const FORMAT_DOCUMENT = "format:document";
+
 export const LSP_CHECK = "lsp:check";
 export const LSP_INSTALL = "lsp:install";
 export const LSP_INSTALL_PROGRESS = "lsp:install-progress";

@@ -32,7 +32,7 @@ export const tabs_options_registery: Record<string, () => HTMLElement> = {
         },
         tooltip: {
           text: `Add Terminal (${shortcuts.get_shortcut({ id: "newTerminal" })?.keys})`,
-          position: "top",
+          position: "bottom",
         },
       },
       lucide("plus"),

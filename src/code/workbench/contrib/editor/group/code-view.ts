@@ -84,7 +84,7 @@ const EDITOR_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
   minimap: { enabled: false },
   fontSize: 15,
   folding: true,
-  cursorSmoothCaretAnimation: "on",
+  cursorSmoothCaretAnimation: "off",
   cursorBlinking: "expand",
   fixedOverflowWidgets: true,
   largeFileOptimizations: true,
@@ -180,6 +180,21 @@ export class CodeGroupView {
 
   private is_active(): boolean {
     return store.getState().editor.active_group_id === this.group_id;
+  }
+
+  /**
+   * Run the registered document formatter (Prettier via IPC, or the LSP
+   * provider) against the current model and wait for the edits to apply.
+   * No-ops when no provider matches the language.
+   */
+  async format_document(): Promise<void> {
+    const action = this.instance.getAction("editor.action.formatDocument");
+    if (!action) return;
+    try {
+      await action.run();
+    } catch {
+      // Formatting is best-effort; never block a save on it.
+    }
   }
 
   private apply_settings(s: ISettings): void {

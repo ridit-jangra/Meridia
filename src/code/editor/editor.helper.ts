@@ -210,19 +210,42 @@ export function path_to_language(file_path: string) {
   return "plaintext";
 }
 
+// "editor.action.organizeImports" -> "Organize Imports"
+const humanize_action_id = (id: string): string => {
+  const last = id.split(".").pop() ?? id;
+  return last
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim();
+};
+
 const action_item = (
   editor: monaco.editor.IStandaloneCodeEditor,
   id: string,
   command_id?: string,
+  label?: string,
 ): ContextMenuItem | null => {
   const a = editor.getSupportedActions().find((x) => x.id === id);
-  if (!a) return null;
+
+  // The action isn't registered on this instance (some are provider-gated and
+  // only appear once the LSP attaches). Rather than drop the item — which is
+  // how entries silently went missing after the editor-groups migration —
+  // still show it and trigger the action by id, matching the legacy menu.
+  if (!a) {
+    return {
+      type: "item",
+      label: label ?? humanize_action_id(id),
+      command_id,
+      disabled: false,
+      onClick: () => editor.trigger("keyboard", id, null),
+    };
+  }
 
   const supported = a.isSupported?.() ?? true;
 
   return {
     type: "item",
-    label: a.label ?? id,
+    label: label ?? a.label ?? id,
     command_id,
     disabled: !supported,
     onClick: () => a.run(),
@@ -247,48 +270,48 @@ export const build_monaco_context_items = (
   const hasSelection = !(editor.getSelection()?.isEmpty() ?? true);
 
   const editItems: (ContextMenuItem | null)[] = [
-    action_item(editor, "editor.action.clipboardCutAction", "Ctrl+X"),
-    action_item(editor, "editor.action.clipboardCopyAction", "Ctrl+C"),
-    action_item(editor, "editor.action.clipboardPasteAction", "Ctrl+V"),
+    action_item(editor, "editor.action.clipboardCutAction", "Ctrl+X", "Cut"),
+    action_item(editor, "editor.action.clipboardCopyAction", "Ctrl+C", "Copy"),
+    action_item(editor, "editor.action.clipboardPasteAction", "Ctrl+V", "Paste"),
     sep(),
-    action_item(editor, "editor.action.selectAll", "Ctrl+A"),
-    action_item(editor, "undo", "Ctrl+Z"),
-    action_item(editor, "redo", "Ctrl+Y"),
+    action_item(editor, "editor.action.selectAll", "Ctrl+A", "Select All"),
+    action_item(editor, "undo", "Ctrl+Z", "Undo"),
+    action_item(editor, "redo", "Ctrl+Y", "Redo"),
   ];
 
   const findItems: (ContextMenuItem | null)[] = [
-    action_item(editor, "actions.find", "Ctrl+F"),
-    action_item(editor, "editor.action.startFindReplaceAction", "Ctrl+H"),
-    action_item(editor, "editor.action.nextMatchFindAction", "F3"),
-    action_item(editor, "editor.action.previousMatchFindAction", "Shift+F3"),
+    action_item(editor, "actions.find", "Ctrl+F", "Find"),
+    action_item(editor, "editor.action.startFindReplaceAction", "Ctrl+H", "Replace"),
+    action_item(editor, "editor.action.nextMatchFindAction", "F3", "Find Next"),
+    action_item(editor, "editor.action.previousMatchFindAction", "Shift+F3", "Find Previous"),
   ];
 
   const goToItems: (ContextMenuItem | null)[] = [
-    action_item(editor, "editor.action.revealDefinition", "F12"),
-    action_item(editor, "editor.action.goToDeclaration", ""),
-    action_item(editor, "editor.action.goToImplementation", "Ctrl+F12"),
-    action_item(editor, "editor.action.goToTypeDefinition", ""),
-    action_item(editor, "editor.action.goToReferences", "Shift+F12"),
+    action_item(editor, "editor.action.revealDefinition", "F12", "Go to Definition"),
+    action_item(editor, "editor.action.goToDeclaration", "", "Go to Declaration"),
+    action_item(editor, "editor.action.goToImplementation", "Ctrl+F12", "Go to Implementation"),
+    action_item(editor, "editor.action.goToTypeDefinition", "", "Go to Type Definition"),
+    action_item(editor, "editor.action.goToReferences", "Shift+F12", "Go to References"),
     sep(),
-    action_item(editor, "editor.action.peekDefinition", "Alt+F12"),
-    action_item(editor, "editor.action.peekDeclaration", ""),
-    action_item(editor, "editor.action.peekImplementation", ""),
-    action_item(editor, "editor.action.peekTypeDefinition", ""),
-    action_item(editor, "editor.action.referenceSearch.trigger", ""),
+    action_item(editor, "editor.action.peekDefinition", "Alt+F12", "Peek Definition"),
+    action_item(editor, "editor.action.peekDeclaration", "", "Peek Declaration"),
+    action_item(editor, "editor.action.peekImplementation", "", "Peek Implementation"),
+    action_item(editor, "editor.action.peekTypeDefinition", "", "Peek Type Definition"),
+    action_item(editor, "editor.action.referenceSearch.trigger", "", "Find All References"),
   ];
 
   const peekItems: (ContextMenuItem | null)[] = [
-    action_item(editor, "editor.action.peekDefinition", "Alt+F12"),
-    action_item(editor, "editor.action.peekDeclaration", ""),
-    action_item(editor, "editor.action.peekImplementation", ""),
-    action_item(editor, "editor.action.peekTypeDefinition", ""),
-    action_item(editor, "editor.action.goToReferences", "Shift+F12"),
+    action_item(editor, "editor.action.peekDefinition", "Alt+F12", "Peek Definition"),
+    action_item(editor, "editor.action.peekDeclaration", "", "Peek Declaration"),
+    action_item(editor, "editor.action.peekImplementation", "", "Peek Implementation"),
+    action_item(editor, "editor.action.peekTypeDefinition", "", "Peek Type Definition"),
+    action_item(editor, "editor.action.goToReferences", "Shift+F12", "Go to References"),
   ];
 
   const formatItems: (ContextMenuItem | null)[] = [
-    action_item(editor, "editor.action.formatDocument", "Shift+Alt+F"),
-    action_item(editor, "editor.action.formatSelection", ""),
-    action_item(editor, "editor.action.organizeImports", ""),
+    action_item(editor, "editor.action.formatDocument", "Shift+Alt+F", "Format Document"),
+    action_item(editor, "editor.action.formatSelection", "", "Format Selection"),
+    action_item(editor, "editor.action.organizeImports", "", "Organize Imports"),
   ];
 
   const commandPaletteKeys = (shortcuts.get_shortcut({
@@ -319,18 +342,18 @@ export const build_monaco_context_items = (
     submenu("Peek", peekItems),
 
     sep(),
-    action_item(editor, "editor.action.rename", "F2"),
-    action_item(editor, "editor.action.quickOutline", "Ctrl+Shift+O"),
-    action_item(editor, "editor.action.changeAll", "Ctrl+F2"),
+    action_item(editor, "editor.action.rename", "F2", "Rename Symbol"),
+    action_item(editor, "editor.action.quickOutline", "Ctrl+Shift+O", "Go to Symbol..."),
+    action_item(editor, "editor.action.changeAll", "Ctrl+F2", "Change All Occurrences"),
 
     sep(),
     submenu("Format", formatItems),
 
     sep(),
-    action_item(editor, "editor.action.commentLine", "Ctrl+/"),
-    action_item(editor, "editor.action.blockComment", "Shift+Alt+A"),
-    action_item(editor, "editor.action.insertLineAfter", ""),
-    action_item(editor, "editor.action.insertLineBefore", ""),
+    action_item(editor, "editor.action.commentLine", "Ctrl+/", "Toggle Line Comment"),
+    action_item(editor, "editor.action.blockComment", "Shift+Alt+A", "Toggle Block Comment"),
+    action_item(editor, "editor.action.insertLineAfter", "", "Insert Line Below"),
+    action_item(editor, "editor.action.insertLineBefore", "", "Insert Line Above"),
 
     sep(),
     ...customItems,

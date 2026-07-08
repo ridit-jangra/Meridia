@@ -20,6 +20,7 @@ import "./ipc/git-ipc";
 import "./ipc/watcher-ipc";
 import "./ipc/terminal-ipc";
 import "./ipc/chat-ipc";
+import "./ipc/format-ipc";
 import { Server } from "@ridit/relay/server";
 import { event_emitter } from "./shared/emitter";
 import { theme } from "../src/code/workbench/contrib/theme/theme.service";

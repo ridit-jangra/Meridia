@@ -85,7 +85,7 @@ export function Splitter(opts: SplitterOpts) {
 
     const gutterInner = h("div", {
       class: cn(
-        "absolute transition-all duration-150",
+        "absolute transition-all duration-150 bg-split-handle-foreground",
         "hover:bg-split-handle-hover-foreground",
         "active:bg-split-handle-active-foreground",
       ),

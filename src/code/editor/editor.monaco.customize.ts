@@ -1,6 +1,7 @@
 import { explorer } from "../platform/explorer/explorer.service";
 import { monaco, open_editor_tab, path_to_language } from "./editor.helper";
 import { init_textmate } from "./languages/textmate";
+import "./editor.monaco.format";
 
 import { StandaloneServices } from "monaco-editor/esm/vs/editor/standalone/browser/standaloneServices";
 import { ITextModelService } from "monaco-editor/esm/vs/editor/common/services/resolverService";
