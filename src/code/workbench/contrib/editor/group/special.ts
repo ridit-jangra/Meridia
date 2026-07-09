@@ -8,14 +8,26 @@ export function diff_view(): diff_editor {
   return _diff;
 }
 
-const pending_ai_diffs = new Map<string, { prev: string; next: string }>();
+interface PendingAiDiff {
+  prev: string;
+  next: string;
+  onAccept?: () => void;
+  onReject?: () => void;
+}
 
-export function get_pending_ai_diff(path: string) {
+const pending_ai_diffs = new Map<string, PendingAiDiff>();
+
+export function get_pending_ai_diff(path: string): PendingAiDiff | undefined {
   return pending_ai_diffs.get(path);
 }
 
-export function open_ai_diff(path: string, prev: string, next: string): void {
-  pending_ai_diffs.set(path, { prev, next });
+export function open_ai_diff(
+  path: string,
+  prev: string,
+  next: string,
+  callbacks?: { onAccept?: () => void; onReject?: () => void },
+): void {
+  pending_ai_diffs.set(path, { prev, next, ...callbacks });
   open_editor_tab(path, "EDITOR_DIFF");
 }
 

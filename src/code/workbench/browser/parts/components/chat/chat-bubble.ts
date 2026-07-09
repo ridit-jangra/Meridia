@@ -8,28 +8,43 @@ export function ChatBubble(opts: {
   text: string;
   is_error?: boolean;
 }) {
-  if (opts.role === "user") {
-    const bubble = h("div", {
+  const wrap = h("div", { class: "flex flex-col gap-1 w-full min-w-0" });
+
+  const label = h(
+    "div",
+    {
       class:
-        "self-end text-[13px] leading-[1.7] break-words rounded-[10px] py-1.5 px-3.5 bg-chat-user-background text-chat-user-foreground whitespace-pre-wrap",
+        "text-[10px] uppercase tracking-[0.09em] font-semibold text-chat-foreground/35 select-none",
+    },
+    opts.role === "user" ? "You" : "Assistant",
+  );
+  wrap.appendChild(label);
+
+  if (opts.role === "user") {
+    const body = h("div", {
+      class:
+        "text-[13px] leading-[1.7] whitespace-pre-wrap break-words text-chat-foreground/85",
     });
-    bubble.textContent = opts.text;
-    return bubble;
+    body.textContent = opts.text;
+    wrap.appendChild(body);
+    return wrap;
   }
 
   if (opts.is_error) {
-    const bubble = h("div", {
+    const body = h("div", {
       class:
-        "self-start w-full text-[13px] leading-[1.75] break-words text-red-400 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2",
+        "text-[13px] leading-[1.7] break-words text-red-400 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2",
     });
-    bubble.textContent = opts.text;
-    return bubble;
+    body.textContent = opts.text;
+    wrap.appendChild(body);
+    return wrap;
   }
 
-  const bubble = h("div", {
+  const body = h("div", {
     class:
-      "self-start w-full text-[13px] leading-[1.75] break-words text-chat-assistant-foreground chat-prose py-0.5",
+      "text-[13px] leading-[1.75] break-words text-chat-assistant-foreground chat-prose",
   });
-  bubble.innerHTML = marked.parse(opts.text) as string;
-  return bubble;
+  body.innerHTML = marked.parse(opts.text) as string;
+  wrap.appendChild(body);
+  return wrap;
 }

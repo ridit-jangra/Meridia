@@ -6,9 +6,13 @@ import {
   ChatLoadingBubble,
   ChatMessageBox,
   ChatPermissionCard,
-  ChatDiffView,
 } from "../../browser/parts/components/chat";
 import type { PermissionRequestPayload } from "../../../../../shared/types/chat.types";
+import {
+  open_ai_diff,
+  clear_ai_diff,
+  close_ai_diff,
+} from "../editor/group/special";
 import { h } from "../core/dom/h";
 import { cn } from "../core/utils/cn";
 import {
@@ -59,6 +63,9 @@ interface Session extends StoredSession {
   messages_el: HTMLElement;
   empty_el: HTMLElement;
   loading_bubble: HTMLElement;
+
+  turn_tools: Map<string, Tool>;
+  turn_els: Map<string, HTMLElement>;
 }
 
 let session_counter = 0;
@@ -67,7 +74,15 @@ export function Chat() {
   const sessions = new Map<string, Session>();
   let active_id = "";
   let save_timer: ReturnType<typeof setTimeout> | null = null;
-  const live_chips = new Map<string, { el: HTMLElement; tool: string }>();
+  const agent_handles = new Map<string, ReturnType<typeof make_agent_card>>();
+
+  function finalize_turn(s: Session): Tool[] {
+    const tools = [...s.turn_tools.values()];
+    for (const el of s.turn_els.values()) el.remove();
+    s.turn_els.clear();
+    s.turn_tools.clear();
+    return tools;
+  }
 
   function save() {
     if (save_timer) clearTimeout(save_timer);
@@ -202,11 +217,12 @@ export function Chat() {
     });
 
     if (m.tools?.length) {
-      const tools_row = h("div", { class: "flex flex-col gap-1 mb-2" });
+      const tools_row = h("div", { class: "flex flex-col gap-1 my-1" });
       for (const t of m.tools) {
         tools_row.appendChild(ChatToolChip(t).el);
       }
-      bubble.insertBefore(tools_row, bubble.firstChild);
+
+      bubble.insertBefore(tools_row, bubble.lastChild);
     }
 
     container.appendChild(bubble);
@@ -263,6 +279,8 @@ export function Chat() {
       messages_el,
       empty_el,
       loading_bubble: ChatLoadingBubble(),
+      turn_tools: new Map(),
+      turn_els: new Map(),
     };
     sessions.set(id, session);
     return session;
@@ -320,6 +338,70 @@ export function Chat() {
     save();
   }
 
+  function make_agent_card(title: string) {
+    const spinner = codicon(
+      "loading",
+      "text-[10px] animate-spin opacity-60 shrink-0",
+    );
+    const check = codicon("pass", "text-[10px] text-green-400/70 shrink-0");
+    check.style.display = "none";
+
+    const head = h(
+      "div",
+      {
+        class: "flex items-center gap-1.5 text-[11px] text-chat-foreground/70",
+      },
+      codicon("robot", "text-[10px] opacity-60 shrink-0"),
+      h("span", { class: "font-medium truncate" }, `Agent · ${title}`),
+      spinner,
+      check,
+    );
+
+    const steps = h("div", {
+      class: "flex flex-col gap-0.5 mt-1 pl-[18px]",
+    });
+
+    const el = h(
+      "div",
+      {
+        class:
+          "rounded-[6px] border border-chat-border px-2 py-1.5 my-1 min-w-0",
+      },
+      head,
+      steps,
+    );
+
+    return {
+      el,
+      addStep(tool: string, preview: string) {
+        const row = h(
+          "div",
+          {
+            class:
+              "flex items-center gap-1.5 text-[10px] text-chat-foreground/40 font-mono truncate",
+          },
+          codicon("chevron-right", "text-[8px] opacity-40 shrink-0"),
+          h(
+            "span",
+            { class: "truncate" },
+            preview ? `${tool} ${preview}` : tool,
+          ),
+        );
+        steps.appendChild(row);
+      },
+      finish() {
+        spinner.style.display = "none";
+        check.style.display = "";
+      },
+      error(msg: string) {
+        spinner.style.display = "none";
+        head.appendChild(
+          h("span", { class: "text-[10px] text-red-400/70" }, msg),
+        );
+      },
+    };
+  }
+
   function set_loading(s: Session, val: boolean) {
     s.is_loading = val;
     if (s.id === active_id) {
@@ -354,13 +436,13 @@ export function Chat() {
         allowEdits: chat_input.allowEdits,
       });
       if (result.error) {
-        append_message(s, "assistant", result.error, undefined, true);
+        append_message(s, "assistant", result.error, finalize_turn(s), true);
       } else {
         append_message(
           s,
           "assistant",
           result.message,
-          result.tools as unknown as Tool[],
+          finalize_turn(s),
           !!result.error,
           result.permissionRequired,
         );
@@ -410,7 +492,7 @@ export function Chat() {
         s,
         "assistant",
         e instanceof Error ? e.message : "Something went wrong.",
-        undefined,
+        finalize_turn(s),
         true,
       );
     } finally {
@@ -434,38 +516,64 @@ export function Chat() {
       let node: HTMLElement;
 
       if (p.kind === "edit" && p.diff) {
-        // File write/edit → inline diff with Accept / Reject, plus a
-        // "for this session" escape hatch.
-        const diff = ChatDiffView({
-          path: p.diff.path,
-          prevContent: p.diff.prevContent,
-          newContent: p.diff.newContent,
-          onAccept: () => resolve("allow"),
-          onReject: () => resolve("deny"),
-        });
+        const diff_path = p.diff.path;
+        const file_name = diff_path.split(/[\\/]/).pop() ?? diff_path;
 
-        const session_btn = h(
-          "button",
-          {
-            class:
-              "self-end text-[10px] text-chat-foreground/40 hover:text-chat-foreground/70 transition-colors cursor-pointer bg-transparent border-0 px-1",
-            attrs: { type: "button" },
-          },
-          "Allow edits for this session",
-        );
-        session_btn.addEventListener("click", () => {
-          session_btn.remove();
+        // The decision can come from the chat card OR the editor diff bar, so
+        // settle both: replace the card with a compact resolved line.
+        let settled = false;
+        let card_el: HTMLElement | undefined;
+        const settle = (label: string) => {
+          if (settled) return;
+          settled = true;
+          card_el?.replaceWith(
+            h(
+              "div",
+              {
+                class:
+                  "text-[11px] text-chat-foreground/40 my-1 px-1 select-none",
+              },
+              `${label} · ${file_name}`,
+            ),
+          );
+        };
+
+        const accept = () => {
+          if (settled) return;
+          settle("Accepted");
+          resolve("allow");
+          clear_ai_diff(diff_path);
+        };
+        const reject = () => {
+          if (settled) return;
+          settle("Rejected");
+          resolve("deny");
+          close_ai_diff(diff_path);
+        };
+        const session = () => {
+          if (settled) return;
+          settle("Allowed for session");
           resolve("allow_session");
+          clear_ai_diff(diff_path);
+        };
+
+        // The diff itself lives in the editor area (with its own Accept/Reject
+        // bar); the chat only shows a compact confirmation card.
+        open_ai_diff(diff_path, p.diff.prevContent, p.diff.newContent, {
+          onAccept: accept,
+          onReject: reject,
         });
 
-        node = h(
-          "div",
-          { class: "flex flex-col gap-1 my-1" },
-          diff.el,
-          session_btn,
-        );
+        const card = ChatPermissionCard({
+          tool: `${p.title || "Edit"} · ${file_name}`,
+          description: "Review the diff in the editor.",
+          onAllow: accept,
+          onAllowSession: session,
+          onDeny: reject,
+        });
+        card_el = card.el;
+        node = card_el;
       } else {
-        // Commands / directories → confirmation card.
         node = ChatPermissionCard({
           tool: p.title || p.tool,
           description: p.description,
@@ -489,12 +597,20 @@ export function Chat() {
         s.messages_el.style.display = "flex";
       }
 
+      s.turn_tools.set(id, {
+        tool,
+        input: (args as Record<string, any>) ?? {},
+        output: null,
+      });
+
+      if (tool === "AgentTool") return;
+
       const chip = ChatToolChip({
         tool,
         input: args as Record<string, any>,
         output: null,
       });
-      live_chips.set(id, { el: chip.el, tool });
+      s.turn_els.set(id, chip.el);
       s.messages_el.insertBefore(chip.el, s.loading_bubble);
       requestAnimationFrame(
         () => (s.scroll.viewport.scrollTop = s.scroll.viewport.scrollHeight),
@@ -502,22 +618,50 @@ export function Chat() {
     });
 
     window.chat.onToolResult(({ id, tool, result }) => {
-      const entry = live_chips.get(id);
-      if (!entry) return;
-      live_chips.delete(id);
+      const s = sessions.get(active_id);
+      if (!s) return;
 
-      const remove_after = ["WriteFileTool", "FileEditTool", "FileReadTool"];
-      if (remove_after.includes(tool)) {
-        entry.el.remove();
-        return;
-      }
+      const rec = s.turn_tools.get(id);
+      if (rec) rec.output = (result as Tool["output"]) ?? null;
+
+      if (tool === "AgentTool") return;
 
       const chip = ChatToolChip({
         tool,
-        input: {},
-        output: typeof result === "string" ? result : JSON.stringify(result),
+        input: rec?.input ?? {},
+        output: (result as Tool["output"]) ?? null,
       });
-      entry.el.replaceWith(chip.el);
+      const old = s.turn_els.get(id);
+      if (old) old.replaceWith(chip.el);
+      else s.messages_el.insertBefore(chip.el, s.loading_bubble);
+      s.turn_els.set(id, chip.el);
+    });
+
+    window.chat.onAgentEvent((e) => {
+      const s = sessions.get(active_id);
+      if (!s) return;
+
+      if (e.type === "start") {
+        const card = make_agent_card(e.title ?? "task");
+        agent_handles.set(e.id, card);
+        s.turn_els.set(`agent:${e.id}`, card.el);
+        s.messages_el.insertBefore(card.el, s.loading_bubble);
+      } else {
+        const card = agent_handles.get(e.id);
+        if (!card) return;
+        if (e.type === "step" && e.step)
+          card.addStep(e.step.tool, e.step.preview);
+        else if (e.type === "done") {
+          card.finish();
+          agent_handles.delete(e.id);
+        } else if (e.type === "error") {
+          card.error(e.error ?? "failed");
+          agent_handles.delete(e.id);
+        }
+      }
+      requestAnimationFrame(
+        () => (s.scroll.viewport.scrollTop = s.scroll.viewport.scrollHeight),
+      );
     });
 
     listenersInitialized = true;

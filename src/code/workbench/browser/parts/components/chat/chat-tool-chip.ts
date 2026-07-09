@@ -1,4 +1,5 @@
 import { h } from "../../../../contrib/core/dom/h";
+import { cn } from "../../../../contrib/core/utils/cn";
 import { codicon } from "../icon";
 import { ChatDiffView } from "./chat-diff-view";
 import hljs from "highlight.js";
@@ -12,12 +13,26 @@ export interface Tool {
 
 function tool_icon(tool: string): HTMLElement {
   const map: Record<string, string> = {
-    WriteFileTool: "edit",
+    WriteFileTool: "new-file",
+    EditFileTool: "diff",
     FileEditTool: "diff",
-    ReadFileTool: "file-text",
-    FileReadTool: "file-text",
+    ReadFileTool: "file",
+    FileReadTool: "file",
     ReadManyFilesTool: "files",
+    ListDirTool: "list-tree",
+    CreateDirTool: "new-folder",
+    OpenFileTool: "go-to-file",
+    GotoLineTool: "list-selection",
+    GetActiveFileTool: "file-code",
+    GetSelectionTool: "selection",
+    RunCommandTool: "terminal",
+    ReadTerminalTool: "terminal",
     BashTool: "terminal",
+    LspDiagnosticsTool: "warning",
+    LspHoverTool: "info",
+    LspDefinitionTool: "symbol-method",
+    LspReferencesTool: "references",
+    LspSymbolsTool: "symbol-class",
     GlobTool: "list-tree",
     GrepTool: "search",
     ThinkTool: "lightbulb",
@@ -27,22 +42,63 @@ function tool_icon(tool: string): HTMLElement {
     MemoryReadTool: "database",
     MemoryWriteTool: "database",
     MemoryEditTool: "database",
+    MemoryListTool: "database",
     RecallTool: "history",
     CompactTool: "archive",
   };
   return codicon(map[tool] ?? "tools", "text-[10px] shrink-0 opacity-40");
 }
 
+// Friendly, compact labels for the tool chips.
+function tool_label(tool: string): string {
+  const map: Record<string, string> = {
+    WriteFileTool: "Write",
+    EditFileTool: "Edit",
+    FileEditTool: "Edit",
+    ReadFileTool: "Read",
+    ListDirTool: "List",
+    CreateDirTool: "New folder",
+    OpenFileTool: "Open",
+    GotoLineTool: "Go to line",
+    GetActiveFileTool: "Active file",
+    GetSelectionTool: "Selection",
+    RunCommandTool: "Run",
+    ReadTerminalTool: "Terminal",
+    LspDiagnosticsTool: "Diagnostics",
+    LspHoverTool: "Hover",
+    LspDefinitionTool: "Definition",
+    LspReferencesTool: "References",
+    LspSymbolsTool: "Symbols",
+    ThinkTool: "Think",
+    MemoryReadTool: "Memory",
+    MemoryWriteTool: "Memory",
+    MemoryEditTool: "Memory",
+    MemoryListTool: "Memory",
+  };
+  return map[tool] ?? tool.replace(/Tool$/, "");
+}
+
 function tool_preview(t: Tool): string {
   const input = t.input ?? {};
+  const basename = (p: string) => p.split(/[\\/]/).pop() ?? p;
   switch (t.tool) {
     case "WriteFileTool":
+    case "EditFileTool":
     case "FileEditTool":
     case "ReadFileTool":
-    case "ReadManyFilesTool": {
-      const p = String(input.path ?? "");
-      return p.split(/[\\/]/).pop() ?? p;
-    }
+    case "ReadManyFilesTool":
+    case "OpenFileTool":
+    case "GotoLineTool":
+    case "LspDiagnosticsTool":
+    case "LspHoverTool":
+    case "LspDefinitionTool":
+    case "LspReferencesTool":
+    case "LspSymbolsTool":
+      return basename(String(input.path ?? ""));
+    case "ListDirTool":
+    case "CreateDirTool":
+      return basename(String(input.path ?? ""));
+    case "RunCommandTool":
     case "BashTool":
       return String(input.command ?? "").slice(0, 60);
     case "GlobTool":
@@ -441,26 +497,122 @@ function render_body(t: Tool, pending?: PendingOpts): HTMLElement {
     return wrapper;
   }
 
-  const input_str = t.input ? JSON.stringify(t.input, null, 2) : "";
-  const output_str =
-    !t.output || t.output === "null"
-      ? ""
-      : typeof t.output === "string"
-        ? t.output
-        : JSON.stringify(t.output, null, 2);
+  return default_body(t);
+}
 
-  const lines = [
-    input_str ? `input\n${input_str}` : "",
-    output_str ? `output\n${output_str}` : "",
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+// ---- Generic input/output rendering for tools without a bespoke view --------
 
+function section(title: string): { el: HTMLElement; body: HTMLElement } {
+  const label = h(
+    "div",
+    {
+      class:
+        "px-2.5 pt-1.5 pb-0.5 text-[9px] uppercase tracking-[0.08em] text-chat-foreground/30 select-none",
+    },
+    title,
+  );
+  const body = h("div", { class: "px-2.5 pb-1.5 flex flex-col gap-[3px]" });
+  const el = h(
+    "div",
+    { class: "border-b border-chat-border last:border-0" },
+    label,
+    body,
+  );
+  return { el, body };
+}
+
+function fmt_input_value(v: unknown): string {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  try {
+    return JSON.stringify(v);
+  } catch {
+    return String(v);
+  }
+}
+
+function fmt_output(o: unknown): string {
+  if (o == null) return "";
+  if (typeof o === "string") return o;
+  if (typeof o === "object") {
+    const obj = { ...(o as Record<string, unknown>) };
+    // "success: true" alongside real data is noise; drop it.
+    if ("success" in obj && Object.keys(obj).length > 1) delete obj.success;
+    if (obj.success === true && Object.keys(obj).length === 1) return "Done";
+    try {
+      return JSON.stringify(obj, null, 2);
+    } catch {
+      return String(o);
+    }
+  }
+  return String(o);
+}
+
+function default_body(t: Tool): HTMLElement {
   const wrapper = h("div", {
-    class:
-      "mt-1 rounded-[6px] border border-chat-border bg-[#0D0D0D] px-2.5 py-2 font-mono text-[11px] text-[#E6E6E660] whitespace-pre-wrap break-all",
+    class: "mt-1 rounded-[6px] border border-chat-border overflow-hidden",
   });
-  wrapper.textContent = lines;
+
+  const input = (t.input ?? {}) as Record<string, unknown>;
+  const keys = Object.keys(input).filter((k) => input[k] !== undefined);
+  if (keys.length) {
+    const s = section("Input");
+    for (const k of keys) {
+      const row = h(
+        "div",
+        { class: "flex items-baseline gap-2 min-w-0" },
+        h(
+          "span",
+          {
+            class:
+              "text-[10px] font-mono text-chat-foreground/35 shrink-0 select-none",
+          },
+          k,
+        ),
+        h(
+          "span",
+          {
+            class:
+              "text-[10.5px] font-mono text-chat-foreground/70 break-all min-w-0",
+          },
+          fmt_input_value(input[k]),
+        ),
+      );
+      s.body.appendChild(row);
+    }
+    wrapper.appendChild(s.el);
+  }
+
+  const has_output = t.output != null && t.output !== "null";
+  if (has_output) {
+    const err =
+      typeof t.output === "object" && t.output
+        ? (t.output as Record<string, unknown>).error
+        : undefined;
+    const s = section("Output");
+    const block = h("div", {
+      class: cn(
+        "font-mono text-[10.5px] whitespace-pre-wrap break-all max-h-[220px] overflow-y-auto",
+        err ? "text-red-400/80" : "text-chat-foreground/60",
+      ),
+    });
+    block.textContent = err ? String(err) : fmt_output(t.output);
+    s.body.appendChild(block);
+    wrapper.appendChild(s.el);
+  }
+
+  if (!keys.length && !has_output) {
+    wrapper.appendChild(
+      h(
+        "div",
+        {
+          class: "px-2.5 py-1.5 text-[10px] text-chat-foreground/30 select-none",
+        },
+        "No details",
+      ),
+    );
+  }
+
   return wrapper;
 }
 
@@ -490,9 +642,9 @@ export function ChatToolChip(
     tool_icon(t.tool),
     (() => {
       const s = h("span", {
-        class: "text-[11px] text-chat-foreground/40 shrink-0",
+        class: "text-[11px] text-chat-foreground/55 font-medium shrink-0",
       });
-      s.textContent = t.tool;
+      s.textContent = tool_label(t.tool);
       return s;
     })(),
   ];

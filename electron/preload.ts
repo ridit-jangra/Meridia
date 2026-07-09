@@ -50,6 +50,7 @@ import {
   GIT_GET_HEAD_CONTENT,
   GIT_COMMIT,
   FORMAT_DOCUMENT,
+  CHAT_AGENT_EVENT,
 } from "../shared/ipc/channels";
 import type { IChatContext, IChatResult } from "../shared/types/chat.types";
 
@@ -244,6 +245,10 @@ contextBridge.exposeInMainWorld("chat", {
   ) => {
     ipcRenderer.on(CHAT_TOOL_RESULT, (_, t) => cb(t));
     return () => ipcRenderer.removeAllListeners(CHAT_TOOL_RESULT);
+  },
+  onAgentEvent: (cb: (e: unknown) => void) => {
+    ipcRenderer.on(CHAT_AGENT_EVENT, (_, e) => cb(e));
+    return () => ipcRenderer.removeAllListeners(CHAT_AGENT_EVENT);
   },
 });
 

@@ -169,11 +169,94 @@ export function GroupPane(group_id: string) {
     ed.set_visible(true);
   };
 
+  // An AI proposed-change diff is shown inside a wrapper: a header bar (with
+  // Accept / Reject) on top, and the diff editor filling the rest below.
+  let ai_diff_wrap: HTMLElement | null = null;
+  let ai_bar: HTMLElement | null = null;
+  let ai_diff_host: HTMLElement | null = null;
+
+  const ensure_ai_diff_wrap = () => {
+    if (ai_diff_wrap) return;
+    ai_bar = h("div", {
+      class:
+        "shrink-0 flex items-center gap-2 h-[36px] px-2.5 border-b border-workbench-border bg-panel-background",
+    });
+    ai_diff_host = h("div", { class: "flex-1 min-h-0 relative" });
+    ai_diff_wrap = h(
+      "div",
+      {
+        class: "absolute inset-0 flex flex-col bg-panel-background",
+        style: "display:none",
+      },
+      ai_bar,
+      ai_diff_host,
+    );
+    body.insertBefore(ai_diff_wrap, overlay);
+  };
+
+  const hide_ai_diff = () => {
+    if (ai_diff_wrap) ai_diff_wrap.style.display = "none";
+  };
+
+  const build_ai_bar = (uri: string) => {
+    const pending = get_pending_ai_diff(uri);
+    ai_bar!.innerHTML = "";
+
+    const name = uri.split(/[\\/]/).pop() ?? uri;
+    ai_bar!.appendChild(
+      h(
+        "span",
+        {
+          class:
+            "text-[11px] text-workbench-foreground/70 truncate min-w-0 flex items-center gap-1.5",
+        },
+        h(
+          "span",
+          { class: "text-[10px] text-workbench-foreground/40 shrink-0" },
+          "AI change",
+        ),
+        h("span", { class: "truncate font-medium" }, name),
+      ),
+    );
+
+    ai_bar!.appendChild(h("div", { class: "flex-1" }));
+
+    if (pending?.onReject) {
+      const reject = h(
+        "button",
+        {
+          class:
+            "h-[24px] px-3 text-[11px] rounded-[6px] cursor-pointer border border-workbench-border bg-transparent text-red-400 hover:bg-red-500/10 transition-colors",
+          attrs: { type: "button" },
+        },
+        "Reject",
+      );
+      reject.addEventListener("click", () => pending.onReject?.());
+      ai_bar!.appendChild(reject);
+    }
+
+    if (pending?.onAccept) {
+      const accept = h(
+        "button",
+        {
+          class:
+            "h-[24px] px-3 text-[11px] font-medium rounded-[6px] cursor-pointer border-0 bg-button-primary-background text-button-primary-foreground hover:bg-button-primary-hover-background transition-colors",
+          attrs: { type: "button" },
+        },
+        "Accept",
+      );
+      accept.addEventListener("click", () => pending.onAccept?.());
+      ai_bar!.appendChild(accept);
+    }
+  };
+
   const show_ai_diff = (uri: string, prev: string, next: string) => {
+    ensure_ai_diff_wrap();
     const ed = diff_view();
-    ed.mount(body);
-    body.insertBefore(ed.editor.el, overlay);
+    ed.mount(ai_diff_host!);
     ed.show_ai(uri, prev, next);
+    build_ai_bar(uri);
+    ai_diff_wrap!.style.display = "flex";
   };
 
   let last_key = "";
@@ -201,6 +284,7 @@ export function GroupPane(group_id: string) {
   };
 
   const update_view = async () => {
+    hide_ai_diff();
     const tabs = group_tabs(group_id);
     const active = tabs.find((t) => t.active);
 

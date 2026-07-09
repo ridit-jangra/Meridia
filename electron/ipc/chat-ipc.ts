@@ -1,4 +1,4 @@
-import { ipcMain } from "electron";
+import { ipcMain, type WebContents } from "electron";
 import { createClient, buildProvider } from "@ridit/ai/ai";
 import { createMemoryTools, ThinkTool } from "@ridit/ai/tools";
 import {
@@ -7,26 +7,110 @@ import {
   type Session,
   type Store,
 } from "@ridit/ai/utils";
+import type { ToolSet } from "ai";
 import {
   CHAT_PUSH,
   CHAT_TOOL_CALL,
   CHAT_TOOL_RESULT,
+  CHAT_AGENT_EVENT,
   EDITOR_ACTIVE_FILE,
   EDITOR_SELECTION,
 } from "../../shared/ipc/channels";
-import type { IChatContext, IChatResult } from "../../shared/types/chat.types";
-import { create_tools } from "../ai/tools";
+import type {
+  IChatContext,
+  IChatResult,
+  AgentEvent,
+} from "../../shared/types/chat.types";
+import { create_tools, SUBAGENT_TOOL_KEYS } from "../ai/tools";
 import { set_session_auto_approve } from "../ai/permissions";
 import { workspace } from "../main-services/workspace-service";
+import { storage } from "../main-services/storage-service";
+import { SETTINGS_KEY } from "../../shared/storage-keys";
 import fs from "fs";
 import path from "path";
 import { app } from "electron";
 
-// ONLY FOR DEVELOPMENT
-import dotenv from "dotenv";
-dotenv.config();
+interface AiSettings {
+  ai_provider: string;
+  ai_api_key: string;
+  ai_model: string;
+}
 
-console.log("[debug] GROQ_API_KEY loaded:", !!process.env.GROQ_API_KEY);
+// AI provider config is stored in settings (Settings -> AI), no longer .env.
+function get_ai_settings(): AiSettings {
+  const s = storage.get<Partial<AiSettings>>(SETTINGS_KEY, {});
+  return {
+    ai_provider: s.ai_provider || "openrouter",
+    ai_api_key: s.ai_api_key || "",
+    ai_model: s.ai_model || "deepseek/deepseek-v4-flash",
+  };
+}
+
+const SUBAGENT_SYSTEM = `You are a focused sub-agent spawned by the main coding agent to do one self-contained job — usually exploration or research across the workspace.
+
+You have READ-ONLY tools (read files, list directories, language-server queries). You cannot edit files or run commands.
+
+Work efficiently, then STOP and reply with a concise report of your findings: the concrete answer, the relevant file paths and line numbers, and anything the main agent needs to act. Do not pad the report — it is the only thing returned to the caller.`;
+
+function subagent_step_preview(input: unknown): string {
+  const i = (input ?? {}) as Record<string, unknown>;
+  const raw = String(
+    i.path ?? i.command ?? i.query ?? i.pattern ?? i.line ?? "",
+  );
+  return raw.split(/[\\/]/).pop() ?? raw;
+}
+
+// Runs a delegated sub-agent with a fresh context + read-only tools, streaming
+// its steps to the renderer, and resolves with the sub-agent's final report.
+async function run_subagent(opts: {
+  sender: WebContents;
+  ai: AiSettings;
+  task: string;
+  agent_id: string;
+  get_active_file: () => string | null;
+  get_selection: () => string | null;
+}): Promise<string> {
+  const { sender, ai, task, agent_id } = opts;
+
+  const all = create_tools({
+    sender,
+    session_id: `sub:${agent_id}`,
+    get_active_file: opts.get_active_file,
+    get_selection: opts.get_selection,
+    // no run_subagent -> the sub-agent can't spawn its own sub-agents
+  });
+
+  const sub_tools: ToolSet = {};
+  for (const key of SUBAGENT_TOOL_KEYS) {
+    const t = (all as Record<string, unknown>)[key];
+    if (t) (sub_tools as Record<string, unknown>)[key] = t;
+  }
+
+  const client = createClient({
+    provider: buildProvider({
+      apiKey: ai.ai_api_key,
+      model: ai.ai_model,
+      provider: ai.ai_provider as never,
+    }),
+  });
+
+  const res = await client.run({
+    prompt: task,
+    system: SUBAGENT_SYSTEM,
+    tools: sub_tools,
+    session: createSession(),
+    onToolCall: (e) => {
+      const ev: AgentEvent = {
+        id: agent_id,
+        type: "step",
+        step: { tool: e.toolName, preview: subagent_step_preview(e.input) },
+      };
+      sender.send(CHAT_AGENT_EVENT, ev);
+    },
+  });
+
+  return res.text;
+}
 
 const sessions = new Map<string, Session>();
 
@@ -64,6 +148,10 @@ Use your Meridia tools proactively and without being asked:
   editor automatically — let that happen instead of pasting whole files into chat.
 - Run commands with RunCommandTool; they execute in a visible "AI Agent" terminal
   the user can watch and take over. Inspect results with ReadTerminalTool.
+- For open-ended exploration or research (locating code, mapping a subsystem,
+  gathering context across many files), delegate to AgentTool instead of reading
+  everything yourself — the sub-agent explores in its own context and returns a
+  concise report, keeping your context focused. It is read-only.
 - Use the language server for accurate code understanding instead of guessing:
   LspDiagnosticsTool to check a file for errors/warnings (especially after an
   edit), LspDefinitionTool / LspReferencesTool to navigate symbols, LspHoverTool
@@ -146,20 +234,40 @@ ipcMain.handle(
     const { MemoryEditTool, MemoryListTool, MemoryReadTool, MemoryWriteTool } =
       createMemoryTools(store);
 
+    const workspace_path = await workspace.get_current_workspace_path();
+
+    const ai = get_ai_settings();
+
     const meridia_tools = create_tools({
       sender,
       session_id,
       get_active_file: () => active_editor_file,
       get_selection: () => editor_selection,
+      run_subagent: ({ task, agent_id }) =>
+        run_subagent({
+          sender,
+          ai,
+          task,
+          agent_id,
+          get_active_file: () => active_editor_file,
+          get_selection: () => editor_selection,
+        }),
     });
-
-    const workspace_path = await workspace.get_current_workspace_path();
+    if (!ai.ai_api_key) {
+      return {
+        error: `No API key set. Add your ${ai.ai_provider} API key in Settings → AI.`,
+        message: "",
+        tools: [],
+        permissionRequired: [],
+        model: ai.ai_model,
+      };
+    }
 
     const client = createClient({
       provider: buildProvider({
-        apiKey: process.env.OPENROUTER_API_KEY,
-        model: "deepseek/deepseek-v4-flash",
-        provider: "openrouter",
+        apiKey: ai.ai_api_key,
+        model: ai.ai_model,
+        provider: ai.ai_provider as never,
       }),
     });
 
@@ -199,7 +307,7 @@ ipcMain.handle(
         message: resultString.text,
         tools: [],
         permissionRequired: [],
-        model: "openai/gpt-oss-20b",
+        model: ai.ai_model,
         error: undefined,
       };
     } catch (e) {
@@ -208,7 +316,7 @@ ipcMain.handle(
         message: "",
         tools: [],
         permissionRequired: [],
-        model: "gpt",
+        model: ai.ai_model,
       };
     }
   },

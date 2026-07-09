@@ -16,6 +16,10 @@ export interface ISettings {
   ui_compact_tabs: boolean;
   ui_show_breadcrumbs: boolean;
 
+  ai_provider: string;
+  ai_api_key: string;
+  ai_model: string;
+
   lsp_auto_install: boolean;
 
   lsp_pylsp: boolean | "Installed" | "Not Installed";
@@ -38,6 +42,9 @@ export const DEFAULT_SETTINGS: ISettings = {
   ui_sidebar_position: "left",
   ui_compact_tabs: false,
   ui_show_breadcrumbs: true,
+  ai_provider: "openrouter",
+  ai_api_key: "",
+  ai_model: "deepseek/deepseek-v4-flash",
   lsp_auto_install: true,
   lsp_pylsp: "Not Installed",
   "lsp_typescript-language-server": "Not Installed",

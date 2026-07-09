@@ -9,6 +9,7 @@ import {
 import { check_and_install_lsp, check_lsp, LSPS } from "../../lsp";
 import { Button } from "../components/button";
 import { codicon } from "../components/icon";
+import { AI_PROVIDERS } from "../../../../../../shared/ai/catalog";
 
 const MONO = "'JetBrains Mono', monospace";
 
@@ -123,6 +124,7 @@ function number_input(
 function text_input(
   get: () => string,
   on_change: (v: string) => void,
+  opts?: { password?: boolean; placeholder?: string },
 ): Control {
   const input = h("input", {
     class: cn(
@@ -131,7 +133,11 @@ function text_input(
       "border border-workbench-border outline-none focus:border-input-focus-border",
     ),
     style: { fontFamily: MONO },
-    attrs: { type: "text", spellcheck: false },
+    attrs: {
+      type: opts?.password ? "password" : "text",
+      spellcheck: false,
+      ...(opts?.placeholder ? { placeholder: opts.placeholder } : {}),
+    },
     on: {
       change: () => on_change((input as HTMLInputElement).value),
     },
@@ -376,6 +382,45 @@ export function SettingsPanel(): { el: HTMLElement; destroy: () => void } {
               (v) => set({ ui_show_breadcrumbs: v }),
             ),
           ),
+        ),
+      ],
+    },
+    {
+      id: "ai",
+      label: "AI",
+      rows: [
+        setting_row(
+          "Provider",
+          ctrl(
+            select(
+              () => s().ai_provider,
+              AI_PROVIDERS.map((p) => ({ value: p })),
+              (v) => set({ ai_provider: v }),
+            ),
+          ),
+          "Which AI provider the chat agent uses",
+        ),
+        setting_row(
+          "API Key",
+          ctrl(
+            text_input(
+              () => s().ai_api_key,
+              (v) => set({ ai_api_key: v.trim() }),
+              { password: true, placeholder: "sk-..." },
+            ),
+          ),
+          "Stored locally on this machine. Replaces the .env file.",
+        ),
+        setting_row(
+          "Model",
+          ctrl(
+            text_input(
+              () => s().ai_model,
+              (v) => set({ ai_model: v.trim() }),
+              { placeholder: "provider/model" },
+            ),
+          ),
+          "Model id sent to the provider (also selectable from the chat box)",
         ),
       ],
     },

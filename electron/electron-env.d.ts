@@ -116,6 +116,9 @@ type chat_api = {
   onToolResult(
     cb: (t: { id: string; tool: string; result: unknown }) => void,
   ): () => void;
+  onAgentEvent(
+    cb: (e: import("../shared/types/chat.types").AgentEvent) => void,
+  ): () => void;
 };
 
 type pty_api = {

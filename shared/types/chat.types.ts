@@ -13,6 +13,17 @@ export interface IChatContext {
   allowEdits?: boolean;
 }
 
+// Sub-agent lifecycle events streamed main -> renderer so the UI can show a
+// nested "agent" card (task + live steps + final result).
+export interface AgentEvent {
+  id: string;
+  type: "start" | "step" | "done" | "error";
+  title?: string;
+  step?: { tool: string; preview: string };
+  result?: string;
+  error?: string;
+}
+
 export type PermissionDecision = "allow" | "deny" | "allow_session";
 
 export interface PermissionRequestPayload {

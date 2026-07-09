@@ -11,7 +11,9 @@ import {
   TERMINAL_OUTPUT_RESPONSE,
   LSP_AGENT_REQUEST,
   LSP_AGENT_RESPONSE,
+  CHAT_AGENT_EVENT,
 } from "../../shared/ipc/channels";
+import type { AgentEvent } from "../../shared/types/chat.types";
 import { randomUUID } from "crypto";
 import { request_permission } from "./permissions";
 
@@ -23,6 +25,10 @@ export interface ToolContext {
   get_active_file: () => string | null;
 
   get_selection: () => string | null;
+
+  // Runs a delegated sub-agent (fresh context, read-only tools) and resolves
+  // with its summary. Absent inside a sub-agent to prevent recursive nesting.
+  run_subagent?: (opts: { task: string; agent_id: string }) => Promise<string>;
 }
 
 async function resolve_in_workspace(p?: string): Promise<string> {
@@ -588,6 +594,49 @@ export function create_tools(ctx: ToolContext): ToolSet {
     },
   });
 
+  const AgentTool = tool({
+    description:
+      "Delegate an exploration or research sub-task to a sub-agent that runs " +
+      "with its own fresh context and read-only tools, then returns a concise " +
+      "summary. Use this for open-ended work (finding where something lives, " +
+      "understanding a subsystem, gathering context across many files) so your " +
+      "own context stays small. The sub-agent cannot edit files or run commands — " +
+      "it reports back findings for you to act on. Give it a clear, self-contained task.",
+    inputSchema: jsonSchema<{ task: string; title?: string }>({
+      type: "object",
+      properties: {
+        task: {
+          type: "string",
+          description:
+            "Self-contained instruction for the sub-agent, including what to " +
+            "find and what to report back.",
+        },
+        title: {
+          type: "string",
+          description: "Short label for this sub-task (a few words).",
+        },
+      },
+      required: ["task"],
+      additionalProperties: false,
+    }),
+    execute: async ({ task, title }) => {
+      if (!ctx.run_subagent) {
+        return { success: false, error: "Sub-agents cannot spawn sub-agents." };
+      }
+      const agent_id = randomUUID();
+      const emit = (e: AgentEvent) => sender.send(CHAT_AGENT_EVENT, e);
+      emit({ id: agent_id, type: "start", title: title || task });
+      try {
+        const summary = await ctx.run_subagent({ task, agent_id });
+        emit({ id: agent_id, type: "done", result: summary });
+        return { success: true, summary };
+      } catch (err) {
+        emit({ id: agent_id, type: "error", error: String(err) });
+        return { success: false, error: String(err) };
+      }
+    },
+  });
+
   return {
     ReadFileTool,
     WriteFileTool,
@@ -605,5 +654,21 @@ export function create_tools(ctx: ToolContext): ToolSet {
     LspDefinitionTool,
     LspReferencesTool,
     LspSymbolsTool,
+    AgentTool,
   };
 }
+
+// The read-only subset a sub-agent is allowed to use (no write/edit/run).
+export const SUBAGENT_TOOL_KEYS = [
+  "ReadFileTool",
+  "ListDirTool",
+  "OpenFileTool",
+  "GetActiveFileTool",
+  "GetSelectionTool",
+  "ReadTerminalTool",
+  "LspDiagnosticsTool",
+  "LspHoverTool",
+  "LspDefinitionTool",
+  "LspReferencesTool",
+  "LspSymbolsTool",
+] as const;

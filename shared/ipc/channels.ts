@@ -61,6 +61,7 @@ export const CHAT_RESOLVE_PERMISSION = "chat:resolve_permission";
 export const CHAT_PERMISSION_REQUEST = "chat:permission_request";
 export const CHAT_TOOL_RESULT = "chat:tool_result";
 export const CHAT_TOOL_CALL = "chat:tool_call";
+export const CHAT_AGENT_EVENT = "chat:agent_event";
 
 export const SHORTCUT_EXECUTE = "shortcut:execute";
 
