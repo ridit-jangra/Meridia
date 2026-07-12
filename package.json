@@ -13,6 +13,9 @@
     "rebuild": "electron-rebuild",
     "postinstall": "npm run rebuild"
   },
+  "overrides": {
+    "node-gyp": "^12.4.0"
+  },
   "devDependencies": {
     "@electron/rebuild": "^4.0.3",
     "@types/diff": "^8.0.0",
