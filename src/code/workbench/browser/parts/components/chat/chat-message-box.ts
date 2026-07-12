@@ -69,8 +69,6 @@ export function ChatMessageBox(opts?: {
   };
   sync_model_label();
 
-  // Keep the default dropdown look (Popover provides the panel); only add
-  // scrolling for long model lists.
   const MODEL_MENU_CLASS = "max-h-[260px] overflow-y-auto";
 
   const model_items = (): DropdownItem[] => {

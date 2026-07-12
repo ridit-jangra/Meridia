@@ -6,6 +6,7 @@ import { ScrollArea } from "../scroll-area";
 import { shortcuts } from "../../../../common/shortcut/shortcut.service";
 import { lucide } from "../icon";
 import { GLASS } from "../../../../contrib/styles/glass";
+import { get_file_icon } from "../../../../../platform/explorer/explorer.helper";
 import gsap from "gsap";
 
 export interface CommandGroup {
@@ -15,6 +16,12 @@ export interface CommandGroup {
   items: shortcut_def[];
 }
 
+export interface CommandFile {
+  path: string;
+  name: string;
+  dir: string;
+}
+
 type GroupRow = { kind: "group"; group: CommandGroup; score: number };
 type ItemRow = {
   kind: "item";
@@ -22,6 +29,8 @@ type ItemRow = {
   group: CommandGroup;
   score: number;
 };
+type FileRow = { kind: "file"; file: CommandFile; score: number };
+type Row = GroupRow | ItemRow | FileRow;
 
 export function Command(opts: {
   groups: CommandGroup[];
@@ -31,12 +40,17 @@ export function Command(opts: {
   class?: string;
   onOpenChange?: (open: boolean) => void;
   onRun?: (id: string) => void;
+  // Searched only while there is a query — mirrors quick-open in other IDEs.
+  fileProvider?: (query: string) => Promise<CommandFile[]>;
+  onOpenFile?: (path: string) => void;
 }) {
   let open = opts.open ?? false;
   let active = 0;
   let query = "";
   let activeGroup: CommandGroup | null = null;
   let listVisible = false;
+  let fileResults: CommandFile[] = [];
+  let fileSeq = 0;
 
   const modal = h("div", {
     class: cn(
@@ -59,6 +73,28 @@ export function Command(opts: {
     },
   });
 
+  let fileTimer: ReturnType<typeof setTimeout> | null = null;
+  const fetchFiles = (q: string) => {
+    if (fileTimer) clearTimeout(fileTimer);
+    if (!opts.fileProvider || !q) {
+      fileResults = [];
+      fileSeq++;
+      return;
+    }
+    const seq = ++fileSeq;
+    fileTimer = setTimeout(async () => {
+      try {
+        const res = await opts.fileProvider!(q);
+        if (seq !== fileSeq || !open) return;
+        fileResults = res;
+        renderList();
+        updateListVisibility();
+      } catch {
+        /* ignore */
+      }
+    }, 120);
+  };
+
   input.oninput = () => {
     const val = input.value.trim();
 
@@ -74,6 +110,13 @@ export function Command(opts: {
     activeGroup = matchedGroup;
     query = matchedGroup ? query : val.toLowerCase();
     active = 0;
+
+    if (!activeGroup && query) fetchFiles(query);
+    else {
+      fileResults = [];
+      fileSeq++;
+    }
+
     renderList();
     updateListVisibility();
   };
@@ -185,7 +228,14 @@ export function Command(opts: {
     return out;
   };
 
-  const filtered = (): (GroupRow | ItemRow)[] => {
+  const file_rows = (): FileRow[] =>
+    activeGroup
+      ? []
+      : fileResults.map((f) => ({ kind: "file" as const, file: f, score: 0 }));
+
+  const filtered = (): Row[] => [...file_rows(), ...command_rows()];
+
+  const command_rows = (): (GroupRow | ItemRow)[] => {
     const q = query;
 
     if (!activeGroup) {
@@ -234,6 +284,11 @@ export function Command(opts: {
     opts.onRun?.(it.id);
   };
 
+  const openFile = (f: CommandFile) => {
+    close();
+    opts.onOpenFile?.(f.path);
+  };
+
   const selectGroup = (group: CommandGroup) => {
     input.value = group.prefix;
     activeGroup = group;
@@ -269,6 +324,58 @@ export function Command(opts: {
     }
 
     items.forEach((item, i) => {
+      if (item.kind === "file") {
+        const f = item.file;
+        const row = h(
+          "div",
+          {
+            class: cn(
+              "p-3 cursor-pointer select-none",
+              "flex items-center justify-between gap-3",
+              "rounded-full px-3 mx-1 my-1 hover:bg-command-item-hover-background hover:text-command-item-hover-foreground",
+              i === active &&
+                "bg-command-item-active-background text-command-item-active-foreground",
+            ),
+            on: {
+              mousedown: (e: Event) => {
+                e.preventDefault();
+                openFile(f);
+              },
+            },
+          },
+          h(
+            "div",
+            { class: "min-w-0 flex items-center gap-2" },
+            (() => {
+              const img = h("img", {
+                class: "w-4 h-4 shrink-0",
+              }) as HTMLImageElement;
+              img.src = `./file-icons/${get_file_icon(f.name)}`;
+              return img;
+            })(),
+            h("div", { class: "text-[16px] truncate" }, f.name),
+            f.dir
+              ? h(
+                  "div",
+                  { class: "text-[11px] opacity-50 truncate" },
+                  f.dir,
+                )
+              : null,
+          ),
+          h(
+            "div",
+            { class: "shrink-0 opacity-40 text-[11px]" },
+            "file",
+          ),
+        );
+
+        list.appendChild(row);
+        if (i === active && scrollIntoView) {
+          requestAnimationFrame(() => row.scrollIntoView({ block: "nearest" }));
+        }
+        return;
+      }
+
       if (item.kind === "group") {
         const row = h(
           "div",
@@ -391,6 +498,8 @@ export function Command(opts: {
     query = "";
     activeGroup = null;
     active = 0;
+    fileResults = [];
+    fileSeq++;
     listVisible = false;
     list.style.display = "none";
     divider.style.display = "none";
@@ -462,6 +571,11 @@ export function Command(opts: {
 
       if (item.kind === "group") {
         selectGroup(item.group);
+        return;
+      }
+
+      if (item.kind === "file") {
+        openFile(item.file);
         return;
       }
 

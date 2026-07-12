@@ -25,6 +25,7 @@ export const FS_RENAME = "fs:rename";
 export const FS_READ_BASE_64 = "fs:read_base64";
 export const FS_RELATIVE = "fs:relative";
 export const FS_OPEN = "fs:open";
+export const FS_SEARCH_FILES = "fs:search-files";
 
 export const WATCHER_START = "watcher:start";
 export const WATCHER_STOP = "watcher:stop";

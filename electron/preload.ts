@@ -38,6 +38,7 @@ import {
   SHELL_OPEN_EXTERNAL,
   FS_RELATIVE,
   FS_OPEN,
+  FS_SEARCH_FILES,
   CHAT_PUSH,
   CHAT_RUN_TOOL,
   CHAT_SKIP_TOOL,
@@ -155,6 +156,10 @@ contextBridge.exposeInMainWorld("files", {
     ipcRenderer.invoke(FS_RELATIVE, from, to) as Promise<string>,
   open_file: () =>
     ipcRenderer.invoke(FS_OPEN) as Promise<{ cancel: boolean; path: string }>,
+  search_files: (root: string, query: string, limit?: number) =>
+    ipcRenderer.invoke(FS_SEARCH_FILES, root, query, limit) as Promise<
+      { path: string; name: string; dir: string }[]
+    >,
 });
 
 contextBridge.exposeInMainWorld("watcher", {

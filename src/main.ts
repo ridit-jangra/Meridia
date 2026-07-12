@@ -11,6 +11,7 @@ import { editor_preset } from "./code/workbench/browser/layouts/presets/preset.e
 import { LayoutRenderer } from "./code/workbench/browser/layouts/layout.renderer";
 import { shortcuts } from "./code/workbench/common/shortcut/shortcut.service";
 import { Command } from "./code/workbench/browser/parts/components/command/command";
+import { open_editor_tab } from "./code/editor/editor.helper";
 import { store } from "./code/workbench/common/state/store";
 import { set_command_palette_open } from "./code/workbench/common/state/slices/layout.slice";
 import { focus_editor } from "./code/workbench/common/focus";
@@ -44,6 +45,12 @@ async function init() {
       if (open === false) focus_editor();
     },
     open: false,
+    fileProvider: async (query) => {
+      const root = await window.workspace.get_current_workspace_path();
+      if (!root) return [];
+      return window.files.search_files(root, query, 40);
+    },
+    onOpenFile: (path) => open_editor_tab(path, "EDITOR_SINGLE"),
   });
 
   store.subscribe(() => {

@@ -68,6 +68,11 @@ type files_api = {
   read_file_text(p: string): Promise<string>;
   real_path(p: string): Promise<string>;
   open_file(): Promise<{ cancel: boolean; path: string }>;
+  search_files(
+    root: string,
+    query: string,
+    limit?: number,
+  ): Promise<{ path: string; name: string; dir: string }[]>;
   write_file_text(p: string, content: string): Promise<boolean>;
   create_dir(p: string): Promise<boolean>;
   remove(p: string): Promise<boolean>;
